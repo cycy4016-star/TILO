@@ -3,6 +3,7 @@
 'use client';
 
 import { Check, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -133,7 +134,13 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
           onCheckedChange={(value) => setConsent(value === true)}
           className="mt-0.5"
         />
-        <span>Tick to opt in — {storeName} may contact you about orders and shop updates.</span>
+        <span>
+          Tick to opt in — {storeName} may contact you about orders and shop updates. See the{' '}
+          <Link href="/privacy" className="underline underline-offset-2">
+            privacy policy
+          </Link>
+          .
+        </span>
       </label>
       {error && <p className="mt-2 text-sm font-bold text-red-600">{error}</p>}
       <Button

@@ -32,4 +32,6 @@ export const navItems: NavItem[] = [
   { label: 'The week', href: '/#week', group: 'primary', order: 2 },
   { label: 'Start', href: '/#start', group: 'secondary', order: 0 },
   { label: 'Workspace', href: '/dashboard', group: 'secondary', requiresAuth: true, order: 1 },
+  { label: 'Privacy', href: '/privacy', group: 'footer', order: 0 },
+  { label: 'Terms', href: '/terms', group: 'footer', order: 1 },
 ];
