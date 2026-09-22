@@ -12,9 +12,12 @@
 #   POST https://<app>/api/cron/weekly-summary (weekly pulse SMS)
 # Header: Authorization: Bearer <CRON_SECRET>
 
+# NOTE: Render's free Postgres instances are deleted after 30 days. For a
+# real rollout, set `plan: starter` (paid) after the trial — data survives
+# upgrades. The free web plan also sleeps after ~15 min idle.
 databases:
   - name: tilo-db
-    plan: free
+    plan: free # upgrade to starter before relying on it
     databaseName: tilo
     user: tilo
 
