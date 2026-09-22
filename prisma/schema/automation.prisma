@@ -1,0 +1,61 @@
+// Tilo automation models: rules a shop sets once, plus the audit trail of
+// what the daily sweep does. Datasource + generator live in _base.prisma.
+
+enum AutomationKind {
+  SMS_NUDGE
+  STATUS_FLIP
+  READY_PING
+  STALL_ALERT
+  PAYMENT_CONFIRMED
+  PAYMENT_REMINDER
+  REVIEW_REQUEST
+  RE_ENGAGE
+}
+
+enum AutomationEventKind {
+  SMS_SENT
+  STATUS_FLIPPED
+  SUMMARY_SENT
+}
+
+model AutomationRule {
+  id            String         @id @default(cuid())
+  name          String
+  kind          AutomationKind
+  // triggerStatus is NULL for kinds that are not keyed to a status window
+  // (e.g. PAYMENT_CONFIRMED, RE_ENGAGE). Per-plugin meaning.
+  triggerStatus OrderStatus?
+  waitHours      Int
+  message        String?
+  // Shop-owner / staff phone for owner-facing alerts (STALL_ALERT). Optional on
+  // other kinds, ignored by them.
+  recipient      String?
+  targetStatus   OrderStatus?
+  enabled        Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  events         AutomationEvent[]
+
+  @@index([enabled, kind])
+  @@index([enabled, triggerStatus])
+}
+
+model AutomationEvent {
+  id          String               @id @default(cuid())
+  ruleId      String?
+  orderId     String?
+  customerId  String?
+  kind        AutomationEventKind
+  to          String?
+  message     String?
+  providerRef String?
+  ok          Boolean              @default(true)
+  detail      String?
+  createdAt   DateTime             @default(now())
+  rule        AutomationRule?      @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  order       Order?               @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  customer    Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([ruleId, orderId, kind])
+  @@index([kind, createdAt])
+}

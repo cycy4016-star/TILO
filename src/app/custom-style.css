@@ -1,0 +1,27 @@
+/* Your custom global CSS: keyframes, animation classes, one-off global
+ * styles, and @import your own .css files. Prefer tw-animate-css for motion (animate-in,
+ * fade-in, slide-in-from-bottom-N, duration-*). Edit HERE, not globals.css. */
+
+@keyframes tilo-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: tilo-marquee 28s linear infinite;
+}
+
+.text-outline-cream {
+  -webkit-text-stroke: 2px var(--color-primary-foreground);
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}

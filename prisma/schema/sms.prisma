@@ -1,0 +1,29 @@
+// SMS usage ledger: one row per outbound SMS attempt through the provider.
+// This is how a single-workspace deployment tracks what it spends on Arkesel —
+// the dashboard "SMS this month" readout reads from here. Datasource +
+// generator live in _base.prisma.
+
+enum SmsSource {
+  OTP
+  AUTOMATION
+  SUMMARY
+  MANUAL
+}
+
+model SmsUsage {
+  id          String    @id @default(cuid())
+  to          String
+  source      SmsSource @default(MANUAL)
+  body        String?
+  // Estimated billing units: ceil(message length / 160) for one recipient.
+  segments    Int       @default(1)
+  credits     Int       @default(1)
+  provider    String    @default("arkesel")
+  providerRef String?
+  ok          Boolean   @default(true)
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([source, createdAt])
+}

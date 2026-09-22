@@ -1,0 +1,12 @@
+// Datasource + generator blocks only.
+// Data models drop their own prisma/schema/<module>.prisma files alongside
+// this one. Do NOT redeclare datasource or generator in any module file.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

@@ -1,0 +1,30 @@
+// Paystack payment attempts. One row per initialized transaction, keyed by the
+// provider reference so the webhook and the client-side verify can both settle
+// the same order idempotently. Datasource + generator live in _base.prisma.
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  ABANDONED
+}
+
+model PaymentTransaction {
+  id               String        @id @default(cuid())
+  reference        String        @unique
+  orderId          String?
+  amountPesewas    Int
+  currency         String        @default("GHS")
+  status           PaymentStatus @default(PENDING)
+  email            String?
+  authorizationUrl String?
+  providerRef      String?
+  // Raw provider payload (JSON string) for support + reconciliation.
+  raw              String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  order            Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([status, createdAt])
+}

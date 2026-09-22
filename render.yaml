@@ -1,0 +1,79 @@
+# Render Blueprint — https://render.com/docs/infrastructure-as-code
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploys Tilo as a Node web service + managed PostgreSQL on Render.
+# Push this repo to GitHub and use "New > Blueprint" (render.yaml seen via
+# the public repository URL); Render provisions the Postgres database, links
+# DATABASE_URL automatically, runs migrations, then builds + starts Next.js.
+#
+# Scheduled automations are NOT a Render service here — trigger them from any
+# external scheduler (cron-job.org / GitHub Actions) with:
+#   POST https://<app>/api/cron/rules          (run the daily sweep)
+#   POST https://<app>/api/cron/weekly-summary (weekly pulse SMS)
+# Header: Authorization: Bearer <CRON_SECRET>
+
+databases:
+  - name: tilo-db
+    plan: free
+    databaseName: tilo
+    user: tilo
+
+services:
+  - type: web
+    name: tilo
+    runtime: node
+    plan: free
+    healthCheckPath: /health
+    # postinstall already runs `prisma generate`; migrate, then build so the
+    # generated Prisma client + schema are in place before the server starts.
+    buildCommand: npm install && npm run db:migrate:deploy && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tilo-db
+          property: connectionString
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: SEO_INDEXABLE
+        value: 'false'
+      - key: SKIP_ENV_VALIDATION
+        value: 'false'
+      - key: CRON_SECRET
+        sync: false
+      - key: SMS_PROVIDER
+        sync: false
+      - key: ARKESEL_API_KEY
+        sync: false
+      - key: ARKESEL_SENDER_ID
+        sync: false
+      - key: SMS_SUMMARY_RECIPIENT
+        sync: false
+      - key: SMS_COST_PER_CREDIT_PESEWAS
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PHONE
+        sync: false
+      - key: EMAIL_PROVIDER
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+      - key: PAYSTACK_CALLBACK_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_GOOGLE_AUTH
+        value: 'false'

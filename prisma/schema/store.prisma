@@ -1,0 +1,124 @@
+// Tilo app code.
+// Storefront catalog: a store (one per workspace) with the items it sells —
+// products or services. The public page at /store/[slug] is the "Jumia" face:
+// customers browse and order on WhatsApp from the item's chat button.
+
+enum StoreItemKind {
+  PRODUCT
+  SERVICE
+}
+
+enum SocialPlatform {
+  TIKTOK
+  INSTAGRAM
+  FACEBOOK_PAGE
+  WHATSAPP_STATUS
+}
+
+enum SocialPostStatus {
+  SHARED
+  PUBLISHED
+}
+
+// How a promotion takes money off. PERCENT = % of the item price,
+// FIXED = an exact amount in cedis (stored in pesewas).
+enum PromotionKind {
+  PERCENT
+  FIXED
+}
+
+model Store {
+  id           String      @id @default(cuid())
+  name         String
+  slug         String      @unique
+  tagline      String?
+  description  String?
+  // Number the WhatsApp order buttons deep-link to. Local Ghana format.
+  contactPhone String?
+  active       Boolean     @default(true)
+  // Announcement headline shown above the catalog on the storefront
+  // (e.g. "Mid-sem sale — use code STUDENT10"). Empty = no banner.
+  promoBanner  String?
+  // Store logo, stored in Postgres so it survives Render's ephemeral disk.
+  // Served by /api/public/store/[slug]/logo (no object storage needed).
+  logo         Bytes?
+  logoMime     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        StoreItem[]
+  posts        StorePost[]
+  promotions   Promotion[]
+
+  @@index([slug])
+}
+
+model StoreItem {
+  id           String        @id @default(cuid())
+  storeId      String
+  kind         StoreItemKind @default(PRODUCT)
+  name         String
+  description  String?
+  pricePesewas Int
+  // Original "was" price in pesewas. When set higher than pricePesewas the
+  // storefront shows it struck through with an auto "+X% off" badge.
+  compareAtPricePesewas Int?
+  sortOrder    Int           @default(0)
+  active       Boolean       @default(true)
+  // Item photo, stored in Postgres so it survives Render's ephemeral disk.
+  // Served by /api/public/store/items/[itemId]/image.
+  image        Bytes?
+  imageMime    String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  posts        StorePost[]
+
+  @@index([storeId])
+}
+
+model StorePost {
+  id          String           @id @default(cuid())
+  storeId     String
+  itemId      String
+  platform    SocialPlatform
+  status      SocialPostStatus @default(SHARED)
+  caption     String
+  externalUrl String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  store       Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  item        StoreItem        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, createdAt])
+  @@index([itemId])
+}
+
+// A sale or discount code the owner can switch on/off. Customers see live
+// promotions on the storefront as "Today's offers" and quote the code (if any)
+// in the WhatsApp order chat — orders themselves are confirmed off-platform.
+model Promotion {
+  id                 String        @id @default(cuid())
+  storeId            String
+  // Label customers see on the storefront, e.g. "Mid-Sem Sale".
+  name               String
+  // Optional code customers quote in chat ("STUDENT10"). Blank = store-wide,
+  // no code needed.
+  code               String?
+  kind               PromotionKind
+  // PERCENT: points (1-100). FIXED: cedis off, in pesewas.
+  value              Int
+  // Minimum order subtotal to qualify (pesewas). Null = any order.
+  minSubtotalPesewas Int?
+  active             Boolean       @default(true)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  // Optional banner artwork, stored in Postgres like logos and item photos.
+  // Served by /api/public/store/promotions/[promoId]/image.
+  image              Bytes?
+  imageMime          String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  store              Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, active])
+}

@@ -1,0 +1,49 @@
+// Tilo customer and order workspace models.
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+  events    AutomationEvent[]
+  notifications Notification[]
+
+  @@index([name])
+  @@index([company])
+  @@index([email])
+  @@index([phone])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String
+  customerId    String
+  description   String
+  status        OrderStatus @default(PENDING)
+  // Payment chasing: amount in GHS pesewas (no floats), paidAt set once money lands.
+  amountPesewas Int?
+  paidAt        DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  events        AutomationEvent[]
+  payments      PaymentTransaction[]
+  notifications Notification[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([paidAt])
+}

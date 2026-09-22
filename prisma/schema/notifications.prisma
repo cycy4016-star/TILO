@@ -1,0 +1,29 @@
+// In-app activity notifications: the live feed a store owner sees in the
+// dashboard bell. One row per event worth surfacing — a visitor captured on the
+// storefront, a public order placed, an SMS sent or failed. Single-tenant, so
+// notifications belong to the one store without a storeId.
+// Datasource + generator live in _base.prisma.
+
+enum NotificationKind {
+  VISITOR_CAPTURED
+  ORDER_PLACED
+  SMS_SENT
+  SMS_FAILED
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  kind       NotificationKind
+  title      String
+  message    String?
+  customerId String?
+  orderId    String?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  customer   Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order      Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([readAt, createdAt])
+  @@index([kind, createdAt])
+}
