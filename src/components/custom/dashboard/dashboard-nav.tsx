@@ -13,17 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
-
-function hasRole(role: string | null | undefined, expected: string) {
-  return (
-    role
-      ?.split(',')
-      .map((item) => item.trim())
-      .includes(expected) ?? false
-  );
-}
 
 const navItems = [
   {
@@ -61,12 +51,15 @@ const navItems = [
     label: 'Switchboard',
     icon: Bot,
   },
+  {
+    href: '/dashboard/admin',
+    label: 'Admin',
+    icon: ShieldCheck,
+  },
 ];
 
 export function DashboardNav() {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const isAdmin = hasRole(session?.user?.role, 'admin');
 
   return (
     <nav
@@ -94,21 +87,6 @@ export function DashboardNav() {
           </Link>
         );
       })}
-      {isAdmin && (
-        <Link
-          href="/dashboard/admin"
-          aria-current={pathname === '/dashboard/admin' ? 'page' : undefined}
-          className={cn(
-            'flex h-11 shrink-0 items-center gap-2 rounded-2xl px-4 text-sm font-black uppercase tracking-wide transition-all',
-            pathname === '/dashboard/admin'
-              ? '-rotate-1 bg-yellow-600 text-white shadow-[3px_3px_0_0_#451a03]'
-              : 'text-stone-500 hover:bg-amber-100 hover:text-amber-900 dark:text-stone-400 dark:hover:bg-stone-800',
-          )}
-        >
-          <ShieldCheck aria-hidden="true" className="size-4" />
-          <span>Admin</span>
-        </Link>
-      )}
     </nav>
   );
 }

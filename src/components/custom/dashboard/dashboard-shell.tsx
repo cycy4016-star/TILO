@@ -15,20 +15,10 @@ export interface DashboardShellProps {
   children: ReactNode;
 }
 
-function hasRole(role: string | null | undefined, expected: string) {
-  return (
-    role
-      ?.split(',')
-      .map((item) => item.trim())
-      .includes(expected) ?? false
-  );
-}
-
 export function DashboardShell({ children }: DashboardShellProps) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
-  const isAdmin = hasRole(session?.user?.role, 'admin');
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -83,7 +73,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <div className="flex items-center gap-2">
             <NotificationBell />
             <span className="hidden rounded-full border-2 border-amber-950/20 px-3 py-1 text-[0.7rem] font-black uppercase tracking-widest text-amber-900 sm:block">
-              {isAdmin ? 'Boss' : 'Crew'}
+              Boss
             </span>
             <Button
               variant="outline"

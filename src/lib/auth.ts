@@ -8,10 +8,9 @@ import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 import { sendSms } from '@/lib/sms';
 
-// Compose the admin grant with the app's hooks — don't overwrite them.
+// Compose the app's hooks — don't overwrite them. Every account is a sole owner
+// of the shop: the `admin` role is granted to all sign-ups (user.create.before).
 const appHooks = authConfig.databaseHooks;
-const adminEmail = env.ADMIN_EMAIL?.trim().toLowerCase();
-const adminPhone = env.ADMIN_PHONE ? toE164(env.ADMIN_PHONE) : null;
 
 // Trusted origins for better-auth Origin/CSRF checks. baseURL's own origin is
 // always trusted implicitly. Add comma-separated extra origins via
@@ -79,36 +78,22 @@ export const auth = betterAuth({
               emailVerified,
               phoneNumber: phone,
               phoneNumberVerified: Boolean(phone) || base.phoneNumberVerified === true,
-              // Grant the owner role at create time. Without SMS OTP there is no
-              // later verification callback to promote on, so the owner match is
-              // decided here from the email/phone they signed up with.
-              role:
-                adminEmail === base.email.toLowerCase() || (phone && phone === adminPhone)
-                  ? 'admin'
-                  : (base.role ?? 'user'),
+              // Every account is a sole owner of the shop: grant the admin role
+              // to all sign-ups. There is no crew/user tier — each user has the
+              // full switchboard, automations and dashboards from day one.
+              role: 'admin',
             },
           };
-        },
-      },
-      update: {
-        ...appHooks?.user?.update,
-        after: async (user, ctx) => {
-          // Verification updates carry the full persisted user. Check the stored
-          // identity again so a stale update cannot promote a changed address.
-          if (adminEmail && user.emailVerified && user.email.toLowerCase() === adminEmail) {
-            await prisma.user.updateMany({
-              where: { id: user.id, email: user.email, emailVerified: true },
-              data: { role: 'admin' },
-            });
-          }
-          await appHooks?.user?.update?.after?.(user, ctx);
         },
       },
     },
   },
   plugins: [
     admin({
-      defaultRole: 'user',
+      // Every account is a sole owner: the admin role is assigned on creation
+      // (see user.create.before), so the default (used for API-created users)
+      // matches.
+      defaultRole: 'admin',
       adminRoles: ['admin'],
     }),
     // Phone is the primary identity. OTP confirmation is OFF (requireVerification

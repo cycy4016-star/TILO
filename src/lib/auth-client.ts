@@ -30,13 +30,15 @@ export const authClient = createAuthClient({
 export const { signIn, signUp, signOut, useSession } = authClient;
 
 /**
- * `true` when the signed-in user is an admin (`role === 'admin'`, the admin
- * plugin's field). Returns `false` while the session is still loading and for
- * logged-out visitors.
+ * `true` while a user is signed in. Every account is a sole owner of the shop
+ * (the server grants `admin` to all sign-ups, so there is no crew tier), so
+ * "is admin" collapses to "is signed in".
  *
- * The role lives on **`data.user.role`**. It is NOT `data.session.user.role`.
+ * Returns `false` while the session is still loading and for logged-out
+ * visitors. The role lives on **`data.user.role`**; it is NOT
+ * `data.session.user.role`.
  */
 export function useIsAdmin(): boolean {
   const { data } = useSession();
-  return data?.user?.role === 'admin';
+  return Boolean(data?.user);
 }

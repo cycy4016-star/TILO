@@ -72,7 +72,7 @@ export function AdminMonitor() {
           who&apos;s on <span className="text-amber-300">the floor.</span>
         </h1>
         <p className="relative mt-3 max-w-md font-medium text-amber-100">
-          Every account, their role, and the last time they walked in.
+          Every account, their sign-in pulse, and the last time they walked in.
         </p>
       </section>
 
@@ -140,14 +140,8 @@ export function AdminMonitor() {
                     </td>
                     <td className="px-5 py-3 font-mono text-sm font-black">{user.phone ?? '—'}</td>
                     <td className="px-5 py-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[0.7rem] font-black uppercase tracking-wide ${
-                          user.role === 'admin'
-                            ? 'bg-amber-950 text-amber-300'
-                            : 'bg-amber-100 text-amber-800 dark:bg-stone-800 dark:text-amber-300'
-                        }`}
-                      >
-                        {user.role === 'admin' ? 'Boss' : 'Crew'}
+                      <span className="rounded-full px-2 py-0.5 text-[0.7rem] font-black uppercase tracking-wide bg-amber-950 text-amber-300">
+                        Boss
                       </span>
                     </td>
                     <td className="px-5 py-3 font-mono text-sm font-black">{user.sessionCount}</td>
