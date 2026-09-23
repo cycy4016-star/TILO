@@ -44,8 +44,10 @@ services:
         sync: false
       - key: SEO_INDEXABLE
         value: 'false'
-      - key: SKIP_ENV_VALIDATION
-        value: 'false'
+      # Intentionally UNSET (omit the key entirely). env.ts reads it with
+      # `!!process.env.SKIP_ENV_VALIDATION`, so any non-empty value — even
+      # 'false' — disables env validation and would mask a missing required
+      # var. Keep it absent so the build validates the env vars loudly.
       - key: CRON_SECRET
         sync: false
       - key: SMS_PROVIDER
