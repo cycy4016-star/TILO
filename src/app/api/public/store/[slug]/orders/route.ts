@@ -88,6 +88,18 @@ export async function POST(request: Request, context: RouteContext) {
         orderNumber: buildOrderNumber(),
         description: `${quantity}x ${item.name}${note ? ` — ${note}` : ''}`,
         status: 'PENDING',
+        // Real money is expected for storefront orders, so the amount is derived
+        // from the item price and the line is snapshotted into history.
+        amountPesewas: item.pricePesewas * quantity,
+        lines: {
+          create: {
+            storeItemId: item.id,
+            name: item.name,
+            unitPricePesewas: item.pricePesewas,
+            unitCostPesewas: item.costPricePesewas,
+            quantity,
+          },
+        },
       },
     });
 

@@ -34,10 +34,7 @@ export async function requireAuth(_req?: Request): Promise<SessionUser> {
   if (!user) {
     throw Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  // No unverified identities past the door. An aborted sign-up (created but
-  // never confirmed a phone or email) must not reach any workspace API.
-  if (!user.phoneNumberVerified && !user.emailVerified) {
-    throw Response.json({ error: 'Verify your phone to continue' }, { status: 403 });
-  }
+  // SMS OTP is off: identities are trusted at sign-up, so a live session is a
+  // complete account — no extra verification gate past the door.
   return user;
 }

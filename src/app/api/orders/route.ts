@@ -3,7 +3,13 @@ import 'server-only';
 
 import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
-import { OrderCreate, OrderItem, OrderList, OrderListQuery } from '@/lib/contracts/order';
+import {
+  OrderCreate,
+  OrderItem,
+  OrderLineItem,
+  OrderList,
+  OrderListQuery,
+} from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
 
@@ -19,7 +25,7 @@ function validationResponse(error: { flatten: () => { fieldErrors: Record<string
   return NextResponse.json({ errors }, { status: 400 });
 }
 
-function serializeOrder(order: {
+type OrderWithLines = {
   id: string;
   orderNumber: string;
   customerId: string;
@@ -29,8 +35,34 @@ function serializeOrder(order: {
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  lines: {
+    id: string;
+    orderId: string;
+    storeItemId: string | null;
+    name: string;
+    unitPricePesewas: number;
+    unitCostPesewas: number | null;
+    quantity: number;
+  }[];
   customer?: { name: string } | null;
-}) {
+};
+
+function serializeOrderLines(lines: OrderWithLines['lines']) {
+  return lines.map((line) =>
+    OrderLineItem.parse({
+      id: line.id,
+      orderId: line.orderId,
+      storeItemId: line.storeItemId,
+      name: line.name,
+      unitPricePesewas: line.unitPricePesewas,
+      unitCostPesewas: line.unitCostPesewas,
+      quantity: line.quantity,
+      lineTotalPesewas: line.unitPricePesewas * line.quantity,
+    }),
+  );
+}
+
+function serializeOrder(order: OrderWithLines) {
   return OrderItem.parse({
     id: order.id,
     orderNumber: order.orderNumber,
@@ -71,13 +103,17 @@ export async function GET(request: Request) {
       where,
       orderBy: { createdAt: 'desc' },
       take: 100,
-      include: { customer: { select: { name: true } } },
+      include: {
+        customer: { select: { name: true } },
+        lines: true,
+      },
     });
     return NextResponse.json(
       OrderList.parse({
         items: orders.map((order) => ({
           ...serializeOrder(order),
           customerName: order.customer?.name ?? '',
+          lines: serializeOrderLines(order.lines),
         })),
       }),
     );
@@ -102,18 +138,57 @@ export async function POST(request: Request) {
     const customer = await prisma.customer.findUnique({ where: { id: parsed.data.customerId } });
     if (!customer) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
 
+    // Resolve line items to the current catalog values so price + cost get
+    // snapshotted at sale time. Unknown item ids are rejected.
+    const items = parsed.data.lines?.length
+      ? await prisma.storeItem.findMany({
+          where: { id: { in: parsed.data.lines.map((l) => l.storeItemId) } },
+        })
+      : [];
+    const itemById = new Map(items.map((i) => [i.id, i]));
+    const lineData = (parsed.data.lines ?? []).map((line) => {
+      const item = itemById.get(line.storeItemId);
+      if (!item) throw new Error('UNKNOWN_ITEM');
+      return {
+        storeItemId: item.id,
+        name: item.name,
+        unitPricePesewas: item.pricePesewas,
+        unitCostPesewas: item.costPricePesewas,
+        quantity: line.quantity,
+      };
+    });
+
+    // Derived amount: sum of line totals. When an explicit amount is given it
+    // wins (e.g. a rounded number quoted to the customer over the phone).
+    const lineTotalPesewas = lineData.reduce((sum, l) => sum + l.unitPricePesewas * l.quantity, 0);
+    const amountPesewas = parsed.data.amountPesewas ?? (lineData.length ? lineTotalPesewas : null);
+
     const order = await prisma.order.create({
       data: {
         customerId: parsed.data.customerId,
         description: parsed.data.description,
         status: parsed.data.status,
-        amountPesewas: parsed.data.amountPesewas ?? null,
+        amountPesewas,
         orderNumber: `TILO-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+        lines: lineData.length ? { create: lineData } : undefined,
       },
+      include: { lines: true },
     });
-    return NextResponse.json(serializeOrder(order), { status: 201 });
+    return NextResponse.json(
+      {
+        ...serializeOrder(order),
+        lines: serializeOrderLines(order.lines),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof Response) return error;
+    if (error instanceof Error && error.message === 'UNKNOWN_ITEM') {
+      return NextResponse.json(
+        { errors: { lines: 'One of those items no longer exists' } },
+        { status: 400 },
+      );
+    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -10,14 +10,14 @@ import { signIn } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 
-// Phone + password sign-in (with an optional "or Google" escape hatch). Phone
-// is the verified identity for phone-first accounts; users who pick Google use
-// their Google-verified email instead. Composes the base shadcn primitives
+// Email-or-phone + password sign-in (with an optional "or Google" escape hatch).
+// Phone is the primary identity for phone-first accounts; users who pick Google
+// use their Google-verified email instead. Composes the base shadcn primitives
 // styled through the theme tokens. On success the session cookie is set by the
 // catch-all route handler and we reload into the workspace. Google requires
 // NEXT_PUBLIC_GOOGLE_AUTH=true + GOOGLE_CLIENT_ID/SECRET.
 export function SignInForm() {
-  const [phone, setPhone] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
@@ -27,10 +27,10 @@ export function SignInForm() {
     e.preventDefault();
     setPending(true);
     setError(undefined);
-    const { error: signInError } = await signIn.phoneNumber({
-      phoneNumber: toE164(phone),
-      password,
-    });
+    const isEmail = identifier.includes('@');
+    const { error: signInError } = isEmail
+      ? await signIn.email({ email: identifier.trim(), password })
+      : await signIn.phoneNumber({ phoneNumber: toE164(identifier), password });
     setPending(false);
     if (signInError) {
       setError(signInError.message ?? 'Could not sign in. Check your details.');
@@ -67,20 +67,20 @@ export function SignInForm() {
           </Button>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-stone-400">
             <span className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
-            or with your phone
+            or with your phone or email
             <span className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
           </div>
         </div>
       ) : null}
-      <Label htmlFor="sign-in-phone">Phone number</Label>
+      <Label htmlFor="sign-in-identifier">Phone number or email</Label>
       <Input
-        id="sign-in-phone"
-        name="phone"
-        type="tel"
-        autoComplete="tel"
-        placeholder="024 000 0000"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        id="sign-in-identifier"
+        name="identifier"
+        type="text"
+        autoComplete="username"
+        placeholder="024 000 0000 or you@example.com"
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
       />

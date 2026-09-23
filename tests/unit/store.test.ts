@@ -28,6 +28,7 @@ const storePayload = {
       name: 'Branded apron',
       description: 'One colour',
       pricePesewas: 4550,
+      costPricePesewas: null,
       compareAtPricePesewas: null,
       sortOrder: 0,
       active: true,

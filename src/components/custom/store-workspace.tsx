@@ -682,6 +682,9 @@ function ItemForm({
   onClose: () => void;
 }) {
   const [price, setPrice] = useState(initial ? pesewasToCedis(initial.pricePesewas) : '');
+  const [cost, setCost] = useState(
+    initial?.costPricePesewas != null ? pesewasToCedis(initial.costPricePesewas) : '',
+  );
   const [compareAt, setCompareAt] = useState(
     initial?.compareAtPricePesewas != null ? pesewasToCedis(initial.compareAtPricePesewas) : '',
   );
@@ -719,11 +722,22 @@ function ItemForm({
       }
       compareAtPricePesewas = parsed;
     }
+    const costRaw = cost.trim();
+    let costPricePesewas: number | null = null;
+    if (costRaw) {
+      const parsed = cedisToPesewas(costRaw);
+      if (parsed == null) {
+        toast.error('Enter a valid cost in cedis or leave it blank');
+        return;
+      }
+      costPricePesewas = parsed;
+    }
     const payload = {
       ...values,
       description: cleanOptional((values as { description?: string }).description),
       pricePesewas: amountPesewas,
       compareAtPricePesewas,
+      costPricePesewas,
     };
     try {
       let saved = initial
@@ -820,6 +834,23 @@ function ItemForm({
                 className="rounded-2xl"
               />
             </div>
+          </FormItem>
+          <FormItem>
+            <Label>Cost price (cedis)</Label>
+            <div>
+              <Input
+                type="text"
+                inputMode="decimal"
+                placeholder="28.00"
+                value={cost}
+                onChange={(event) => setCost(event.target.value)}
+                className="rounded-2xl"
+              />
+            </div>
+            <p className="text-xs font-medium text-stone-500">
+              What you pay for the item — used for profit and Intelligence analytics. Leave blank to
+              hide.
+            </p>
           </FormItem>
           <FormItem>
             <Label>Original price (cedis)</Label>

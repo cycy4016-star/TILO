@@ -56,6 +56,7 @@ const order = {
   paidAt: null,
   createdAt: new Date('2026-09-18T00:00:00.000Z'),
   updatedAt: new Date('2026-09-18T00:00:00.000Z'),
+  lines: [],
 };
 
 beforeEach(() => {
@@ -283,6 +284,7 @@ describe('store routes', () => {
     name: 'Branded apron',
     description: null,
     pricePesewas: 4550,
+    costPricePesewas: null,
     compareAtPricePesewas: null,
     sortOrder: 0,
     active: true,
@@ -398,6 +400,8 @@ describe('store post routes', () => {
     name: 'Branded apron',
     description: null,
     pricePesewas: 4550,
+    costPricePesewas: null,
+    compareAtPricePesewas: null,
     sortOrder: 0,
     active: true,
     createdAt: new Date('2026-09-21T00:00:00.000Z'),

@@ -5,28 +5,22 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient, signIn, signUp } from '@/lib/auth-client';
+import { signIn, signUp } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 
-type Step = 'details' | 'otp';
-
-// Phone-first sign-up: name + phone + password (email optional), then an SMS
-// OTP confirms the number. The phone is the primary verified identity; the
+// Phone-first sign-up: name + phone + password (email optional) opens the
+// workspace immediately — no SMS OTP. The phone is the primary identity; the
 // email is only a convenience and can be added later.
 export function SignUpForm() {
-  const [step, setStep] = useState<Step>('details');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [code, setCode] = useState('');
-  const [e164, setE164] = useState('');
   const [pending, setPending] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [notice, setNotice] = useState<string | undefined>(undefined);
 
   async function handleGoogle() {
     setGooglePending(true);
@@ -41,7 +35,7 @@ export function SignUpForm() {
     }
   }
 
-  async function handleDetails(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(undefined);
     const normalized = toE164(phone);
@@ -64,93 +58,24 @@ export function SignUpForm() {
 
     setPending(true);
     // Better Auth always needs an email; synthesize one when the user skips it.
-    // The phone number is attached later by verify({ updatePhoneNumber: true }).
     const accountEmail = email.trim() || `${normalized.replace(/^\+/, '')}@phone.tilo`;
     const { error: signUpError } = await signUp.email({
       name,
       email: accountEmail,
       password,
+      phoneNumber: normalized,
       inviteCode: inviteCode.trim(),
     });
+    setPending(false);
     if (signUpError) {
-      setPending(false);
       setError(signUpError.message ?? 'Could not create your account. Try again.');
-      return;
-    }
-
-    const { error: otpError } = await authClient.phoneNumber.sendOtp({ phoneNumber: normalized });
-    setPending(false);
-    setE164(normalized);
-    setStep('otp');
-    setNotice(`We sent a 6-digit code to ${normalized}.`);
-    if (otpError) {
-      setError(otpError.message ?? 'Account made, but the code did not send. Tap resend.');
-    }
-  }
-
-  async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(undefined);
-    setPending(true);
-    const { error: verifyError } = await authClient.phoneNumber.verify({
-      phoneNumber: e164,
-      code,
-      updatePhoneNumber: true,
-    });
-    setPending(false);
-    if (verifyError) {
-      setError(verifyError.message ?? 'That code did not work. Try again.');
       return;
     }
     window.location.assign('/dashboard');
   }
 
-  async function resend() {
-    setError(undefined);
-    setPending(true);
-    const { error: otpError } = await authClient.phoneNumber.sendOtp({ phoneNumber: e164 });
-    setPending(false);
-    if (otpError) {
-      setError(otpError.message ?? 'Could not resend the code.');
-      return;
-    }
-    setNotice(`New code sent to ${e164}.`);
-  }
-
-  if (step === 'otp') {
-    return (
-      <form onSubmit={handleVerify} className="flex flex-col gap-3" noValidate>
-        <Label htmlFor="sign-up-code">6-digit code</Label>
-        <Input
-          id="sign-up-code"
-          name="code"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={6}
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-          required
-          aria-invalid={error ? true : undefined}
-        />
-        {notice ? <p className="text-sm text-muted-foreground">{notice}</p> : null}
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" disabled={pending || code.length < 6} className="w-full">
-          {pending ? 'Checking…' : 'Confirm my number'}
-        </Button>
-        <button
-          type="button"
-          onClick={resend}
-          disabled={pending}
-          className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
-        >
-          Resend the code
-        </button>
-      </form>
-    );
-  }
-
   return (
-    <form onSubmit={handleDetails} className="flex flex-col gap-3" noValidate>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
       {env.NEXT_PUBLIC_GOOGLE_AUTH === 'true' ? (
         <div className="flex flex-col gap-3">
           <Button
@@ -232,7 +157,7 @@ export function SignUpForm() {
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? 'Creating account…' : 'Create account'}
+        {pending ? 'Opening the workspace…' : 'Create account'}
       </Button>
     </form>
   );

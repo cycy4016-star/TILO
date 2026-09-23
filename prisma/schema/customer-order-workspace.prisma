@@ -41,9 +41,33 @@ model Order {
   events        AutomationEvent[]
   payments      PaymentTransaction[]
   notifications Notification[]
+  lines         OrderLineItem[]
 
   @@index([customerId])
   @@index([status])
   @@index([orderNumber])
   @@index([paidAt])
+}
+
+// A productized line on an order. The name, unit price and unit cost are
+// SNAPSHOT columns: they freeze the catalog values at the moment of sale, so
+// history stays accurate even if the StoreItem is later renamed, repriced, or
+// deleted (storeItemId then goes null while the snapshots remain). The
+// owner's Intelligence + Products dashboards read these.
+model OrderLineItem {
+  id             String    @id @default(cuid())
+  orderId        String
+  // Null once the linked StoreItem is deleted — the snapshots still tell the story.
+  storeItemId    String?
+  name           String
+  unitPricePesewas Int
+  // Cost per unit at sale time (copied from costPricePesewas). Null if unset.
+  unitCostPesewas Int?
+  quantity       Int       @default(1)
+  createdAt      DateTime  @default(now())
+  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeItem      StoreItem? @relation(fields: [storeItemId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([storeItemId])
 }

@@ -33,17 +33,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.replace('/login');
-      return;
-    }
-    // An interrupted sign-up leaves a session without any verified identity;
-    // every workspace call 403s until they finish the OTP ramp.
-    if (
-      !isPending &&
-      session?.user &&
-      !session.user.phoneNumberVerified &&
-      !session.user.emailVerified
-    ) {
-      router.replace('/verify');
     }
   }, [isPending, router, session?.user]);
 

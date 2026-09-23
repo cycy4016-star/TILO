@@ -59,6 +59,10 @@ model StoreItem {
   name         String
   description  String?
   pricePesewas Int
+  // What it costs the workspace to deliver/source this item, in pesewas.
+  // Optional — used by the owner's Intelligence dashboard to compute gross
+  // profit per unit and overall margins. Never exposed on the public storefront.
+  costPricePesewas Int?
   // Original "was" price in pesewas. When set higher than pricePesewas the
   // storefront shows it struck through with an auto "+X% off" badge.
   compareAtPricePesewas Int?
@@ -72,6 +76,7 @@ model StoreItem {
   updatedAt    DateTime      @updatedAt
   store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
   posts        StorePost[]
+  orderLines   OrderLineItem[]
 
   @@index([storeId])
 }

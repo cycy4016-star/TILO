@@ -15,8 +15,15 @@ export const authClient = createAuthClient({
     adminClient(),
     phoneNumberClient(),
     // Mirrors `user.additionalFields` in auth-config.ts so signUp.email accepts
-    // (and types) the `inviteCode` field rendered on the sign-up form.
-    inferAdditionalFields({ user: { inviteCode: { type: 'string' } } }),
+    // (and types) the `inviteCode` and `phoneNumber` fields sent by the sign-up
+    // form. `phoneNumber` is registered by the phoneNumber plugin server-side;
+    // the mirror keeps the client body typed for the OTP-free sign-up path.
+    inferAdditionalFields({
+      user: {
+        inviteCode: { type: 'string' },
+        phoneNumber: { type: 'string' },
+      },
+    }),
   ],
 });
 

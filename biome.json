@@ -35,6 +35,7 @@
       "includes": [
         "src/app/**/route.ts",
         "src/app/layout.tsx",
+        "src/app/(dashboard)/dashboard/admin/page.tsx",
         "src/lib/**",
         "src/modules/**/server/**"
       ],

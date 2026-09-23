@@ -26,6 +26,9 @@ lerna-debug.log*
 .env*
 !.env.example
 
+# Local secrets helpers: never commit
+cron-secret.txt
+
 # IDE / editor
 .vscode/
 .idea/

@@ -1,5 +1,5 @@
 import 'server-only';
-import { betterAuth } from 'better-auth';
+import { APIError, betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin, phoneNumber } from 'better-auth/plugins';
 import { authConfig } from '@/lib/auth-config';
@@ -12,25 +12,6 @@ import { sendSms } from '@/lib/sms';
 const appHooks = authConfig.databaseHooks;
 const adminEmail = env.ADMIN_EMAIL?.trim().toLowerCase();
 const adminPhone = env.ADMIN_PHONE ? toE164(env.ADMIN_PHONE) : null;
-
-// Promote the owner account to admin once its phone is verified. The owner is
-// whoever set ADMIN_PHONE (verified identity) or ADMIN_EMAIL (matching address)
-// in the environment — both are controlled by whoever deploys the app.
-async function grantAdminIfOwner(
-  userId: string,
-  email: string | null | undefined,
-  phone: string | null | undefined,
-): Promise<void> {
-  const emailMatch = Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
-  const phoneMatch = Boolean(adminPhone && phone && phone === adminPhone);
-  if (!emailMatch && !phoneMatch) return;
-  try {
-    await prisma.user.updateMany({ where: { id: userId }, data: { role: 'admin' } });
-  } catch {
-    // Best-effort: never let an admin-promotion hiccup fail the verification the
-    // user just completed. The owner can be promoted on a later verification.
-  }
-}
 
 // Trusted origins for better-auth Origin/CSRF checks. baseURL's own origin is
 // always trusted implicitly. Add comma-separated extra origins via
@@ -79,17 +60,32 @@ export const auth = betterAuth({
             originallyVerified &&
             base.emailVerified === true &&
             base.email.toLowerCase() === originalEmail;
+          // OTP confirmation is off: the phone submitted at sign-up is accepted
+          // as the (already-trusted) identity, so normalize it to E.164 and mark
+          // it verified. Reject a number that already belongs to another user.
+          const phone = typeof base.phoneNumber === 'string' ? toE164(base.phoneNumber) : null;
+          if (phone) {
+            const taken = await prisma.user.findFirst({ where: { phoneNumber: phone } });
+            if (taken) {
+              throw APIError.from('UNPROCESSABLE_ENTITY', {
+                code: 'USER_ALREADY_EXISTS',
+                message: 'That phone number is already in use. Sign in instead.',
+              });
+            }
+          }
           return {
             data: {
               ...base,
               emailVerified,
-              // Unverified identities never receive an administrative role,
-              // including a role supplied by an application create hook.
-              ...(!emailVerified
-                ? { role: 'user' }
-                : adminEmail === originalEmail
-                  ? { role: 'admin' }
-                  : {}),
+              phoneNumber: phone,
+              phoneNumberVerified: Boolean(phone) || base.phoneNumberVerified === true,
+              // Grant the owner role at create time. Without SMS OTP there is no
+              // later verification callback to promote on, so the owner match is
+              // decided here from the email/phone they signed up with.
+              role:
+                adminEmail === base.email.toLowerCase() || (phone && phone === adminPhone)
+                  ? 'admin'
+                  : (base.role ?? 'user'),
             },
           };
         },
@@ -115,13 +111,14 @@ export const auth = betterAuth({
       defaultRole: 'user',
       adminRoles: ['admin'],
     }),
-    // Phone is the primary verified identity. OTP confirmation and password
-    // reset both go out over Arkesel SMS (see src/lib/sms.ts). Email stays
-    // optional — users may add one later, but it is never required to sign in.
+    // Phone is the primary identity. OTP confirmation is OFF (requireVerification
+    // false) so sign-up and sign-in never block on SMS — the phone submitted at
+    // sign-up is trusted directly (see user.create.before above). SMS OTP is
+    // still used for the optional "forgot password" reset (sendPasswordResetOTP).
     phoneNumber({
       otpLength: 6,
       expiresIn: 300,
-      requireVerification: true,
+      requireVerification: false,
       phoneNumberValidator: (value) => /^\+[1-9]\d{6,14}$/.test(value),
       sendOTP: async ({ phoneNumber: phone, code }) => {
         await sendSms(
@@ -136,9 +133,6 @@ export const auth = betterAuth({
           `Your Tilo password reset code is ${code}. It expires in 5 minutes.`,
           'OTP',
         );
-      },
-      callbackOnVerification: async ({ phoneNumber: phone, user }) => {
-        await grantAdminIfOwner(user.id, user.email, phone);
       },
     }),
     ...(authConfig.plugins ?? []),

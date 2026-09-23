@@ -13,6 +13,7 @@ export type StoreItemRow = {
   name: string;
   description: string | null;
   pricePesewas: number;
+  costPricePesewas: number | null;
   compareAtPricePesewas: number | null;
   sortOrder: number;
   active: boolean;
@@ -60,6 +61,7 @@ export function serializeStoreItem(item: StoreItemRow) {
     name: item.name,
     description: item.description,
     pricePesewas: item.pricePesewas,
+    costPricePesewas: item.costPricePesewas,
     compareAtPricePesewas: item.compareAtPricePesewas,
     sortOrder: item.sortOrder,
     active: item.active,

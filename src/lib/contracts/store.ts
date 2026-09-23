@@ -32,6 +32,9 @@ export const StoreItemCreate = z.object({
   kind: StoreItemKind.default('PRODUCT'),
   description: optionalText(500),
   pricePesewas: priceRule,
+  // What it costs the workspace to source/deliver this item (pesewas).
+  // Optional; powers the owner's gross-profit analytics when filled in.
+  costPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
   // "Was" price in pesewas. Shows a strikethrough + % badge when higher than
   // the actual price. Null = not on sale.
   compareAtPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
@@ -48,6 +51,7 @@ export const StoreItemUpdate = z.object({
   kind: StoreItemKind.optional(),
   description: optionalText(500),
   pricePesewas: priceRule.optional(),
+  costPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
   compareAtPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
   sortOrder: z.number().int().nonnegative().optional(),
   active: z.boolean().optional(),
@@ -60,6 +64,7 @@ export const StoreItemRecord = z.object({
   name: z.string(),
   description: z.string().nullable(),
   pricePesewas: z.number().int().nonnegative(),
+  costPricePesewas: z.number().int().nonnegative().nullable(),
   compareAtPricePesewas: z.number().int().nonnegative().nullable(),
   sortOrder: z.number().int().nonnegative(),
   active: z.boolean(),
