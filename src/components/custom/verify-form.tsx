@@ -1,6 +1,6 @@
 // Rescue ramp for an interrupted sign-up. Your account exists but the OTP
-// never landed (or was abandoned), and every workspace call 403s until a
-// phone or email is verified. This page lets you finish the job and roll on.
+// was never confirmed (or was abandoned), and the workspace stays locked
+// until a phone is SMS-verified. This page lets you finish the job and roll on.
 'use client';
 
 import { Check, KeyRound } from 'lucide-react';

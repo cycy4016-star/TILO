@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { signIn } from '@/lib/auth-client';
+import { authClient, signIn } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 
@@ -31,12 +31,18 @@ export function SignInForm() {
     const { error: signInError } = isEmail
       ? await signIn.email({ email: identifier.trim(), password })
       : await signIn.phoneNumber({ phoneNumber: toE164(identifier), password });
-    setPending(false);
     if (signInError) {
+      setPending(false);
       setError(signInError.message ?? 'Could not sign in. Check your details.');
       return;
     }
-    window.location.assign('/dashboard');
+    // Phone-first accounts must have proven their number by SMS. If they never
+    // finished the OTP step, send them to the /verify ramp instead of the floor.
+    let verified = true;
+    const session = await authClient.getSession().catch(() => null);
+    if (session?.data?.user) verified = session.data.user.phoneNumberVerified ?? true;
+    setPending(false);
+    window.location.assign(verified ? '/dashboard' : '/verify');
   }
 
   async function handleGoogle() {

@@ -34,7 +34,7 @@ export async function requireAuth(_req?: Request): Promise<SessionUser> {
   if (!user) {
     throw Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  // SMS OTP is off: identities are trusted at sign-up, so a live session is a
-  // complete account — no extra verification gate past the door.
+  // Phone identity is proven at sign-up by an SMS OTP (active provider: BMS),
+  // so a live session is a complete account — no extra gate past the door.
   return user;
 }

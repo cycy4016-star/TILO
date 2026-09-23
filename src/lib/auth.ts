@@ -59,9 +59,11 @@ export const auth = betterAuth({
             originallyVerified &&
             base.emailVerified === true &&
             base.email.toLowerCase() === originalEmail;
-          // OTP confirmation is off: the phone submitted at sign-up is accepted
-          // as the (already-trusted) identity, so normalize it to E.164 and mark
-          // it verified. Reject a number that already belongs to another user.
+          // OTP confirmation is ON: the phone is only trusted once the user
+          // proves it by SMS code (rendered by the sign-up form / /verify ramp),
+          // so never mark it verified here. Normalize to E.164 and keep the
+          // unique check — a number already claimed by another account is
+          // rejected up front.
           const phone = typeof base.phoneNumber === 'string' ? toE164(base.phoneNumber) : null;
           if (phone) {
             const taken = await prisma.user.findFirst({ where: { phoneNumber: phone } });
@@ -77,7 +79,7 @@ export const auth = betterAuth({
               ...base,
               emailVerified,
               phoneNumber: phone,
-              phoneNumberVerified: Boolean(phone) || base.phoneNumberVerified === true,
+              phoneNumberVerified: base.phoneNumberVerified === true,
               // Every account is a sole owner of the shop: grant the admin role
               // to all sign-ups. There is no crew/user tier — each user has the
               // full switchboard, automations and dashboards from day one.
@@ -96,14 +98,15 @@ export const auth = betterAuth({
       defaultRole: 'admin',
       adminRoles: ['admin'],
     }),
-    // Phone is the primary identity. OTP confirmation is OFF (requireVerification
-    // false) so sign-up and sign-in never block on SMS — the phone submitted at
-    // sign-up is trusted directly (see user.create.before above). SMS OTP is
-    // still used for the optional "forgot password" reset (sendPasswordResetOTP).
+    // Phone is the primary identity. OTP confirmation is ON: every phone-first
+    // account proves the number with an SMS code sent by the active SMS
+    // provider (BMS) before the workspace opens. The sign-up form runs the
+    // code step; the /verify page is the rescue ramp. SMS OTP also powers the
+    // "forgot password" reset (sendPasswordResetOTP).
     phoneNumber({
       otpLength: 6,
       expiresIn: 300,
-      requireVerification: false,
+      requireVerification: true,
       phoneNumberValidator: (value) => /^\+[1-9]\d{6,14}$/.test(value),
       sendOTP: async ({ phoneNumber: phone, code }) => {
         await sendSms(
