@@ -58,7 +58,7 @@ export function SmsUsageCard() {
           <MessageSquareText aria-hidden className="size-3.5" /> SMS this month
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-200 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-950">
-          ~{formatGhs(usage.monthEstimatedCostPesewas)} on Arkesel
+          ~{formatGhs(usage.monthEstimatedCostPesewas)} via SMS
         </span>
       </div>
 

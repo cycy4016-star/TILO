@@ -1,9 +1,11 @@
-// SMS transport via Arkesel (https://arkesel.com). Native Ghana support, cheap
-// pay-per-SMS, one JSON endpoint behind env.SMS_PROVIDER.
+// SMS transport via BMS Africa (https://bms.africa, the mNotify gateway:
+// https://api.mnotify.com) — the approved Ghana provider. Arkesel
+// (https://arkesel.com) remains available behind env.SMS_PROVIDER as an
+// alternative. Both are cheap pay-per-SMS, one JSON endpoint each.
 //
 // Every attempt is also written to the SmsUsage ledger so a single-workspace
-// deployment can see exactly what it spends on Arkesel (see the dashboard
-// "SMS this month" card). Ledger writes never throw.
+// deployment can see exactly what it spends (see the dashboard "SMS this
+// month" card). Ledger writes never throw.
 //
 // Never throws — callers always get a result object so a failed send is logged
 // and retried on the next sweep instead of crashing the job.
@@ -20,7 +22,14 @@ export type SmsSendResult = {
 };
 
 export function isSmsConfigured(): boolean {
-  return env.SMS_PROVIDER === 'arkesel' && Boolean(env.ARKESEL_API_KEY);
+  return (
+    (env.SMS_PROVIDER === 'bms' && Boolean(env.BMS_API_KEY)) ||
+    (env.SMS_PROVIDER === 'arkesel' && Boolean(env.ARKESEL_API_KEY))
+  );
+}
+
+export function smsProviderName(): string {
+  return env.SMS_PROVIDER === 'bms' ? 'BMS' : env.SMS_PROVIDER === 'arkesel' ? 'Arkesel' : 'none';
 }
 
 // Normalise local Ghana numbers to +233 E.164 (shared helper — see lib/phone).
@@ -96,6 +105,37 @@ async function sendViaArkesel(to: string, message: string): Promise<SmsSendResul
   };
 }
 
+// BMS Africa / mNotify quick-SMS. The gateway expects recipient numbers in
+// local Ghanaian format ("024...") and authenticates via an API key in the
+// query string: POST https://api.mnotify.com/api/sms/quick?key=<key>
+async function sendViaBms(to: string, message: string): Promise<SmsSendResult> {
+  // +233XXXXXXXXX -> 0XXXXXXXXX (local format the mNotify gateway wants).
+  const digits = to.replace(/\D/g, '');
+  const local = digits.startsWith('0') ? digits : `0${digits.replace(/^(233)/, '')}`;
+  const res = await fetch(
+    `https://api.mnotify.com/api/sms/quick?key=${encodeURIComponent(env.BMS_API_KEY ?? '')}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        recipient: [local],
+        sender: env.BMS_SENDER_ID ?? 'TILO',
+        message,
+      }),
+    },
+  );
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    return { ok: false, providerRef: null, error: `BMS ${res.status}: ${data?.message ?? ''}` };
+  }
+  const ok = data?.status === 'success';
+  return {
+    ok,
+    providerRef: ok ? (data?._id ?? data?.code ?? String(data?.response_code ?? '')) || null : null,
+    error: ok ? null : `BMS rejected: ${data?.message ?? 'unknown'}`,
+  };
+}
+
 export async function sendSms(
   to: string,
   message: string,
@@ -104,10 +144,12 @@ export async function sendSms(
   const recipient = normalizePhone(to);
   let result: SmsSendResult;
   try {
-    if (!isSmsConfigured()) {
-      result = { ok: false, providerRef: null, error: 'SMS provider not configured' };
-    } else {
+    if (env.SMS_PROVIDER === 'bms') {
+      result = await sendViaBms(recipient, message);
+    } else if (env.SMS_PROVIDER === 'arkesel') {
       result = await sendViaArkesel(recipient, message);
+    } else {
+      result = { ok: false, providerRef: null, error: 'SMS provider not configured' };
     }
   } catch (error) {
     result = {

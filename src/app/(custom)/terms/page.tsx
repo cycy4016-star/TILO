@@ -34,7 +34,7 @@ const sections: LegalSection[] = [
   {
     heading: 'SMS and delivery',
     body: [
-      `SMS is billed to your ${businessName} usage and delivered through our provider, Arkesel. Credit costs and sender IDs are shown in the dashboard's SMS usage card.`,
+      `SMS is billed to your ${businessName} usage and delivered through our provider, BMS. Credit costs and sender IDs are shown in the dashboard's SMS usage card.`,
       `Deliveries depend on the phone networks and the recipient's device; ${businessName} confirms sends and failures in the usage ledger but cannot guarantee delivery.`,
     ],
   },

@@ -21,11 +21,14 @@ export const env = createEnv({
     // cron routes 404/401 when CRON_SECRET is unset. SMS actions are skipped
     // by the sweep when no provider is configured.
     CRON_SECRET: z.string().min(8).optional(),
-    SMS_PROVIDER: z.enum(['arkesel', 'none']).default('none'),
+    SMS_PROVIDER: z.enum(['bms', 'arkesel', 'none']).default('none'),
+    // BMS Africa (mNotify) — the approved Ghana bulk-SMS provider.
+    BMS_API_KEY: z.string().optional(),
+    BMS_SENDER_ID: z.string().optional(),
     ARKESEL_API_KEY: z.string().optional(),
     ARKESEL_SENDER_ID: z.string().optional(),
     SMS_SUMMARY_RECIPIENT: z.string().optional(),
-    // Cost of one Arkesel credit in pesewas (used for the dashboard estimate).
+    // Cost of one SMS credit in pesewas (used for the dashboard estimate).
     SMS_COST_PER_CREDIT_PESEWAS: z.coerce.number().int().nonnegative().default(5),
 
     // Transactional email (optional). Phone SMS is the primary verification
@@ -73,6 +76,8 @@ export const env = createEnv({
     SIGNUP_INVITE_CODE: process.env.SIGNUP_INVITE_CODE,
     CRON_SECRET: process.env.CRON_SECRET,
     SMS_PROVIDER: process.env.SMS_PROVIDER,
+    BMS_API_KEY: process.env.BMS_API_KEY,
+    BMS_SENDER_ID: process.env.BMS_SENDER_ID,
     ARKESEL_API_KEY: process.env.ARKESEL_API_KEY,
     ARKESEL_SENDER_ID: process.env.ARKESEL_SENDER_ID,
     SMS_SUMMARY_RECIPIENT: process.env.SMS_SUMMARY_RECIPIENT,

@@ -51,6 +51,10 @@ services:
       - key: CRON_SECRET
         sync: false
       - key: SMS_PROVIDER
+        value: 'bms'
+      - key: BMS_API_KEY
+        sync: false
+      - key: BMS_SENDER_ID
         sync: false
       - key: ARKESEL_API_KEY
         sync: false

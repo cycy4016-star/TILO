@@ -32,7 +32,7 @@ const sections: LegalSection[] = [
   {
     heading: 'Who we share it with',
     body: [
-      `SMS is delivered by our provider, Arkesel, which receives recipient numbers and message text to send them.`,
+      `SMS is delivered by our provider, BMS, which receives recipient numbers and message text to send them.`,
       `Online card payments are processed by Paystack, which receives the payment details and returns the outcome.`,
       `The data belongs to your business, not to ${businessName}; we act as the processor operating your workspace.`,
     ],
