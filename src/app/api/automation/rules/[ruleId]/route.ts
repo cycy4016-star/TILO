@@ -1,4 +1,4 @@
-// admin update/delete API for a single automation rule.
+// update/delete API for a single automation rule.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -8,7 +8,7 @@ import {
   AutomationRuleUpdate,
 } from '@/lib/contracts/automation';
 import { prisma } from '@/lib/db';
-import { requireAdminUser } from '@/lib/require-admin-api';
+import { requireAuth } from '@/lib/require-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +54,7 @@ type RouteContext = { params: Promise<{ ruleId: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAdminUser(request);
+    await requireAuth(request);
     const { ruleId } = await context.params;
     let body: unknown;
     try {
@@ -105,7 +105,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAdminUser(request);
+    await requireAuth(request);
     const { ruleId } = await context.params;
     const existing = await prisma.automationRule.findUnique({ where: { id: ruleId } });
     if (!existing) {

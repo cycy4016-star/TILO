@@ -1,5 +1,6 @@
 // Tilo switchboard island: rules a shop sets once, a run-now button, and the
-// recent activity trail. Admins create/edit/delete/run; everyone can look.
+// recent activity trail. Any signed-in user can wire rules, run the sweep and
+// watch the machine.
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,7 +50,6 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
-import { useIsAdmin } from '@/lib/auth-client';
 import {
   AUTOMATION_KIND_META,
   AutomationEventList,
@@ -378,7 +378,6 @@ function RuleForm({
 }
 
 export function AutomationsWorkspace() {
-  const isAdmin = useIsAdmin();
   const [rules, setRules] = useState<RuleRecord[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -478,51 +477,49 @@ export function AutomationsWorkspace() {
           <h1 className="font-display text-4xl font-black uppercase leading-none sm:text-5xl">
             The switchboard
           </h1>
-          {isAdmin && (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                onClick={() => void runSweep()}
-                disabled={sweeping}
-                className="h-12 rounded-full bg-amber-50 font-black uppercase tracking-wide text-amber-950 hover:bg-white"
-              >
-                <Play aria-hidden className="size-4" />
-                {sweeping ? 'Sweeping…' : 'Run now'}
-              </Button>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="h-12 rounded-full bg-amber-300 px-6 font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200">
-                    <Zap aria-hidden className="size-4" />
-                    New rule
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
-                  <DialogHeader>
-                    <DialogTitle className="font-display font-black uppercase">
-                      Wire in a rule
-                    </DialogTitle>
-                    <DialogDescription>
-                      Pick a trigger, set the timing, and Tilo handles the rest automatically.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <RuleForm
-                    key={editingRule?.id ?? String(dialogOpen)}
-                    rule={editingRule ?? undefined}
-                    onSaved={handleSaved}
-                    onCancelled={() => {
-                      setDialogOpen(false);
-                      setEditingRule(null);
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={() => void runSweep()}
+              disabled={sweeping}
+              className="h-12 rounded-full bg-amber-50 font-black uppercase tracking-wide text-amber-950 hover:bg-white"
+            >
+              <Play aria-hidden className="size-4" />
+              {sweeping ? 'Sweeping…' : 'Run now'}
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-12 rounded-full bg-amber-300 px-6 font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200">
+                  <Zap aria-hidden className="size-4" />
+                  New rule
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle className="font-display font-black uppercase">
+                    Wire in a rule
+                  </DialogTitle>
+                  <DialogDescription>
+                    Pick a trigger, set the timing, and Tilo handles the rest automatically.
+                  </DialogDescription>
+                </DialogHeader>
+                <RuleForm
+                  key={editingRule?.id ?? String(dialogOpen)}
+                  rule={editingRule ?? undefined}
+                  onSaved={handleSaved}
+                  onCancelled={() => {
+                    setDialogOpen(false);
+                    setEditingRule(null);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         <p className="relative mt-3 max-w-2xl text-sm font-medium text-amber-200/90">
           Rules are checked by a daily sweep. Nudges, ready-pings, receipts and review asks text the
-          customer once per order, ever; stall alerts and the daily brief text you. Only admins can
-          change rules — everyone else can watch the machine run.
+          customer once per order, ever; stall alerts and the daily brief text you. Set the rules
+          once and Tilo keeps the rhythm going.
         </p>
       </section>
 
@@ -550,19 +547,15 @@ export function AutomationsWorkspace() {
           </span>
           <p className="font-display text-xl font-black uppercase">A quiet board</p>
           <p className="max-w-sm text-sm font-medium text-stone-500">
-            {isAdmin
-              ? 'Wire in your first rule and the machine starts watching the orders for you.'
-              : 'No rules yet. Ask your admin to wire some in.'}
+            Wire in your first rule and the machine starts watching the orders for you.
           </p>
-          {isAdmin && (
-            <Button
-              type="button"
-              onClick={() => setDialogOpen(true)}
-              className="mt-1 rounded-full bg-amber-950 font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900"
-            >
-              Wire in the first rule
-            </Button>
-          )}
+          <Button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            className="mt-1 rounded-full bg-amber-950 font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900"
+          >
+            Wire in the first rule
+          </Button>
         </div>
       ) : (
         <div className="grid gap-3">
@@ -613,38 +606,34 @@ export function AutomationsWorkspace() {
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  {isAdmin && (
-                    <Switch
-                      checked={rule.enabled}
-                      onCheckedChange={() => void toggleEnabled(rule)}
-                      aria-label={`${rule.enabled ? 'Disable' : 'Enable'} ${rule.name}`}
-                    />
-                  )}
-                  {isAdmin && (
-                    <div className="flex gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Edit ${rule.name}`}
-                        onClick={() => {
-                          setEditingRule(rule);
-                          setDialogOpen(true);
-                        }}
-                      >
-                        <Pencil aria-hidden className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Delete ${rule.name}`}
-                        onClick={() => void deleteRule(rule)}
-                      >
-                        <Trash2 aria-hidden className="size-4" />
-                      </Button>
-                    </div>
-                  )}
+                  <Switch
+                    checked={rule.enabled}
+                    onCheckedChange={() => void toggleEnabled(rule)}
+                    aria-label={`${rule.enabled ? 'Disable' : 'Enable'} ${rule.name}`}
+                  />
+                  <div className="flex gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Edit ${rule.name}`}
+                      onClick={() => {
+                        setEditingRule(rule);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Pencil aria-hidden className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Delete ${rule.name}`}
+                      onClick={() => void deleteRule(rule)}
+                    >
+                      <Trash2 aria-hidden className="size-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             );

@@ -1,4 +1,4 @@
-// authenticated rule list + admin create API for the automation switchboard.
+// authenticated rule list + create API for the automation switchboard.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -8,7 +8,6 @@ import {
   AutomationRuleList,
 } from '@/lib/contracts/automation';
 import { prisma } from '@/lib/db';
-import { requireAdminUser } from '@/lib/require-admin-api';
 import { requireAuth } from '@/lib/require-auth';
 
 export const dynamic = 'force-dynamic';
@@ -66,7 +65,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAdminUser(request);
+    await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
