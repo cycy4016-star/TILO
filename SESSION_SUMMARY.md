@@ -1,7 +1,10 @@
 # Session Summary — Tilo
 
-Date: Mon Sep 21 2026
-Scope: Every change made in this session, plus how each was approached.
+Date: Mon Sep 21 2026 (initial) → Thu Sep 24 2026 (latest)
+Scope: Every change made across the documented sessions, plus how each was
+approached. Section 1–6 cover the Sep 21 session; section 7 onward covers the
+Sep 22–24 sessions (privacy/terms, dashboards, ownership, and the SMS-OTP
+sign-up rework).
 
 ---
 
@@ -135,3 +138,74 @@ Unknown field `image` for select statement on model StoreItem
 | UI surfaces | `src/components/custom/store-workspace.tsx`, `src/app/store/[slug]/page.tsx`, `src/app/(auth)/profile/page.tsx` |
 | Config/docs | `.env.example`, `README.md`, `FEATURES.md`, `biome.json` |
 | Tests | `tests/unit/store.test.ts` |
+
+---
+
+## 7. Sep 22 session — legal pages, deploy docs
+
+### What
+- Added `/privacy` and `/terms` static pages plus a shared `LegalPage` shell, linked from the storefront footer. `LeadCaptureCard` gained a consent line pointing at the privacy page.
+- Documented the Neon connection string and the Render free-Postgres expiry in `render.yaml` / `.env.example`, and fixed `SKIP_ENV_VALIDATION` so env validation actually runs on Render.
+- First commit (`f98caaa`, v0.1.0) landed the whole workspace; the two pages and deploy tweaks were separate commits.
+
+### How
+- `src/app/(custom)/privacy/page.tsx`, `terms/page.tsx`, `src/components/custom/legal-page.tsx`, `src/lib/legal.ts`, `src/lib/nav.ts`, `render.yaml`.
+
+---
+
+## 8. Sep 23 (morning) — ownership + dashboards
+
+### What
+- **Every signed-in user is an owner.** Removed the crew/user tier and the admin gate: all sessions get `role: admin` at creation (see `user.create.before` in `src/lib/auth.ts`), and "is admin" collapsed to "is signed in". Navigation, shell, and guards (`require-admin`, `require-admin-api`) were simplified accordingly.
+- **Automations opened to all users** — no admin route gate; the workspace now directs every signed-in account.
+- **Cost/profit + products + intelligence dashboards.** Added order line items and item cost price (migrations `add_cost_price_and_order_line_items`), new dashboard pages (admin users, intelligence, products) and APIs built from the order/usage data the workspace already collects.
+
+### How
+- `require-admin`, `require-admin-api`, `auth-client.useIsAdmin`, `dashboard-shell/nav`, `admin-monitor`, `automations-workspace`, plus the contracts `admin.ts`, `intelligence.ts`, `products.ts`, `order.ts` extensions. `src/app/api/dashboard/*` and `src/app/api/admin/users/route.ts` power the views; `src/app/(dashboard)/dashboard/{admin,intelligence,products}/page.tsx` render them.
+
+---
+
+## 9. Sep 23 (evening) — BMS SMS + OTP enforcement
+
+### What
+- **Switched the SMS provider to BMS Africa (mNotify)** as the approved Ghana provider, with Arkesel left as an alternative behind `SMS_PROVIDER`. `smsProviderName()` helper added; `render.yaml` defaults to `bms` and syncs `BMS_API_KEY` / `BMS_SENDER_ID` as secrets.
+- **Enforced phone verification by SMS.** `requireVerification: true` on the `phoneNumber` plugin; `user.create.before` no longer auto-trusts the submitted number (`phoneNumberVerified: false` unless already proven). Sign-up gained an inline 6-digit OTP step (`sendOtp` → `phoneNumber.verify`). Sign-in checks `phoneNumberVerified` and routes unverified accounts to `/verify` instead of the dashboard. `/verify` is the rescue ramp.
+
+### How
+- `src/lib/auth.ts` (create-hook + plugin flags), `src/lib/sms.ts` (`sendViaBms`, provider switch), `src/lib/require-auth.ts`, `src/components/custom/sign-up-form.tsx`, `sign-in-form.tsx`, `verify-form.tsx`, `src/lib/env.ts`, `render.yaml`.
+
+---
+
+## 10. Sep 24 session — verify-before-create sign-up (this revision)
+
+### Problem
+The Sep 23 flow still created the user *before* the OTP was proven (`signUp.email` at button press, then `verify` on the code step). A bad/missed code left a real, unverified account that had to be cleaned up by the `/verify` ramp, and a taken phone number was only detected after an SMS was already spent.
+
+### What
+Restructured phone-first sign-up so **no user row exists until the SMS code is verified**:
+
+- **Custom better-auth plugin `phoneVerifiedSignUp`** (`src/lib/auth.ts`) hosting two endpoints under `/phone-number/*` (so they inherit the phone plugin's 10/min/IP rate limit):
+  - **`POST /phone-number/sign-up`** — runs every pre-check *first* (E.164 format, password policy via `ctx.context.password.config`, email synthesis `` `${phone}@phone.tilo` `` when omitted, email + phone uniqueness, invite-code gate), then replicates the phone plugin's `verifyPhoneNumberOTP` exactly (recreate-on-wrong-code with `code:attempts` value, 3-attempt cap, expire delete), and **only then** `createUser` (app hooks still run: admin role, `phoneNumberVerified: true`, invite gate) → `linkAccount` (credential + hashed password, with orphan-user cleanup on failure) → `createSession` → login cookie → `{ token, user }`. Mirrors the internal `signUpEmail` but skips its transaction wrapper.
+  - **`POST /phone-number/check-availability`** — cheap `{ available, reason: 'phone'|'email' }` probe the form calls *before* sending an SMS, so a taken number/email never wastes a send.
+- **Disabled the built-in email sign-up:** `emailAndPassword.disableSignUp: true` in `auth-config.ts` (comment explains why), so nothing can create an unverified account behind the form's back.
+- **Form rework** (`sign-up-form.tsx`): details step validates → `$fetch('/phone-number/check-availability')` → blocks with "already in use. Sign in instead." if unavailable → only then `sendOtp`. Code step does a single `$fetch('/phone-number/sign-up', …)` which proves the code **and** creates the account; removes the old `signUp` import and the create-then-verify hack. `verify-form`/`sign-in-form` unchanged (legacy/Google paths still use `phoneNumber.verify` + `signIn`).
+- **BMS `sms_type` routing fix:** added `BMS_SMS_TYPE` (`otp` default | `bulk`) to `env.ts`/`sms.ts`. The `otp` transactional route bills the *paid wallet*; **free/bonus credits only flow on the bulk route**. A live test hit `402 insufficient wallet balance` on `otp` and succeeded (credit 58→57→56, providerRef `E1DA8045-…`, ledger `ok: true`) on `bulk`. `.env.local` now sets `BMS_SMS_TYPE=bulk` for the free-credit account; also fixed the non-2xx error to read mNotify's `error` field (was blank `BMS 402: `). Docs updated in `.env.example`, `README.md`, `FEATURES.md`.
+
+### How
+Verified prerequisites against the installed better-auth `dist` before writing code: rate-limiter keys `ip + path`; `verifyPhoneNumberOTP` consume-once semantics; `internalAdapter` methods and `createWithHooks` behaviour; public export surfaces (`better-auth/api` → `createAuthEndpoint`/`formCsrfMiddleware`, `better-auth/cookies` → `setSessionCookie`, `better-auth/db` → `parseUserOutput`); the app's zod 3.25.76 exposes Standard-Schema v1 so endpoint `body` validation works. Endpoint keys (`signUpPhone`, `checkPhoneAvailability`) and paths (`/phone-number/sign-up`) verified conflict-free, and `getEndpoints` merges `...plugin.endpoints`.
+
+### Gate results (Sep 24)
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` | 0 errors |
+| `npm run lint` (biome) | clean, 218 files |
+| `npm test` | 145/145 pass |
+| Live `next dev` probes | `/phone-number/check-availability` → 400 `INVALID_PHONE_NUMBER` (bad), `{available:true}` (fresh); `/phone-number/sign-up` → 400 `OTP_NOT_FOUND`; `/phone-number/send-otp` → 200 `code sent` |
+| BMS live send | free credit consumed (58→56 over two tests), ledger `ok: true`, real campaign ref returned; wallet-balance account would need `BMS_SMS_TYPE=otp` |
+| Push | `200d6c4..d31bfe9 main -> main` |
+
+### Known notes
+- `.env.local` holds live test secrets (BMS key, DB URL) — rotate before public use; it is git-ignored and never committed.
+- Free-credit BMS accounts must keep `BMS_SMS_TYPE=bulk` in `.env.local`; paid-wallet accounts can leave the default `otp`.
+- Rate limiting on the new endpoints: 10/min/IP per path (inherited from the phone plugin). Wrong codes consume the 3-attempt budget then hard-delete the OTP record.
