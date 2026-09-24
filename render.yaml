@@ -56,12 +56,15 @@ services:
         sync: false
       - key: BMS_SENDER_ID
         sync: false
-      # OTP routing on BMS: "otp" avoids DND and delivers confirmation codes
-      # reliably, but bills the paid wallet. "bulk" uses the standard route —
-      # free/bonus credits only flow there, but operators can DND-filter it.
-      # Keep in sync with .env.local.
+      # OTP routing on BMS — a manual dashboard toggle (sync: false so you can
+      # flip it without a redeploy/commit):
+      #   otp  = transactional path, bypasses DND, delivers reliably, billing
+      #          the PAID wallet (top that up).
+      #   bulk = standard route, uses FREE/bonus credits (48 available), but
+      #          operators can DND-filter these and they may not arrive.
+      # Set it under Render -> Environment. Unset defaults to "otp".
       - key: BMS_SMS_TYPE
-        value: 'otp'
+        sync: false
       - key: ARKESEL_API_KEY
         sync: false
       - key: ARKESEL_SENDER_ID
