@@ -22,6 +22,12 @@ export const authConfig: BetterAuthOptions = {
   },
   emailAndPassword: {
     enabled: true,
+    // Phone-first sign-up never uses the email+password route: accounts are
+    // created only after the SMS OTP is proven, via the custom
+    // `/phone-number/sign-up` endpoint (see src/lib/auth.ts). The built-in
+    // `/sign-up/email` route is disabled so it can't create an unverified
+    // account behind the form's back.
+    disableSignUp: true,
     async sendResetPassword({ user, url }) {
       // No email provider → silently skip; users reset via SMS OTP instead.
       if (!isEmailConfigured()) return;

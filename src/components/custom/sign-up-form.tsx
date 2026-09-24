@@ -6,14 +6,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient, signIn, signUp } from '@/lib/auth-client';
+import { authClient, signIn } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 
-// Phone-first sign-up: name + phone + password (email optional) creates the
-// account, then the phone must be proven with an SMS code (sent by the active
-// provider, BMS) before the workspace opens. Google accounts self-verify.
+// Phone-first sign-up: name + phone + password (email optional). Nothing is
+// created until the SMS code is proven — the custom /phone-number/sign-up
+// endpoint verifies the OTP and THEN writes the account. Google accounts
+// self-verify.
 type Step = 'details' | 'otp';
+
+// Typed shapes for the custom /phone-number/* endpoints. The raw authClient
+// $fetch can't infer these, so the responses are annotated below.
+type AvailabilityResponse = { available: boolean; reason?: 'phone' | 'email' };
 
 export function SignUpForm() {
   const [step, setStep] = useState<Step>('details');
@@ -76,32 +81,36 @@ export function SignUpForm() {
     }
 
     setPending(true);
-    // Better Auth always needs an email; synthesize one when the user skips it.
-    const accountEmail = email.trim() || `${normalized.replace(/^\+/, '')}@phone.tilo`;
-    const { error: signUpError } = await signUp.email({
-      name,
-      email: accountEmail,
-      password,
-      phoneNumber: normalized,
-      inviteCode: inviteCode.trim(),
-    });
-    if (signUpError) {
+    // Refuse to spend an SMS on a phone/email that's already taken: the
+    // backend mirrors the sign-up endpoint's uniqueness + invite checks.
+    const { data, error: availabilityError } = (await authClient.$fetch(
+      '/phone-number/check-availability',
+      {
+        method: 'POST',
+        body: { phoneNumber: normalized, email: email.trim() || undefined },
+      },
+    )) as { data: AvailabilityResponse; error: { message?: string } | null };
+    if (availabilityError) {
       setPending(false);
-      // Depending on better-auth version, an unverified phone sign-up may
-      // return a verification-required error while still creating the account.
-      const tag = `${signUpError.code} ${signUpError.message}`.toLowerCase();
-      const accountCreated = /verification|verify|otp|code/.test(tag);
-      if (!accountCreated) {
-        setError(signUpError.message ?? 'Could not create your account. Try again.');
-        return;
-      }
+      setError(availabilityError.message ?? 'Could not check that phone number. Try again.');
+      return;
+    }
+    if (data && data.available === false) {
+      setPending(false);
+      const blockReason = data.reason === 'email' ? 'email' : 'phone';
+      setError(
+        blockReason === 'email'
+          ? 'That email is already in use. Sign in instead.'
+          : 'That phone number is already in use. Sign in instead.',
+      );
+      return;
     }
 
     setE164(normalized);
     const sent = await sendCode(normalized);
     setPending(false);
     if (!sent) {
-      setError('Account created — the SMS code did not send. Head to /verify to finish.');
+      setError('The SMS code did not send. Try again.');
       return;
     }
     setStep('otp');
@@ -112,14 +121,23 @@ export function SignUpForm() {
     e.preventDefault();
     setError(undefined);
     setPending(true);
-    const { error: verifyError } = await authClient.phoneNumber.verify({
-      phoneNumber: e164,
-      code,
-      updatePhoneNumber: true,
+    // One call: proves the code AND creates the account (only after the OTP is
+    // verified) via the custom /phone-number/sign-up endpoint.
+    const accountEmail = email.trim() || undefined;
+    const { error: signUpError } = await authClient.$fetch('/phone-number/sign-up', {
+      method: 'POST',
+      body: {
+        name,
+        email: accountEmail,
+        password,
+        phoneNumber: e164,
+        inviteCode: inviteCode.trim() || undefined,
+        code,
+      },
     });
     setPending(false);
-    if (verifyError) {
-      setError(verifyError.message ?? 'That code did not work. Try again.');
+    if (signUpError) {
+      setError(signUpError.message ?? 'That code did not work. Try again.');
       return;
     }
     window.location.assign('/dashboard');

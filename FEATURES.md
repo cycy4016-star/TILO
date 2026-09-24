@@ -182,14 +182,20 @@ where it lives, and what is deliberately not built yet.
 
 ---
 
-## 8. SMS (Arkesel)
+## 8. SMS (BMS Africa / mNotify)
 
 **Location:** `src/lib/sms.ts`, `src/lib/env.ts`,
 `prisma/schema/sms.prisma`, `src/app/api/dashboard/sms-usage/route.ts`.
 
-- **Provider:** Arkesel (`SMS_PROVIDER=arkesel`), one JSON endpoint, Ghanaian
-  sender IDs. `sendSms(to, message, source)` never throws and returns
-  `{ ok, providerRef, error }`.
+- **Provider:** BMS Africa / mNotify (`SMS_PROVIDER=bms`, the active Ghana
+  provider; Arkesel remains available via `SMS_PROVIDER=arkesel`). One JSON
+  endpoint, Ghanaian sender IDs. OTP confirmation codes are sent with
+  `sms_type: "otp"` by default (transactional route that avoids DND but bills
+  the paid wallet); accounts running on free/bonus credits set
+  `BMS_SMS_TYPE=bulk` so codes ship on the standard route (see `src/lib/env.ts`).
+  A send that BMS reports as fully rejected (DND /
+  unprovisioned number) is recorded as a failure rather than a silent success.
+  `sendSms(to, message, source)` never throws and returns `{ ok, providerRef, error }`.
 - **Sources** recorded on every send: `OTP`, `AUTOMATION`, `SUMMARY`, `MANUAL`.
 - **Usage ledger.** Every attempt (success or failure) is written to the
   `SmsUsage` table with segment count, credits, provider reference, and error.
@@ -344,17 +350,19 @@ See `.env.example` for the annotated list.
   (production), `NEXT_PUBLIC_APP_URL`.
 - **Owner:** `ADMIN_PHONE` (preferred) / `ADMIN_EMAIL`; invite gate via
   `SIGNUP_INVITE_CODE` + `NEXT_PUBLIC_SIGNUP_INVITE=true`.
-- **Automation + SMS:** `CRON_SECRET`, `SMS_PROVIDER`, `ARKESEL_API_KEY`,
-  `ARKESEL_SENDER_ID`, `SMS_SUMMARY_RECIPIENT`, `SMS_COST_PER_CREDIT_PESEWAS`.
+- **Automation + SMS:** `CRON_SECRET`, `SMS_PROVIDER` (`bms` | `arkesel` | `none`),
+  `BMS_API_KEY`, `BMS_SENDER_ID`, `ARKESEL_API_KEY`, `ARKESEL_SENDER_ID`,
+  `SMS_SUMMARY_RECIPIENT`, `SMS_COST_PER_CREDIT_PESEWAS`.
 - **Email (optional):** `EMAIL_PROVIDER`, `RESEND_API_KEY`, `EMAIL_FROM`.
 - **Paystack (optional):** `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`,
   `PAYSTACK_CALLBACK_URL`.
 - **Google OAuth (optional):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
   client-side `NEXT_PUBLIC_GOOGLE_AUTH=true`.
 
-You can verify an Arkesel key + sender ID without any UI by running the app with
-`SMS_PROVIDER=arkesel` and invoking a send (e.g. the automation sweep), then
-checking the `SmsUsage` rows.
+You can verify a BMS key + sender ID without any UI by running the app with
+`SMS_PROVIDER=bms` and invoking a send (e.g. the automation sweep), then
+checking the `SmsUsage` rows (a failed send records `ok: false` with the
+provider error instead of a silent drop).
 
 ---
 

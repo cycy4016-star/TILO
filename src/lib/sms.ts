@@ -108,7 +108,7 @@ async function sendViaArkesel(to: string, message: string): Promise<SmsSendResul
 // BMS Africa / mNotify quick-SMS. The gateway expects recipient numbers in
 // local Ghanaian format ("024...") and authenticates via an API key in the
 // query string: POST https://api.mnotify.com/api/sms/quick?key=<key>
-async function sendViaBms(to: string, message: string): Promise<SmsSendResult> {
+async function sendViaBms(to: string, message: string, isOtp = false): Promise<SmsSendResult> {
   // +233XXXXXXXXX -> 0XXXXXXXXX (local format the mNotify gateway wants).
   const digits = to.replace(/\D/g, '');
   const local = digits.startsWith('0') ? digits : `0${digits.replace(/^(233)/, '')}`;
@@ -121,18 +121,45 @@ async function sendViaBms(to: string, message: string): Promise<SmsSendResult> {
         recipient: [local],
         sender: env.BMS_SENDER_ID ?? 'TILO',
         message,
+        // Flag real OTP blasts so BMS routes them on the dedicated transactional
+        // path (sms_type: "otp"). Without it a confirmation code rides the bulk/
+        // promotional route, where operator DND filtering can silently drop the
+        // line. Only set for actual OTP sends — the provider rejects it otherwise.
+        // The routing is configurable: free/bonus SMS balances only flow on the
+        // standard route, so accounts running on free credits set BMS_SMS_TYPE=bulk
+        // (see src/lib/env.ts) and OTPs ship without the flag.
+        ...(isOtp && env.BMS_SMS_TYPE === 'otp' ? { sms_type: 'otp' } : {}),
       }),
     },
   );
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    return { ok: false, providerRef: null, error: `BMS ${res.status}: ${data?.message ?? ''}` };
+    // mNotify puts the reason in `error`; Arkesel uses `message`. Surface
+    // whichever the gateway sent so the real cause (e.g. a 402 wallet top-up)
+    // reaches the operator, not an empty "BMS 402: ".
+    return {
+      ok: false,
+      providerRef: null,
+      error: `BMS ${res.status}: ${data?.error ?? data?.message ?? 'unknown'}`,
+    };
   }
-  const ok = data?.status === 'success';
+  // The campaign id — what you query the delivery-status endpoint with — lives
+  // inside summary, not at the top level.
+  const providerRef = data?.summary?._id ?? data?._id ?? null;
+  // status === 'success' does NOT mean every number was accepted: mNotify also
+  // reports rejected recipients (summary.total_rejected) — e.g. DND-registered
+  // or unprovisioned numbers return "success" with the recipient rejected.
+  // An all-rejected send must surface as a failure, not a silent "sent".
+  const rejected = Number(data?.summary?.total_rejected ?? 0);
+  const ok = data?.status === 'success' && rejected === 0;
   return {
     ok,
-    providerRef: ok ? (data?._id ?? data?.code ?? String(data?.response_code ?? '')) || null : null,
-    error: ok ? null : `BMS rejected: ${data?.message ?? 'unknown'}`,
+    providerRef,
+    error: ok
+      ? null
+      : data?.status === 'success'
+        ? `BMS rejected the send to ${local} (${rejected} of 1 number accepted)`
+        : `BMS rejected: ${data?.message ?? 'unknown'} (code ${data?.code ?? 'n/a'})`,
   };
 }
 
@@ -145,7 +172,7 @@ export async function sendSms(
   let result: SmsSendResult;
   try {
     if (env.SMS_PROVIDER === 'bms') {
-      result = await sendViaBms(recipient, message);
+      result = await sendViaBms(recipient, message, source === 'OTP');
     } else if (env.SMS_PROVIDER === 'arkesel') {
       result = await sendViaArkesel(recipient, message);
     } else {

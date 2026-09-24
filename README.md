@@ -85,12 +85,18 @@ Google OAuth (optional — the alternative to phone + SMS):
 Automation + SMS (all optional — the app boots without them):
 
 - `CRON_SECRET` — bearer secret for the scheduler cron routes (see below).
-- `SMS_PROVIDER` — `arkesel` | `none` (default `none`).
-- `ARKESEL_API_KEY` — Arkesel API key (https://arkesel.com), sent in the `api-key` header.
-- `ARKESEL_SENDER_ID` — approved sender ID shown to recipients (defaults to `TILO`).
+- `SMS_PROVIDER` — `bms` | `arkesel` | `none` (default `none`).
+- `BMS_API_KEY` — BMS Africa / mNotify API key (https://bms.africa), the active
+  Ghana provider. OTP confirmation codes are routed as `sms_type: "otp"`.
+- `BMS_SENDER_ID` — approved sender ID shown to recipients (defaults to `TILO`).
+- `BMS_SMS_TYPE` — `otp` (default) or `bulk`. Use `bulk` when the account runs
+  on free/bonus credits: the `otp` transactional route bills the paid wallet,
+  while free credits only flow on the standard bulk route.
+- `ARKESEL_API_KEY` / `ARKESEL_SENDER_ID` — Arkesel (https://arkesel.com),
+  alternative provider switched via `SMS_PROVIDER=arkesel`.
 - `SMS_SUMMARY_RECIPIENT` — phone (E.164 `+233...`) that gets the daily brief and the
   weekly pulse.
-- `SMS_COST_PER_CREDIT_PESEWAS` — cost of one Arkesel credit, for the dashboard
+- `SMS_COST_PER_CREDIT_PESEWAS` — cost of one SMS credit, for the dashboard
   estimate (default `5`).
 
 Email (optional — phone SMS is the primary verification/reset channel):
@@ -122,7 +128,7 @@ Scheduled automation routes, guarded by `Authorization: Bearer <CRON_SECRET>`:
 4. Environment variables: set `DATABASE_URL`, `BETTER_AUTH_SECRET`,
    `BETTER_AUTH_URL` (your `https://...vercel.app` URL),
    `NEXT_PUBLIC_APP_URL` (same URL), `ADMIN_PHONE`, `SEO_INDEXABLE=true`, and the
-   provider keys you use (`ARKESEL_*`, `RESEND_*`, `PAYSTACK_*`).
+   provider keys you use (`BMS_*`/`ARKESEL_*`, `RESEND_*`, `PAYSTACK_*`).
 5. Deploy. `prisma migrate deploy` applies `prisma/migrations/*` before the
    Next build; the app seeds idempotently at boot (`src/lib/seed.ts`).
 

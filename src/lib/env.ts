@@ -25,6 +25,10 @@ export const env = createEnv({
     // BMS Africa (mNotify) — the approved Ghana bulk-SMS provider.
     BMS_API_KEY: z.string().optional(),
     BMS_SENDER_ID: z.string().optional(),
+    // BMS routes OTP blasts on a dedicated transactional path that bills the
+    // paid wallet (sms_type "otp"). Free/bonus credits only flow on the standard
+    // bulk route, so accounts running on free SMS must set this to "bulk".
+    BMS_SMS_TYPE: z.enum(['otp', 'bulk']).default('otp'),
     ARKESEL_API_KEY: z.string().optional(),
     ARKESEL_SENDER_ID: z.string().optional(),
     SMS_SUMMARY_RECIPIENT: z.string().optional(),
@@ -78,6 +82,7 @@ export const env = createEnv({
     SMS_PROVIDER: process.env.SMS_PROVIDER,
     BMS_API_KEY: process.env.BMS_API_KEY,
     BMS_SENDER_ID: process.env.BMS_SENDER_ID,
+    BMS_SMS_TYPE: process.env.BMS_SMS_TYPE,
     ARKESEL_API_KEY: process.env.ARKESEL_API_KEY,
     ARKESEL_SENDER_ID: process.env.ARKESEL_SENDER_ID,
     SMS_SUMMARY_RECIPIENT: process.env.SMS_SUMMARY_RECIPIENT,
