@@ -6,7 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export const metadata: Metadata = { title: 'Verify your phone' };
 
-export default function VerifyPage() {
+type VerifyPageProps = { searchParams: Promise<{ phone?: string }> };
+
+export default async function VerifyPage({ searchParams }: VerifyPageProps) {
+  const { phone } = await searchParams;
   return (
     <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#fffbeb] px-5 py-16 dark:bg-stone-950">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -27,7 +30,7 @@ export default function VerifyPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
-          <VerifyForm />
+          <VerifyForm initialPhone={phone} />
         </CardContent>
       </Card>
     </main>

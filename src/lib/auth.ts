@@ -202,7 +202,7 @@ const phoneVerifiedSignUp: BetterAuthPlugin = {
     ),
     // POST /phone-number/check-availability — cheap "can this sign-up proceed?"
     // probe used by the form's details step BEFORE an SMS code is spent, so a
-    // taken number doesn't waste a send.
+    // taken number/email or bad invite code doesn't waste a send.
     checkPhoneAvailability: createAuthEndpoint(
       '/phone-number/check-availability',
       {
@@ -210,6 +210,7 @@ const phoneVerifiedSignUp: BetterAuthPlugin = {
         body: z.object({
           phoneNumber: z.string(),
           email: z.string().optional(),
+          inviteCode: z.string().optional(),
         }),
         use: [formCsrfMiddleware],
       },
@@ -236,6 +237,13 @@ const phoneVerifiedSignUp: BetterAuthPlugin = {
         const emailTaken = await ctx.context.internalAdapter.findUserByEmail(finalEmail);
         if (emailTaken) {
           return ctx.json({ available: false, reason: 'email' });
+        }
+        // The invite gate is server-enforced at create (databaseHooks) too, but
+        // surface it here so a bad code is caught before an SMS is spent. Google
+        // accounts never hit this probe (they skip the phone-first path), so the
+        // Google/email-verified exemption does not apply on this endpoint.
+        if (env.SIGNUP_INVITE_CODE && body.inviteCode !== env.SIGNUP_INVITE_CODE) {
+          return ctx.json({ available: false, reason: 'invite' });
         }
         return ctx.json({ available: true });
       },

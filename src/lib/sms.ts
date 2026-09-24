@@ -21,6 +21,10 @@ export type SmsSendResult = {
   error: string | null;
 };
 
+// Keep a hanging gateway from holding the OTP request open forever on the
+// sign-up / verify forms. 10s is plenty for two JSON round-trips to BMS/Arkesel.
+const SMS_REQUEST_TIMEOUT_MS = 10_000;
+
 export function isSmsConfigured(): boolean {
   return (
     (env.SMS_PROVIDER === 'bms' && Boolean(env.BMS_API_KEY)) ||
@@ -84,6 +88,7 @@ async function sendViaArkesel(to: string, message: string): Promise<SmsSendResul
       'Content-Type': 'application/json',
       'api-key': env.ARKESEL_API_KEY ?? '',
     },
+    signal: AbortSignal.timeout(SMS_REQUEST_TIMEOUT_MS),
     body: JSON.stringify({
       sender: env.ARKESEL_SENDER_ID ?? 'TILO',
       message,
@@ -117,6 +122,7 @@ async function sendViaBms(to: string, message: string, isOtp = false): Promise<S
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(SMS_REQUEST_TIMEOUT_MS),
       body: JSON.stringify({
         recipient: [local],
         sender: env.BMS_SENDER_ID ?? 'TILO',
@@ -179,10 +185,16 @@ export async function sendSms(
       result = { ok: false, providerRef: null, error: 'SMS provider not configured' };
     }
   } catch (error) {
+    const aborted =
+      error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
     result = {
       ok: false,
       providerRef: null,
-      error: error instanceof Error ? error.message : 'SMS request failed',
+      error: aborted
+        ? 'SMS provider timed out'
+        : error instanceof Error
+          ? error.message
+          : 'SMS request failed',
     };
   }
 

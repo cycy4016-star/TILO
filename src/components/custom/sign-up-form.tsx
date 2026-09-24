@@ -18,7 +18,7 @@ type Step = 'details' | 'otp';
 
 // Typed shapes for the custom /phone-number/* endpoints. The raw authClient
 // $fetch can't infer these, so the responses are annotated below.
-type AvailabilityResponse = { available: boolean; reason?: 'phone' | 'email' };
+type AvailabilityResponse = { available: boolean; reason?: 'phone' | 'email' | 'invite' };
 
 export function SignUpForm() {
   const [step, setStep] = useState<Step>('details');
@@ -81,13 +81,17 @@ export function SignUpForm() {
     }
 
     setPending(true);
-    // Refuse to spend an SMS on a phone/email that's already taken: the
-    // backend mirrors the sign-up endpoint's uniqueness + invite checks.
+    // Refuse to spend an SMS on a sign-up that won't get through: the backend
+    // mirrors the sign-up endpoint's phone + email uniqueness and invite checks.
     const { data, error: availabilityError } = (await authClient.$fetch(
       '/phone-number/check-availability',
       {
         method: 'POST',
-        body: { phoneNumber: normalized, email: email.trim() || undefined },
+        body: {
+          phoneNumber: normalized,
+          email: email.trim() || undefined,
+          inviteCode: inviteCode.trim() || undefined,
+        },
       },
     )) as { data: AvailabilityResponse; error: { message?: string } | null };
     if (availabilityError) {
@@ -97,9 +101,12 @@ export function SignUpForm() {
     }
     if (data && data.available === false) {
       setPending(false);
-      const blockReason = data.reason === 'email' ? 'email' : 'phone';
+      if (data.reason === 'invite') {
+        setError("That invite code didn't work. Double-check it.");
+        return;
+      }
       setError(
-        blockReason === 'email'
+        data.reason === 'email'
           ? 'That email is already in use. Sign in instead.'
           : 'That phone number is already in use. Sign in instead.',
       );
@@ -110,7 +117,9 @@ export function SignUpForm() {
     const sent = await sendCode(normalized);
     setPending(false);
     if (!sent) {
-      setError('The SMS code did not send. Try again.');
+      // sendCode has already set the specific error (e.g. SMS provider failure,
+      // rate limit). Don't overwrite it with a generic message that hides what
+      // actually went wrong.
       return;
     }
     setStep('otp');

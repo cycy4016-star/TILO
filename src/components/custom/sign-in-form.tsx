@@ -28,11 +28,20 @@ export function SignInForm() {
     setPending(true);
     setError(undefined);
     const isEmail = identifier.includes('@');
+    const identifierValue = isEmail ? identifier.trim() : toE164(identifier);
     const { error: signInError } = isEmail
-      ? await signIn.email({ email: identifier.trim(), password })
-      : await signIn.phoneNumber({ phoneNumber: toE164(identifier), password });
+      ? await signIn.email({ email: identifierValue, password })
+      : await signIn.phoneNumber({ phoneNumber: identifierValue, password });
     if (signInError) {
       setPending(false);
+      // The account exists but its phone was never SMS-proven (older/imported
+      // rows, or an OTP that was abandoned mid sign-up). Better Auth already
+      // texted an OTP on this attempt, so send them to the /verify ramp to
+      // finish proving the number instead of showing a dead-end error.
+      if (signInError.code === 'PHONE_NUMBER_NOT_VERIFIED') {
+        window.location.assign(`/verify?phone=${encodeURIComponent(identifierValue)}`);
+        return;
+      }
       setError(signInError.message ?? 'Could not sign in. Check your details.');
       return;
     }

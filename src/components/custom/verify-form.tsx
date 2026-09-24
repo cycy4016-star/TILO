@@ -14,15 +14,22 @@ import { toE164 } from '@/lib/phone';
 
 type Step = 'phone' | 'otp' | 'done';
 
-export function VerifyForm() {
+// `initialPhone` is set when the handler bounced here from a phone sign-in that
+// failed with PHONE_NUMBER_NOT_VERIFIED: better-auth had already texted an OTP
+// for that number, so the ramp lands straight on the code step instead of
+// double-sending.
+export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>('phone');
+  const prefilled = initialPhone ? toE164(initialPhone) : null;
+  const [step, setStep] = useState<Step>(prefilled ? 'otp' : 'phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const [e164, setE164] = useState('');
+  const [e164, setE164] = useState(prefilled ?? '');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [notice, setNotice] = useState<string | undefined>(undefined);
+  const [notice, setNotice] = useState<string | undefined>(
+    prefilled ? `We just texted a code to ${prefilled}.` : undefined,
+  );
 
   async function handlePhone(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,10 +57,19 @@ export function VerifyForm() {
     e.preventDefault();
     setError(undefined);
     setPending(true);
+    // Two rescue cases feed this page:
+    //  - Signed in but with an unverified phone (e.g. a Google account adding a
+    //    number): verify + update the session user's own row.
+    //  - Signed out with an existing-but-unverified account (older/imported
+    //    rows): verify WITHOUT `updatePhoneNumber` — the phone plugin looks the
+    //    user up by number, marks it verified, and opens a fresh session. With
+    //    `updatePhoneNumber: true` the plugin instead requires a live session
+    //    (getSessionFromCtx) and would reject a signed-out user outright.
+    const { data: session } = await authClient.getSession().catch(() => ({ data: null }));
     const { error: verifyError } = await authClient.phoneNumber.verify({
       phoneNumber: e164,
       code,
-      updatePhoneNumber: true,
+      updatePhoneNumber: Boolean(session?.session),
     });
     setPending(false);
     if (verifyError) {
