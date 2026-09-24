@@ -1,5 +1,5 @@
 // SMS usage ledger: one row per outbound SMS attempt through the provider.
-// This is how a single-workspace deployment tracks what it spends on Arkesel —
+// This is how a single-workspace deployment tracks what it spends on SMS —
 // the dashboard "SMS this month" readout reads from here. Datasource +
 // generator live in _base.prisma.
 
@@ -18,6 +18,8 @@ model SmsUsage {
   // Estimated billing units: ceil(message length / 160) for one recipient.
   segments    Int       @default(1)
   credits     Int       @default(1)
+  // Real provider key ("bms" | "arkesel") written by sendSms. The default is a
+  // fallback for pre-existing rows created before the field was recorded.
   provider    String    @default("arkesel")
   providerRef String?
   ok          Boolean   @default(true)

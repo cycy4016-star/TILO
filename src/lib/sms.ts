@@ -68,6 +68,7 @@ type UsageEntry = {
   body: string;
   segments: number;
   credits: number;
+  provider: string;
   providerRef: string | null;
   ok: boolean;
   error: string | null;
@@ -205,6 +206,7 @@ export async function sendSms(
     body: source === 'OTP' ? scrubOtp(message) : message,
     segments,
     credits: segments,
+    provider: env.SMS_PROVIDER,
     providerRef: result.providerRef,
     ok: result.ok,
     error: result.error,
