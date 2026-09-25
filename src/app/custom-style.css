@@ -128,3 +128,80 @@
 .animate-tilo-ping {
   animation: tilo-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+/* === 3D life for the professional look ===
+   Small, tasteful depth: primary buttons carry a soft elevation and lift on
+   hover, cards rise by a couple of pixels, and the quick-access orbs float.
+   All of it stays within the professional appearance and honours reduced
+   motion. */
+
+:root:not([data-appearance="vibrant"]) .bg-primary {
+  box-shadow:
+    0 6px 16px -6px color-mix(in oklab, var(--primary) 55%, transparent),
+    0 1px 2px 0 rgb(0 0 0 / 0.06);
+  transform: translateZ(0);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+@media (hover: hover) {
+  :root:not([data-appearance="vibrant"]) .bg-primary:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 10px 22px -8px color-mix(in oklab, var(--primary) 45%, transparent),
+      0 2px 4px 0 rgb(0 0 0 / 0.08);
+  }
+}
+
+:root:not([data-appearance="vibrant"]) .rounded-xl.border.bg-card {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (hover: hover) {
+  :root:not([data-appearance="vibrant"]) .rounded-xl.border.bg-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.16);
+  }
+}
+
+/* Gentle floating bob for the quick-access orbs and dashboard hero blobs. */
+@keyframes tilo-float {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotateX(8deg);
+  }
+}
+
+/* Diagonal light sweep that glides across the dashboard hero. */
+@keyframes tilo-sheen {
+  0% {
+    transform: translateX(-150%) skewX(-12deg);
+  }
+  55%,
+  100% {
+    transform: translateX(250%) skewX(-12deg);
+  }
+}
+
+.animate-tilo-float {
+  animation: tilo-float 4.5s ease-in-out infinite;
+}
+
+.animate-tilo-sheen {
+  animation: tilo-sheen 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-tilo-float,
+  .animate-tilo-sheen {
+    animation: none;
+  }
+}

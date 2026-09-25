@@ -57,7 +57,7 @@ export function SmsUsageCard() {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-primary">
           <MessageSquareText aria-hidden className="size-3.5" /> SMS this month
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-secondary-foreground">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-sky-800 dark:bg-sky-950/60 dark:text-sky-200">
           ~{formatGhs(usage.monthEstimatedCostPesewas)} via SMS
         </span>
       </div>

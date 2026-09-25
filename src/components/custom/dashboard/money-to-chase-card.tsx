@@ -143,8 +143,8 @@ export function MoneyToChaseCard() {
         </div>
       </article>
 
-      <article className="rounded-xl border border-primary/20 bg-primary/[0.06] p-6 sm:p-7">
-        <h2 className="flex items-center gap-2 text-xl font-bold text-primary">
+      <article className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-50 to-teal-100/60 p-6 sm:p-7 dark:from-emerald-950/50 dark:to-teal-950/50">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-emerald-700 dark:text-emerald-300">
           <Wallet aria-hidden className="size-5" /> Collected
         </h2>
         <p className="mt-1 text-sm font-medium text-muted-foreground">

@@ -1,13 +1,15 @@
 // Tilo app code.
 'use client';
 
-import { Flame } from 'lucide-react';
+import { Flame, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { signOut, useSession } from '@/lib/auth-client';
+import { QuickAccessPanel } from '../assistive-menu';
 import { NotificationBell } from '../notification-bell';
 import { AppearancePicker } from './appearance-picker';
 import { DashboardNav } from './dashboard-nav';
@@ -20,6 +22,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
+  const [assistiveOpen, setAssistiveOpen] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -75,6 +78,23 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </span>
           </Link>
           <div className="flex items-center gap-2">
+            <Popover open={assistiveOpen} onOpenChange={setAssistiveOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Quick access menu"
+                  className="group hidden size-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 via-emerald-600 to-sky-700 text-white shadow-[0_6px_18px_-6px_rgba(6,95,70,0.5)] transition-transform duration-300 hover:scale-110 active:scale-95 sm:inline-flex"
+                >
+                  <Menu
+                    aria-hidden
+                    className="size-4 transition-transform duration-300 group-hover:rotate-90"
+                  />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-2">
+                <QuickAccessPanel onClose={() => setAssistiveOpen(false)} />
+              </PopoverContent>
+            </Popover>
             <AppearancePicker />
             <NotificationBell />
             <span className="hidden rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground sm:block">
