@@ -1,7 +1,7 @@
 // Tilo app code.
 'use client';
 
-import { Flame, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { signOut, useSession } from '@/lib/auth-client';
 import { QuickAccessPanel } from '../assistive-menu';
 import { NotificationBell } from '../notification-bell';
+import { TiloMark } from '../tilo-mark';
 import { AppearancePicker } from './appearance-picker';
 import { DashboardNav } from './dashboard-nav';
 
@@ -70,9 +71,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       <div className="shrink-0 border-b border-border bg-white dark:bg-stone-950">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Flame aria-hidden="true" className="size-4" />
-            </span>
+            <TiloMark className="size-9" iconClassName="size-5" />
             <span className="truncate font-display text-lg font-black uppercase tracking-tight text-foreground">
               Tilo
             </span>

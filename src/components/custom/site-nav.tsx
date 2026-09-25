@@ -2,12 +2,13 @@
 
 'use client';
 
-import { ChevronDown, Flame, Menu } from 'lucide-react';
+import { ChevronDown, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { AuthNav } from '@/components/custom/auth-nav';
 import { ThemeToggle } from '@/components/custom/theme-toggle';
+import { TiloMark } from '@/components/custom/tilo-mark';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -124,9 +125,7 @@ export function SiteNav() {
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
         <Link href="/" className="mr-2 flex min-w-0 items-center gap-2">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Flame className="size-4" aria-hidden />
-          </span>
+          <TiloMark className="size-8 rounded-xl" iconClassName="size-4" />
           <span className="truncate font-display text-lg font-black uppercase tracking-tight">
             {siteName}
           </span>
