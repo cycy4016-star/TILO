@@ -152,11 +152,11 @@ export default function TiloHome() {
           </div>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {DAYS.map((day) => (
                 <div
                   key={day.id}
-                  className={`flex size-11 items-center justify-center rounded-2xl font-display text-sm font-black sm:size-12 ${
+                  className={`flex size-10 items-center justify-center rounded-2xl font-display text-sm font-black sm:size-12 ${
                     day.workday
                       ? 'bg-amber-300 text-amber-950'
                       : 'border-2 border-dashed border-amber-50/40 text-amber-100'
@@ -169,7 +169,7 @@ export default function TiloHome() {
                 Your week, finally in tune
               </p>
             </div>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-x-6 gap-y-4">
               {[
                 ['120+', 'chats tamed weekly'],
                 ['7 days', 'to go live'],

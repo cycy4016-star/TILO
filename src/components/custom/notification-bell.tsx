@@ -108,7 +108,7 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 rounded-[1.5rem] border-2 border-amber-950 bg-white p-3 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900"
+        className="w-80 max-w-[calc(100vw-2rem)] rounded-[1.5rem] border-2 border-amber-950 bg-white p-3 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900"
       >
         <div className="flex items-center justify-between gap-2 px-1 pb-2">
           <p className="font-display text-sm font-black uppercase tracking-wide">Live feed</p>

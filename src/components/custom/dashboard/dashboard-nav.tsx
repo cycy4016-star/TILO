@@ -62,10 +62,7 @@ export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav
-      aria-label="Dashboard"
-      className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:overflow-visible lg:pb-0"
-    >
+    <nav aria-label="Dashboard" className="flex flex-wrap gap-2 lg:grid">
       {navItems.map((item) => {
         const Icon = item.icon;
         const active = pathname === item.href;

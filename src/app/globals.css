@@ -342,6 +342,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    /* Rotated cards and decorative overflow must never make the page
+       horizontally draggable — clip it at the root (overflow-x: clip, not
+       hidden, so position:sticky ancestors keep working). */
+    overflow-x: clip;
+  }
   body {
     @apply bg-background text-foreground;
   }
