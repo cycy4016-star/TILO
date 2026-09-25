@@ -115,7 +115,7 @@ export function OrderForm({
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-yellow-600 font-semibold text-white hover:bg-amber-700"
+          className="h-12 w-full rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
         >
           {form.formState.isSubmitting ? 'Creating…' : 'Create order'}
         </Button>

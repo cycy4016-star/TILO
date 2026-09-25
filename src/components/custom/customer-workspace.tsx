@@ -153,7 +153,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700 sm:w-auto"
+          className="h-12 w-full rounded-full bg-primary font-black uppercase tracking-wide text-primary-foreground hover:bg-primary/90 sm:w-auto"
         >
           {form.formState.isSubmitting ? 'Pinning…' : 'Pin them up'}
         </Button>
@@ -263,7 +263,7 @@ export function CustomerWorkspace() {
           <Button
             type="button"
             onClick={() => void loadCustomers(query)}
-            className="rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="rounded-full bg-primary font-black uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
           >
             Try again
           </Button>

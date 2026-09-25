@@ -104,7 +104,7 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
         <Button
           type="button"
           onClick={() => router.replace('/dashboard')}
-          className="rounded-full bg-yellow-600 font-semibold text-white hover:bg-amber-700"
+          className="rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
         >
           Go to dashboard
         </Button>

@@ -9,13 +9,13 @@ export const siteDescription =
 // readable here) — set to match your brand seed.
 export const brandVisual = {
   /** PWA browser-UI / status-bar color. */
-  themeColor: '#b45309',
+  themeColor: '#eab308',
   /** PWA splash + install background. */
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#fefce8',
   /** Social-share (OG/Twitter) image. */
   og: {
-    background: '#451a03',
-    foreground: '#fffbeb',
+    background: '#422006',
+    foreground: '#fefce8',
     /** Second line under the site name; '' hides it. */
     tagline: 'Chat on WhatsApp. Run on Tilo.',
   },

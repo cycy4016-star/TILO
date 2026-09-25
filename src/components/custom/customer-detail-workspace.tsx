@@ -46,14 +46,14 @@ const statusLabels: Record<OrderRecord['status'], string> = {
 
 const statusStyles: Record<OrderRecord['status'], string> = {
   PENDING: 'bg-primary/10 text-primary',
-  PROCESSING: 'bg-yellow-600 text-white',
+  PROCESSING: 'bg-primary text-primary-foreground',
   COMPLETED: 'bg-emerald-600 text-white',
   CANCELLED: 'bg-muted text-muted-foreground',
 };
 
 const statusDots: Record<OrderRecord['status'], string> = {
   PENDING: 'bg-primary',
-  PROCESSING: 'bg-yellow-600',
+  PROCESSING: 'bg-primary',
   COMPLETED: 'bg-emerald-600',
   CANCELLED: 'bg-muted',
 };
@@ -349,7 +349,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                               size="sm"
                               disabled={updatingOrderId === order.id}
                               onClick={() => void collectPayment(order.id)}
-                              className="h-7 rounded-full bg-yellow-600 text-[0.7rem] font-black uppercase tracking-wider text-white hover:bg-amber-700"
+                              className="h-7 rounded-full bg-primary text-[0.7rem] font-black uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
                             >
                               Collect payment
                             </Button>

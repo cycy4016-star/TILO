@@ -35,10 +35,10 @@ export type ThemePreset = {
 export const THEME_PRESETS: ThemePreset[] = [
   {
     key: 'gold',
-    label: 'Gold',
-    tagline: 'Warm amber · the Tilo signature',
-    accents: ['#ca8a04', '#fef3c7'],
-    seed: { h: 45, c: 0.21, l: 0.55 },
+    label: 'Yellow',
+    tagline: 'Vivid yellow · the Tilo signature',
+    accents: ['#eab308', '#fef9c3'],
+    seed: { h: 84, c: 0.19, l: 0.78 },
   },
   {
     key: 'emerald',

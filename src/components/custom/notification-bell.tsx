@@ -117,7 +117,7 @@ export function NotificationBell() {
               type="button"
               size="sm"
               onClick={() => void markRead()}
-              className="h-7 rounded-full bg-yellow-600 px-3 text-[0.7rem] font-semibold text-white hover:bg-amber-700"
+              className="h-7 rounded-full bg-primary px-3 text-[0.7rem] font-semibold text-primary-foreground hover:bg-primary/90"
             >
               <Check aria-hidden className="size-3" /> Got it
             </Button>

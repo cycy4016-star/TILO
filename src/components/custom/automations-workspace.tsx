@@ -361,7 +361,7 @@ function RuleForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-lg bg-yellow-600 font-semibold text-white hover:bg-amber-700"
+            className="h-11 rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
           >
             {form.formState.isSubmitting ? 'Saving…' : isEditing ? 'Save changes' : 'Create rule'}
           </Button>
@@ -521,7 +521,7 @@ export function AutomationsWorkspace() {
           <Button
             type="button"
             onClick={() => void loadRules()}
-            className="rounded-lg bg-yellow-600 font-semibold text-white hover:bg-amber-700"
+            className="rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Try again
           </Button>

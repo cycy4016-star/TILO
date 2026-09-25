@@ -156,7 +156,7 @@ export function SmsComposer({
             type="button"
             disabled={busy}
             onClick={() => void send()}
-            className="h-11 gap-2 rounded-full bg-yellow-600 font-semibold text-white hover:bg-amber-700"
+            className="h-11 gap-2 rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
           >
             <Send aria-hidden className="size-4" /> {busy ? 'Sending…' : 'Send message'}
           </Button>

@@ -125,30 +125,30 @@
    border role + dark mode from these (see the derived block below), so editing
    --brand-h ALONE recolors the entire site. Keep values in range. */
 :root {
-  --brand-h: 45; /* brand hue, 0–360 (gold → brown ramps) */
-  --brand-c: 0.21; /* brand chroma (saturation), 0–0.3 */
-  --brand-l: 0.55; /* lightness of the brand-500 step, 0.40–0.70 */
+  --brand-h: 84; /* brand hue, 0–360 (oklch yellow — the Tilo colour) */
+  --brand-c: 0.19; /* brand chroma (saturation), 0–0.3 */
+  --brand-l: 0.78; /* lightness of the brand-500 step (yellow wants to stay bright) */
   --radius: 1.1rem; /* corner roundness — cascades to every primitive */
 
   --font-display: "Arial Black", "Helvetica Neue", Helvetica, sans-serif;
   --font-body: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 
   /* Interface chrome ramp consumed by the dashboard shell + storefront via
-     arbitrary-value classes (bg-[var(--tl-950)] etc.). Defaults are the exact
-     amber values already used across the app, so the gold theme renders
-     byte-for-byte like today; every other [data-theme] remaps them for a
-     coherent recolour alongside the derived --brand ramp above. */
-  --tl-950: #451a03;
-  --tl-900: #78350f;
-  --tl-800: #92400e;
-  --tl-700: #b45309;
-  --tl-600: #d97706;
-  --tl-500: #f59e0b;
-  --tl-400: #fbbf24;
-  --tl-300: #fcd34d;
-  --tl-200: #fde68a;
-  --tl-100: #fef3c7;
-  --tl-50: #fffbeb;
+      arbitrary-value classes (bg-[var(--tl-950)] etc.). Defaults are the exact
+      yellow values of the Tilo signature, so the gold theme renders
+      byte-for-byte like today; every other [data-theme] remaps them for a
+      coherent recolour alongside the derived --brand ramp above. */
+  --tl-950: #422006;
+  --tl-900: #713f12;
+  --tl-800: #854d0e;
+  --tl-700: #a16207;
+  --tl-600: #ca8a04;
+  --tl-500: #eab308;
+  --tl-400: #facc15;
+  --tl-300: #fde047;
+  --tl-200: #fef08a;
+  --tl-100: #fef9c3;
+  --tl-50: #fefce8;
   --tl-cta: #ca8a04;
   --tl-cta-border: #facc15;
   --tl-banner: #fefce8;
@@ -292,6 +292,14 @@
   --elevation-2: oklch(0.2 0.04 var(--brand-h) / 0.1);
   --elevation-3: oklch(0.2 0.05 var(--brand-h) / 0.14);
   --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
+}
+
+/* TILO's yellow is bright, so its buttons carry near-black text instead of the
+   default white (yellow + white washes out). Applied to the yellow/gold theme
+   only — every other theme keeps white on its darker primary. */
+:root:not([data-theme]),
+[data-theme="gold"] {
+  --primary-foreground: oklch(0.24 0.04 70);
 }
 
 .dark {
