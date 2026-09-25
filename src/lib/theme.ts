@@ -2,9 +2,13 @@
 // set of seed values (--brand-h/c/l) injected into the CSS in globals.css under
 // a `[data-theme="key"]` selector — the derived brand ramp and every semantic
 // token recompute from those three numbers, so one pick recolours the whole
-// workspace (dashboard shell + public storefront) coherently. Appearance
-// presets switch the storefront layout (vibrant = loud panels, professional =
-// clean straight cards).
+// dashboard coherently. Appearance presets switch the dashboard layout (vibrant
+// = loud rounded panels, professional = clean straight cards) via the scoped
+// overrides in custom-style.css. The platform look is a per-user preference
+// (src/app/api/appearance) chosen from the header AppearancePicker — it is NOT
+// a store setting. The public storefront also uses these keys, but from the
+// store's own values (Store.theme / Store.appearance), untouched by the user's
+// personal platform preference.
 //
 // This module is CLIENT-SAFE: the swatch previews and labels drive the picker
 // UI, and `normalizeTheme` / `normalizeAppearance` guard unknown persisted

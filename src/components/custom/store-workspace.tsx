@@ -92,16 +92,6 @@ import {
   type SocialPlatformDef,
   shareUrlFor,
 } from '@/lib/social';
-import {
-  APPEARANCE_PRESETS,
-  type AppearancePreset,
-  DEFAULT_APPEARANCE,
-  DEFAULT_THEME,
-  normalizeAppearance,
-  normalizeTheme,
-  THEME_PRESETS,
-  type ThemePreset,
-} from '@/lib/theme';
 import { uploadImageFile } from '@/lib/uploads';
 
 function getErrorBody(error: unknown): unknown {
@@ -493,8 +483,6 @@ function StoreForm({
           description: initial.description ?? '',
           contactPhone: initial.contactPhone ?? '',
           active: initial.active,
-          theme: normalizeTheme(initial.theme),
-          appearance: normalizeAppearance(initial.appearance),
         }
       : {
           name: '',
@@ -504,8 +492,6 @@ function StoreForm({
           description: '',
           contactPhone: '',
           active: true,
-          theme: DEFAULT_THEME,
-          appearance: DEFAULT_APPEARANCE,
         },
   });
   const [logo, setLogo] = useState<ImageSelection>(emptyImageSelection);
@@ -647,101 +633,6 @@ function StoreForm({
                   {...field}
                   className="rounded-2xl"
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="theme"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Colour theme</FormLabel>
-              <FormControl>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {THEME_PRESETS.map((preset: ThemePreset) => {
-                    const selected = field.value === preset.key;
-                    return (
-                      <button
-                        key={preset.key}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => field.onChange(preset.key)}
-                        className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-2.5 text-left transition-colors ${
-                          selected
-                            ? 'border-[var(--tl-950)] bg-[var(--tl-100)] dark:border-[var(--tl-300)]'
-                            : 'border-[var(--tl-200)] hover:border-[var(--tl-300)] dark:border-stone-800'
-                        }`}
-                      >
-                        <span className="flex shrink-0 -space-x-1">
-                          <span
-                            aria-hidden
-                            className="size-5 rounded-full border-2 border-white"
-                            style={{ backgroundColor: preset.accents[0] }}
-                          />
-                          <span
-                            aria-hidden
-                            className="size-5 rounded-full border-2 border-white"
-                            style={{ backgroundColor: preset.accents[1] }}
-                          />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-sm font-black uppercase tracking-wide">
-                            {preset.label}
-                          </span>
-                          <span className="block truncate text-xs font-medium text-stone-500">
-                            {preset.tagline}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="appearance"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Layout &amp; appearance</FormLabel>
-              <FormControl>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {APPEARANCE_PRESETS.map((preset: AppearancePreset) => {
-                    const selected = field.value === preset.key;
-                    return (
-                      <button
-                        key={preset.key}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => field.onChange(preset.key)}
-                        className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-2.5 text-left transition-colors ${
-                          selected
-                            ? 'border-[var(--tl-950)] bg-[var(--tl-100)] dark:border-[var(--tl-300)]'
-                            : 'border-[var(--tl-200)] hover:border-[var(--tl-300)] dark:border-stone-800'
-                        }`}
-                      >
-                        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--tl-950)] text-[var(--tl-50)]">
-                          <span className="font-display text-sm font-black uppercase">
-                            {preset.key === 'vibrant' ? 'V' : 'P'}
-                          </span>
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-sm font-black uppercase tracking-wide">
-                            {preset.label}
-                          </span>
-                          <span className="block truncate text-xs font-medium text-stone-500">
-                            {preset.tagline}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -1352,18 +1243,6 @@ export function StoreWorkspace() {
     editing: PromotionRecord | null;
   }>({ open: false, editing: null });
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    const html = document.documentElement;
-    const theme = store ? normalizeTheme(store.theme) : undefined;
-    const appearance = store ? normalizeAppearance(store.appearance) : undefined;
-    if (theme) html.dataset.theme = theme;
-    if (appearance) html.dataset.appearance = appearance;
-    return () => {
-      if (theme) delete html.dataset.theme;
-      if (appearance) delete html.dataset.appearance;
-    };
-  }, [store]);
 
   useEffect(() => {
     let cancelled = false;

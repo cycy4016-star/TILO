@@ -25,3 +25,34 @@
     animation: none;
   }
 }
+
+/* === Platform appearance: "professional" layout inside the app frame === */
+/* The dashboard is tagged [data-platform="app"]; the chosen appearance preset
+   lives on <html> ([data-appearance], set by the AppearancePicker). Vibrant is
+   the loud yellow-black look (rounded panels, chunky offset shadows, tilted
+   cards); professional switches those to clean, straight, understated cards —
+   scoped to the app frame so the public storefront layout is untouched. */
+[data-appearance="professional"] [data-platform="app"] {
+  /* Flatten the oversized card corners into a modest, business-ready radius. */
+  .rounded-\[2rem\],
+  .rounded-\[1\.5rem\] {
+    border-radius: 0.375rem;
+  }
+
+  /* Kill the offset comic-style shadows in favor of an understated edge. */
+  .shadow-\[4px_4px_0_0_\#451a03\],
+  .shadow-\[5px_5px_0_0_\#451a03\],
+  .shadow-\[8px_8px_0_0_\#451a03\],
+  .shadow-\[4px_4px_0_0_var\(--tl-950\)\],
+  .shadow-\[5px_5px_0_0_var\(--tl-950\)\],
+  .shadow-\[8px_8px_0_0_var\(--tl-950\)\] {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  }
+
+  /* Untip the rotated accent cards. */
+  .-rotate-1,
+  .rotate-1,
+  .rotate-\[0\.4deg\] {
+    rotate: 0deg;
+  }
+}

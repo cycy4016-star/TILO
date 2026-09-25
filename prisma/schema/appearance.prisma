@@ -1,0 +1,15 @@
+// Per-user platform appearance: the color theme + layout preset the whole
+// dashboard (and logged-in app) renders in. It is a per-user preference — each
+// signed-in account owns the platform look — NOT a store setting. The public
+// storefront keeps its own per-store look from Store.theme / Store.appearance.
+// One row per user, created lazily on first save.
+// Datasource + generator live in _base.prisma.
+
+model AppearancePreference {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  theme      String   @default("gold")
+  appearance String   @default("vibrant")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

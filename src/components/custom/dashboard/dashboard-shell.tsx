@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { signOut, useSession } from '@/lib/auth-client';
 import { NotificationBell } from '../notification-bell';
+import { AppearancePicker } from './appearance-picker';
 import { DashboardNav } from './dashboard-nav';
 
 export interface DashboardShellProps {
@@ -19,30 +20,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    // Apply the owner's saved theme + appearance to <html> so the whole
-    // workspace recolors coherently. Runs once on mount; StoreWorkspace
-    // re-applies immediately after a save. Falls back to the default
-    // (gold/vibrant) when the store hasn't been set up yet.
-    let cancelled = false;
-    async function applyStoreLook() {
-      try {
-        const res = await fetch('/api/store', { cache: 'no-store' });
-        if (cancelled || !res.ok) return;
-        const store = (await res.json()) as { theme?: string; appearance?: string };
-        const html = document.documentElement;
-        if (store.theme) html.dataset.theme = store.theme;
-        if (store.appearance) html.dataset.appearance = store.appearance;
-      } catch {
-        // Store API is auth-gated; ignore errors silently.
-      }
-    }
-    void applyStoreLook();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -83,7 +60,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }
 
   return (
-    <main className="flex h-dvh flex-col overflow-hidden bg-[var(--tl-50)] text-stone-900 dark:bg-stone-950 dark:text-amber-50">
+    <main
+      data-platform="app"
+      className="flex h-dvh flex-col overflow-hidden bg-[var(--tl-50)] text-stone-900 dark:bg-stone-950 dark:text-amber-50"
+    >
       <div className="shrink-0 border-b-4 border-[var(--tl-950)] bg-[var(--tl-300)]">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
@@ -95,6 +75,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </span>
           </Link>
           <div className="flex items-center gap-2">
+            <AppearancePicker />
             <NotificationBell />
             <span className="hidden rounded-full border-2 border-[var(--tl-950)]/20 px-3 py-1 text-[0.7rem] font-black uppercase tracking-widest text-[var(--tl-900)] sm:block">
               Boss
