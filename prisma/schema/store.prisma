@@ -39,6 +39,17 @@ model Store {
   // Announcement headline shown above the catalog on the storefront
   // (e.g. "Mid-sem sale — use code STUDENT10"). Empty = no banner.
   promoBanner  String?
+  // Owner-chosen colour theme preset key (see src/lib/theme.ts). Controls the
+  // whole platform surface for this workspace — dashboard shell and public
+  // storefront — by seeding --brand-h/c/l in globals.css. Validated client-side
+  // against ThemeKey; stored as a plain string so unknown keys degrade to the
+  // default gold seed rather than crashing the page.
+  theme        String      @default("gold")
+  // Owner-chosen layout/appearance preset key (see src/lib/theme.ts). Picks the
+  // storefront arrangement: "vibrant" is the loud yellow-black look, while
+  // "professional" is the clean business layout. Stored as a plain string; the
+  // UI falls back to the default when the value is unknown.
+  appearance   String      @default("vibrant")
   // Store logo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/[slug]/logo (no object storage needed).
   logo         Bytes?

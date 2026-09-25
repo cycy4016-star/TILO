@@ -92,6 +92,16 @@ import {
   type SocialPlatformDef,
   shareUrlFor,
 } from '@/lib/social';
+import {
+  APPEARANCE_PRESETS,
+  type AppearancePreset,
+  DEFAULT_APPEARANCE,
+  DEFAULT_THEME,
+  normalizeAppearance,
+  normalizeTheme,
+  THEME_PRESETS,
+  type ThemePreset,
+} from '@/lib/theme';
 import { uploadImageFile } from '@/lib/uploads';
 
 function getErrorBody(error: unknown): unknown {
@@ -132,7 +142,7 @@ const platformIcons: Record<SocialPlatformValue, LucideIcon> = {
 };
 
 const statusStyles: Record<SocialPostStatusValue, string> = {
-  SHARED: 'bg-amber-100 text-amber-800 dark:bg-stone-800 dark:text-amber-300',
+  SHARED: 'bg-[var(--tl-100)] text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]',
   PUBLISHED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
 };
 
@@ -155,7 +165,7 @@ function PlatformBadge({ value }: { value: SocialPlatformValue }) {
   const def = platformDef(value);
   const Icon = platformIcons[def.value];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-black uppercase tracking-wider text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tl-100)] px-2.5 py-1 text-xs font-black uppercase tracking-wider text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]">
       <Icon aria-hidden className="size-3.5" /> {def.label}
     </span>
   );
@@ -231,9 +241,9 @@ function PublishDialog({
                 key={entry.value}
                 type="button"
                 onClick={() => pick(entry)}
-                className="flex items-center gap-3 rounded-2xl border-2 border-amber-950 bg-amber-50/50 px-4 py-3 text-left hover:bg-amber-100 dark:border-stone-700 dark:bg-stone-900 dark:hover:bg-stone-800"
+                className="flex items-center gap-3 rounded-2xl border-2 border-[var(--tl-950)] bg-[var(--tl-50)]/50 px-4 py-3 text-left hover:bg-[var(--tl-100)] dark:border-stone-700 dark:bg-stone-900 dark:hover:bg-stone-800"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-white">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--tl-500)] to-[var(--tl-400)] text-white">
                   <Icon aria-hidden className="size-5" />
                 </span>
                 <span className="flex-1">
@@ -276,7 +286,7 @@ function PublishDialog({
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
               rows={6}
-              className="w-full rounded-2xl border-2 border-amber-950 bg-white px-3 py-2 text-sm font-medium dark:border-stone-700 dark:bg-stone-900"
+              className="w-full rounded-2xl border-2 border-[var(--tl-950)] bg-white px-3 py-2 text-sm font-medium dark:border-stone-700 dark:bg-stone-900"
             />
             <p className="text-xs font-medium text-stone-500">
               We copy this and open {platformDef(platform).label} — posting stays hands-on. Tweak it
@@ -287,7 +297,7 @@ function PublishDialog({
             type="button"
             disabled={busy || caption.trim().length === 0}
             onClick={() => void publish()}
-            className="h-11 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
           >
             <Share2 aria-hidden className="size-4" />
             {busy ? 'Opening…' : `Copy & open ${platformDef(platform).label}`}
@@ -355,7 +365,7 @@ function PublishLog({
 
   if (posts.length === 0) {
     return (
-      <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-8 text-center">
+      <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-8 text-center">
         <p className="font-display font-black uppercase">Nothing pushed yet</p>
         <p className="mt-1 text-sm font-medium text-stone-500">
           Tap Share on an item and it lands here.
@@ -371,7 +381,7 @@ function PublishLog({
         return (
           <div
             key={post.id}
-            className="rounded-[1.5rem] border-2 border-amber-950 bg-white p-4 dark:bg-stone-900"
+            className="rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-4 dark:bg-stone-900"
           >
             <div className="flex flex-wrap items-center gap-2">
               <PlatformBadge value={post.platform} />
@@ -411,7 +421,7 @@ function PublishLog({
                     type="button"
                     disabled={busyId === post.id}
                     onClick={() => void markPosted(post)}
-                    className="h-9 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+                    className="h-9 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
                   >
                     {busyId === post.id ? 'Saving…' : 'Done'}
                   </Button>
@@ -483,6 +493,8 @@ function StoreForm({
           description: initial.description ?? '',
           contactPhone: initial.contactPhone ?? '',
           active: initial.active,
+          theme: normalizeTheme(initial.theme),
+          appearance: normalizeAppearance(initial.appearance),
         }
       : {
           name: '',
@@ -492,6 +504,8 @@ function StoreForm({
           description: '',
           contactPhone: '',
           active: true,
+          theme: DEFAULT_THEME,
+          appearance: DEFAULT_APPEARANCE,
         },
   });
   const [logo, setLogo] = useState<ImageSelection>(emptyImageSelection);
@@ -640,9 +654,104 @@ function StoreForm({
         />
         <FormField
           control={form.control}
+          name="theme"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Colour theme</FormLabel>
+              <FormControl>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {THEME_PRESETS.map((preset: ThemePreset) => {
+                    const selected = field.value === preset.key;
+                    return (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => field.onChange(preset.key)}
+                        className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-2.5 text-left transition-colors ${
+                          selected
+                            ? 'border-[var(--tl-950)] bg-[var(--tl-100)] dark:border-[var(--tl-300)]'
+                            : 'border-[var(--tl-200)] hover:border-[var(--tl-300)] dark:border-stone-800'
+                        }`}
+                      >
+                        <span className="flex shrink-0 -space-x-1">
+                          <span
+                            aria-hidden
+                            className="size-5 rounded-full border-2 border-white"
+                            style={{ backgroundColor: preset.accents[0] }}
+                          />
+                          <span
+                            aria-hidden
+                            className="size-5 rounded-full border-2 border-white"
+                            style={{ backgroundColor: preset.accents[1] }}
+                          />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-black uppercase tracking-wide">
+                            {preset.label}
+                          </span>
+                          <span className="block truncate text-xs font-medium text-stone-500">
+                            {preset.tagline}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="appearance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Layout &amp; appearance</FormLabel>
+              <FormControl>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {APPEARANCE_PRESETS.map((preset: AppearancePreset) => {
+                    const selected = field.value === preset.key;
+                    return (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => field.onChange(preset.key)}
+                        className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-2.5 text-left transition-colors ${
+                          selected
+                            ? 'border-[var(--tl-950)] bg-[var(--tl-100)] dark:border-[var(--tl-300)]'
+                            : 'border-[var(--tl-200)] hover:border-[var(--tl-300)] dark:border-stone-800'
+                        }`}
+                      >
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--tl-950)] text-[var(--tl-50)]">
+                          <span className="font-display text-sm font-black uppercase">
+                            {preset.key === 'vibrant' ? 'V' : 'P'}
+                          </span>
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-black uppercase tracking-wide">
+                            {preset.label}
+                          </span>
+                          <span className="block truncate text-xs font-medium text-stone-500">
+                            {preset.tagline}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-amber-100 px-4 py-3 dark:border-stone-800">
+            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] px-4 py-3 dark:border-stone-800">
               <div>
                 <FormLabel className="!mt-0">Storefront open</FormLabel>
                 <p className="text-xs font-medium text-stone-500">
@@ -663,7 +772,7 @@ function StoreForm({
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700 sm:w-auto"
+          className="h-12 w-full rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)] sm:w-auto"
         >
           {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save store' : 'Set up store'}
         </Button>
@@ -901,7 +1010,7 @@ function ItemForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-amber-100 px-4 py-3 dark:border-stone-800">
+            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] px-4 py-3 dark:border-stone-800">
               <div>
                 <FormLabel className="!mt-0">On the shelf</FormLabel>
                 <p className="text-xs font-medium text-stone-500">
@@ -923,7 +1032,7 @@ function ItemForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
           >
             {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save item' : 'Add to shelf'}
           </Button>
@@ -1187,7 +1296,7 @@ function PromoForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-amber-100 px-4 py-3 dark:border-stone-800">
+            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] px-4 py-3 dark:border-stone-800">
               <div>
                 <FormLabel className="!mt-0">Promo live</FormLabel>
                 <p className="text-xs font-medium text-stone-500">
@@ -1209,7 +1318,7 @@ function PromoForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
           >
             {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save promo' : 'Create promo'}
           </Button>
@@ -1243,6 +1352,18 @@ export function StoreWorkspace() {
     editing: PromotionRecord | null;
   }>({ open: false, editing: null });
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const theme = store ? normalizeTheme(store.theme) : undefined;
+    const appearance = store ? normalizeAppearance(store.appearance) : undefined;
+    if (theme) html.dataset.theme = theme;
+    if (appearance) html.dataset.appearance = appearance;
+    return () => {
+      if (theme) delete html.dataset.theme;
+      if (appearance) delete html.dataset.appearance;
+    };
+  }, [store]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1361,7 +1482,7 @@ export function StoreWorkspace() {
 
   if (loading) {
     return (
-      <div className="flex min-h-64 items-center justify-center font-display text-sm font-black uppercase tracking-[0.25em] text-amber-500">
+      <div className="flex min-h-64 items-center justify-center font-display text-sm font-black uppercase tracking-[0.25em] text-[var(--tl-500)]">
         Opening the shop…
       </div>
     );
@@ -1369,7 +1490,7 @@ export function StoreWorkspace() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-xl rounded-[2rem] border-2 border-amber-950 bg-white p-8 text-center dark:bg-stone-900">
+      <div className="mx-auto max-w-xl rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-8 text-center dark:bg-stone-900">
         <p className="font-display text-2xl font-black uppercase">Shutters stuck</p>
         <p className="mt-2 text-sm font-medium text-stone-500">
           The store would not load. Try again.
@@ -1377,7 +1498,7 @@ export function StoreWorkspace() {
         <Button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-5 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+          className="mt-5 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
         >
           Try again
         </Button>
@@ -1387,12 +1508,12 @@ export function StoreWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-amber-950 p-7 text-amber-50 sm:p-9">
+      <section className="relative overflow-hidden rounded-[2rem] bg-[var(--tl-950)] p-7 text-[var(--tl-50)] sm:p-9">
         <StoreIcon
           aria-hidden
-          className="pointer-events-none absolute -right-6 -top-6 size-40 rotate-12 text-amber-900"
+          className="pointer-events-none absolute -right-6 -top-6 size-40 rotate-12 text-[var(--tl-900)]"
         />
-        <p className="relative text-xs font-black uppercase tracking-[0.25em] text-amber-300">
+        <p className="relative text-xs font-black uppercase tracking-[0.25em] text-[var(--tl-300)]">
           The storefront
         </p>
         <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
@@ -1400,7 +1521,7 @@ export function StoreWorkspace() {
             <h1 className="font-display text-4xl font-black uppercase leading-none sm:text-5xl">
               {store ? store.name : 'Your shop window'}
             </h1>
-            <p className="mt-2 max-w-lg text-sm font-medium text-amber-200">
+            <p className="mt-2 max-w-lg text-sm font-medium text-[var(--tl-200)]">
               {store
                 ? 'Customers see this page — browse it, then order items straight to your WhatsApp.'
                 : 'Give yourself a public page: name it, add your items and prices, share the link.'}
@@ -1410,9 +1531,9 @@ export function StoreWorkspace() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-        <section className="rounded-[2rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
           <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase">
-            <StoreIcon aria-hidden className="size-5 text-amber-600" /> Store details
+            <StoreIcon aria-hidden className="size-5 text-[var(--tl-600)]" /> Store details
           </h2>
           <div className="mt-4">
             <StoreForm key={store?.id ?? 'new'} initial={store} onSaved={setStore} />
@@ -1421,23 +1542,23 @@ export function StoreWorkspace() {
 
         <div className="grid content-start gap-6">
           {store ? (
-            <section className="rotate-1 rounded-[2rem] bg-amber-950 p-6 text-amber-50 sm:p-7">
-              <h2 className="flex items-center gap-2 font-display text-lg font-black uppercase text-amber-300">
+            <section className="rotate-1 rounded-[2rem] bg-[var(--tl-950)] p-6 text-[var(--tl-50)] sm:p-7">
+              <h2 className="flex items-center gap-2 font-display text-lg font-black uppercase text-[var(--tl-300)]">
                 <ExternalLink aria-hidden className="size-5" /> Share this page
               </h2>
               {storefrontUrl && (
-                <p className="mt-3 break-all rounded-2xl bg-amber-50/10 px-3 py-2 font-mono text-xs font-bold text-amber-100">
+                <p className="mt-3 break-all rounded-2xl bg-[var(--tl-50)]/10 px-3 py-2 font-mono text-xs font-bold text-[var(--tl-100)]">
                   {storefrontUrl}
                 </p>
               )}
-              <p className="mt-2 text-xs font-medium text-amber-200">
+              <p className="mt-2 text-xs font-medium text-[var(--tl-200)]">
                 Put it in your bio, on flyers, anywhere customers look.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button
                   type="button"
                   onClick={() => void copyLink()}
-                  className="h-10 rounded-full bg-amber-300 font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200"
+                  className="h-10 rounded-full bg-[var(--tl-300)] font-black uppercase tracking-wide text-[var(--tl-950)] hover:bg-[var(--tl-200)]"
                 >
                   <Copy aria-hidden className="size-4" /> {copied ? 'Copied!' : 'Copy link'}
                 </Button>
@@ -1445,7 +1566,7 @@ export function StoreWorkspace() {
                   <Button
                     asChild
                     variant="outline"
-                    className="h-10 rounded-full border-amber-50/40 font-black uppercase tracking-wide text-amber-100 hover:bg-amber-50/10"
+                    className="h-10 rounded-full border-[var(--tl-50)]/40 font-black uppercase tracking-wide text-[var(--tl-100)] hover:bg-[var(--tl-50)]/10"
                   >
                     <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink aria-hidden className="size-4" /> Preview
@@ -1455,7 +1576,7 @@ export function StoreWorkspace() {
               </div>
             </section>
           ) : (
-            <section className="rotate-1 rounded-[2rem] border-2 border-dashed border-amber-400 bg-white p-6 dark:bg-stone-900">
+            <section className="rotate-1 rounded-[2rem] border-2 border-dashed border-[var(--tl-400)] bg-white p-6 dark:bg-stone-900">
               <p className="font-display text-lg font-black uppercase">Not live yet</p>
               <p className="mt-1 text-sm font-medium text-stone-500">
                 Save the store details first — you&apos;ll get a shareable link here.
@@ -1466,7 +1587,7 @@ export function StoreWorkspace() {
       </div>
 
       {store && (
-        <section className="rounded-[2rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-black uppercase">The shelf</h2>
@@ -1476,7 +1597,7 @@ export function StoreWorkspace() {
             </div>
             <Button
               type="button"
-              className="h-11 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+              className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
               onClick={() => setItemDialog({ open: true, editing: null })}
             >
               <Plus aria-hidden className="size-4" /> Add item
@@ -1484,7 +1605,7 @@ export function StoreWorkspace() {
           </div>
 
           {store.items.length === 0 ? (
-            <div className="mt-5 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-10 text-center">
+            <div className="mt-5 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-10 text-center">
               <p className="font-display font-black uppercase">Empty shelf</p>
               <p className="mt-1 text-sm font-medium text-stone-500">
                 Add your first product or service — it appears on the public page right away.
@@ -1495,7 +1616,7 @@ export function StoreWorkspace() {
               {store.items.map((item, i) => (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-4 rounded-[1.5rem] border-2 border-amber-950 bg-white p-4 shadow-[4px_4px_0_0_#451a03] dark:bg-stone-900 ${
+                  className={`flex items-center gap-4 rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-4 shadow-[4px_4px_0_0_var(--tl-950)] dark:bg-stone-900 ${
                     i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
                   }`}
                 >
@@ -1508,7 +1629,7 @@ export function StoreWorkspace() {
                       />
                     </span>
                   ) : (
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-400 text-white">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--tl-500)] to-[var(--tl-400)] text-white">
                       {item.kind === 'SERVICE' ? (
                         <Wrench aria-hidden className="size-5" />
                       ) : (
@@ -1528,10 +1649,10 @@ export function StoreWorkspace() {
                       )}
                     </p>
                     <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-stone-500">
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-black uppercase tracking-wider text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+                      <span className="rounded-full bg-[var(--tl-100)] px-2 py-0.5 font-black uppercase tracking-wider text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]">
                         {kindLabels[item.kind]}
                       </span>
-                      <span className="font-mono text-sm font-black text-amber-950 dark:text-amber-50">
+                      <span className="font-mono text-sm font-black text-[var(--tl-950)] dark:text-[var(--tl-50)]">
                         {formatGhs(item.pricePesewas)}
                       </span>
                     </p>
@@ -1581,7 +1702,7 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section className="rounded-[2rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-black uppercase">Sales &amp; promos</h2>
@@ -1592,7 +1713,7 @@ export function StoreWorkspace() {
             </div>
             <Button
               type="button"
-              className="h-11 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+              className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
               onClick={() => setPromoDialog({ open: true, editing: null })}
             >
               <Plus aria-hidden className="size-4" /> New promo
@@ -1600,11 +1721,11 @@ export function StoreWorkspace() {
           </div>
 
           {promotions === null ? (
-            <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-8 text-center">
+            <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-8 text-center">
               <p className="font-display font-black uppercase">Loading promos…</p>
             </div>
           ) : promotions.length === 0 ? (
-            <div className="mt-5 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-10 text-center">
+            <div className="mt-5 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-10 text-center">
               <p className="font-display font-black uppercase">No promos yet</p>
               <p className="mt-1 text-sm font-medium text-stone-500">
                 Add a sale or a discount code and your page becomes a deal customers share.
@@ -1649,7 +1770,7 @@ export function StoreWorkspace() {
                 return (
                   <div
                     key={promo.id}
-                    className={`flex items-center gap-4 rounded-[1.5rem] border-2 border-amber-950 bg-white p-4 shadow-[4px_4px_0_0_#451a03] dark:bg-stone-900 ${
+                    className={`flex items-center gap-4 rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-4 shadow-[4px_4px_0_0_var(--tl-950)] dark:bg-stone-900 ${
                       state !== 'live' ? 'opacity-75' : ''
                     }`}
                   >
@@ -1682,7 +1803,7 @@ export function StoreWorkspace() {
                           {promoHeadline(promo)}
                         </span>
                         {promo.code ? (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 font-black uppercase tracking-wider text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+                          <span className="rounded-full bg-[var(--tl-100)] px-2 py-0.5 font-black uppercase tracking-wider text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]">
                             CODE {promo.code}
                           </span>
                         ) : (
@@ -1738,7 +1859,7 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section className="rounded-[2rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-black uppercase">Publishing log</h2>
@@ -1746,10 +1867,10 @@ export function StoreWorkspace() {
                 Every push goes here — mark it posted once it&apos;s live.
               </p>
             </div>
-            <Share2 aria-hidden className="size-5 text-amber-600" />
+            <Share2 aria-hidden className="size-5 text-[var(--tl-600)]" />
           </div>
           {posts === null ? (
-            <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-8 text-center">
+            <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-8 text-center">
               <p className="font-display font-black uppercase">Loading the log…</p>
             </div>
           ) : (

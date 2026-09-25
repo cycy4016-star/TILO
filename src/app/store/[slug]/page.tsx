@@ -59,9 +59,21 @@ export default async function StorePage({ params }: StorePageProps) {
     `Hi ${store.name}! I saw your shop online and I'd like to ask about ordering.`,
   );
 
+  const pro = store.appearance === 'professional';
+
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-14">
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-950 via-[#78350f] to-yellow-600 p-8 text-amber-50 sm:p-12">
+    <main
+      data-theme={store.theme}
+      data-appearance={store.appearance}
+      className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-14"
+    >
+      <section
+        className={`relative ${pro ? 'rounded-3xl' : 'rounded-[2rem]'} bg-gradient-to-br ${
+          pro
+            ? 'from-[var(--tl-900)] via-[var(--tl-800)] to-[var(--tl-600)]'
+            : 'from-amber-950 via-[#78350f] to-yellow-600'
+        } ${pro ? 'p-8 text-[var(--tl-50)] sm:p-10' : 'p-8 text-amber-50 sm:p-12'}`}
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-20"
@@ -78,7 +90,13 @@ export default async function StorePage({ params }: StorePageProps) {
               className="mb-4 size-16 rounded-2xl bg-amber-50/10 object-contain p-1"
             />
           )}
-          <p className="inline-flex rotate-1 items-center gap-1.5 rounded-full bg-amber-300 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-950">
+          <p
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] ${
+              pro
+                ? 'bg-[var(--tl-100)] text-[var(--tl-900)]'
+                : 'rotate-1 bg-amber-300 text-amber-950'
+            }`}
+          >
             {store.items.length} {store.items.length === 1 ? 'item' : 'items'} on the shelf
           </p>
           <h1 className="mt-4 font-display text-4xl font-black uppercase leading-none text-amber-50 sm:text-6xl">
@@ -106,7 +124,7 @@ export default async function StorePage({ params }: StorePageProps) {
       </section>
 
       {store.promoBanner && (
-        <section className="mt-6 flex items-center justify-center gap-2 rounded-2xl border-2 border-yellow-400 bg-yellow-50 px-4 py-3 text-center font-display text-sm font-black uppercase tracking-wide text-amber-900 dark:border-amber-700 dark:bg-stone-900 dark:text-amber-300">
+        <section className="mt-6 flex items-center justify-center gap-2 rounded-2xl border-2 border-[var(--tl-cta-border)] bg-[var(--tl-banner)] px-4 py-3 text-center font-display text-sm font-black uppercase tracking-wide text-amber-900 dark:border-amber-700 dark:bg-stone-900 dark:text-amber-300">
           <Tag aria-hidden className="size-4 shrink-0" />
           <span>{store.promoBanner}</span>
         </section>
@@ -121,8 +139,12 @@ export default async function StorePage({ params }: StorePageProps) {
               return (
                 <article
                   key={`${promo.name}-${promo.code ?? 'any'}-${index}`}
-                  className={`flex flex-col rounded-[1.75rem] border-2 border-amber-950 bg-white p-5 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900 ${
-                    index % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
+                  className={`flex flex-col border-2 bg-white dark:bg-stone-900 ${
+                    pro
+                      ? 'rounded-2xl border-[var(--tl-200)] p-5'
+                      : `rounded-[1.75rem] border-amber-950 p-5 shadow-[5px_5px_0_0_#451a03] ${
+                          index % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
+                        }`
                   }`}
                 >
                   {promo.imageUrl && (
@@ -186,12 +208,20 @@ export default async function StorePage({ params }: StorePageProps) {
             return (
               <article
                 key={item.id}
-                className={`flex flex-col rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900 ${
-                  i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
+                className={`flex flex-col border-2 bg-white dark:bg-stone-900 ${
+                  pro
+                    ? 'rounded-2xl border-[var(--tl-200)] p-6'
+                    : `rounded-[1.75rem] border-amber-950 p-6 shadow-[5px_5px_0_0_#451a03] ${
+                        i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
+                      }`
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-400 text-white">
+                  <span
+                    className={`flex size-12 items-center justify-center rounded-2xl text-white ${
+                      pro ? 'bg-[var(--tl-700)]' : 'bg-gradient-to-br from-amber-500 to-amber-400'
+                    }`}
+                  >
                     {item.kind === 'SERVICE' ? (
                       <Wrench aria-hidden className="size-5" />
                     ) : (
@@ -269,7 +299,11 @@ export default async function StorePage({ params }: StorePageProps) {
                       return smsHref ? (
                         <a
                           href={smsHref}
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 border-amber-950 px-4 font-black uppercase tracking-wide text-amber-950 transition-colors hover:bg-amber-100 dark:text-amber-50"
+                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 px-4 font-black uppercase tracking-wide transition-colors ${
+                            pro
+                              ? 'border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
+                              : 'border-amber-950 text-amber-950 hover:bg-amber-100 dark:text-amber-50'
+                          }`}
                         >
                           <MessageSquareText aria-hidden className="size-4" /> SMS
                         </a>

@@ -17,6 +17,8 @@ const storePayload = {
   promoBanner: null,
   contactPhone: '024 000 0000',
   active: true,
+  theme: 'gold',
+  appearance: 'vibrant',
   hasLogo: false,
   createdAt: '2026-09-21T00:00:00.000Z',
   updatedAt: '2026-09-21T00:00:00.000Z',
@@ -91,6 +93,8 @@ describe('store contracts', () => {
       description: storePayload.description,
       promoBanner: null,
       contactPhone: storePayload.contactPhone,
+      theme: 'gold',
+      appearance: 'vibrant',
       logoUrl: null,
       items: [
         {

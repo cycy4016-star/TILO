@@ -72,9 +72,9 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
   }
 
   return (
-    <section className="mt-8 rounded-[2rem] border-2 border-amber-950 bg-white p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900 sm:p-8">
+    <section className="mt-8 rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 shadow-[5px_5px_0_0_var(--tl-950)] dark:bg-stone-900 sm:p-8">
       <p className="flex items-center gap-2 font-display text-lg font-black uppercase">
-        <Sparkles aria-hidden className="size-4 text-yellow-600" />
+        <Sparkles aria-hidden className="size-4 text-[var(--tl-cta)]" />
         Leave your details
       </p>
       <p className="mt-1 text-sm font-medium text-stone-500">
@@ -147,7 +147,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
         type="button"
         disabled={busy}
         onClick={() => void submit()}
-        className="mt-4 h-11 rounded-full bg-yellow-600 px-6 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+        className="mt-4 h-11 rounded-full bg-[var(--tl-cta)] px-6 font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
       >
         {busy ? 'Saving…' : 'Save my details'}
       </Button>

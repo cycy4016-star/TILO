@@ -132,6 +132,125 @@
 
   --font-display: "Arial Black", "Helvetica Neue", Helvetica, sans-serif;
   --font-body: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  /* Interface chrome ramp consumed by the dashboard shell + storefront via
+     arbitrary-value classes (bg-[var(--tl-950)] etc.). Defaults are the exact
+     amber values already used across the app, so the gold theme renders
+     byte-for-byte like today; every other [data-theme] remaps them for a
+     coherent recolour alongside the derived --brand ramp above. */
+  --tl-950: #451a03;
+  --tl-900: #78350f;
+  --tl-800: #92400e;
+  --tl-700: #b45309;
+  --tl-600: #d97706;
+  --tl-500: #f59e0b;
+  --tl-400: #fbbf24;
+  --tl-300: #fcd34d;
+  --tl-200: #fde68a;
+  --tl-100: #fef3c7;
+  --tl-50: #fffbeb;
+  --tl-cta: #ca8a04;
+  --tl-cta-border: #facc15;
+  --tl-banner: #fefce8;
+}
+
+/* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)
+   recomputes the whole derived brand ramp + every semantic token, so one
+   attribute recolors the workspace and storefront coherently. */
+[data-theme="emerald"] {
+  --brand-h: 160;
+  --brand-c: 0.2;
+  --brand-l: 0.48;
+  --tl-950: #022c22;
+  --tl-900: #064e3b;
+  --tl-800: #065f46;
+  --tl-700: #047857;
+  --tl-600: #059669;
+  --tl-500: #10b981;
+  --tl-400: #34d399;
+  --tl-300: #6ee7b7;
+  --tl-200: #a7f3d0;
+  --tl-100: #d1fae5;
+  --tl-50: #ecfdf5;
+  --tl-cta: #059669;
+  --tl-cta-border: #34d399;
+  --tl-banner: #ecfdf5;
+}
+[data-theme="ocean"] {
+  --brand-h: 205;
+  --brand-c: 0.22;
+  --brand-l: 0.5;
+  --tl-950: #082f49;
+  --tl-900: #0c4a6e;
+  --tl-800: #075985;
+  --tl-700: #0369a1;
+  --tl-600: #0284c7;
+  --tl-500: #0ea5e9;
+  --tl-400: #38bdf8;
+  --tl-300: #7dd3fc;
+  --tl-200: #bae6fd;
+  --tl-100: #e0f2fe;
+  --tl-50: #f0f9ff;
+  --tl-cta: #0284c7;
+  --tl-cta-border: #38bdf8;
+  --tl-banner: #f0f9ff;
+}
+[data-theme="violet"] {
+  --brand-h: 268;
+  --brand-c: 0.2;
+  --brand-l: 0.5;
+  --tl-950: #2e1065;
+  --tl-900: #4c1d95;
+  --tl-800: #5b21b6;
+  --tl-700: #6d28d9;
+  --tl-600: #7c3aed;
+  --tl-500: #8b5cf6;
+  --tl-400: #a78bfa;
+  --tl-300: #c4b5fd;
+  --tl-200: #ddd6fe;
+  --tl-100: #ede9fe;
+  --tl-50: #f5f3ff;
+  --tl-cta: #7c3aed;
+  --tl-cta-border: #a78bfa;
+  --tl-banner: #f5f3ff;
+}
+[data-theme="rose"] {
+  --brand-h: 352;
+  --brand-c: 0.2;
+  --brand-l: 0.55;
+  --tl-950: #4c0519;
+  --tl-900: #881337;
+  --tl-800: #9f1239;
+  --tl-700: #be123c;
+  --tl-600: #e11d48;
+  --tl-500: #f43f5e;
+  --tl-400: #fb7185;
+  --tl-300: #fda4af;
+  --tl-200: #fecdd3;
+  --tl-100: #ffe4e6;
+  --tl-50: #fff1f2;
+  --tl-cta: #e11d48;
+  --tl-cta-border: #fb7185;
+  --tl-banner: #fff1f2;
+}
+[data-theme="slate"] {
+  --brand-h: 250;
+  --brand-c: 0.02;
+  --brand-l: 0.5;
+  --tl-950: #020617;
+  --tl-900: #0f172a;
+  --tl-800: #1e293b;
+  --tl-700: #334155;
+  --tl-600: #475569;
+  --tl-500: #64748b;
+  --tl-400: #94a3b8;
+  --tl-300: #cbd5e1;
+  --tl-200: #e2e8f0;
+  --tl-100: #f1f5f9;
+  --tl-50: #f8fafc;
+  --tl-cta: #475569;
+  --tl-cta-border: #94a3b8;
+  --tl-banner: #f8fafc;
 }
 /* === END tilo:brand_tokens === */
 

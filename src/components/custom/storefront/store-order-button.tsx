@@ -93,7 +93,7 @@ export function StoreOrderButton({
   return (
     <Dialog open={open} onOpenChange={(value) => (value ? setOpen(true) : close())}>
       <DialogTrigger asChild>
-        <Button className="h-11 items-center gap-2 rounded-full bg-amber-950 px-5 font-black uppercase tracking-wide text-amber-50 hover:bg-stone-900">
+        <Button className="h-11 items-center gap-2 rounded-full bg-[var(--tl-950)] px-5 font-black uppercase tracking-wide text-[var(--tl-50)] hover:bg-stone-900">
           <PackagePlus aria-hidden className="size-4" /> Order on Tilo
         </Button>
       </DialogTrigger>
@@ -117,14 +117,14 @@ export function StoreOrderButton({
             <Button
               type="button"
               onClick={close}
-              className="mt-2 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+              className="mt-2 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
             >
               Keep browsing
             </Button>
           </div>
         ) : (
           <div className="grid gap-4">
-            <div className="flex items-center justify-between rounded-2xl border-2 border-amber-200 p-3 dark:border-amber-800">
+            <div className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] p-3 dark:border-[var(--tl-800)]">
               <span className="text-sm font-black uppercase tracking-wide">{itemName}</span>
               <span className="flex items-center gap-2">
                 <Button
@@ -187,7 +187,7 @@ export function StoreOrderButton({
               type="button"
               disabled={busy}
               onClick={() => void submit()}
-              className="h-12 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+              className="h-12 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
             >
               {busy ? 'Sending…' : 'Send order'}
             </Button>

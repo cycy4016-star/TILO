@@ -4,7 +4,8 @@
 import 'server-only';
 
 import { PromotionRecord } from '@/lib/contracts/promotion';
-import { StoreItemRecord, StorePayload } from '@/lib/contracts/store';
+import { AppearanceKey, StoreItemRecord, StorePayload, ThemeKey } from '@/lib/contracts/store';
+import { normalizeAppearance, normalizeTheme } from '@/lib/theme';
 
 export type StoreItemRow = {
   id: string;
@@ -31,6 +32,8 @@ export type StoreRow = {
   promoBanner: string | null;
   contactPhone: string | null;
   active: boolean;
+  theme: string;
+  appearance: string;
   logo: Uint8Array | null;
   createdAt: Date;
   updatedAt: Date;
@@ -90,6 +93,8 @@ export function serializePromotion(promotion: PromotionRow) {
 }
 
 export function serializeStore(store: StoreRow) {
+  const theme = ThemeKey.parse(normalizeTheme(store.theme));
+  const appearance = AppearanceKey.parse(normalizeAppearance(store.appearance));
   return StorePayload.parse({
     id: store.id,
     name: store.name,
@@ -99,6 +104,8 @@ export function serializeStore(store: StoreRow) {
     promoBanner: store.promoBanner,
     contactPhone: store.contactPhone,
     active: store.active,
+    theme,
+    appearance,
     hasLogo: store.logo != null,
     createdAt: store.createdAt.toISOString(),
     updatedAt: store.updatedAt.toISOString(),

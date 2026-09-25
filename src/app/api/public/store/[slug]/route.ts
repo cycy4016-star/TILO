@@ -4,8 +4,9 @@
 import 'server-only';
 
 import { NextResponse } from 'next/server';
-import { StorePublic } from '@/lib/contracts/store';
+import { AppearanceKey, StorePublic, ThemeKey } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
+import { normalizeAppearance, normalizeTheme } from '@/lib/theme';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,8 @@ export async function GET(_request: Request, context: RouteContext) {
         promoBanner: store.promoBanner,
         contactPhone: store.contactPhone,
         logoUrl: store.logo ? `/api/public/store/${store.slug}/logo` : null,
+        theme: ThemeKey.parse(normalizeTheme(store.theme)),
+        appearance: AppearanceKey.parse(normalizeAppearance(store.appearance)),
         items: store.items.map((item) => ({
           id: item.id,
           kind: item.kind,

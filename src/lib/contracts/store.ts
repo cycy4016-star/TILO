@@ -4,6 +4,20 @@ import { PromotionSummary } from '@/lib/contracts/promotion';
 
 export const StoreItemKind = z.enum(['PRODUCT', 'SERVICE']);
 
+// Colour theme presets (see src/lib/theme.ts for swatches/seed values).
+// SERVER-FACING keys only — this enum lives in the shared contract so both
+// the API and the client validate against the exact same allowlist. The
+// runtime value is also checked by ThemeKey.parse before it drives CSS.
+export const ThemeKey = z.enum(['gold', 'emerald', 'ocean', 'violet', 'rose', 'slate']);
+export type ThemeKeyValue = z.infer<typeof ThemeKey>;
+
+// Layout/appearance presets (see src/lib/theme.ts for the descriptions).
+// SERVER-FACING keys only, validated like ThemeKey. "vibrant" is the loud
+// yellow-black Tilo look; "professional" is the clean, straight-edged business
+// layout. Stored as a plain string so unknown values degrade to the default.
+export const AppearanceKey = z.enum(['vibrant', 'professional']);
+export type AppearanceKeyValue = z.infer<typeof AppearanceKey>;
+
 const optionalText = (max: number) => z.string().trim().max(max).optional();
 
 export const StoreUpsert = z.object({
@@ -19,6 +33,11 @@ export const StoreUpsert = z.object({
   promoBanner: optionalText(200),
   contactPhone: optionalText(40),
   active: z.boolean().default(true),
+  // Optional on create/update — absent means "leave as is" (DB defaults to
+  // gold + vibrant). Keeping these required-free lets old clients PUT without
+  // the fields without silently resetting the workspace look.
+  theme: ThemeKey.optional(),
+  appearance: AppearanceKey.optional(),
 });
 
 const priceRule = z
@@ -89,6 +108,8 @@ export const StorePayload = z.object({
   promoBanner: z.string().nullable(),
   contactPhone: z.string().nullable(),
   active: z.boolean(),
+  theme: ThemeKey,
+  appearance: AppearanceKey,
   // true when a logo is uploaded (bytes live in the DB, served by
   // /api/public/store/[slug]/logo).
   hasLogo: z.boolean(),
@@ -107,6 +128,8 @@ export const StorePublic = z.object({
   promoBanner: z.string().nullable(),
   contactPhone: z.string().nullable(),
   logoUrl: z.string().nullable(),
+  theme: ThemeKey,
+  appearance: AppearanceKey,
   items: z.array(
     z.object({
       id: z.string(),
