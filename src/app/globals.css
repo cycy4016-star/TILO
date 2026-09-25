@@ -269,7 +269,7 @@
   --brand-800: oklch(calc(var(--brand-l) - 0.24) calc(var(--brand-c) * 0.75) var(--brand-h));
   --brand-900: oklch(calc(var(--brand-l) - 0.32) calc(var(--brand-c) * 0.55) var(--brand-h));
 
-  --background: oklch(0.99 0.004 var(--brand-h));
+  --background: oklch(0.985 0.022 var(--brand-h));
   --foreground: oklch(0.18 0.01 var(--brand-h));
   --card: oklch(1 0.002 var(--brand-h));
   --card-foreground: var(--foreground);

@@ -66,9 +66,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <main
       data-platform="app"
-      className="flex h-dvh flex-col overflow-hidden bg-background text-foreground dark:bg-stone-950"
+      className="relative flex h-dvh flex-col overflow-hidden bg-background text-foreground dark:bg-stone-950"
     >
-      <div className="shrink-0 border-b border-border bg-white dark:bg-stone-950">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/[0.05] to-transparent"
+      />
+      <div className="relative shrink-0 border-b border-border bg-background dark:bg-stone-950">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <TiloMark className="size-9" iconClassName="size-5" />
@@ -112,7 +116,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </div>
       </div>
 
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 gap-6 px-5 py-6 sm:px-8">
+      <div className="relative mx-auto flex min-h-0 w-full max-w-7xl flex-1 gap-6 px-5 py-6 sm:px-8">
         <aside className="hidden w-[220px] shrink-0 overflow-y-auto lg:block">
           <div className="rounded-xl border border-border bg-card p-3">
             <p className="truncate px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
