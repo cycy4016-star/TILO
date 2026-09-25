@@ -119,7 +119,7 @@ export default function TiloHome() {
             </span>
           </div>
 
-          <h1 className="mt-8 font-display text-[13vw] font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
+          <h1 className="mt-8 text-balance font-display text-5xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
             Chat. Sell.
             <br />
             <span className="text-outline-cream">Repeat.</span>
@@ -129,11 +129,11 @@ export default function TiloHome() {
             stock, and follow-ups dancing to one loud rhythm.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <Button
               asChild
               size="lg"
-              className="h-14 rounded-full bg-amber-300 px-8 text-base font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200"
+              className="h-14 w-full justify-center rounded-full bg-amber-300 px-8 text-base font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200 sm:w-auto"
             >
               <a href="mailto:hello@tilo.app?subject=Put%20my%20business%20on%20Tilo">
                 Start the party <PartyPopper aria-hidden />
@@ -143,7 +143,7 @@ export default function TiloHome() {
               asChild
               size="lg"
               variant="outline"
-              className="h-14 rounded-full border-2 border-amber-50/50 bg-transparent px-8 text-base font-black uppercase tracking-wide text-amber-50 hover:bg-amber-50/10 hover:text-amber-50"
+              className="h-14 w-full justify-center rounded-full border-2 border-amber-50/50 bg-transparent px-8 text-base font-black uppercase tracking-wide text-amber-50 hover:bg-amber-50/10 hover:text-amber-50 sm:w-auto"
             >
               <Link href="/dashboard">
                 Peek inside <ArrowDownRight aria-hidden />
@@ -151,21 +151,23 @@ export default function TiloHome() {
             </Button>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="flex flex-wrap items-center gap-2">
-              {DAYS.map((day) => (
-                <div
-                  key={day.id}
-                  className={`flex size-10 items-center justify-center rounded-2xl font-display text-sm font-black sm:size-12 ${
-                    day.workday
-                      ? 'bg-amber-300 text-amber-950'
-                      : 'border-2 border-dashed border-amber-50/40 text-amber-100'
-                  }`}
-                >
-                  {day.label}
-                </div>
-              ))}
-              <p className="ml-2 hidden max-w-[10rem] text-xs font-bold uppercase tracking-widest text-amber-200 sm:block">
+          <div className="mt-12 grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4">
+            <div className="sm:flex sm:items-center sm:gap-2">
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                {DAYS.map((day) => (
+                  <div
+                    key={day.id}
+                    className={`flex aspect-square items-center justify-center rounded-2xl font-display text-sm font-black sm:text-base ${
+                      day.workday
+                        ? 'bg-amber-300 text-amber-950'
+                        : 'border-2 border-dashed border-amber-50/40 text-amber-100'
+                    }`}
+                  >
+                    {day.label}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 max-w-[10rem] text-xs font-bold uppercase tracking-widest text-amber-200 sm:mt-0">
                 Your week, finally in tune
               </p>
             </div>
@@ -208,22 +210,22 @@ export default function TiloHome() {
           From mess to <span className="text-yellow-600">music</span>
         </h2>
         <div className="mt-10 grid gap-5 md:grid-cols-2">
-          <div className="rotate-1 rounded-[2rem] border-2 border-dashed border-stone-300 bg-white/60 p-8 dark:bg-stone-900">
+          <div className="rotate-1 rounded-[2rem] border-2 border-dashed border-stone-300 bg-white/60 p-6 dark:bg-stone-900 sm:p-8">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-stone-400">
               Before Tilo
             </p>
-            <ul className="mt-4 space-y-3 text-lg font-medium text-stone-500 dark:text-stone-400">
+            <ul className="mt-4 space-y-3 text-base font-medium text-stone-500 dark:text-stone-400 sm:text-lg">
               <li>“Who promised what on Tuesday?”</li>
               <li>Quotes lost between voice notes</li>
               <li>Stock surprises at the worst hour</li>
               <li>Follow-ups living in someone&apos;s head</li>
             </ul>
           </div>
-          <div className="-rotate-1 rounded-[2rem] bg-amber-950 p-8 text-amber-50 shadow-2xl">
+          <div className="-rotate-1 rounded-[2rem] bg-amber-950 p-6 text-amber-50 shadow-2xl sm:p-8">
             <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.25em] text-amber-300">
               <BadgeCheck className="size-4" aria-hidden /> After Tilo
             </p>
-            <ul className="mt-4 space-y-3 text-lg font-bold">
+            <ul className="mt-4 space-y-3 text-base font-bold sm:text-lg">
               <li>Every promise has an owner + a date</li>
               <li>Orders ride along with their customer</li>
               <li>Low stock waves a flag early</li>
@@ -256,7 +258,7 @@ export default function TiloHome() {
             {TOOLKIT.map((tool) => (
               <article
                 key={tool.title}
-                className={`group rounded-[1.75rem] border-2 border-amber-950 bg-[#fffbeb] p-7 shadow-[6px_6px_0_0_#451a03] transition-transform duration-200 hover:rotate-0 hover:shadow-[3px_3px_0_0_#451a03] ${tool.tilt} dark:bg-stone-900`}
+                className={`group rounded-[1.75rem] border-2 border-amber-950 bg-[#fffbeb] p-6 shadow-[6px_6px_0_0_#451a03] transition-transform duration-200 hover:rotate-0 hover:shadow-[3px_3px_0_0_#451a03] sm:p-7 ${tool.tilt} dark:bg-stone-900`}
               >
                 <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-yellow-600 text-white transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-6">
                   <tool.icon className="size-6" aria-hidden />
@@ -281,7 +283,7 @@ export default function TiloHome() {
           {WEEK.map(([day, title, body], i) => (
             <div
               key={day}
-              className="relative overflow-hidden rounded-[2rem] border-2 border-amber-950 bg-white p-8 dark:bg-stone-900"
+              className="relative overflow-hidden rounded-[2rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900 sm:p-8"
             >
               <span
                 aria-hidden
@@ -314,18 +316,18 @@ export default function TiloHome() {
           <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.25em] text-amber-200">
             <PartyPopper className="size-4" aria-hidden /> Your turn
           </p>
-          <h2 className="mt-4 max-w-3xl font-display text-5xl font-black uppercase leading-[0.95] sm:text-7xl">
+          <h2 className="mt-4 max-w-3xl text-balance font-display text-4xl font-black uppercase leading-[0.95] sm:text-5xl md:text-7xl">
             Bring the noise. We&apos;ll bring the system.
           </h2>
           <p className="mt-5 max-w-xl text-lg font-medium text-amber-100">
             Tell us where work gets stuck today. In seven days your whole team could be running on
             one rhythm.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <Button
               asChild
               size="lg"
-              className="h-14 rotate-1 rounded-full bg-amber-950 px-8 text-base font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900"
+              className="h-14 w-full justify-center rotate-1 rounded-full bg-amber-950 px-8 text-base font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900 sm:w-auto"
             >
               <a href="mailto:hello@tilo.app?subject=Put%20my%20business%20on%20Tilo">
                 Get Tilo <ArrowDownRight aria-hidden />
@@ -335,7 +337,7 @@ export default function TiloHome() {
               asChild
               size="lg"
               variant="outline"
-              className="h-14 -rotate-1 rounded-full border-2 border-white/60 bg-transparent px-8 text-base font-black uppercase tracking-wide text-white hover:bg-white/10 hover:text-white"
+              className="h-14 w-full justify-center -rotate-1 rounded-full border-2 border-white/60 bg-transparent px-8 text-base font-black uppercase tracking-wide text-white hover:bg-white/10 hover:text-white sm:w-auto"
             >
               <Link href="/dashboard">Tour the workspace</Link>
             </Button>

@@ -85,7 +85,7 @@ export function MoneyToChaseCard() {
           </div>
         ) : (
           <>
-            <p className="mt-5 font-display text-5xl font-black uppercase leading-none text-amber-950 dark:text-amber-50 sm:text-6xl">
+            <p className="mt-5 min-w-0 font-display text-[clamp(2.25rem,9vw,3.75rem)] font-black uppercase leading-none text-amber-950 dark:text-amber-50">
               {formatGhs(overview.outstandingPesewas)}
             </p>
             <p className="mt-2 text-sm font-bold text-stone-600 dark:text-stone-300">

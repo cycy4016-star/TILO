@@ -65,7 +65,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       className="flex h-dvh flex-col overflow-hidden bg-[var(--tl-50)] text-stone-900 dark:bg-stone-950 dark:text-amber-50"
     >
       <div className="shrink-0 border-b-4 border-[var(--tl-950)] bg-[var(--tl-300)]">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <span className="flex size-9 shrink-0 -rotate-6 items-center justify-center rounded-xl bg-[var(--tl-950)] text-[var(--tl-300)]">
               <Flame aria-hidden="true" className="size-4" />

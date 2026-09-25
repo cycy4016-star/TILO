@@ -304,7 +304,7 @@ export function CustomerWorkspace() {
           {customers.map((customer, i) => (
             <div
               key={customer.id}
-              className={`group flex items-center gap-3 rounded-[1.75rem] border-2 border-amber-950 bg-white p-4 shadow-[4px_4px_0_0_#451a03] transition-all hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#451a03] dark:bg-stone-900 ${
+              className={`group flex items-center gap-3 rounded-[1.75rem] border-2 border-amber-950 bg-white p-3 shadow-[4px_4px_0_0_#451a03] transition-all hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#451a03] sm:p-4 dark:bg-stone-900 ${
                 i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
               }`}
             >
@@ -336,7 +336,7 @@ export function CustomerWorkspace() {
                   </span>
                 </span>
               </Link>
-              <span className="shrink-0">
+              <span className="flex shrink-0 items-center gap-1">
                 {customer.phone &&
                   (() => {
                     const chat = waMeLink(customer.phone);
@@ -346,7 +346,7 @@ export function CustomerWorkspace() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`WhatsApp ${customer.name}`}
-                        className="mr-1 inline-flex size-10 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                        className="inline-flex size-10 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
                       >
                         <MessagesSquare aria-hidden className="size-4" />
                       </a>
@@ -362,7 +362,7 @@ export function CustomerWorkspace() {
                         type="button"
                         variant="outline"
                         aria-label={`Text ${customer.name}`}
-                        className="mr-1 inline-flex size-10 rounded-full border-2 border-amber-950 p-0 hover:bg-amber-100"
+                        className="inline-flex size-10 rounded-full border-2 border-amber-950 p-0 hover:bg-amber-100"
                       >
                         <MessageSquareMore aria-hidden className="size-4" />
                       </Button>

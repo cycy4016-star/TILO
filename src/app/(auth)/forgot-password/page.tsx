@@ -5,13 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#fffbeb] px-5 py-16 dark:bg-stone-950">
+    <main className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center overflow-hidden bg-[#fffbeb] px-5 py-10 sm:py-16 dark:bg-stone-950">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute -left-24 top-[-10%] size-96 rounded-full bg-amber-300 opacity-40 blur-3xl" />
         <div className="absolute -right-24 bottom-[-10%] size-96 rounded-full bg-amber-300 opacity-40 blur-3xl" />
       </div>
 
-      <Card className="relative w-full max-w-md rotate-1 rounded-[2rem] border-2 border-amber-950 bg-white shadow-[8px_8px_0_0_#451a03] dark:bg-stone-900">
+      <Card className="relative w-full max-w-md rounded-[2rem] border-2 border-amber-950 bg-white shadow-[8px_8px_0_0_#451a03] dark:bg-stone-900 md:rotate-1">
         <CardHeader className="pb-2 text-center">
           <p className="mx-auto w-fit -rotate-2 rounded-full bg-yellow-600 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.2em] text-white">
             No wahala

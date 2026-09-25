@@ -98,6 +98,7 @@ export function SignInForm() {
         onChange={(e) => setIdentifier(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       <div className="flex items-center justify-between">
         <Label htmlFor="sign-in-password">Password</Label>
@@ -117,9 +118,10 @@ export function SignInForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending} className="h-12 w-full">
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>

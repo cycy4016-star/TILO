@@ -177,12 +177,13 @@ export function SignUpForm() {
         onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       <p className="text-sm text-muted-foreground">
         {notice ?? `We texted a code to ${e164} — enter it to prove the number is yours.`}
       </p>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending || code.length < 6} className="w-full">
+      <Button type="submit" disabled={pending || code.length < 6} className="h-12 w-full">
         {pending ? 'Checking…' : 'Confirm my number'}
       </Button>
       <button
@@ -203,7 +204,7 @@ export function SignUpForm() {
             variant="outline"
             disabled={googlePending}
             onClick={() => void handleGoogle()}
-            className="w-full"
+            className="h-12 w-full"
           >
             {googlePending ? 'Opening Google…' : 'Continue with Google'}
           </Button>
@@ -224,6 +225,7 @@ export function SignUpForm() {
         onChange={(e) => setName(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       <Label htmlFor="sign-up-phone">Phone number</Label>
       <Input
@@ -236,6 +238,7 @@ export function SignUpForm() {
         onChange={(e) => setPhone(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       <Label htmlFor="sign-up-email">Email address (optional)</Label>
       <Input
@@ -247,6 +250,7 @@ export function SignUpForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       {env.NEXT_PUBLIC_SIGNUP_INVITE === 'true' ? (
         <>
@@ -261,6 +265,7 @@ export function SignUpForm() {
             onChange={(e) => setInviteCode(e.target.value)}
             required
             aria-invalid={error ? true : undefined}
+            className="h-12 rounded-2xl"
           />
         </>
       ) : null}
@@ -274,9 +279,10 @@ export function SignUpForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending} className="h-12 w-full">
         {pending ? 'Creating account…' : 'Create account'}
       </Button>
       <p className="flex items-center justify-center gap-1 text-center text-xs font-bold uppercase tracking-widest text-stone-400">

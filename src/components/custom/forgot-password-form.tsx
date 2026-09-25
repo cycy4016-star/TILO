@@ -85,6 +85,7 @@ export function ForgotPasswordForm() {
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
           required
           aria-invalid={error ? true : undefined}
+          className="h-12 rounded-2xl"
         />
         <Label htmlFor="reset-password">New password</Label>
         <Input
@@ -96,6 +97,7 @@ export function ForgotPasswordForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           aria-invalid={error ? true : undefined}
+          className="h-12 rounded-2xl"
         />
         <Label htmlFor="reset-confirm">Confirm password</Label>
         <Input
@@ -107,10 +109,11 @@ export function ForgotPasswordForm() {
           onChange={(e) => setConfirm(e.target.value)}
           required
           aria-invalid={error ? true : undefined}
+          className="h-12 rounded-2xl"
         />
         {notice ? <p className="text-sm text-muted-foreground">{notice}</p> : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button type="submit" disabled={pending} className="h-12 w-full">
           {pending ? 'Saving…' : 'Set new password'}
         </Button>
         <button
@@ -141,9 +144,10 @@ export function ForgotPasswordForm() {
         onChange={(e) => setPhone(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
+        className="h-12 rounded-2xl"
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending} className="h-12 w-full">
         {pending ? 'Sending…' : 'Text me a reset code'}
       </Button>
     </form>

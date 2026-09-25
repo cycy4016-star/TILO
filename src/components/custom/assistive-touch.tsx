@@ -161,7 +161,7 @@ export function AssistiveTouch() {
   }, [open]);
 
   return (
-    <div className="fixed bottom-5 right-5 z-[60]">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1.25rem)] right-[calc(env(safe-area-inset-right)_+_1.25rem)] z-40">
       {open && (
         <div className="mb-3 w-64 origin-bottom-right rounded-[1.75rem] border-2 border-[var(--tl-950)] bg-white p-3 shadow-[6px_6px_0_0_#451a03] dark:bg-stone-900">
           <div className="flex items-center justify-between px-2 pb-2">

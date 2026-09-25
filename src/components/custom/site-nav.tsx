@@ -123,8 +123,8 @@ export function SiteNav() {
         aria-label="Primary"
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
-        <Link href="/" className="mr-2 flex shrink-0 items-center gap-2">
-          <span className="flex size-8 -rotate-6 items-center justify-center rounded-lg bg-amber-950 text-amber-300">
+        <Link href="/" className="mr-2 flex min-w-0 items-center gap-2">
+          <span className="flex size-8 shrink-0 -rotate-6 items-center justify-center rounded-lg bg-amber-950 text-amber-300">
             <Flame className="size-4" aria-hidden />
           </span>
           <span className="truncate font-display text-lg font-black uppercase tracking-tight">
@@ -253,7 +253,10 @@ export function SiteNav() {
 
           {/* Always visible */}
           <ThemeToggle />
-          <AuthNav />
+          {/* Auth actions are desktop-only inline; the mobile sheet gets a stack */}
+          <span className="hidden md:contents">
+            <AuthNav />
+          </span>
 
           {/* Mobile (below md): burger + drawer — only when there's something to collapse */}
           {collapsedCount > 0 && (
@@ -268,7 +271,10 @@ export function SiteNav() {
                 <SheetHeader>
                   <SheetTitle className="text-left">{siteName}</SheetTitle>
                 </SheetHeader>
-                <nav aria-label="Mobile" className="mt-6 flex flex-col gap-1 overflow-y-auto">
+                <nav
+                  aria-label="Mobile"
+                  className="mt-6 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+                >
                   {/* All slots, no overflow; a `menu` slot becomes a labeled section. */}
                   {slots.map((slot) =>
                     slot.type === 'link' ? (
@@ -277,7 +283,7 @@ export function SiteNav() {
                         asChild
                         variant="ghost"
                         className={cn(
-                          'w-full justify-start',
+                          'h-11 w-full justify-start',
                           isActive(slot.item.href) && 'bg-accent text-accent-foreground',
                         )}
                       >
@@ -300,7 +306,7 @@ export function SiteNav() {
                             asChild
                             variant="ghost"
                             className={cn(
-                              'w-full justify-start pl-6',
+                              'h-11 w-full justify-start pl-6',
                               isActive(item.href) && 'bg-accent text-accent-foreground',
                             )}
                           >
@@ -323,7 +329,7 @@ export function SiteNav() {
                           key={item.href}
                           asChild
                           variant="secondary"
-                          className="w-full justify-start"
+                          className="h-11 w-full justify-start"
                         >
                           <Link
                             href={item.href}
@@ -337,6 +343,9 @@ export function SiteNav() {
                     </div>
                   )}
                 </nav>
+                <div className="mt-4 border-t border-border pt-4">
+                  <AuthNav variant="stack" onNavigate={() => setOpen(false)} />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -356,7 +365,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t-4 border-amber-950 bg-amber-950 text-amber-100">
-      <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-4 px-4 py-8">
+      <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-4 px-4 pb-24 pt-8 sm:pb-8">
         <p className="font-display text-2xl font-black uppercase tracking-tight text-amber-300">
           Tilo
         </p>

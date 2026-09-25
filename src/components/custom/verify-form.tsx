@@ -131,6 +131,7 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
             onChange={(e) => setPhone(e.target.value)}
             required
             aria-invalid={error ? true : undefined}
+            className="h-12 rounded-2xl"
           />
         </>
       ) : (
@@ -146,6 +147,7 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             required
             aria-invalid={error ? true : undefined}
+            className="h-12 rounded-2xl"
           />
           {notice ? <p className="text-sm text-muted-foreground">{notice}</p> : null}
         </>
@@ -154,19 +156,35 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
       <Button
         type="submit"
         disabled={pending || (step === 'otp' && code.length < 6)}
-        className="w-full"
+        className="h-12 w-full"
       >
         {pending ? 'Working…' : step === 'phone' ? 'Send the code' : 'Confirm my number'}
       </Button>
       {step === 'otp' ? (
-        <button
-          type="button"
-          onClick={resend}
-          disabled={pending}
-          className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
-        >
-          Resend the code
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={resend}
+            disabled={pending}
+            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Resend the code
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPhone('');
+              setCode('');
+              setE164('');
+              setNotice(undefined);
+              setError(undefined);
+              setStep('phone');
+            }}
+            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Use a different number
+          </button>
+        </>
       ) : null}
       <p className="flex items-center justify-center gap-1 text-center text-xs font-bold uppercase tracking-widest text-stone-400">
         <KeyRound aria-hidden className="size-3.5" /> Unlocks your whole floor
