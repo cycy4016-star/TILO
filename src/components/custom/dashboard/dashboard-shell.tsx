@@ -91,7 +91,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   />
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-64 p-2">
+              <PopoverContent align="end" className="w-72 p-2">
                 <QuickAccessPanel onClose={() => setAssistiveOpen(false)} />
               </PopoverContent>
             </Popover>

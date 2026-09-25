@@ -136,6 +136,31 @@ function buildGroups(pathname: string, isDashboard: boolean): Group[] {
   ];
 }
 
+// Per-item icon styling, cycled across the menu so each destination gets its own
+// color: vivid gradient tiles for page links, soft tinted chips for in-page
+// jumps. Adds the "3D" lift + colored glow that keeps the panel from looking
+// flat.
+const FALLBACK_ICON_ACCENT = {
+  tile: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-[0_8px_16px_-8px_rgba(245,158,11,0.6)]',
+  chip: 'border border-amber-200/70 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300',
+};
+
+const ICON_ACCENTS = [
+  FALLBACK_ICON_ACCENT,
+  {
+    tile: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-[0_8px_16px_-8px_rgba(16,185,129,0.6)]',
+    chip: 'border border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300',
+  },
+  {
+    tile: 'bg-gradient-to-br from-sky-500 to-sky-700 text-white shadow-[0_8px_16px_-8px_rgba(14,165,233,0.6)]',
+    chip: 'border border-sky-200/70 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300',
+  },
+  {
+    tile: 'bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-[0_8px_16px_-8px_rgba(139,92,246,0.6)]',
+    chip: 'border border-violet-200/70 bg-violet-50 text-violet-700 dark:border-violet-900/60 dark:bg-violet-950/40 dark:text-violet-300',
+  },
+];
+
 export interface QuickAccessPanelProps {
   /** Called when the panel wants to close (close button, after a jump). */
   onClose: () => void;
@@ -173,26 +198,25 @@ export function QuickAccessPanel({ onClose }: QuickAccessPanelProps) {
           <p className="px-2 pb-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
             {group.label}
           </p>
-          <div className="grid grid-cols-3 gap-1.5">
-            {group.actions.map((action) => {
+          <div className="grid grid-cols-3 gap-2">
+            {group.actions.map((action, index) => {
               const Icon = action.icon;
+              const accent = ICON_ACCENTS[index % ICON_ACCENTS.length] ?? FALLBACK_ICON_ACCENT;
               const shared = cn(
-                'group flex flex-col items-center gap-1 rounded-lg px-1 pb-2 pt-2.5 text-center transition-colors',
+                'group flex flex-col items-center gap-1.5 rounded-lg px-1 pb-2 pt-2.5 text-center transition-colors',
                 action.href ? 'hover:bg-muted' : 'hover:bg-secondary',
               );
               const inner = (
                 <>
                   <span
                     className={cn(
-                      'flex size-9 items-center justify-center rounded-lg transition-transform group-hover:scale-105',
-                      action.href
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-secondary-foreground',
+                      'flex size-11 items-center justify-center rounded-xl transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-110',
+                      action.href ? accent.tile : accent.chip,
                     )}
                   >
-                    <Icon aria-hidden className="size-4" />
+                    <Icon aria-hidden className="size-5" />
                   </span>
-                  <span className="text-[0.6rem] font-semibold leading-tight text-muted-foreground">
+                  <span className="text-[0.68rem] font-semibold leading-tight text-muted-foreground">
                     {action.label}
                   </span>
                 </>

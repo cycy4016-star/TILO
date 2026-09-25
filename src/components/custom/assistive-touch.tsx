@@ -28,7 +28,7 @@ export function AssistiveTouch() {
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1.25rem)] right-[calc(env(safe-area-inset-right)_+_1.25rem)] z-40">
       {open && (
-        <div className="mb-3 w-64 origin-bottom-right rounded-xl border border-border bg-card p-3 shadow-xl">
+        <div className="mb-3 w-72 origin-bottom-right rounded-xl border border-border bg-card p-3 shadow-xl">
           <QuickAccessPanel onClose={() => setOpen(false)} />
         </div>
       )}
