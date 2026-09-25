@@ -21,10 +21,10 @@ export function DashboardNav() {
             href={item.href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'flex h-11 shrink-0 items-center gap-2 rounded-2xl px-4 text-sm font-black uppercase tracking-wide transition-all',
+              'flex h-11 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors',
               active
-                ? '-rotate-1 bg-yellow-600 text-white shadow-[3px_3px_0_0_#451a03]'
-                : 'text-stone-500 hover:bg-amber-100 hover:text-amber-900 dark:text-stone-400 dark:hover:bg-stone-800',
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
             <Icon aria-hidden="true" className="size-4" />

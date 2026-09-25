@@ -26,33 +26,105 @@
   }
 }
 
-/* === Platform appearance: "professional" layout inside the app frame === */
-/* The dashboard is tagged [data-platform="app"]; the chosen appearance preset
-   lives on <html> ([data-appearance], set by the AppearancePicker). Vibrant is
-   the loud yellow-black look (rounded panels, chunky offset shadows, tilted
-   cards); professional switches those to clean, straight, understated cards —
-   scoped to the app frame so the public storefront layout is untouched. */
-[data-appearance="professional"] [data-platform="app"] {
-  /* Flatten the oversized card corners into a modest, business-ready radius. */
-  .rounded-\[2rem\],
-  .rounded-\[1\.5rem\] {
-    border-radius: 0.375rem;
+/* === Professional platform look (default) ===
+   Tilo ships a clean, business-ready UI. These rules neutralize the loud
+   poster styling (tilted cards, comic offset shadows, oversized radii, chunky
+   borders, Arial-black display type) into a calm, straight, corporate look.
+   They apply everywhere EXCEPT when <html data-appearance="vibrant"> opts back
+   into the loud Tilo-style panels (the AppearancePicker). Because this file is
+   unlayered author CSS it wins over the layered Tailwind utilities. */
+
+:root:not([data-appearance="vibrant"]) {
+  /* Crisper corners + the regular typeface for every "display" heading. */
+  --radius: 0.5rem;
+  --font-display: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+:root:not([data-appearance="vibrant"]) {
+  /* Untip every tilted card, badge and logo mark. */
+  .rotate-0,
+  .rotate-1,
+  .rotate-2,
+  .rotate-3,
+  .rotate-6,
+  .rotate-12,
+  .-rotate-1,
+  .-rotate-2,
+  .-rotate-3,
+  .-rotate-6,
+  .-rotate-12,
+  .rotate-\[0\.4deg\],
+  .rotate-\[0\.5deg\],
+  .-rotate-\[0\.5deg\],
+  .rotate-\[1\.5deg\],
+  .-rotate-\[1\.5deg\],
+  .hover\:rotate-0,
+  .hover\:-rotate-6,
+  .hover\:-rotate-12,
+  .group-hover\:-rotate-6 {
+    rotate: 0deg;
   }
 
-  /* Kill the offset comic-style shadows in favor of an understated edge. */
+  /* Drop the comic offset shadows for an understated edge. */
+  .shadow-\[3px_3px_0_0_\#451a03\],
+  .shadow-\[3px_3px_0_0_rgba\(0\,0\,0\,0\.25\)\],
   .shadow-\[4px_4px_0_0_\#451a03\],
-  .shadow-\[5px_5px_0_0_\#451a03\],
-  .shadow-\[8px_8px_0_0_\#451a03\],
   .shadow-\[4px_4px_0_0_var\(--tl-950\)\],
+  .shadow-\[5px_5px_0_0_\#451a03\],
   .shadow-\[5px_5px_0_0_var\(--tl-950\)\],
-  .shadow-\[8px_8px_0_0_var\(--tl-950\)\] {
+  .shadow-\[6px_6px_0_0_\#451a03\],
+  .shadow-\[8px_8px_0_0_\#047857\],
+  .shadow-\[8px_8px_0_0_\#451a03\],
+  .shadow-\[8px_8px_0_0_var\(--tl-950\)\],
+  .hover\:shadow-\[3px_3px_0_0_\#451a03\],
+  .hover\:shadow-\[6px_6px_0_0_\#451a03\] {
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
   }
 
-  /* Untip the rotated accent cards. */
-  .-rotate-1,
-  .rotate-1,
-  .rotate-\[0\.4deg\] {
-    rotate: 0deg;
+  /* Oversized poster corners -> modest, business-ready radius. */
+  .rounded-\[2rem\],
+  .rounded-\[1\.75rem\],
+  .rounded-\[1\.5rem\],
+  .rounded-\[1\.25rem\] {
+    border-radius: 0.5rem;
   }
+
+  /* Chunky 2px/4px borders -> 1px, recolored to the neutral UI border. */
+  .border-2,
+  .border-b-4,
+  .border-t-4 {
+    border-width: 1px;
+  }
+  .border-amber-950,
+  .border-amber-700,
+  .border-amber-400,
+  .border-\[var\(--tl-950\)\] {
+    border-color: var(--border);
+  }
+
+  /* Neon-yellow action buttons -> the calm brand primary + its hover shade. */
+  .bg-yellow-600 {
+    background-color: var(--primary);
+  }
+  .hover\:bg-amber-700 {
+    background-color: var(--brand-700);
+  }
+}
+
+/* Soft breathing ring on the assistive-touch menu orb, so it reads as a
+   tappable menu rather than a static dot. Runs only when the user hasn't asked
+   for reduced motion; the class pairs with Tailwind's `motion-safe:` variant. */
+@keyframes tilo-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  75%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+.animate-tilo-ping {
+  animation: tilo-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }

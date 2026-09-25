@@ -96,11 +96,11 @@ export function NotificationBell() {
           size="icon"
           aria-label={`Activity, ${unread} unread`}
           onClick={() => void load()}
-          className="relative size-9 rounded-full border-2 border-amber-950/20 bg-transparent text-amber-950 hover:bg-amber-950/10"
+          className="relative size-9 rounded-full border border-border bg-transparent text-foreground hover:bg-muted"
         >
           <Bell aria-hidden className="size-4" />
           {unread > 0 && (
-            <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-red-600 text-[0.65rem] font-black text-white ring-2 ring-amber-300">
+            <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[0.65rem] font-semibold text-primary-foreground ring-2 ring-background">
               {unread > 99 ? '99' : unread}
             </span>
           )}
@@ -108,16 +108,16 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 max-w-[calc(100vw-2rem)] rounded-[1.5rem] border-2 border-amber-950 bg-white p-3 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900"
+        className="w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover p-3 shadow-md"
       >
         <div className="flex items-center justify-between gap-2 px-1 pb-2">
-          <p className="font-display text-sm font-black uppercase tracking-wide">Live feed</p>
+          <p className="text-sm font-semibold">Live feed</p>
           {unread > 0 && (
             <Button
               type="button"
               size="sm"
               onClick={() => void markRead()}
-              className="h-7 rounded-full bg-yellow-600 px-3 text-[0.7rem] font-black uppercase tracking-wide text-white hover:bg-amber-700"
+              className="h-7 rounded-full bg-yellow-600 px-3 text-[0.7rem] font-semibold text-white hover:bg-amber-700"
             >
               <Check aria-hidden className="size-3" /> Got it
             </Button>
@@ -125,8 +125,8 @@ export function NotificationBell() {
         </div>
         <div className="max-h-80 overflow-y-auto">
           {!feed || feed.items.length === 0 ? (
-            <p className="px-2 py-8 text-center text-xs font-bold uppercase tracking-widest text-stone-400">
-              Nothing cooking yet
+            <p className="px-2 py-8 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              No activity yet
             </p>
           ) : (
             <ol className="space-y-1">
@@ -136,27 +136,29 @@ export function NotificationBell() {
                 return (
                   <li
                     key={item.id}
-                    className={`flex gap-3 rounded-2xl p-2.5 ${read ? 'opacity-60' : 'bg-amber-50 dark:bg-stone-800'}`}
+                    className={`flex gap-3 rounded-lg p-2.5 ${read ? 'opacity-60' : 'bg-muted/60'}`}
                   >
                     <span
-                      className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl ${
+                      className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg ${
                         item.kind === 'SMS_FAILED'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-600 text-white'
+                          ? 'bg-destructive/10 text-destructive'
+                          : 'bg-primary/10 text-primary'
                       }`}
                     >
                       <Icon aria-hidden className="size-4" />
                     </span>
                     <span className="min-w-0">
-                      <span className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">
+                      <span className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
                         {kindLabels[NotificationKind.parse(item.kind)]}
-                        <span className="font-medium normal-case tracking-normal text-stone-400">
+                        <span className="font-medium normal-case tracking-normal text-muted-foreground">
                           {timeAgo(item.createdAt)}
                         </span>
                       </span>
-                      <span className="mt-0.5 block truncate text-sm font-black">{item.title}</span>
+                      <span className="mt-0.5 block truncate text-sm font-medium">
+                        {item.title}
+                      </span>
                       {item.message && (
-                        <span className="mt-0.5 block truncate text-xs font-medium text-stone-500">
+                        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                           {item.message}
                         </span>
                       )}

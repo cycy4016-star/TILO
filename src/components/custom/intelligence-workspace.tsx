@@ -39,10 +39,7 @@ export function IntelligenceWorkspace() {
     return (
       <div className="grid gap-4 md:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-44 animate-pulse rounded-[1.75rem] border-2 border-amber-950 bg-white dark:bg-stone-900"
-          />
+          <div key={i} className="h-44 animate-pulse rounded-xl border border-border bg-card" />
         ))}
       </div>
     );
@@ -50,198 +47,174 @@ export function IntelligenceWorkspace() {
 
   if (error || !data) {
     return (
-      <section className="rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900">
-        <p className="font-bold text-amber-700">The ledger would not open — try again.</p>
+      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <p className="text-sm font-semibold text-destructive">
+          We could not load your summary. Please try again.
+        </p>
       </section>
     );
   }
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-950 via-[#78350f] to-yellow-600 p-8 text-amber-50 sm:p-10">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-20"
-          aria-hidden
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 80% 15%, #facc15 0, transparent 35%), radial-gradient(circle at 15% 90%, #fcd34d 0, transparent 30%)',
-          }}
-        />
-        <div className="relative flex flex-wrap items-center gap-3">
-          <span className="inline-flex -rotate-2 items-center gap-1.5 rounded-full bg-amber-300 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-950">
+      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-primary">
             <BrainCircuit aria-hidden className="size-3.5" /> Intelligence
           </span>
-          <span className="inline-flex rotate-1 items-center gap-1.5 rounded-full border-2 border-amber-50/40 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em]">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
             <Scale aria-hidden className="size-3.5" /> The balance sheet
           </span>
         </div>
-        <h1 className="relative mt-5 font-display text-4xl font-black uppercase leading-none sm:text-5xl">
-          Know your <span className="text-amber-300">numbers.</span>
-        </h1>
-        <p className="relative mt-3 max-w-md font-medium text-amber-100">
-          What you&apos;re owed, what the shelf is worth, and what actually earns.
+        <h1 className="mt-5 text-3xl font-bold">Know your numbers.</h1>
+        <p className="mt-2 max-w-md text-sm text-muted-foreground">
+          What you&apos;re owed, what the catalogue is worth, and what actually earns.
         </p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <article className="rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900">
-          <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-yellow-600 text-white">
+        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Coins aria-hidden className="size-5" />
           </span>
-          <p className="mt-4 text-xs font-black uppercase tracking-widest text-stone-500">
+          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Money in (month)
           </p>
-          <p className="mt-1 font-display text-3xl font-black uppercase leading-none text-amber-950 dark:text-amber-50">
+          <p className="mt-1 text-3xl font-bold text-foreground">
             {formatGhs(data.moneyInMonthPesewas)}
           </p>
-          <p className="mt-2 text-sm font-medium text-stone-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             {data.moneyInMonthCount} paid {data.moneyInMonthCount === 1 ? 'order' : 'orders'}
           </p>
         </article>
-        <article className="-rotate-1 rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900">
-          <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-amber-500 text-white">
+        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <TrendingUp aria-hidden className="size-5" />
           </span>
-          <p className="mt-4 text-xs font-black uppercase tracking-widest text-stone-500">
-            Money on the chase
+          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Outstanding balance
           </p>
-          <p className="mt-1 font-display text-3xl font-black uppercase leading-none text-amber-950 dark:text-amber-50">
+          <p className="mt-1 text-3xl font-bold text-foreground">
             {formatGhs(data.outstandingPesewas)}
           </p>
-          <p className="mt-2 text-sm font-medium text-stone-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             {data.outstandingCount} open {data.outstandingCount === 1 ? 'order' : 'orders'}
           </p>
         </article>
-        <article className="rotate-1 rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900">
-          <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
+        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Package aria-hidden className="size-5" />
           </span>
-          <p className="mt-4 text-xs font-black uppercase tracking-widest text-stone-500">
-            Shelf worth at retail
+          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Catalogue value at retail
           </p>
-          <p className="mt-1 font-display text-3xl font-black uppercase leading-none text-amber-950 dark:text-amber-50">
+          <p className="mt-1 text-3xl font-bold text-foreground">
             {formatGhs(data.catalogSellPesewas)}
           </p>
-          <p className="mt-2 text-sm font-medium text-stone-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             {data.catalogItemCount} live {data.catalogItemCount === 1 ? 'item' : 'items'}
           </p>
         </article>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <article className="rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] p-6 dark:bg-stone-900 sm:p-7">
-          <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase">
-            <Scale aria-hidden className="size-5 text-yellow-600" /> Shelf economics
+        <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <h2 className="flex items-center gap-2 text-xl font-bold">
+            <Scale aria-hidden className="size-5 text-primary" /> Catalogue economics
           </h2>
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">
-                What it sells for
-              </span>
-              <span className="font-mono text-sm font-black">
+              <span className="text-sm text-muted-foreground">What it sells for</span>
+              <span className="font-mono text-sm font-semibold">
                 {formatGhs(data.catalogSellPesewas)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">
-                What it costs to hold
-              </span>
-              <span className="font-mono text-sm font-black">
+              <span className="text-sm text-muted-foreground">What it costs to hold</span>
+              <span className="font-mono text-sm font-semibold">
                 {formatGhs(data.catalogCostPesewas)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">
-                Potential profit
-              </span>
-              <span className="font-mono text-sm font-black text-emerald-700 dark:text-emerald-400">
+              <span className="text-sm text-muted-foreground">Potential profit</span>
+              <span className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                 {formatGhs(data.catalogProfitPesewas)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">
-                Margin at retail
-              </span>
-              <span className="font-mono text-sm font-black">{data.catalogMarginPercent}%</span>
+              <span className="text-sm text-muted-foreground">Margin at retail</span>
+              <span className="font-mono text-sm font-semibold">{data.catalogMarginPercent}%</span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">
-                Items missing a cost price
-              </span>
-              <span className="font-mono text-sm font-black text-amber-700 dark:text-amber-400">
-                {data.itemsMissingCost}
-              </span>
+              <span className="text-sm text-muted-foreground">Items missing a cost price</span>
+              <span className="font-mono text-sm font-semibold">{data.itemsMissingCost}</span>
             </div>
           </div>
           {data.itemsMissingCost > 0 && (
-            <div className="mt-5 rounded-[1.25rem] border-2 border-dashed border-amber-400 px-4 py-3 text-xs font-medium text-stone-600 dark:text-stone-300">
+            <div className="mt-5 rounded-lg border border-dashed border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
               {data.itemsMissingCost} {data.itemsMissingCost === 1 ? 'item has' : 'items have'} no
               cost price, {data.itemsMissingCost === 1 ? 'so it' : 'so they'} can&apos;t count its
-              margin. Add cost prices on the store shelf to sharpen these numbers.
+              margin. Add cost prices in your catalogue to sharpen these numbers.
             </div>
           )}
           <div className="pt-4">
-            <Button
-              asChild
-              variant="link"
-              className="h-auto p-0 font-black uppercase tracking-wide text-amber-700 dark:text-amber-300"
-            >
+            <Button asChild variant="link" className="h-auto p-0 font-semibold text-primary">
               <Link href="/dashboard/store">
-                Open the shelf <ArrowRight aria-hidden className="size-4" />
+                Open catalogue <ArrowRight aria-hidden className="size-4" />
               </Link>
             </Button>
           </div>
         </article>
 
-        <article className="-rotate-1 rounded-[2rem] bg-amber-950 p-6 text-amber-50 sm:p-7">
-          <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase text-amber-300">
+        <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <h2 className="flex items-center gap-2 text-xl font-bold text-primary">
             <TrendingUp aria-hidden className="size-5" /> Realized margins
           </h2>
-          <p className="mt-1 text-sm font-medium text-amber-200">
+          <p className="mt-1 text-sm text-muted-foreground">
             From actual sold orders, once costs are taken out.
           </p>
-          <p className="mt-5 font-display text-4xl font-black uppercase leading-none text-amber-50">
+          <p className="mt-5 text-4xl font-bold text-foreground">
             {formatGhs(data.realizedProfitPesewas)}
           </p>
-          <p className="mt-2 text-sm font-bold text-amber-100">
+          <p className="mt-2 text-sm font-semibold text-foreground">
             {data.realizedRevenuePesewas > 0
               ? `${data.realizedMarginPercent}% margin on ${data.realizedUnitCount} sold ${data.realizedUnitCount === 1 ? 'unit' : 'units'}`
               : 'No productized sales yet'}
           </p>
-          <p className="mt-5 text-xs font-medium leading-relaxed text-amber-200/80">
+          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
             {formatGhs(data.realizedRevenuePesewas)} sold, {formatGhs(data.realizedCogsPesewas)} in
             cost, across {data.realizedOrderCount} orders. Sell through the storefront or add line
-            items to orders and this lane comes alive.
+            items to orders and this figure updates automatically.
           </p>
         </article>
       </section>
 
       <section
         id="biggest-earners"
-        className="scroll-mt-24 rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] p-6 dark:bg-stone-900 sm:p-7"
+        className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
       >
-        <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase">
-          <Package aria-hidden className="size-5 text-yellow-600" /> Biggest earners
+        <h2 className="flex items-center gap-2 text-xl font-bold">
+          <Package aria-hidden className="size-5 text-primary" /> Biggest earners
         </h2>
         {data.topItems.length === 0 ? (
-          <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-8 text-center">
-            <p className="font-display text-lg font-black uppercase">Still quiet</p>
-            <p className="mt-1 text-sm font-medium text-stone-500">
+          <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
+            <p className="text-lg font-semibold">No ranked items yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">
               Products with sold line items will line up here by profit.
             </p>
           </div>
         ) : (
-          <div className="mt-4 divide-y divide-amber-200 dark:divide-stone-800">
+          <div className="mt-4 divide-y divide-border">
             {data.topItems.map((item) => (
               <div key={item.name} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-sm font-black uppercase">{item.name}</p>
-                  <p className="mt-0.5 text-xs font-medium text-stone-500">
+                  <p className="truncate text-sm font-semibold">{item.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {item.unitCount} sold · {formatGhs(item.revenuePesewas)} at{' '}
                     {item.marginPercent != null ? `${item.marginPercent}% margin` : 'no cost set'}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-primary">
                   {formatGhs(item.profitPesewas)} earned
                 </span>
               </div>

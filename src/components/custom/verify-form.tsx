@@ -94,19 +94,19 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
   if (step === 'done') {
     return (
       <div className="grid gap-4 text-center">
-        <span className="mx-auto flex size-14 -rotate-6 items-center justify-center rounded-3xl bg-emerald-600 text-white">
+        <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Check aria-hidden className="size-6" />
         </span>
-        <p className="font-display text-2xl font-black uppercase">You&apos;re in</p>
-        <p className="text-sm font-medium text-stone-500">
-          The door&apos;s unlocked. Rolling you to the dashboard…
+        <p className="text-2xl font-bold">You&apos;re verified</p>
+        <p className="text-sm text-muted-foreground">
+          Your account is confirmed. Taking you to the dashboard…
         </p>
         <Button
           type="button"
           onClick={() => router.replace('/dashboard')}
-          className="rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+          className="rounded-full bg-yellow-600 font-semibold text-white hover:bg-amber-700"
         >
-          To the floor
+          Go to dashboard
         </Button>
       </div>
     );
@@ -186,8 +186,8 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
           </button>
         </>
       ) : null}
-      <p className="flex items-center justify-center gap-1 text-center text-xs font-bold uppercase tracking-widest text-stone-400">
-        <KeyRound aria-hidden className="size-3.5" /> Unlocks your whole floor
+      <p className="flex items-center justify-center gap-1 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        <KeyRound aria-hidden className="size-3.5" /> Unlocks your whole workspace
       </p>
     </form>
   );

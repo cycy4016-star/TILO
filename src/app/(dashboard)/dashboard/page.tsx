@@ -1,7 +1,7 @@
 // Tilo dashboard overview.
 'use client';
 
-import { Activity, ArrowUpRight, Bot, Flame, Sparkles, Users } from 'lucide-react';
+import { Activity, ArrowUpRight, Bot, Flame, Users } from 'lucide-react';
 import Link from 'next/link';
 import { MoneyToChaseCard } from '@/components/custom/dashboard/money-to-chase-card';
 import { SmsUsageCard } from '@/components/custom/dashboard/sms-usage-card';
@@ -18,56 +18,52 @@ const TILES = [
   },
   {
     icon: Activity,
-    title: 'Motion',
+    title: 'Orders',
     body: 'Orders move, statuses flip, nothing stalls.',
     href: '/dashboard/orders',
     cta: 'See the flow',
   },
   {
     icon: Bot,
-    title: 'Switchboard',
-    body: 'Rule the rhythm — nudges and flips on autopilot.',
+    title: 'Automations',
+    body: 'Nudges and status flips on autopilot.',
     href: '/dashboard/automations',
-    cta: 'Open the switchboard',
+    cta: 'Open automations',
   },
 ];
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const name = session?.user?.name?.split(' ')[0] ?? 'chief';
+  const name = session?.user?.name?.split(' ')[0] ?? 'Chief';
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-950 via-[#78350f] to-yellow-600 p-8 text-amber-50 sm:p-10">
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-8 sm:p-10">
         <div
-          className="pointer-events-none absolute inset-0 opacity-20"
+          className="pointer-events-none absolute inset-0 opacity-[0.06]"
           aria-hidden
           style={{
             backgroundImage:
-              'radial-gradient(circle at 85% 20%, #facc15 0, transparent 35%), radial-gradient(circle at 10% 90%, #fcd34d 0, transparent 30%)',
+              'radial-gradient(circle at 85% 20%, #d4a017 0, transparent 35%), radial-gradient(circle at 10% 90%, #d4a017 0, transparent 30%)',
           }}
         />
         <div className="relative flex flex-wrap items-center gap-3">
-          <span className="inline-flex -rotate-2 items-center gap-1.5 rounded-full bg-amber-300 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-950">
-            <Flame className="size-3.5" aria-hidden /> Boss mode
-          </span>
-          <span className="inline-flex rotate-1 items-center gap-1.5 rounded-full border-2 border-amber-50/40 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em]">
-            <Sparkles className="size-3.5" aria-hidden /> Today&apos;s pulse
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-primary">
+            <Flame className="size-3.5" aria-hidden /> Command center
           </span>
         </div>
-        <h1 className="relative mt-5 font-display text-4xl font-black uppercase leading-none sm:text-6xl">
-          Yo {name},<br />
-          let&apos;s move <span className="text-amber-300">work.</span>
+        <h1 className="relative mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+          Good to see you, {name}.
         </h1>
-        <p className="relative mt-3 max-w-md font-medium text-amber-100">
-          The whole floor is yours — people, orders, and the queue in one loud view.
+        <p className="relative mt-3 max-w-md font-medium text-muted-foreground">
+          The whole business in one clear view — people, orders, and the queue.
         </p>
         <Button
           asChild
-          className="relative mt-6 h-12 rounded-full bg-amber-300 px-6 font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200"
+          className="relative mt-6 h-12 rounded-lg bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90"
         >
           <Link href="/dashboard/customers">
-            Hit the directory <ArrowUpRight aria-hidden />
+            Open the directory <ArrowUpRight aria-hidden />
           </Link>
         </Button>
       </section>

@@ -4,33 +4,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function SignupPage() {
   return (
-    <main className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center overflow-hidden bg-[#fffbeb] px-5 py-10 sm:py-16 dark:bg-stone-950">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute -right-24 top-[-10%] size-96 rounded-full bg-amber-300 opacity-40 blur-3xl" />
-        <div className="absolute -left-24 bottom-[-10%] size-96 rounded-full bg-amber-300 opacity-40 blur-3xl" />
-      </div>
-
-      <Card className="relative w-full max-w-md rounded-[2rem] border-2 border-amber-950 bg-white shadow-[8px_8px_0_0_#451a03] dark:bg-stone-900 md:-rotate-1">
+    <main className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center bg-background px-5 py-10 sm:py-16 dark:bg-stone-950">
+      <Card className="relative w-full max-w-md rounded-xl border border-border bg-card shadow-sm dark:bg-stone-900">
         <CardHeader className="pb-2 text-center">
-          <p className="mx-auto w-fit rotate-2 rounded-full bg-amber-300 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.2em] text-amber-950">
-            Fresh paint
+          <p className="mx-auto w-fit rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-primary">
+            New here
           </p>
-          <CardTitle className="mt-3 font-display text-3xl font-black uppercase">
-            Claim a stool
-          </CardTitle>
+          <CardTitle className="mt-3 text-3xl font-bold">Create your account</CardTitle>
           <CardDescription className="font-medium">
-            Free to start — loud from day one
+            Free to start — set up in minutes
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
           <SignUpForm />
-          <p className="mt-4 text-center text-sm font-medium text-stone-500">
-            Already posted up?{' '}
+          <p className="mt-4 text-center text-sm font-medium text-muted-foreground">
+            Already have an account?{' '}
             <a
               href="/login"
-              className="font-black uppercase tracking-wide text-amber-700 underline-offset-2 hover:underline dark:text-amber-300"
+              className="font-semibold text-primary underline-offset-2 hover:underline"
             >
-              Slide in
+              Sign in
             </a>
           </p>
         </CardContent>

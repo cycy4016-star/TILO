@@ -6,7 +6,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   BellRing,
-  Bot,
   Clock,
   HandCoins,
   MessagesSquare,
@@ -66,8 +65,8 @@ import { OrderStatus } from '@/lib/contracts/order';
 import { applyServerErrors } from '@/lib/forms';
 
 const statusLabels = {
-  PENDING: 'warming up',
-  PROCESSING: 'on the fire',
+  PENDING: 'pending',
+  PROCESSING: 'in progress',
   COMPLETED: 'done',
   CANCELLED: 'cancelled',
 } as const;
@@ -90,7 +89,7 @@ function KindPill({ kind }: { kind: AutomationKindValue }) {
   const meta = AUTOMATION_KIND_META[kind];
   const Icon = KIND_ICONS[meta.icon];
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-black uppercase text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase text-primary">
       <Icon aria-hidden className="size-3" />
       {meta.label}
     </span>
@@ -98,13 +97,13 @@ function KindPill({ kind }: { kind: AutomationKindValue }) {
 }
 
 function waitLabel(kind: AutomationKindValue): string {
-  if (kind === 'REVIEW_REQUEST' || kind === 'RE_ENGAGE') return 'How quiet (hours)';
+  if (kind === 'REVIEW_REQUEST' || kind === 'RE_ENGAGE') return 'Inactive for (hours)';
   if (kind === 'PAYMENT_REMINDER') return 'Owed after (hours)';
   return 'After (hours idle)';
 }
 
 const messagePlaceholder =
-  'Hello {customerName}, your order {orderNumber} is still {statusLabel}. Reply and we will get it moving — Tilo';
+  'Hello {customerName}, your order {orderNumber} is still {statusLabel}. Please let us know if you need anything — Tilo';
 
 function getErrorBody(error: unknown): unknown {
   return error instanceof Error ? error.cause : undefined;
@@ -175,7 +174,7 @@ function RuleForm({
         },
       );
       onSaved(saved);
-      toast.success(isEditing ? 'Rule retuned.' : 'Rule wired in.');
+      toast.success(isEditing ? 'Rule updated.' : 'Rule created.');
     } catch (error) {
       const applied = applyServerErrors(getErrorBody(error), form.setError);
       if (!applied) toast.error('Could not save the rule — try again');
@@ -200,7 +199,7 @@ function RuleForm({
             <FormItem>
               <FormLabel>Name this rule</FormLabel>
               <FormControl>
-                <Input placeholder="Sweat the stragglers" {...field} className="rounded-2xl" />
+                <Input placeholder="Chase overdue orders" {...field} className="rounded-2xl" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -284,7 +283,7 @@ function RuleForm({
                 <FormControl>
                   <Input placeholder="+233 24 000 0000" {...field} className="rounded-2xl" />
                 </FormControl>
-                <FormDescription>Where the panic texts go when an order stalls.</FormDescription>
+                <FormDescription>Where alerts are sent when an order stalls.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -296,7 +295,7 @@ function RuleForm({
             name="targetStatus"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Flip it to</FormLabel>
+                <FormLabel>Change it to</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <FormControl>
                     <SelectTrigger className="rounded-2xl">
@@ -344,9 +343,9 @@ function RuleForm({
           control={form.control}
           name="enabled"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-2xl border-2 border-amber-100 bg-amber-50/60 px-4 py-3">
+            <FormItem className="flex flex-row items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
-                <FormLabel>Rule live</FormLabel>
+                <FormLabel>Rule active</FormLabel>
                 <FormDescription>Turn it off without deleting it.</FormDescription>
               </div>
               <FormControl>
@@ -356,20 +355,15 @@ function RuleForm({
           )}
         />
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancelled}
-            className="rounded-full font-black uppercase tracking-wide"
-          >
-            Not now
+          <Button type="button" variant="ghost" onClick={onCancelled} className="font-semibold">
+            Cancel
           </Button>
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-12 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="h-11 rounded-lg bg-yellow-600 font-semibold text-white hover:bg-amber-700"
           >
-            {form.formState.isSubmitting ? 'Wiring…' : isEditing ? 'Save changes' : 'Wire it in'}
+            {form.formState.isSubmitting ? 'Saving…' : isEditing ? 'Save changes' : 'Create rule'}
           </Button>
         </div>
       </form>
@@ -393,7 +387,7 @@ export function AutomationsWorkspace() {
       const result = await apiFetch('/api/automation/rules', { schema: AutomationRuleList });
       setRules(result.items);
     } catch {
-      setError('The switchboard sparked. Try again.');
+      setError('Could not load your rules. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -431,9 +425,9 @@ export function AutomationsWorkspace() {
     })
       .then((updated) => {
         setRules((current) => current.map((r) => (r.id === updated.id ? updated : r)));
-        toast.success(updated.enabled ? 'Rule switched back on.' : 'Rule parked.');
+        toast.success(updated.enabled ? 'Rule switched back on.' : 'Rule disabled.');
       })
-      .catch(() => toast.error('Could not flip the rule — try again'));
+      .catch(() => toast.error('Could not update the rule — try again'));
   }
 
   async function deleteRule(rule: RuleRecord) {
@@ -454,7 +448,7 @@ export function AutomationsWorkspace() {
         schema: AutomationSweepResult,
       });
       toast.success(
-        `Swept the kitchen — ${result.nudged} texted, ${result.flipped} flipped, ${result.rules} rules checked.`,
+        `Sweep complete — ${result.nudged} messages sent, ${result.flipped} status changes, ${result.rules} rules checked.`,
       );
     } catch {
       toast.error('Could not run the sweep right now.');
@@ -465,40 +459,32 @@ export function AutomationsWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-amber-950 p-7 text-amber-50 sm:p-9">
-        <Bot
-          aria-hidden
-          className="pointer-events-none absolute -right-6 -top-6 size-40 rotate-12 text-amber-900"
-        />
-        <p className="relative text-xs font-black uppercase tracking-[0.25em] text-amber-300">
+      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
           Set it once, Tilo keeps the rhythm
         </p>
-        <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="font-display text-4xl font-black uppercase leading-none sm:text-5xl">
-            The switchboard
-          </h1>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <h1 className="text-3xl font-bold">Automation rules</h1>
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               onClick={() => void runSweep()}
               disabled={sweeping}
-              className="h-12 rounded-full bg-amber-50 font-black uppercase tracking-wide text-amber-950 hover:bg-white"
+              className="h-11 font-semibold"
             >
               <Play aria-hidden className="size-4" />
-              {sweeping ? 'Sweeping…' : 'Run now'}
+              {sweeping ? 'Running…' : 'Run now'}
             </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="h-12 rounded-full bg-amber-300 px-6 font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200">
+                <Button className="h-11 px-6 font-semibold">
                   <Zap aria-hidden className="size-4" />
                   New rule
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
+              <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
                 <DialogHeader>
-                  <DialogTitle className="font-display font-black uppercase">
-                    Wire in a rule
-                  </DialogTitle>
+                  <DialogTitle className="text-xl font-bold">Create a rule</DialogTitle>
                   <DialogDescription>
                     Pick a trigger, set the timing, and Tilo handles the rest automatically.
                   </DialogDescription>
@@ -516,7 +502,7 @@ export function AutomationsWorkspace() {
             </Dialog>
           </div>
         </div>
-        <p className="relative mt-3 max-w-2xl text-sm font-medium text-amber-200/90">
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
           Rules are checked by a daily sweep. Nudges, ready-pings, receipts and review asks text the
           customer once per order, ever; stall alerts and the daily brief text you. Set the rules
           once and Tilo keeps the rhythm going.
@@ -524,58 +510,52 @@ export function AutomationsWorkspace() {
       </section>
 
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center rounded-[2rem] border-2 border-dashed border-amber-300 px-6 text-sm font-bold uppercase tracking-widest text-amber-500">
-          Flicking the switches…
+        <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border bg-card px-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Loading rules…
         </div>
       ) : error ? (
-        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-amber-950 bg-white px-6 text-center dark:bg-stone-900">
-          <p role="alert" className="font-bold text-amber-700">
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-10 text-center">
+          <p role="alert" className="font-semibold text-destructive">
             {error}
           </p>
           <Button
             type="button"
             onClick={() => void loadRules()}
-            className="rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="rounded-lg bg-yellow-600 font-semibold text-white hover:bg-amber-700"
           >
             Try again
           </Button>
         </div>
       ) : rules.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-amber-400 px-6 text-center">
-          <span className="flex size-14 -rotate-6 items-center justify-center rounded-3xl bg-yellow-600 text-white">
+        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center">
+          <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Zap aria-hidden className="size-6" />
           </span>
-          <p className="font-display text-xl font-black uppercase">A quiet board</p>
-          <p className="max-w-sm text-sm font-medium text-stone-500">
-            Wire in your first rule and the machine starts watching the orders for you.
+          <p className="text-xl font-semibold">No rules yet</p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Create your first rule and Tilo will start monitoring your orders for you.
           </p>
-          <Button
-            type="button"
-            onClick={() => setDialogOpen(true)}
-            className="mt-1 rounded-full bg-amber-950 font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900"
-          >
-            Wire in the first rule
+          <Button type="button" onClick={() => setDialogOpen(true)} className="mt-1 font-semibold">
+            Create the first rule
           </Button>
         </div>
       ) : (
         <div id="switchboard-rules" className="scroll-mt-24 grid gap-3">
-          {rules.map((rule, i) => {
+          {rules.map((rule) => {
             const meta = AUTOMATION_KIND_META[rule.kind];
             return (
               <div
                 key={rule.id}
-                className={`flex flex-col gap-4 rounded-[1.75rem] border-2 border-amber-950 bg-white p-5 shadow-[4px_4px_0_0_#451a03] sm:flex-row sm:items-center sm:justify-between dark:bg-stone-900 ${
-                  i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
-                } ${rule.enabled ? '' : 'opacity-60'}`}
+                className={`flex flex-col gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between ${
+                  rule.enabled ? '' : 'opacity-60'
+                }`}
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display font-black uppercase tracking-tight">
-                      {rule.name}
-                    </h2>
+                    <h2 className="text-base font-semibold tracking-tight">{rule.name}</h2>
                     <KindPill kind={rule.kind} />
                   </div>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-stone-500">
+                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
                     <Clock aria-hidden className="size-3.5" />
                     <span>
                       {meta.requiresStatus
@@ -585,7 +565,7 @@ export function AutomationsWorkspace() {
                     {meta.requiresRecipient && rule.recipient && (
                       <>
                         <span aria-hidden>→</span>
-                        <span className="font-black text-amber-900 dark:text-amber-200">
+                        <span className="font-semibold text-foreground">
                           alert {rule.recipient}
                         </span>
                       </>
@@ -593,14 +573,14 @@ export function AutomationsWorkspace() {
                     {meta.requiresTarget && rule.targetStatus && (
                       <>
                         <span aria-hidden>→</span>
-                        <span className="font-black text-amber-900 dark:text-amber-200">
-                          flip to {statusLabel(rule.targetStatus)}
+                        <span className="font-semibold text-foreground">
+                          change to {statusLabel(rule.targetStatus)}
                         </span>
                       </>
                     )}
                   </p>
                   {meta.usesMessage && rule.message && (
-                    <p className="mt-2 max-w-lg truncate text-xs font-medium text-stone-400">
+                    <p className="mt-2 max-w-lg truncate text-xs text-muted-foreground">
                       &ldquo;{rule.message}&rdquo;
                     </p>
                   )}
@@ -643,41 +623,37 @@ export function AutomationsWorkspace() {
 
       <section
         id="recent-activity"
-        className="scroll-mt-24 rounded-[2rem] border-2 border-amber-950 bg-white p-5 shadow-[4px_4px_0_0_#451a03] dark:bg-stone-900"
+        className="scroll-mt-24 rounded-xl border border-border bg-card p-5"
       >
-        <h2 className="font-display text-lg font-black uppercase tracking-tight">
-          Recent activity
-        </h2>
+        <h2 className="text-lg font-bold">Recent activity</h2>
         {events.length === 0 ? (
-          <p className="mt-3 text-sm font-medium text-stone-500">
-            Nothing yet. Once the sweep fires, every nudge and flip shows up here.
+          <p className="mt-3 text-sm text-muted-foreground">
+            Nothing yet. Once the daily sweep runs, every nudge and status change appears here.
           </p>
         ) : (
           <ul className="mt-3 grid gap-2">
             {events.map((event) => (
               <li
                 key={event.id}
-                className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50/70 px-4 py-2.5 text-sm dark:bg-stone-800"
+                className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 px-4 py-2.5 text-sm"
               >
                 <span
                   className={`inline-flex size-6 items-center justify-center rounded-full ${
-                    event.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                    event.ok ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
                   }`}
                 >
-                  <span aria-hidden className="text-[10px] font-black">
+                  <span aria-hidden className="text-[10px] font-semibold">
                     {event.ok ? '✓' : '✕'}
                   </span>
                 </span>
-                <span className="font-black uppercase tracking-wide text-amber-900 dark:text-amber-200">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {event.kind.replaceAll('_', ' ')}
                 </span>
-                {event.to && <span className="text-xs font-medium text-stone-500">{event.to}</span>}
-                <span className="min-w-0 flex-1 truncate text-xs font-medium text-stone-500">
+                {event.to && <span className="text-xs text-muted-foreground">{event.to}</span>}
+                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                   {event.message ?? event.detail}
                 </span>
-                <time className="text-xs font-medium text-stone-400">
-                  {formatDate(event.createdAt)}
-                </time>
+                <time className="text-xs text-muted-foreground">{formatDate(event.createdAt)}</time>
               </li>
             ))}
           </ul>

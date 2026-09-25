@@ -14,6 +14,7 @@ import {
   FireExtinguisher,
   LayoutDashboard,
   type LucideIcon,
+  Menu,
   Package,
   PartyPopper,
   Rocket,
@@ -57,7 +58,7 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
     actions: [
       { label: 'Money to chase', icon: Wallet, sectionId: 'money-to-chase' },
       { label: 'SMS usage', icon: Activity, sectionId: 'sms-usage' },
-      { label: 'Jump pads', icon: Rocket, sectionId: 'jump-pads' },
+      { label: 'Quick links', icon: Rocket, sectionId: 'jump-pads' },
     ],
   },
   {
@@ -71,17 +72,17 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
   {
     match: (p) => isPath(p, '/dashboard/customers/'),
     actions: [
-      { label: 'On the fire', icon: FireExtinguisher, sectionId: 'customer-timeline' },
-      { label: 'Fresh order', icon: Rocket, sectionId: 'fresh-order' },
+      { label: 'Timeline', icon: FireExtinguisher, sectionId: 'customer-timeline' },
+      { label: 'New order', icon: Rocket, sectionId: 'fresh-order' },
     ],
   },
   {
     match: (p) => p === '/dashboard/store',
     actions: [
       { label: 'Store details', icon: Store, sectionId: 'store-details' },
-      { label: 'The shelf', icon: Package, sectionId: 'the-shelf' },
-      { label: 'Sales & promos', icon: Tag, sectionId: 'sales-and-promos' },
-      { label: 'Publishing log', icon: ScrollText, sectionId: 'publish-log' },
+      { label: 'Catalogue', icon: Package, sectionId: 'the-shelf' },
+      { label: 'Sales & promotions', icon: Tag, sectionId: 'sales-and-promos' },
+      { label: 'Post history', icon: ScrollText, sectionId: 'publish-log' },
     ],
   },
   {
@@ -107,16 +108,16 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
 
 // Public/marketing landing sections, for the ball on non-dashboard routes.
 const LANDING_SECTIONS: QuickAction[] = [
-  { label: 'Toolkit', icon: Wrench, sectionId: 'toolkit' },
-  { label: 'The week', icon: CalendarDays, sectionId: 'week' },
-  { label: 'Start', icon: PartyPopper, sectionId: 'start' },
+  { label: 'Features', icon: Wrench, sectionId: 'toolkit' },
+  { label: 'Getting started', icon: CalendarDays, sectionId: 'week' },
+  { label: 'Contact', icon: PartyPopper, sectionId: 'start' },
 ];
 
 function buildGroups(pathname: string, isDashboard: boolean): Group[] {
   if (isDashboard) {
     const groups: Group[] = [
       {
-        label: 'Jump to a page',
+        label: 'Go to a page',
         actions: dashboardNavItems.map((i) => ({ label: i.label, icon: i.icon, href: i.href })),
       },
     ];
@@ -129,7 +130,7 @@ function buildGroups(pathname: string, isDashboard: boolean): Group[] {
   return [
     { label: 'Jump to a section', actions: LANDING_SECTIONS },
     {
-      label: 'Get in',
+      label: 'Account',
       actions: [{ label: 'Workspace', icon: LayoutDashboard, href: '/dashboard' }],
     },
   ];
@@ -163,47 +164,43 @@ export function AssistiveTouch() {
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1.25rem)] right-[calc(env(safe-area-inset-right)_+_1.25rem)] z-40">
       {open && (
-        <div className="mb-3 w-64 origin-bottom-right rounded-[1.75rem] border-2 border-[var(--tl-950)] bg-white p-3 shadow-[6px_6px_0_0_#451a03] dark:bg-stone-900">
+        <div className="mb-3 w-64 origin-bottom-right rounded-xl border border-border bg-card p-3 shadow-xl">
           <div className="flex items-center justify-between px-2 pb-2">
-            <p className="font-display text-sm font-black uppercase tracking-widest text-[var(--tl-950)] dark:text-[var(--tl-100)]">
-              Quick access
-            </p>
+            <p className="text-sm font-semibold text-foreground">Quick access</p>
             <button
               type="button"
               aria-label="Close quick access"
               onClick={() => setOpen(false)}
-              className="flex size-7 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-amber-100 hover:text-stone-700 dark:hover:bg-stone-800"
+              className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <CircleDot aria-hidden className="size-4" />
             </button>
           </div>
           {groups.map((group) => (
             <div key={group.label} className="mb-2 last:mb-0">
-              <p className="px-2 pb-1.5 text-[0.65rem] font-black uppercase tracking-widest text-stone-400">
+              <p className="px-2 pb-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
                 {group.label}
               </p>
               <div className="grid grid-cols-3 gap-1.5">
                 {group.actions.map((action) => {
                   const Icon = action.icon;
                   const shared = cn(
-                    'group flex flex-col items-center gap-1 rounded-2xl px-1 pb-2 pt-2.5 text-center transition-colors',
-                    action.href
-                      ? 'hover:bg-[var(--tl-100)] dark:hover:bg-stone-800'
-                      : 'hover:bg-[var(--tl-300)] dark:hover:bg-[var(--tl-900)]',
+                    'group flex flex-col items-center gap-1 rounded-lg px-1 pb-2 pt-2.5 text-center transition-colors',
+                    action.href ? 'hover:bg-muted' : 'hover:bg-secondary',
                   );
                   const inner = (
                     <>
                       <span
                         className={cn(
-                          'flex size-9 items-center justify-center rounded-xl transition-transform group-hover:-rotate-6 group-hover:scale-105',
+                          'flex size-9 items-center justify-center rounded-lg transition-transform group-hover:scale-105',
                           action.href
-                            ? 'bg-[var(--tl-950)] text-[var(--tl-300)]'
-                            : 'bg-[var(--tl-300)] text-[var(--tl-950)] dark:bg-[var(--tl-900)] dark:text-[var(--tl-200)]',
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-secondary-foreground',
                         )}
                       >
                         <Icon aria-hidden className="size-4" />
                       </span>
-                      <span className="text-[0.6rem] font-black uppercase leading-tight tracking-wide text-stone-600 dark:text-stone-300">
+                      <span className="text-[0.6rem] font-semibold leading-tight text-muted-foreground">
                         {action.label}
                       </span>
                     </>
@@ -243,9 +240,28 @@ export function AssistiveTouch() {
         aria-label={open ? 'Close quick access' : 'Open quick access'}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex size-14 items-center justify-center rounded-full border-2 border-[var(--tl-950)] bg-[var(--tl-300)] text-[var(--tl-950)] shadow-[4px_4px_0_0_#451a03] ring-4 ring-white/60 transition-transform hover:scale-105 hover:-rotate-12 active:scale-95 dark:ring-stone-950/60"
+        className={cn(
+          'group relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-background transition-transform hover:scale-110 active:scale-95',
+          open && 'scale-110',
+        )}
       >
-        <CircleDot aria-hidden className="size-7" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-full bg-primary/40 motion-safe:animate-tilo-ping"
+        />
+        <span
+          className={cn(
+            'pointer-events-none absolute right-full mr-2 hidden items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-semibold text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 md:flex',
+            open && 'opacity-100',
+          )}
+        >
+          <Menu aria-hidden className="size-3.5" />
+          Menu
+        </span>
+        <Menu
+          aria-hidden
+          className="size-6 transition-transform duration-300 group-hover:rotate-90"
+        />
       </button>
     </div>
   );

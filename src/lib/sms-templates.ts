@@ -19,12 +19,12 @@ export function orderRequestSms(ctx: OrderRequestContext): string {
 
 export type ManageContext = { storeName: string; customerName: string };
 
-/** Owner → customer after their order lands: order number + what's cooking. */
+/** Owner → customer after their order lands: order number + what's being prepared. */
 export function orderConfirmationSms(
   input: ManageContext & { orderNumber: string; description: string },
 ): string {
   const { storeName, orderNumber, description } = input;
-  return `Hello! Your order ${orderNumber} (${description}) is on the fire. We'll ping you when it's ready. ${sign(
+  return `Hello! Your order ${orderNumber} (${description}) is being prepared. We'll ping you when it's ready. ${sign(
     storeName,
   )}`;
 }

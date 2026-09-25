@@ -35,11 +35,11 @@ test('staff can create a Ghanaian SME customer, link an order, and update status
 
   const statusControl = page.getByRole('combobox', { name: 'Order status' });
   await statusControl.click();
-  await page.getByRole('option', { name: 'On the fire' }).click();
-  await expect(page.getByText('On the fire')).toBeVisible();
+  await page.getByRole('option', { name: 'Processing' }).click();
+  await expect(page.getByText('Processing')).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole('heading', { name: fixture.name })).toBeVisible();
-  await expect(page.getByText('On the fire')).toBeVisible();
+  await expect(page.getByText('Processing')).toBeVisible();
   // The platform harness should additionally assert the persisted customer/order rows by id.
 });

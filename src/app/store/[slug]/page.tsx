@@ -97,16 +97,33 @@ export default async function StorePage({ params }: StorePageProps) {
                 : 'rotate-1 bg-amber-300 text-amber-950'
             }`}
           >
-            {store.items.length} {store.items.length === 1 ? 'item' : 'items'} on the shelf
+            {store.items.length} {store.items.length === 1 ? 'item' : 'items'}{' '}
+            {pro ? 'in the catalogue' : 'on the shelf'}
           </p>
-          <h1 className="mt-4 font-display text-4xl font-black uppercase leading-none text-amber-50 sm:text-6xl">
+          <h1
+            className={`mt-4 leading-none sm:text-6xl ${
+              pro
+                ? 'font-display text-4xl font-bold text-[var(--tl-50)]'
+                : 'font-display text-4xl font-black uppercase text-amber-50'
+            }`}
+          >
             {store.name}
           </h1>
           {store.tagline && (
-            <p className="mt-3 max-w-xl text-lg font-bold text-amber-100">{store.tagline}</p>
+            <p
+              className={`mt-3 max-w-xl text-lg font-bold ${
+                pro ? 'text-[var(--tl-100)]' : 'text-amber-100'
+              }`}
+            >
+              {store.tagline}
+            </p>
           )}
           {store.description && (
-            <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-amber-200/90">
+            <p
+              className={`mt-2 max-w-xl text-sm font-medium leading-relaxed ${
+                pro ? 'text-[var(--tl-200)]' : 'text-amber-200/90'
+              }`}
+            >
               {store.description}
             </p>
           )}
@@ -132,7 +149,9 @@ export default async function StorePage({ params }: StorePageProps) {
 
       {store.promotions.length > 0 && (
         <section className="mt-8">
-          <h2 className="font-display text-2xl font-black uppercase">Today&apos;s offers</h2>
+          <h2 className={`text-2xl font-bold ${pro ? '' : 'font-display font-black uppercase'}`}>
+            Today&apos;s offers
+          </h2>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {store.promotions.map((promo, index) => {
               const terms = promoTerms(promo);
@@ -157,7 +176,13 @@ export default async function StorePage({ params }: StorePageProps) {
                   <p className="font-mono text-2xl font-black text-emerald-700 dark:text-emerald-300">
                     {promoHeadline(promo)}
                   </p>
-                  <p className="mt-1 font-display font-black uppercase tracking-tight">
+                  <p
+                    className={`mt-1 ${
+                      pro
+                        ? 'text-base font-semibold'
+                        : 'font-display font-black uppercase tracking-tight'
+                    }`}
+                  >
                     {promo.name}
                   </p>
                   {terms.length > 0 && (
@@ -187,10 +212,22 @@ export default async function StorePage({ params }: StorePageProps) {
       )}
 
       {store.items.length === 0 ? (
-        <section className="mt-8 rounded-[2rem] border-2 border-dashed border-amber-400 px-5 py-16 text-center">
-          <p className="font-display text-xl font-black uppercase">Restocking soon</p>
-          <p className="mt-1 text-sm font-medium text-stone-500">
-            The shelf is empty right now — check back in a moment.
+        <section
+          className={`mt-8 rounded-2xl border-2 border-dashed px-5 py-16 text-center ${
+            pro ? 'border-[var(--tl-200)]' : 'border-amber-400'
+          }`}
+        >
+          <p
+            className={`text-xl font-bold ${
+              pro ? 'text-[var(--tl-900)]' : 'font-display font-black uppercase'
+            }`}
+          >
+            Restocking soon
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {pro
+              ? 'The catalogue is empty right now — check back in a moment.'
+              : 'The shelf is empty right now — check back in a moment.'}
           </p>
         </section>
       ) : (
@@ -239,7 +276,13 @@ export default async function StorePage({ params }: StorePageProps) {
                     className="mt-4 aspect-[4/3] w-full rounded-2xl border-2 border-amber-100 object-cover dark:border-stone-800"
                   />
                 )}
-                <h2 className="mt-4 font-display text-xl font-black uppercase tracking-tight">
+                <h2
+                  className={`mt-4 ${
+                    pro
+                      ? 'text-xl font-semibold'
+                      : 'font-display text-xl font-black uppercase tracking-tight'
+                  }`}
+                >
                   {item.name}
                 </h2>
                 {item.description && (

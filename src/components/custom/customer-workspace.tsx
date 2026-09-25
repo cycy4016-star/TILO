@@ -179,7 +179,7 @@ export function CustomerWorkspace() {
       const result = await apiFetch(`/api/customers${params}`, { schema: CustomerList });
       setCustomers(result.items);
     } catch {
-      setError('The wall fell down. Try again.');
+      setError('Could not load customers. Try again.');
     } finally {
       setLoading(false);
     }
@@ -196,32 +196,24 @@ export function CustomerWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-amber-950 p-7 text-amber-50 sm:p-9">
-        <Flame
-          aria-hidden
-          className="pointer-events-none absolute -right-6 -top-6 size-40 rotate-12 text-amber-900"
-        />
-        <p className="relative text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-          The wall of people
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-7 sm:p-9">
+        <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-primary">
+          Customer directory
         </p>
         <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="font-display text-4xl font-black uppercase leading-none sm:text-5xl">
-            Who&apos;s who
-          </h1>
+          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Customers</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="h-12 rotate-1 rounded-full bg-amber-300 px-6 font-black uppercase tracking-wide text-amber-950 hover:bg-amber-200">
+              <Button className="h-12 rounded-lg bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90">
                 <Plus aria-hidden className="size-4" />
-                New face
+                Add customer
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
               <DialogHeader>
-                <DialogTitle className="font-display font-black uppercase">
-                  Pin up someone new
-                </DialogTitle>
+                <DialogTitle className="text-lg font-bold">Add a customer</DialogTitle>
                 <DialogDescription>
-                  Drop an email or phone so they&apos;re ready for follow-up.
+                  Add an email or phone so they&apos;re ready for follow-up.
                 </DialogDescription>
               </DialogHeader>
               <CustomerForm key={String(dialogOpen)} onCreated={handleCreated} />
@@ -240,32 +232,32 @@ export function CustomerWorkspace() {
           <div className="relative min-w-0 flex-1">
             <Search
               aria-hidden
-              className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-amber-300"
+              className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
             <Input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Hunt by name, outfit, email, phone…"
+              placeholder="Search by name, email, or phone"
               aria-label="Search customers"
-              className="h-12 rounded-full border-2 border-amber-50/20 bg-amber-50/10 pl-11 text-amber-50 placeholder:text-amber-300"
+              className="h-12 rounded-lg border-border bg-background pl-11"
             />
           </div>
           <Button
             type="submit"
-            className="h-12 rounded-full bg-amber-50 font-black uppercase tracking-wide text-amber-950 hover:bg-white"
+            className="h-12 rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
           >
-            Hunt
+            Search
           </Button>
         </form>
       </section>
 
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center rounded-[2rem] border-2 border-dashed border-amber-300 px-6 text-sm font-bold uppercase tracking-widest text-amber-500">
-          Shuffling the deck…
+        <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border px-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Loading…
         </div>
       ) : error ? (
-        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-amber-950 bg-white px-6 text-center dark:bg-stone-900">
-          <p role="alert" className="font-bold text-amber-700">
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 text-center">
+          <p role="alert" className="font-semibold text-foreground">
             {error}
           </p>
           <Button
@@ -277,25 +269,25 @@ export function CustomerWorkspace() {
           </Button>
         </div>
       ) : customers.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-amber-400 px-6 text-center">
-          <span className="flex size-14 -rotate-6 items-center justify-center rounded-3xl bg-yellow-600 text-white">
+        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card px-6 text-center">
+          <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Users aria-hidden className="size-6" />
           </span>
-          <p className="font-display text-xl font-black uppercase">
-            {query ? 'Nobody matches that' : 'A blank wall'}
+          <p className="text-xl font-bold">
+            {query ? 'No matching customers' : 'No customers yet'}
           </p>
-          <p className="max-w-sm text-sm font-medium text-stone-500">
+          <p className="max-w-sm text-sm font-medium text-muted-foreground">
             {query
               ? 'Try another name or contact detail.'
-              : 'Pin your first regular and the rhythm begins.'}
+              : 'Add your first customer and start tracking conversations.'}
           </p>
           {!query && (
             <Button
               type="button"
               onClick={() => setDialogOpen(true)}
-              className="mt-1 rounded-full bg-amber-950 font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900"
+              className="mt-1 rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Pin the first face
+              Add your first customer
             </Button>
           )}
         </div>

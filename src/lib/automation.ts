@@ -26,7 +26,7 @@ export type WeeklySummaryResult = {
 };
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  PENDING: 'warming up',
+  PENDING: 'pending',
   PROCESSING: 'being prepared',
   COMPLETED: 'done',
   CANCELLED: 'cancelled',

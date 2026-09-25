@@ -93,13 +93,13 @@ export function StoreOrderButton({
   return (
     <Dialog open={open} onOpenChange={(value) => (value ? setOpen(true) : close())}>
       <DialogTrigger asChild>
-        <Button className="h-11 items-center gap-2 rounded-full bg-[var(--tl-950)] px-5 font-black uppercase tracking-wide text-[var(--tl-50)] hover:bg-stone-900">
+        <Button className="h-11 items-center gap-2 font-semibold">
           <PackagePlus aria-hidden className="size-4" /> Order on Tilo
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display font-black uppercase">Order {itemName}</DialogTitle>
+          <DialogTitle className="text-lg font-bold">Order {itemName}</DialogTitle>
           <DialogDescription>
             {formatGhs(pricePesewas)} each · {storeName} confirms on WhatsApp or SMS.
           </DialogDescription>
@@ -107,25 +107,21 @@ export function StoreOrderButton({
 
         {done ? (
           <div className="grid gap-3 py-6 text-center">
-            <span className="mx-auto flex size-16 -rotate-6 items-center justify-center rounded-3xl bg-emerald-600 text-white">
-              <Check aria-hidden className="size-8" />
+            <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Check aria-hidden className="size-6" />
             </span>
-            <p className="font-display text-xl font-black uppercase">Order recorded</p>
-            <p className="text-sm font-medium text-stone-500">
-              {storeName} has been pinged. They&apos;ll reach you to confirm.
+            <p className="text-lg font-semibold">Order recorded</p>
+            <p className="text-sm text-muted-foreground">
+              {storeName} has your order and will contact you to confirm.
             </p>
-            <Button
-              type="button"
-              onClick={close}
-              className="mt-2 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
-            >
+            <Button type="button" onClick={close} className="mt-2 font-semibold">
               Keep browsing
             </Button>
           </div>
         ) : (
           <div className="grid gap-4">
-            <div className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] p-3 dark:border-[var(--tl-800)]">
-              <span className="text-sm font-black uppercase tracking-wide">{itemName}</span>
+            <div className="flex items-center justify-between rounded-xl border border-border p-3">
+              <span className="text-sm font-semibold">{itemName}</span>
               <span className="flex items-center gap-2">
                 <Button
                   type="button"
@@ -137,7 +133,7 @@ export function StoreOrderButton({
                 >
                   <Minus aria-hidden className="size-3.5" />
                 </Button>
-                <span className="w-8 text-center font-mono text-lg font-black">{quantity}</span>
+                <span className="w-8 text-center font-mono text-lg font-semibold">{quantity}</span>
                 <Button
                   type="button"
                   variant="outline"
@@ -157,7 +153,7 @@ export function StoreOrderButton({
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Ama"
-                className="rounded-2xl"
+                className="rounded-lg"
               />
             </div>
             <div className="grid gap-2">
@@ -168,7 +164,7 @@ export function StoreOrderButton({
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="024 000 0000"
-                className="rounded-2xl"
+                className="rounded-lg"
               />
             </div>
             <div className="grid gap-2">
@@ -179,15 +175,15 @@ export function StoreOrderButton({
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Size, colour, pickup time…"
-                className="rounded-2xl"
+                className="rounded-lg"
               />
             </div>
-            {error && <p className="text-sm font-bold text-red-600">{error}</p>}
+            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             <Button
               type="button"
               disabled={busy}
               onClick={() => void submit()}
-              className="h-12 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+              className="h-12 font-semibold"
             >
               {busy ? 'Sending…' : 'Send order'}
             </Button>

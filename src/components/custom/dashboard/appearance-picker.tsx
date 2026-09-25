@@ -96,25 +96,23 @@ export function AppearancePicker() {
           variant="ghost"
           size="icon"
           aria-label="Change the platform's look"
-          className="relative size-9 rounded-full border-2 border-amber-950/20 bg-transparent text-amber-950 hover:bg-amber-950/10"
+          className="relative size-9 rounded-full border border-border bg-transparent text-foreground hover:bg-muted"
         >
           <Palette aria-hidden className="size-4" />
           <span
             aria-hidden
-            className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full border border-white"
+            className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full border border-background"
             style={{ backgroundColor: activePreset.accents[0] }}
           />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-[1.5rem] border-2 border-amber-950 bg-white p-3 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900"
+        className="max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-border bg-popover p-3 shadow-md"
       >
-        <p className="px-1 pb-2 font-display text-sm font-black uppercase tracking-wide">
-          Platform look
-        </p>
+        <p className="px-1 pb-2 text-sm font-semibold">Platform look</p>
 
-        <div className="px-1 pb-1 text-[0.65rem] font-black uppercase tracking-widest text-stone-400">
+        <div className="px-1 pb-1 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
           Color theme
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -127,29 +125,25 @@ export function AppearancePicker() {
                 aria-pressed={selected}
                 disabled={saving}
                 onClick={() => void save({ theme: preset.key })}
-                className={`flex items-center gap-2.5 rounded-2xl border-2 px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
-                  selected
-                    ? 'border-[var(--tl-950)] bg-[var(--tl-100)] dark:border-[var(--tl-300)]'
-                    : 'border-[var(--tl-200)] hover:border-[var(--tl-300)] dark:border-stone-800'
+                className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
+                  selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'
                 }`}
               >
                 <span className="flex shrink-0 -space-x-1">
                   <span
                     aria-hidden
-                    className="size-5 rounded-full border-2 border-white"
+                    className="size-5 rounded-full border-2 border-background"
                     style={{ backgroundColor: preset.accents[0] }}
                   />
                   <span
                     aria-hidden
-                    className="size-5 rounded-full border-2 border-white"
+                    className="size-5 rounded-full border-2 border-background"
                     style={{ backgroundColor: preset.accents[1] }}
                   />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-black uppercase tracking-wide">
-                    {preset.label}
-                  </span>
-                  <span className="block truncate text-xs font-medium text-stone-500">
+                  <span className="block text-sm font-semibold">{preset.label}</span>
+                  <span className="block truncate text-xs text-muted-foreground">
                     {preset.tagline}
                   </span>
                 </span>
@@ -158,7 +152,7 @@ export function AppearancePicker() {
           })}
         </div>
 
-        <div className="px-1 pb-1 pt-3 text-[0.65rem] font-black uppercase tracking-widest text-stone-400">
+        <div className="px-1 pb-1 pt-3 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
           Layout &amp; appearance
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -171,23 +165,16 @@ export function AppearancePicker() {
                 aria-pressed={selected}
                 disabled={saving}
                 onClick={() => void save({ appearance: preset.key })}
-                className={`relative flex items-center gap-2.5 rounded-2xl border-2 px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
-                  selected
-                    ? 'border-[var(--tl-950)] bg-[var(--tl-100)] dark:border-[var(--tl-300)]'
-                    : 'border-[var(--tl-200)] hover:border-[var(--tl-300)] dark:border-stone-800'
+                className={`relative flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
+                  selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'
                 }`}
               >
                 {selected && (
-                  <Check
-                    aria-hidden
-                    className="absolute right-2 top-2 size-3.5 text-[var(--tl-cta)]"
-                  />
+                  <Check aria-hidden className="absolute right-2 top-2 size-3.5 text-primary" />
                 )}
                 <span className="min-w-0">
-                  <span className="block text-sm font-black uppercase tracking-wide">
-                    {preset.label}
-                  </span>
-                  <span className="block truncate text-xs font-medium text-stone-500">
+                  <span className="block text-sm font-semibold">{preset.label}</span>
+                  <span className="block truncate text-xs text-muted-foreground">
                     {preset.tagline}
                   </span>
                 </span>
@@ -196,7 +183,7 @@ export function AppearancePicker() {
           })}
         </div>
 
-        <p className="px-1 pt-3 text-[0.7rem] font-medium text-stone-400">
+        <p className="px-1 pt-3 text-[0.7rem] text-muted-foreground">
           This is your platform look — the public storefront keeps its own.
         </p>
       </PopoverContent>

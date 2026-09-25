@@ -118,13 +118,13 @@ export function SiteNav() {
     slot.type === 'link' ? isActive(slot.item.href) : slot.items.some((i) => isActive(i.href));
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b-4 border-amber-950 bg-amber-300 text-amber-950">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 text-foreground backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <nav
         aria-label="Primary"
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
         <Link href="/" className="mr-2 flex min-w-0 items-center gap-2">
-          <span className="flex size-8 shrink-0 -rotate-6 items-center justify-center rounded-lg bg-amber-950 text-amber-300">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Flame className="size-4" aria-hidden />
           </span>
           <span className="truncate font-display text-lg font-black uppercase tracking-tight">
@@ -242,7 +242,7 @@ export function SiteNav() {
                 key={item.href}
                 asChild
                 size="sm"
-                className="rounded-full bg-amber-950 font-black uppercase tracking-wide text-amber-300 hover:bg-stone-900 hover:text-amber-200"
+                className="rounded-full bg-primary font-black uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
               >
                 <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
                   {item.label}
@@ -364,9 +364,9 @@ export function SiteFooter() {
   if (footer.length === 0) return null;
 
   return (
-    <footer className="border-t-4 border-amber-950 bg-amber-950 text-amber-100">
+    <footer className="border-t border-border bg-background text-muted-foreground">
       <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-4 px-4 pb-24 pt-8 sm:pb-8">
-        <p className="font-display text-2xl font-black uppercase tracking-tight text-amber-300">
+        <p className="font-display text-2xl font-black uppercase tracking-tight text-foreground">
           Tilo
         </p>
         <nav aria-label="Footer" className="flex flex-wrap items-center gap-1 text-sm">
@@ -376,7 +376,7 @@ export function SiteFooter() {
               asChild
               variant="link"
               size="sm"
-              className="font-bold uppercase tracking-wide text-amber-200"
+              className="font-bold uppercase tracking-wide text-muted-foreground hover:text-foreground"
             >
               <Link href={item.href}>{item.label}</Link>
             </Button>

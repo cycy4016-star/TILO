@@ -44,7 +44,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
         schema: PublicLeadResult,
       });
       setDone(true);
-      toast.success('Saved — see you soon!');
+      toast.success('Details saved');
     } catch (requestError) {
       const cause = (
         requestError as { cause?: { error?: string; errors?: Record<string, string> } }
@@ -59,26 +59,26 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
 
   if (done) {
     return (
-      <section className="mt-8 rounded-[2rem] border-2 border-emerald-600 bg-emerald-50 p-6 text-center dark:bg-stone-900 sm:p-8">
-        <span className="mx-auto flex size-14 -rotate-6 items-center justify-center rounded-3xl bg-emerald-600 text-white">
+      <section className="mt-8 rounded-xl border border-border bg-card p-6 text-center shadow-sm sm:p-8">
+        <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Check aria-hidden className="size-6" />
         </span>
-        <p className="mt-3 font-display text-xl font-black uppercase">You&apos;re on the list</p>
-        <p className="mx-auto mt-1 max-w-sm text-sm font-medium text-stone-600 dark:text-stone-300">
-          {storeName} has your details now. Order anytime — WhatsApp, SMS or right here.
+        <p className="mt-3 text-xl font-bold">You&apos;re on the list</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          {storeName} has your details now. Order anytime — by WhatsApp, SMS or right here.
         </p>
       </section>
     );
   }
 
   return (
-    <section className="mt-8 rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 shadow-[5px_5px_0_0_var(--tl-950)] dark:bg-stone-900 sm:p-8">
-      <p className="flex items-center gap-2 font-display text-lg font-black uppercase">
-        <Sparkles aria-hidden className="size-4 text-[var(--tl-cta)]" />
+    <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <p className="flex items-center gap-2 text-lg font-bold">
+        <Sparkles aria-hidden className="size-4 text-primary" />
         Leave your details
       </p>
-      <p className="mt-1 text-sm font-medium text-stone-500">
-        Share your WhatsApp number so {storeName} can confirm orders fast and keep you posted.
+      <p className="mt-1 text-sm text-muted-foreground">
+        Share your WhatsApp number so {storeName} can confirm orders quickly and keep you posted.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2">
@@ -88,7 +88,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Ama"
-            className="rounded-2xl"
+            className="rounded-lg"
           />
         </div>
         <div className="grid gap-2">
@@ -99,7 +99,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="024 000 0000"
-            className="rounded-2xl"
+            className="rounded-lg"
           />
         </div>
         <div className="grid gap-2">
@@ -109,7 +109,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={town}
             onChange={(event) => setTown(event.target.value)}
             placeholder="Legon"
-            className="rounded-2xl"
+            className="rounded-lg"
           />
         </div>
         <div className="grid gap-2">
@@ -120,13 +120,13 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={note}
             onChange={(event) => setNote(event.target.value)}
             placeholder="Branded aprons for an event…"
-            className="rounded-2xl"
+            className="rounded-lg"
           />
         </div>
       </div>
       <label
         htmlFor="lead-consent"
-        className="mt-4 flex items-start gap-3 text-sm font-medium text-stone-600 dark:text-stone-300"
+        className="mt-4 flex items-start gap-3 text-sm text-muted-foreground"
       >
         <Checkbox
           id="lead-consent"
@@ -142,12 +142,12 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
           .
         </span>
       </label>
-      {error && <p className="mt-2 text-sm font-bold text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm font-medium text-destructive">{error}</p>}
       <Button
         type="button"
         disabled={busy}
         onClick={() => void submit()}
-        className="mt-4 h-11 rounded-full bg-[var(--tl-cta)] px-6 font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+        className="mt-4 h-11 font-semibold"
       >
         {busy ? 'Saving…' : 'Save my details'}
       </Button>

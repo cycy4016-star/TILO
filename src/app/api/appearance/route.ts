@@ -21,10 +21,10 @@ export async function GET(request: Request) {
     const pref = await prisma.appearancePreference.findUnique({
       where: { userId: user.id },
     });
-    // No preference yet → the DB defaults (gold + vibrant), same as a fresh row.
+    // No preference yet → the DB defaults (gold + professional), same as a fresh row.
     return NextResponse.json({
       theme: pref?.theme ?? 'gold',
-      appearance: pref?.appearance ?? 'vibrant',
+      appearance: pref?.appearance ?? 'professional',
     });
   } catch (error) {
     if (error instanceof Response) return error;
@@ -56,7 +56,7 @@ export async function PUT(request: Request) {
       create: {
         userId: user.id,
         theme: parsed.data.theme ?? 'gold',
-        appearance: parsed.data.appearance ?? 'vibrant',
+        appearance: parsed.data.appearance ?? 'professional',
       },
       update: {
         ...(parsed.data.theme ? { theme: parsed.data.theme } : {}),

@@ -12,10 +12,10 @@ import { formatGhs } from '@/lib/contracts/order';
 import { waMeLink } from '@/lib/phone';
 
 const statusLabels: Record<Overview['topChases'][number]['status'], string> = {
-  PENDING: 'Warming up',
-  PROCESSING: 'On the fire',
-  COMPLETED: 'Served',
-  CANCELLED: 'Rained off',
+  PENDING: 'Pending',
+  PROCESSING: 'Processing',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
 };
 
 export function MoneyToChaseCard() {
@@ -46,7 +46,7 @@ export function MoneyToChaseCard() {
         {[0, 1].map((i) => (
           <div
             key={i}
-            className="h-40 animate-pulse rounded-[1.75rem] border-2 border-amber-950 bg-white dark:bg-stone-900"
+            className="h-40 animate-pulse rounded-xl border border-border bg-card dark:bg-stone-900"
           />
         ))}
       </section>
@@ -55,8 +55,8 @@ export function MoneyToChaseCard() {
 
   if (error || !overview) {
     return (
-      <section className="rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900">
-        <p className="font-bold text-amber-700">The till would not open — try again.</p>
+      <section className="rounded-xl border border-border bg-card p-6 dark:bg-stone-900">
+        <p className="font-semibold text-foreground">Couldn&apos;t load finances — try again.</p>
       </section>
     );
   }
@@ -65,30 +65,30 @@ export function MoneyToChaseCard() {
 
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(240px,0.75fr)]">
-      <article className="relative overflow-hidden rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900 sm:p-7">
+      <article className="relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm dark:bg-stone-900 sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-950 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-primary">
             <Swords aria-hidden className="size-3.5" /> Money to chase
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-white">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white">
             <Wallet aria-hidden className="size-3.5" />
             {formatGhs(overview.recoveredMonthPesewas)} in this month
           </span>
         </div>
 
         {empty ? (
-          <div className="mt-6 rounded-[1.5rem] border-2 border-dashed border-amber-400 px-5 py-8 text-center">
-            <p className="font-display text-xl font-black uppercase">Till is calm</p>
-            <p className="mt-1 text-sm font-medium text-stone-500">
-              No unfinished money right now. Everything&apos;s collected.
+          <div className="mt-6 rounded-lg border border-dashed border-border px-5 py-8 text-center">
+            <p className="text-xl font-bold">All cleared</p>
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
+              No outstanding payments right now.
             </p>
           </div>
         ) : (
           <>
-            <p className="mt-5 min-w-0 font-display text-[clamp(2.25rem,9vw,3.75rem)] font-black uppercase leading-none text-amber-950 dark:text-amber-50">
+            <p className="mt-5 min-w-0 text-[clamp(2.25rem,9vw,3.75rem)] font-bold leading-none tracking-tight text-foreground">
               {formatGhs(overview.outstandingPesewas)}
             </p>
-            <p className="mt-2 text-sm font-bold text-stone-600 dark:text-stone-300">
+            <p className="mt-2 text-sm font-semibold text-muted-foreground">
               outstanding across {overview.outstandingCount} open{' '}
               {overview.outstandingCount === 1 ? 'order' : 'orders'}
               {overview.oldestOutstandingDays != null &&
@@ -97,7 +97,7 @@ export function MoneyToChaseCard() {
           </>
         )}
 
-        <div className="mt-6 divide-y divide-amber-200 dark:divide-stone-800">
+        <div className="mt-6 divide-y divide-border">
           {overview.topChases.map((chase) => {
             const chat = waMeLink(chase.customerPhone);
             return (
@@ -107,18 +107,16 @@ export function MoneyToChaseCard() {
                   className="group min-w-0 flex-1"
                 >
                   <span className="flex items-center gap-2">
-                    <span className="truncate font-display text-sm font-black uppercase">
-                      {chase.customerName}
-                    </span>
-                    <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wider text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+                    <span className="truncate font-bold">{chase.customerName}</span>
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-primary">
                       {statusLabels[chase.status]}
                     </span>
                   </span>
-                  <span className="mt-0.5 block truncate text-xs font-medium text-stone-500">
+                  <span className="mt-0.5 block truncate text-xs font-medium text-muted-foreground">
                     {chase.orderNumber} · {chase.ageDays}d old
                   </span>
                 </Link>
-                <span className="shrink-0 font-mono text-sm font-black text-amber-950 dark:text-amber-50">
+                <span className="shrink-0 font-mono text-sm font-bold text-foreground">
                   {formatGhs(chase.amountPesewas)}
                 </span>
                 {chat && (
@@ -136,11 +134,7 @@ export function MoneyToChaseCard() {
             );
           })}
           <div className="pt-3">
-            <Button
-              asChild
-              variant="link"
-              className="h-auto p-0 font-black uppercase tracking-wide text-amber-700 dark:text-amber-300"
-            >
+            <Button asChild variant="link" className="h-auto p-0 font-semibold text-primary">
               <Link href="/dashboard/customers">
                 See everyone <ArrowRight aria-hidden className="size-4" />
               </Link>
@@ -149,21 +143,22 @@ export function MoneyToChaseCard() {
         </div>
       </article>
 
-      <article className="-rotate-1 rounded-[2rem] bg-amber-950 p-6 text-amber-50 sm:p-7">
-        <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase text-amber-300">
+      <article className="rounded-xl border border-primary/20 bg-primary/[0.06] p-6 sm:p-7">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-primary">
           <Wallet aria-hidden className="size-5" /> Collected
         </h2>
-        <p className="mt-1 text-sm font-medium text-amber-200">Cash that landed this month.</p>
-        <p className="mt-5 font-display text-4xl font-black uppercase leading-none text-amber-50">
+        <p className="mt-1 text-sm font-medium text-muted-foreground">
+          Cash that landed this month.
+        </p>
+        <p className="mt-5 text-4xl font-bold leading-none tracking-tight text-foreground">
           {formatGhs(overview.recoveredMonthPesewas)}
         </p>
-        <p className="mt-2 text-sm font-bold text-amber-100">
+        <p className="mt-2 text-sm font-semibold text-muted-foreground">
           {overview.recoveredMonthCount} paid{' '}
           {overview.recoveredMonthCount === 1 ? 'order' : 'orders'}
         </p>
-        <p className="mt-5 text-xs font-medium leading-relaxed text-amber-200/80">
-          Every mark-paid, every chaser that lands — it all adds to this. Watch this lane grow week
-          to week.
+        <p className="mt-5 text-xs font-medium leading-relaxed text-muted-foreground">
+          Every mark-paid and every follow-up that lands adds to this lane.
         </p>
       </article>
     </section>

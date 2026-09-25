@@ -2,9 +2,10 @@
 // set of seed values (--brand-h/c/l) injected into the CSS in globals.css under
 // a `[data-theme="key"]` selector — the derived brand ramp and every semantic
 // token recompute from those three numbers, so one pick recolours the whole
-// dashboard coherently. Appearance presets switch the dashboard layout (vibrant
-// = loud rounded panels, professional = clean straight cards) via the scoped
-// overrides in custom-style.css. The platform look is a per-user preference
+// dashboard coherently. Appearance presets switch between the loud Tilo panels
+// (vibrant) and the clean business-ready default (professional); the default IS
+// professional, and the neutralization lives in custom-style.css, gated to skip
+// only [data-appearance="vibrant"]. The platform look is a per-user preference
 // (src/app/api/appearance) chosen from the header AppearancePicker — it is NOT
 // a store setting. The public storefront also uses these keys, but from the
 // store's own values (Store.theme / Store.appearance), untouched by the user's
@@ -100,21 +101,21 @@ export type AppearancePreset = {
 
 export const APPEARANCE_PRESETS: AppearancePreset[] = [
   {
-    key: 'vibrant',
-    label: 'Vibrant',
-    tagline: 'Loud yellow-black panels · the Tilo signature',
-  },
-  {
     key: 'professional',
     label: 'Professional',
     tagline: 'Clean straight cards · understated & business-ready',
   },
+  {
+    key: 'vibrant',
+    label: 'Vibrant',
+    tagline: 'Loud yellow-black panels · the Tilo signature',
+  },
 ];
 
-export const DEFAULT_APPEARANCE: AppearanceKeyValue = 'vibrant';
+export const DEFAULT_APPEARANCE: AppearanceKeyValue = 'professional';
 
 // Safely coerce any persisted value into a valid appearance key. Mirrors the
-// DB default so unknown values fall back to vibrant.
+// DB default so unknown values fall back to professional.
 export function normalizeAppearance(value: string | null | undefined): AppearanceKeyValue {
   const parsed = AppearanceKey.safeParse(value);
   return parsed.success ? parsed.data : DEFAULT_APPEARANCE;

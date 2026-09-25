@@ -9,7 +9,7 @@ model AppearancePreference {
   id         String   @id @default(cuid())
   userId     String   @unique
   theme      String   @default("gold")
-  appearance String   @default("vibrant")
+  appearance String   @default("professional")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

@@ -49,7 +49,7 @@ model Store {
   // storefront arrangement: "vibrant" is the loud yellow-black look, while
   // "professional" is the clean business layout. Stored as a plain string; the
   // UI falls back to the default when the value is unknown.
-  appearance   String      @default("vibrant")
+appearance   String             @default("professional")
   // Store logo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/[slug]/logo (no object storage needed).
   logo         Bytes?

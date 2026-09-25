@@ -92,10 +92,10 @@ export function SmsComposer({
   return (
     <Dialog open={open} onOpenChange={(value) => (value ? setOpen(true) : setOpen(false))}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-display font-black uppercase">
-            <MessageSquareMore aria-hidden className="size-4" /> Text {customerName}
+          <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+            <MessageSquareMore aria-hidden className="size-4" /> Message {customerName}
           </DialogTitle>
           <DialogDescription>
             Sends from {storeName}&apos;s number to {phone}.
@@ -112,7 +112,7 @@ export function SmsComposer({
                 setTemplate(null);
                 setMessage('');
               }}
-              className="rounded-full text-xs font-black uppercase tracking-wide"
+              className="rounded-full text-xs font-semibold"
             >
               Custom
             </Button>
@@ -123,7 +123,7 @@ export function SmsComposer({
                 size="sm"
                 variant={template === entry.key ? 'default' : 'outline'}
                 onClick={() => applyTemplate(entry.key)}
-                className="rounded-full text-xs font-black uppercase tracking-wide"
+                className="rounded-full text-xs font-semibold"
               >
                 {entry.label}
               </Button>
@@ -139,10 +139,10 @@ export function SmsComposer({
                 setTemplate(null);
             }}
             placeholder={`Hello ${customerName}! ${storeName} here — want to order this week?`}
-            className="rounded-2xl font-medium"
+            className="rounded-2xl"
             maxLength={MAX_CHARS}
           />
-          <div className="flex items-center justify-between text-xs font-bold text-stone-400">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
               {message.length}/{MAX_CHARS}
             </span>
@@ -151,12 +151,12 @@ export function SmsComposer({
             </span>
           </div>
 
-          {error && <p className="text-sm font-bold text-red-600">{error}</p>}
+          {error && <p className="text-sm font-semibold text-destructive">{error}</p>}
           <Button
             type="button"
             disabled={busy}
             onClick={() => void send()}
-            className="h-11 gap-2 rounded-full bg-yellow-600 font-black uppercase tracking-wide text-white hover:bg-amber-700"
+            className="h-11 gap-2 rounded-full bg-yellow-600 font-semibold text-white hover:bg-amber-700"
           >
             <Send aria-hidden className="size-4" /> {busy ? 'Sending…' : 'Send message'}
           </Button>

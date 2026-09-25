@@ -39,51 +39,45 @@ export function SmsUsageCard() {
 
   if (loading) {
     return (
-      <section className="h-40 animate-pulse rounded-[1.75rem] border-2 border-amber-950 bg-white dark:bg-stone-900" />
+      <section className="h-40 animate-pulse rounded-xl border border-border bg-card dark:bg-stone-900" />
     );
   }
 
   if (error || !usage) {
     return (
-      <section className="rounded-[1.75rem] border-2 border-amber-950 bg-white p-6 dark:bg-stone-900">
-        <p className="font-bold text-amber-700">Could not load SMS usage — try again.</p>
+      <section className="rounded-xl border border-border bg-card p-6 dark:bg-stone-900">
+        <p className="font-semibold text-foreground">Couldn&apos;t load SMS usage — try again.</p>
       </section>
     );
   }
 
   return (
-    <section className="rotate-[0.4deg] rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] p-6 shadow-[5px_5px_0_0_#451a03] dark:bg-stone-900 sm:p-7">
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm dark:bg-stone-900 sm:p-7">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-950 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-primary">
           <MessageSquareText aria-hidden className="size-3.5" /> SMS this month
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-200 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] text-amber-950">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-secondary-foreground">
           ~{formatGhs(usage.monthEstimatedCostPesewas)} via SMS
         </span>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <div>
-          <p className="font-display text-4xl font-black uppercase leading-none">
-            {usage.monthSent}
-          </p>
-          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-stone-500">
+          <p className="text-4xl font-bold leading-none tracking-tight">{usage.monthSent}</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             sent ({usage.monthCredits} credits)
           </p>
         </div>
         <div>
-          <p className="font-display text-4xl font-black uppercase leading-none">
-            {usage.monthFailed}
-          </p>
-          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-stone-500">
+          <p className="text-4xl font-bold leading-none tracking-tight">{usage.monthFailed}</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             failed this month
           </p>
         </div>
         <div>
-          <p className="font-display text-4xl font-black uppercase leading-none">
-            {usage.allTimeCredits}
-          </p>
-          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-stone-500">
+          <p className="text-4xl font-bold leading-none tracking-tight">{usage.allTimeCredits}</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             lifetime credits
           </p>
         </div>
@@ -94,7 +88,7 @@ export function SmsUsageCard() {
           {usage.bySource.map((row) => (
             <span
               key={row.source}
-              className="rounded-full border border-amber-300 px-3 py-1 text-xs font-bold text-amber-900 dark:border-stone-700 dark:text-amber-200"
+              className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-muted-foreground"
             >
               {SOURCE_LABELS[row.source]}: {row.sent}
             </span>

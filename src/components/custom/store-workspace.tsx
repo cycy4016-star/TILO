@@ -132,7 +132,7 @@ const platformIcons: Record<SocialPlatformValue, LucideIcon> = {
 };
 
 const statusStyles: Record<SocialPostStatusValue, string> = {
-  SHARED: 'bg-[var(--tl-100)] text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]',
+  SHARED: 'bg-muted text-muted-foreground',
   PUBLISHED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
 };
 
@@ -155,7 +155,7 @@ function PlatformBadge({ value }: { value: SocialPlatformValue }) {
   const def = platformDef(value);
   const Icon = platformIcons[def.value];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tl-100)] px-2.5 py-1 text-xs font-black uppercase tracking-wider text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
       <Icon aria-hidden className="size-3.5" /> {def.label}
     </span>
   );
@@ -231,16 +231,14 @@ function PublishDialog({
                 key={entry.value}
                 type="button"
                 onClick={() => pick(entry)}
-                className="flex items-center gap-3 rounded-2xl border-2 border-[var(--tl-950)] bg-[var(--tl-50)]/50 px-4 py-3 text-left hover:bg-[var(--tl-100)] dark:border-stone-700 dark:bg-stone-900 dark:hover:bg-stone-800"
+                className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:bg-muted"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--tl-500)] to-[var(--tl-400)] text-white">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon aria-hidden className="size-5" />
                 </span>
                 <span className="flex-1">
-                  <span className="block font-display font-black uppercase tracking-tight">
-                    {entry.label}
-                  </span>
-                  <span className="block text-xs font-medium text-stone-500">{entry.hint}</span>
+                  <span className="block text-sm font-semibold">{entry.label}</span>
+                  <span className="block text-xs text-muted-foreground">{entry.hint}</span>
                 </span>
               </button>
             );
@@ -267,7 +265,7 @@ function PublishDialog({
           <div className="grid gap-2">
             <label
               htmlFor="publish-caption"
-              className="text-sm font-black uppercase tracking-wide text-stone-600 dark:text-stone-300"
+              className="text-sm font-semibold text-muted-foreground"
             >
               Caption
             </label>
@@ -276,9 +274,9 @@ function PublishDialog({
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
               rows={6}
-              className="w-full rounded-2xl border-2 border-[var(--tl-950)] bg-white px-3 py-2 text-sm font-medium dark:border-stone-700 dark:bg-stone-900"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
             />
-            <p className="text-xs font-medium text-stone-500">
+            <p className="text-xs text-muted-foreground">
               We copy this and open {platformDef(platform).label} — posting stays hands-on. Tweak it
               here first.
             </p>
@@ -287,7 +285,7 @@ function PublishDialog({
             type="button"
             disabled={busy || caption.trim().length === 0}
             onClick={() => void publish()}
-            className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+            className="h-11 font-semibold"
           >
             <Share2 aria-hidden className="size-4" />
             {busy ? 'Opening…' : `Copy & open ${platformDef(platform).label}`}
@@ -355,9 +353,9 @@ function PublishLog({
 
   if (posts.length === 0) {
     return (
-      <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-8 text-center">
-        <p className="font-display font-black uppercase">Nothing pushed yet</p>
-        <p className="mt-1 text-sm font-medium text-stone-500">
+      <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
+        <p className="font-semibold">Nothing pushed yet</p>
+        <p className="mt-1 text-sm text-muted-foreground">
           Tap Share on an item and it lands here.
         </p>
       </div>
@@ -369,23 +367,20 @@ function PublishLog({
       {posts.map((post) => {
         const Icon = platformIcons[post.platform];
         return (
-          <div
-            key={post.id}
-            className="rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-4 dark:bg-stone-900"
-          >
+          <div key={post.id} className="rounded-xl border border-border bg-card p-4">
             <div className="flex flex-wrap items-center gap-2">
               <PlatformBadge value={post.platform} />
-              <span className="min-w-0 truncate text-sm font-black">{post.itemName}</span>
+              <span className="min-w-0 truncate text-sm font-semibold">{post.itemName}</span>
               <span
-                className={`ml-auto rounded-full px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wider ${statusStyles[post.status]}`}
+                className={`ml-auto rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider ${statusStyles[post.status]}`}
               >
                 {post.status === 'PUBLISHED' ? 'Posted' : 'Shared'}
               </span>
-              <span className="text-xs font-medium text-stone-400">
+              <span className="text-xs text-muted-foreground">
                 {formatPostTime(post.createdAt)}
               </span>
             </div>
-            <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm font-medium text-stone-600 dark:text-stone-300">
+            <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm text-muted-foreground">
               {post.caption}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -393,7 +388,7 @@ function PublishLog({
                 <Button
                   asChild
                   variant="outline"
-                  className="h-9 rounded-full text-xs font-black uppercase tracking-wide"
+                  className="h-9 rounded-full text-xs font-semibold"
                 >
                   <a href={post.externalUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink aria-hidden className="size-3.5" /> View post
@@ -411,7 +406,7 @@ function PublishLog({
                     type="button"
                     disabled={busyId === post.id}
                     onClick={() => void markPosted(post)}
-                    className="h-9 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+                    className="h-9 rounded-full font-semibold"
                   >
                     {busyId === post.id ? 'Saving…' : 'Done'}
                   </Button>
@@ -422,7 +417,7 @@ function PublishLog({
                       setMarkingUrl(null);
                       setUrl('');
                     }}
-                    className="h-9 rounded-full text-xs font-black uppercase tracking-wide"
+                    className="h-9 rounded-full text-xs font-semibold"
                   >
                     Cancel
                   </Button>
@@ -433,7 +428,7 @@ function PublishLog({
                     type="button"
                     variant="outline"
                     onClick={() => reopen(post)}
-                    className="h-9 rounded-full text-xs font-black uppercase tracking-wide"
+                    className="h-9 rounded-full text-xs font-semibold"
                   >
                     <Icon aria-hidden className="size-3.5" /> Reopen
                   </Button>
@@ -441,7 +436,7 @@ function PublishLog({
                     type="button"
                     variant="outline"
                     onClick={() => setMarkingUrl(post.id)}
-                    className="h-9 rounded-full text-xs font-black uppercase tracking-wide"
+                    className="h-9 rounded-full text-xs font-semibold"
                   >
                     Mark posted
                   </Button>
@@ -551,7 +546,7 @@ function StoreForm({
                   <Input placeholder="amas-boutique" {...field} className="rounded-2xl" />
                 </FormControl>
                 <FormMessage />
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs text-muted-foreground">
                   Your page lives at /store/<span className="font-mono">{field.value || '…'}</span>
                 </p>
               </FormItem>
@@ -566,7 +561,7 @@ function StoreForm({
               <FormLabel>Tagline</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Printed gear, made loud in Accra"
+                  placeholder="e.g. Printed gear, made in Accra"
                   {...field}
                   className="rounded-2xl"
                 />
@@ -589,7 +584,7 @@ function StoreForm({
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-xs font-medium text-stone-500">
+              <p className="text-xs text-muted-foreground">
                 Shown as a headline at the top of your page. Leave blank to hide.
               </p>
             </FormItem>
@@ -600,7 +595,7 @@ function StoreForm({
           <div>
             <ImagePicker currentUrl={logoUrl} value={logo} onChange={setLogo} />
           </div>
-          <p className="text-xs font-medium text-stone-500">
+          <p className="text-xs text-muted-foreground">
             A small logo for the header of your public page.
           </p>
         </FormItem>
@@ -614,7 +609,7 @@ function StoreForm({
                 <Input placeholder="024 000 0000" {...field} className="rounded-2xl" />
               </FormControl>
               <FormMessage />
-              <p className="text-xs font-medium text-stone-500">
+              <p className="text-xs text-muted-foreground">
                 Every &quot;order&quot; button opens a chat with this number.
               </p>
             </FormItem>
@@ -642,12 +637,10 @@ function StoreForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] px-4 py-3 dark:border-stone-800">
+            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Storefront open</FormLabel>
-                <p className="text-xs font-medium text-stone-500">
-                  Switch off to take the page down.
-                </p>
+                <p className="text-xs text-muted-foreground">Switch off to take the page down.</p>
               </div>
               <FormControl>
                 <Switch
@@ -663,7 +656,7 @@ function StoreForm({
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)] sm:w-auto"
+          className="h-12 w-full font-semibold sm:w-auto"
         >
           {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save store' : 'Set up store'}
         </Button>
@@ -766,7 +759,7 @@ function ItemForm({
         });
       }
       onSaved(saved);
-      toast.success(initial ? 'Item updated' : 'Item added to the shelf');
+      toast.success(initial ? 'Item updated' : 'Item added to catalogue');
     } catch (error) {
       const applied = applyServerErrors(getErrorBody(error), form.setError);
       if (!applied) toast.error('Could not save the item');
@@ -847,7 +840,7 @@ function ItemForm({
                 className="rounded-2xl"
               />
             </div>
-            <p className="text-xs font-medium text-stone-500">
+            <p className="text-xs text-muted-foreground">
               What you pay for the item — used for profit and Intelligence analytics. Leave blank to
               hide.
             </p>
@@ -864,7 +857,7 @@ function ItemForm({
                 className="rounded-2xl"
               />
             </div>
-            <p className="text-xs font-medium text-stone-500">
+            <p className="text-xs text-muted-foreground">
               The &quot;was&quot; price — higher than the price and customers see a strikethrough
               with a % off badge. Leave blank to hide.
             </p>
@@ -893,18 +886,18 @@ function ItemForm({
           <div>
             <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} />
           </div>
-          <p className="text-xs font-medium text-stone-500">
-            Photos make the shelf pop — customers see them on your public page.
+          <p className="text-xs text-muted-foreground">
+            Photos help customers see what you offer — they appear on your public page.
           </p>
         </FormItem>
         <FormField
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] px-4 py-3 dark:border-stone-800">
+            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
-                <FormLabel className="!mt-0">On the shelf</FormLabel>
-                <p className="text-xs font-medium text-stone-500">
+                <FormLabel className="!mt-0">Available</FormLabel>
+                <p className="text-xs text-muted-foreground">
                   Hidden items stay listed here but leave the public page.
                 </p>
               </div>
@@ -912,7 +905,7 @@ function ItemForm({
                 <Switch
                   checked={field.value}
                   onCheckedChange={field.onChange}
-                  aria-label="On the shelf"
+                  aria-label="Available"
                 />
               </FormControl>
               <FormMessage />
@@ -923,15 +916,15 @@ function ItemForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+            className="h-11 rounded-full font-semibold"
           >
-            {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save item' : 'Add to shelf'}
+            {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save item' : 'Add item'}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-11 rounded-full font-black uppercase tracking-wide"
+            className="h-11 rounded-full font-semibold"
           >
             Cancel
           </Button>
@@ -1067,7 +1060,7 @@ function PromoForm({
                   <Input placeholder="Mid-sem sale" {...field} className="rounded-2xl" />
                 </FormControl>
                 <FormMessage />
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs text-muted-foreground">
                   What customers see on the offer card.
                 </p>
               </FormItem>
@@ -1091,7 +1084,7 @@ function PromoForm({
                   />
                 </FormControl>
                 <FormMessage />
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs text-muted-foreground">
                   Customers quote it in their order. Blank = no code needed.
                 </p>
               </FormItem>
@@ -1146,7 +1139,7 @@ function PromoForm({
               className="rounded-2xl"
             />
           </div>
-          <p className="text-xs font-medium text-stone-500">
+          <p className="text-xs text-muted-foreground">
             Leave blank to let every order use the discount.
           </p>
         </FormItem>
@@ -1179,18 +1172,18 @@ function PromoForm({
           <div>
             <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} />
           </div>
-          <p className="text-xs font-medium text-stone-500">
-            A wide banner makes the offer pop on your public page.
+          <p className="text-xs text-muted-foreground">
+            A wide banner makes the offer stand out on your public page.
           </p>
         </FormItem>
         <FormField
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-2xl border-2 border-[var(--tl-200)] px-4 py-3 dark:border-stone-800">
+            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Promo live</FormLabel>
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs text-muted-foreground">
                   Switch off anytime to pull it from your page.
                 </p>
               </div>
@@ -1209,7 +1202,7 @@ function PromoForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+            className="h-11 rounded-full font-semibold"
           >
             {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save promo' : 'Create promo'}
           </Button>
@@ -1217,7 +1210,7 @@ function PromoForm({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-11 rounded-full font-black uppercase tracking-wide"
+            className="h-11 rounded-full font-semibold"
           >
             Cancel
           </Button>
@@ -1361,23 +1354,23 @@ export function StoreWorkspace() {
 
   if (loading) {
     return (
-      <div className="flex min-h-64 items-center justify-center font-display text-sm font-black uppercase tracking-[0.25em] text-[var(--tl-500)]">
-        Opening the shop…
+      <div className="flex min-h-64 items-center justify-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+        Loading your store…
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mx-auto max-w-xl rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-8 text-center dark:bg-stone-900">
-        <p className="font-display text-2xl font-black uppercase">Shutters stuck</p>
-        <p className="mt-2 text-sm font-medium text-stone-500">
-          The store would not load. Try again.
+      <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center">
+        <p className="text-2xl font-bold">Store unavailable</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We could not load your store. Please try again.
         </p>
         <Button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-5 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+          className="mt-5 font-semibold"
         >
           Try again
         </Button>
@@ -1387,20 +1380,14 @@ export function StoreWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-[var(--tl-950)] p-7 text-[var(--tl-50)] sm:p-9">
-        <StoreIcon
-          aria-hidden
-          className="pointer-events-none absolute -right-6 -top-6 size-40 rotate-12 text-[var(--tl-900)]"
-        />
-        <p className="relative text-xs font-black uppercase tracking-[0.25em] text-[var(--tl-300)]">
+      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
           The storefront
         </p>
-        <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-4xl font-black uppercase leading-none sm:text-5xl">
-              {store ? store.name : 'Your shop window'}
-            </h1>
-            <p className="mt-2 max-w-lg text-sm font-medium text-[var(--tl-200)]">
+            <h1 className="text-3xl font-bold">{store ? store.name : 'Your shop window'}</h1>
+            <p className="mt-2 max-w-lg text-sm text-muted-foreground">
               {store
                 ? 'Customers see this page — browse it, then order items straight to your WhatsApp.'
                 : 'Give yourself a public page: name it, add your items and prices, share the link.'}
@@ -1412,10 +1399,10 @@ export function StoreWorkspace() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
         <section
           id="store-details"
-          className="scroll-mt-24 rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
+          className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
         >
-          <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase">
-            <StoreIcon aria-hidden className="size-5 text-[var(--tl-600)]" /> Store details
+          <h2 className="flex items-center gap-2 text-xl font-bold">
+            <StoreIcon aria-hidden className="size-5 text-primary" /> Store details
           </h2>
           <div className="mt-4">
             <StoreForm key={store?.id ?? 'new'} initial={store} onSaved={setStore} />
@@ -1424,32 +1411,28 @@ export function StoreWorkspace() {
 
         <div className="grid content-start gap-6">
           {store ? (
-            <section className="rotate-1 rounded-[2rem] bg-[var(--tl-950)] p-6 text-[var(--tl-50)] sm:p-7">
-              <h2 className="flex items-center gap-2 font-display text-lg font-black uppercase text-[var(--tl-300)]">
-                <ExternalLink aria-hidden className="size-5" /> Share this page
+            <section className="rounded-xl border border-border bg-muted/40 p-6">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <ExternalLink aria-hidden className="size-5 text-primary" /> Share this page
               </h2>
               {storefrontUrl && (
-                <p className="mt-3 break-all rounded-2xl bg-[var(--tl-50)]/10 px-3 py-2 font-mono text-xs font-bold text-[var(--tl-100)]">
+                <p className="mt-3 break-all rounded-lg bg-card px-3 py-2 font-mono text-xs text-muted-foreground">
                   {storefrontUrl}
                 </p>
               )}
-              <p className="mt-2 text-xs font-medium text-[var(--tl-200)]">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Put it in your bio, on flyers, anywhere customers look.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button
                   type="button"
                   onClick={() => void copyLink()}
-                  className="h-10 rounded-full bg-[var(--tl-300)] font-black uppercase tracking-wide text-[var(--tl-950)] hover:bg-[var(--tl-200)]"
+                  className="h-10 font-semibold"
                 >
                   <Copy aria-hidden className="size-4" /> {copied ? 'Copied!' : 'Copy link'}
                 </Button>
                 {storefrontUrl && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="h-10 rounded-full border-[var(--tl-50)]/40 font-black uppercase tracking-wide text-[var(--tl-100)] hover:bg-[var(--tl-50)]/10"
-                  >
+                  <Button asChild variant="outline" className="h-10 font-semibold">
                     <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink aria-hidden className="size-4" /> Preview
                     </a>
@@ -1458,9 +1441,9 @@ export function StoreWorkspace() {
               </div>
             </section>
           ) : (
-            <section className="rotate-1 rounded-[2rem] border-2 border-dashed border-[var(--tl-400)] bg-white p-6 dark:bg-stone-900">
-              <p className="font-display text-lg font-black uppercase">Not live yet</p>
-              <p className="mt-1 text-sm font-medium text-stone-500">
+            <section className="rounded-xl border border-dashed border-border bg-card p-6">
+              <p className="text-lg font-bold">Not live yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Save the store details first — you&apos;ll get a shareable link here.
               </p>
             </section>
@@ -1469,20 +1452,17 @@ export function StoreWorkspace() {
       </div>
 
       {store && (
-        <section
-          id="the-shelf"
-          className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
-        >
+        <section id="the-shelf" className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-display text-2xl font-black uppercase">The shelf</h2>
-              <p className="mt-1 text-sm font-medium text-stone-500">
+              <h2 className="text-2xl font-bold">Catalogue</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Everything people can order — products and services together.
               </p>
             </div>
             <Button
               type="button"
-              className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+              className="h-11 font-semibold"
               onClick={() => setItemDialog({ open: true, editing: null })}
             >
               <Plus aria-hidden className="size-4" /> Add item
@@ -1490,23 +1470,21 @@ export function StoreWorkspace() {
           </div>
 
           {store.items.length === 0 ? (
-            <div className="mt-5 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-10 text-center">
-              <p className="font-display font-black uppercase">Empty shelf</p>
-              <p className="mt-1 text-sm font-medium text-stone-500">
+            <div className="mt-5 rounded-lg border border-dashed border-border px-5 py-10 text-center">
+              <p className="text-lg font-semibold">Empty catalogue</p>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Add your first product or service — it appears on the public page right away.
               </p>
             </div>
           ) : (
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {store.items.map((item, i) => (
+              {store.items.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-4 rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-4 shadow-[4px_4px_0_0_var(--tl-950)] dark:bg-stone-900 ${
-                    i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
-                  }`}
+                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
                 >
                   {item.hasImage ? (
-                    <span className="size-12 shrink-0 overflow-hidden rounded-2xl">
+                    <span className="size-12 shrink-0 overflow-hidden rounded-lg">
                       <img
                         src={`/api/public/store/items/${item.id}/image`}
                         alt=""
@@ -1514,7 +1492,7 @@ export function StoreWorkspace() {
                       />
                     </span>
                   ) : (
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--tl-500)] to-[var(--tl-400)] text-white">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       {item.kind === 'SERVICE' ? (
                         <Wrench aria-hidden className="size-5" />
                       ) : (
@@ -1524,25 +1502,23 @@ export function StoreWorkspace() {
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2">
-                      <span className="truncate font-display font-black uppercase tracking-tight">
-                        {item.name}
-                      </span>
+                      <span className="truncate text-sm font-semibold">{item.name}</span>
                       {!item.active && (
-                        <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wider text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
                           Hidden
                         </span>
                       )}
                     </p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-stone-500">
-                      <span className="rounded-full bg-[var(--tl-100)] px-2 py-0.5 font-black uppercase tracking-wider text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]">
+                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-primary">
                         {kindLabels[item.kind]}
                       </span>
-                      <span className="font-mono text-sm font-black text-[var(--tl-950)] dark:text-[var(--tl-50)]">
+                      <span className="font-mono text-sm font-semibold text-foreground">
                         {formatGhs(item.pricePesewas)}
                       </span>
                     </p>
                     {item.description && (
-                      <p className="mt-1 truncate text-xs font-medium text-stone-500">
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
                         {item.description}
                       </p>
                     )}
@@ -1589,19 +1565,19 @@ export function StoreWorkspace() {
       {store && (
         <section
           id="sales-and-promos"
-          className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
+          className="rounded-xl border border-border bg-card p-6 sm:p-7"
         >
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="font-display text-2xl font-black uppercase">Sales &amp; promos</h2>
-              <p className="mt-1 text-sm font-medium text-stone-500">
+              <h2 className="text-2xl font-bold">Sales &amp; promos</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Discounts and codes — customers see them as &quot;Today&apos;s offers&quot; on your
                 page.
               </p>
             </div>
             <Button
               type="button"
-              className="h-11 rounded-full bg-[var(--tl-cta)] font-black uppercase tracking-wide text-white hover:bg-[var(--tl-700)]"
+              className="h-11 font-semibold"
               onClick={() => setPromoDialog({ open: true, editing: null })}
             >
               <Plus aria-hidden className="size-4" /> New promo
@@ -1609,13 +1585,13 @@ export function StoreWorkspace() {
           </div>
 
           {promotions === null ? (
-            <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-8 text-center">
-              <p className="font-display font-black uppercase">Loading promos…</p>
+            <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
+              <p className="font-semibold">Loading promos…</p>
             </div>
           ) : promotions.length === 0 ? (
-            <div className="mt-5 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-10 text-center">
-              <p className="font-display font-black uppercase">No promos yet</p>
-              <p className="mt-1 text-sm font-medium text-stone-500">
+            <div className="mt-5 rounded-lg border border-dashed border-border px-5 py-10 text-center">
+              <p className="text-lg font-semibold">No promos yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Add a sale or a discount code and your page becomes a deal customers share.
               </p>
             </div>
@@ -1633,14 +1609,12 @@ export function StoreWorkspace() {
                     : state === 'upcoming'
                       ? {
                           label: 'Scheduled',
-                          className:
-                            'bg-amber-100 text-amber-800 dark:bg-stone-800 dark:text-amber-300',
+                          className: 'bg-primary/10 text-primary',
                         }
                       : state === 'ended'
                         ? {
                             label: 'Ended',
-                            className:
-                              'bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300',
+                            className: 'bg-muted text-muted-foreground',
                           }
                         : {
                             label: 'Paused',
@@ -1658,12 +1632,12 @@ export function StoreWorkspace() {
                 return (
                   <div
                     key={promo.id}
-                    className={`flex items-center gap-4 rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-4 shadow-[4px_4px_0_0_var(--tl-950)] dark:bg-stone-900 ${
+                    className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 ${
                       state !== 'live' ? 'opacity-75' : ''
                     }`}
                   >
                     {promo.hasImage ? (
-                      <span className="size-12 shrink-0 overflow-hidden rounded-2xl">
+                      <span className="size-12 shrink-0 overflow-hidden rounded-lg">
                         <img
                           src={`/api/public/store/promotions/${promo.id}/image`}
                           alt=""
@@ -1671,31 +1645,29 @@ export function StoreWorkspace() {
                         />
                       </span>
                     ) : (
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-400 text-white">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Percent aria-hidden className="size-5" />
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="flex flex-wrap items-center gap-2">
-                        <span className="truncate font-display font-black uppercase tracking-tight">
-                          {promo.name}
-                        </span>
+                        <span className="truncate text-sm font-semibold">{promo.name}</span>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wider ${pill.className}`}
+                          className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider ${pill.className}`}
                         >
                           {pill.label}
                         </span>
                       </p>
-                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-stone-500">
-                        <span className="font-mono text-sm font-black text-emerald-700 dark:text-emerald-300">
+                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                        <span className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-300">
                           {promoHeadline(promo)}
                         </span>
                         {promo.code ? (
-                          <span className="rounded-full bg-[var(--tl-100)] px-2 py-0.5 font-black uppercase tracking-wider text-[var(--tl-800)] dark:bg-stone-800 dark:text-[var(--tl-300)]">
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-primary">
                             CODE {promo.code}
                           </span>
                         ) : (
-                          <span className="rounded-full bg-stone-100 px-2 py-0.5 font-black uppercase tracking-wider text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                          <span className="rounded-full bg-muted px-2 py-0.5 font-semibold uppercase tracking-wider text-muted-foreground">
                             No code needed
                           </span>
                         )}
@@ -1704,7 +1676,7 @@ export function StoreWorkspace() {
                         ))}
                       </p>
                       {windowLabel && (
-                        <p className="mt-1 flex items-center gap-1 text-xs font-medium text-stone-400">
+                        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar aria-hidden className="size-3" /> {windowLabel}
                         </p>
                       )}
@@ -1747,22 +1719,19 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section
-          id="publish-log"
-          className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
-        >
+        <section id="publish-log" className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="font-display text-2xl font-black uppercase">Publishing log</h2>
-              <p className="mt-1 text-sm font-medium text-stone-500">
+              <h2 className="text-2xl font-bold">Post history</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Every push goes here — mark it posted once it&apos;s live.
               </p>
             </div>
-            <Share2 aria-hidden className="size-5 text-[var(--tl-600)]" />
+            <Share2 aria-hidden className="size-5 text-primary" />
           </div>
           {posts === null ? (
-            <div className="mt-4 rounded-[1.5rem] border-2 border-dashed border-[var(--tl-400)] px-5 py-8 text-center">
-              <p className="font-display font-black uppercase">Loading the log…</p>
+            <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
+              <p className="font-semibold">Loading the log…</p>
             </div>
           ) : (
             <PublishLog
@@ -1785,10 +1754,10 @@ export function StoreWorkspace() {
         open={itemDialog.open}
         onOpenChange={(open) => setItemDialog({ open, editing: null })}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="font-display font-black uppercase">
-              {itemDialog.editing ? 'Fix the item' : 'Something new on the shelf'}
+            <DialogTitle className="text-xl font-bold">
+              {itemDialog.editing ? 'Edit the item' : 'Add a new item'}
             </DialogTitle>
             <DialogDescription>
               {itemDialog.editing
@@ -1822,10 +1791,10 @@ export function StoreWorkspace() {
         open={promoDialog.open}
         onOpenChange={(open) => setPromoDialog({ open, editing: null })}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="font-display font-black uppercase">
-              {promoDialog.editing ? 'Fix the promo' : 'New promo'}
+            <DialogTitle className="text-xl font-bold">
+              {promoDialog.editing ? 'Edit the promo' : 'New promo'}
             </DialogTitle>
             <DialogDescription>
               {promoDialog.editing
@@ -1848,10 +1817,10 @@ export function StoreWorkspace() {
           if (!open) setPublishItem(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[1.75rem] sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="font-display font-black uppercase">
-              Push &quot;{publishItem?.name}&quot; out there
+            <DialogTitle className="text-xl font-bold">
+              Share &quot;{publishItem?.name}&quot;
             </DialogTitle>
             <DialogDescription>
               Pick a place — we copy the caption and open that app so you finish the post.

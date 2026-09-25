@@ -39,9 +39,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   if (isPending) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-[var(--tl-50)] px-5 dark:bg-stone-950">
-        <p className="animate-pulse font-display text-sm font-black uppercase tracking-[0.25em] text-[var(--tl-cta)]">
-          Warming up…
+      <main className="flex min-h-dvh items-center justify-center bg-background px-5 dark:bg-stone-950">
+        <p className="animate-pulse text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+          Loading…
         </p>
       </main>
     );
@@ -51,9 +51,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
     // The effect above redirects to /login; this is the brief transition state,
     // not a stable screen.
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-[var(--tl-50)] px-5 dark:bg-stone-950">
-        <p className="font-display text-sm font-black uppercase tracking-[0.25em] text-[var(--tl-cta)]">
-          Rolling to sign in…
+      <main className="flex min-h-dvh items-center justify-center bg-background px-5 dark:bg-stone-950">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+          Signing you in…
         </p>
       </main>
     );
@@ -62,22 +62,22 @@ export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <main
       data-platform="app"
-      className="flex h-dvh flex-col overflow-hidden bg-[var(--tl-50)] text-stone-900 dark:bg-stone-950 dark:text-amber-50"
+      className="flex h-dvh flex-col overflow-hidden bg-background text-foreground dark:bg-stone-950"
     >
-      <div className="shrink-0 border-b-4 border-[var(--tl-950)] bg-[var(--tl-300)]">
+      <div className="shrink-0 border-b border-border bg-white dark:bg-stone-950">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-9 shrink-0 -rotate-6 items-center justify-center rounded-xl bg-[var(--tl-950)] text-[var(--tl-300)]">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Flame aria-hidden="true" className="size-4" />
             </span>
-            <span className="truncate font-display text-lg font-black uppercase tracking-tight text-[var(--tl-950)]">
-              Tilo HQ
+            <span className="truncate font-display text-lg font-black uppercase tracking-tight text-foreground">
+              Tilo
             </span>
           </Link>
           <div className="flex items-center gap-2">
             <AppearancePicker />
             <NotificationBell />
-            <span className="hidden rounded-full border-2 border-[var(--tl-950)]/20 px-3 py-1 text-[0.7rem] font-black uppercase tracking-widest text-[var(--tl-900)] sm:block">
+            <span className="hidden rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground sm:block">
               Boss
             </span>
             <Button
@@ -85,9 +85,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
               size="sm"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="rounded-full border-2 border-[var(--tl-950)] bg-transparent font-black uppercase tracking-wide text-[var(--tl-950)] hover:bg-[var(--tl-950)] hover:text-[var(--tl-300)]"
+              className="rounded-full border-border font-semibold text-foreground hover:bg-muted"
             >
-              {signingOut ? 'Bailing…' : 'Bail out'}
+              {signingOut ? 'Signing out…' : 'Sign out'}
             </Button>
           </div>
         </div>
@@ -95,8 +95,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 gap-6 px-5 py-6 sm:px-8">
         <aside className="hidden w-[220px] shrink-0 overflow-y-auto lg:block">
-          <div className="rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-3 dark:bg-stone-900">
-            <p className="truncate px-2 pt-1 text-xs font-black uppercase tracking-widest text-[var(--tl-cta)]">
+          <div className="rounded-xl border border-border bg-card p-3">
+            <p className="truncate px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               {session.user.email ?? session.user.name ?? 'Account'}
             </p>
             <div className="mt-2">
