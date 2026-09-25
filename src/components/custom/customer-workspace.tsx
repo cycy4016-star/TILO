@@ -300,7 +300,7 @@ export function CustomerWorkspace() {
           )}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div id="customers-directory" className="scroll-mt-24 grid gap-3 sm:grid-cols-2">
           {customers.map((customer, i) => (
             <div
               key={customer.id}

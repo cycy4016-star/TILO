@@ -203,7 +203,7 @@ export function OrdersWorkspace() {
           </p>
         </div>
       ) : (
-        <ol className="grid gap-3">
+        <ol id="orders-queue" className="scroll-mt-24 grid gap-3">
           {orders.map((order, i) => {
             const paid = order.paidAt != null;
             return (

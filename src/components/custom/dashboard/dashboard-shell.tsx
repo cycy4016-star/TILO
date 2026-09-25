@@ -83,8 +83,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }
 
   return (
-    <main className="min-h-dvh bg-[var(--tl-50)] text-stone-900 dark:bg-stone-950 dark:text-amber-50">
-      <div className="border-b-4 border-[var(--tl-950)] bg-[var(--tl-300)]">
+    <main className="flex h-dvh flex-col overflow-hidden bg-[var(--tl-50)] text-stone-900 dark:bg-stone-950 dark:text-amber-50">
+      <div className="shrink-0 border-b-4 border-[var(--tl-950)] bg-[var(--tl-300)]">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <span className="flex size-9 shrink-0 -rotate-6 items-center justify-center rounded-xl bg-[var(--tl-950)] text-[var(--tl-300)]">
@@ -112,8 +112,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </div>
       </div>
 
-      <div className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-5 py-6 sm:px-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside>
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 gap-6 px-5 py-6 sm:px-8">
+        <aside className="hidden w-[220px] shrink-0 overflow-y-auto lg:block">
           <div className="rounded-[1.5rem] border-2 border-[var(--tl-950)] bg-white p-3 dark:bg-stone-900">
             <p className="truncate px-2 pt-1 text-xs font-black uppercase tracking-widest text-[var(--tl-cta)]">
               {session.user.email ?? session.user.name ?? 'Account'}
@@ -124,7 +124,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </div>
         </aside>
 
-        <section className="min-w-0">{children}</section>
+        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</section>
       </div>
     </main>
   );

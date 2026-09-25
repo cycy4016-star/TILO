@@ -112,7 +112,7 @@ export function ProductsWorkspace() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div id="ranking-table" className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead>
                 <tr className="border-b-2 border-amber-950 bg-amber-300 text-[0.7rem] font-black uppercase tracking-[0.14em] text-amber-950">

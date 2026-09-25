@@ -1531,7 +1531,10 @@ export function StoreWorkspace() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section
+          id="store-details"
+          className="scroll-mt-24 rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
+        >
           <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase">
             <StoreIcon aria-hidden className="size-5 text-[var(--tl-600)]" /> Store details
           </h2>
@@ -1587,8 +1590,11 @@ export function StoreWorkspace() {
       </div>
 
       {store && (
-        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+        <section
+          id="the-shelf"
+          className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-black uppercase">The shelf</h2>
               <p className="mt-1 text-sm font-medium text-stone-500">
@@ -1702,7 +1708,10 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section
+          id="sales-and-promos"
+          className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
+        >
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-black uppercase">Sales &amp; promos</h2>
@@ -1859,7 +1868,10 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7">
+        <section
+          id="publish-log"
+          className="rounded-[2rem] border-2 border-[var(--tl-950)] bg-white p-6 dark:bg-stone-900 sm:p-7"
+        >
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-black uppercase">Publishing log</h2>

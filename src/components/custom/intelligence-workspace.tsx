@@ -216,7 +216,10 @@ export function IntelligenceWorkspace() {
         </article>
       </section>
 
-      <section className="rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] p-6 dark:bg-stone-900 sm:p-7">
+      <section
+        id="biggest-earners"
+        className="scroll-mt-24 rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] p-6 dark:bg-stone-900 sm:p-7"
+      >
         <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase">
           <Package aria-hidden className="size-5 text-yellow-600" /> Biggest earners
         </h2>

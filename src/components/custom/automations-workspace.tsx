@@ -558,7 +558,7 @@ export function AutomationsWorkspace() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div id="switchboard-rules" className="scroll-mt-24 grid gap-3">
           {rules.map((rule, i) => {
             const meta = AUTOMATION_KIND_META[rule.kind];
             return (
@@ -641,7 +641,10 @@ export function AutomationsWorkspace() {
         </div>
       )}
 
-      <section className="rounded-[2rem] border-2 border-amber-950 bg-white p-5 shadow-[4px_4px_0_0_#451a03] dark:bg-stone-900">
+      <section
+        id="recent-activity"
+        className="scroll-mt-24 rounded-[2rem] border-2 border-amber-950 bg-white p-5 shadow-[4px_4px_0_0_#451a03] dark:bg-stone-900"
+      >
         <h2 className="font-display text-lg font-black uppercase tracking-tight">
           Recent activity
         </h2>

@@ -110,7 +110,10 @@ export function AdminMonitor() {
         </article>
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] dark:bg-stone-900">
+      <section
+        id="accounts-table"
+        className="scroll-mt-24 overflow-hidden rounded-[2rem] border-2 border-amber-950 bg-[#fffbeb] dark:bg-stone-900"
+      >
         {data.users.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <ShieldAlert aria-hidden className="mx-auto size-10 text-amber-400" />

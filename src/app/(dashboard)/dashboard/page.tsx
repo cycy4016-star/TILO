@@ -72,11 +72,15 @@ export default function DashboardPage() {
         </Button>
       </section>
 
-      <MoneyToChaseCard />
+      <div id="money-to-chase" className="scroll-mt-24">
+        <MoneyToChaseCard />
+      </div>
 
-      <SmsUsageCard />
+      <div id="sms-usage" className="scroll-mt-24">
+        <SmsUsageCard />
+      </div>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section id="jump-pads" className="scroll-mt-24 grid gap-4 md:grid-cols-3">
         {TILES.map((tile, i) => (
           <article
             key={tile.title}

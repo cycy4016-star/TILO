@@ -309,7 +309,10 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
               </p>
             </div>
           ) : (
-            <ol className="relative mt-6 space-y-6 before:absolute before:bottom-2 before:left-[7px] before:top-1 before:w-0.5 before:bg-amber-300 dark:before:bg-amber-800">
+            <ol
+              id="customer-timeline"
+              className="relative mt-6 space-y-6 before:absolute before:bottom-2 before:left-[7px] before:top-1 before:w-0.5 before:bg-amber-300 dark:before:bg-amber-800"
+            >
               {customer.orders.map((order) => (
                 <li key={order.id} className="relative pl-9">
                   <span
@@ -416,7 +419,10 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
         </section>
 
         <div className="grid content-start gap-6">
-          <section className="rotate-1 rounded-[2rem] bg-amber-950 p-6 text-amber-50 sm:p-7">
+          <section
+            id="fresh-order"
+            className="scroll-mt-24 rotate-1 rounded-[2rem] bg-amber-950 p-6 text-amber-50 sm:p-7"
+          >
             <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase text-amber-300">
               <Flame className="size-5" aria-hidden /> Fresh order
             </h2>

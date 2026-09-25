@@ -1,69 +1,17 @@
 // Tilo app code.
 'use client';
 
-import {
-  Bot,
-  BrainCircuit,
-  FireExtinguisher,
-  LayoutDashboard,
-  Package,
-  ShieldCheck,
-  Store,
-  Users,
-} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { dashboardNavItems } from '@/lib/dashboard-nav';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  {
-    href: '/dashboard',
-    label: 'Pulse',
-    icon: LayoutDashboard,
-  },
-  {
-    href: '/dashboard/orders',
-    label: 'Orders',
-    icon: FireExtinguisher,
-  },
-  {
-    href: '/dashboard/customers',
-    label: 'People',
-    icon: Users,
-  },
-  {
-    href: '/dashboard/store',
-    label: 'Store',
-    icon: Store,
-  },
-  {
-    href: '/dashboard/products',
-    label: 'Products',
-    icon: Package,
-  },
-  {
-    href: '/dashboard/intelligence',
-    label: 'Intelligence',
-    icon: BrainCircuit,
-  },
-  {
-    href: '/dashboard/automations',
-    label: 'Switchboard',
-    icon: Bot,
-  },
-  {
-    href: '/dashboard/admin',
-    label: 'Admin',
-    icon: ShieldCheck,
-  },
-];
 
 export function DashboardNav() {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Dashboard" className="flex flex-wrap gap-2 lg:grid">
-      {navItems.map((item) => {
+      {dashboardNavItems.map((item) => {
         const Icon = item.icon;
         const active = pathname === item.href;
 
