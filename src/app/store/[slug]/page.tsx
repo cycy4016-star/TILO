@@ -91,10 +91,10 @@ export default async function StorePage({ params }: StorePageProps) {
             />
           )}
           <p
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.18em] ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] ${
               pro
                 ? 'bg-[var(--tl-100)] text-[var(--tl-900)]'
-                : 'rotate-1 bg-amber-300 text-amber-950'
+                : 'rotate-1 bg-amber-300 font-black text-amber-950'
             }`}
           >
             {store.items.length} {store.items.length === 1 ? 'item' : 'items'}{' '}
@@ -132,7 +132,7 @@ export default async function StorePage({ params }: StorePageProps) {
               href={chat}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-emerald-600 px-6 font-black uppercase tracking-wide text-white shadow-[3px_3px_0_0_rgba(0,0,0,0.3)] transition-colors hover:bg-emerald-500"
+              className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-emerald-600 px-6 font-bold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-emerald-500"
             >
               <MessageCircle aria-hidden className="size-4" /> Chat with us
             </a>
@@ -141,7 +141,13 @@ export default async function StorePage({ params }: StorePageProps) {
       </section>
 
       {store.promoBanner && (
-        <section className="mt-6 flex items-center justify-center gap-2 rounded-2xl border-2 border-[var(--tl-cta-border)] bg-[var(--tl-banner)] px-4 py-3 text-center font-display text-sm font-black uppercase tracking-wide text-amber-900 dark:border-amber-700 dark:bg-stone-900 dark:text-amber-300">
+        <section
+          className={`mt-6 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-center ${
+            pro
+              ? 'border border-border bg-muted/60 text-sm font-medium text-muted-foreground'
+              : 'rounded-2xl border-2 border-[var(--tl-cta-border)] bg-[var(--tl-banner)] font-display text-sm font-black uppercase tracking-wide text-amber-900 dark:border-amber-700 dark:bg-stone-900 dark:text-amber-300'
+          }`}
+        >
           <Tag aria-hidden className="size-4 shrink-0" />
           <span>{store.promoBanner}</span>
         </section>
@@ -173,7 +179,13 @@ export default async function StorePage({ params }: StorePageProps) {
                       className="mb-3 aspect-[16/9] w-full rounded-2xl border-2 border-amber-100 object-cover dark:border-stone-800"
                     />
                   )}
-                  <p className="font-mono text-2xl font-black text-emerald-700 dark:text-emerald-300">
+                  <p
+                    className={`${
+                      pro
+                        ? 'text-2xl font-extrabold tracking-tight'
+                        : 'font-mono text-2xl font-black'
+                    } text-emerald-700 dark:text-emerald-300`}
+                  >
                     {promoHeadline(promo)}
                   </p>
                   <p
@@ -190,11 +202,17 @@ export default async function StorePage({ params }: StorePageProps) {
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {promo.code ? (
-                      <span className="rounded-full bg-amber-100 px-3 py-1 font-mono text-xs font-black tracking-widest text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+                      <span
+                        className={`rounded-full px-3 py-1 font-mono text-xs tracking-widest ${
+                          pro
+                            ? 'bg-primary/10 font-semibold text-primary'
+                            : 'bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
+                        }`}
+                      >
                         CODE {promo.code}
                       </span>
                     ) : (
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                         No code needed
                       </span>
                     )}
@@ -265,7 +283,13 @@ export default async function StorePage({ params }: StorePageProps) {
                       <Package aria-hidden className="size-5" />
                     )}
                   </span>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-[0.7rem] font-black uppercase tracking-wider text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+                  <span
+                    className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wider ${
+                      pro
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
+                    }`}
+                  >
                     {kindLabels[item.kind]}
                   </span>
                 </div>
@@ -293,11 +317,17 @@ export default async function StorePage({ params }: StorePageProps) {
                 <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
                   <div className="grid gap-0.5">
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xl font-black text-amber-950 dark:text-amber-50">
+                      <span
+                        className={`${
+                          pro
+                            ? 'text-xl font-bold text-[var(--tl-900)]'
+                            : 'font-mono text-xl font-black text-amber-950 dark:text-amber-50'
+                        }`}
+                      >
                         {formatGhs(item.pricePesewas)}
                       </span>
                       {discount != null && (
-                        <span className="rounded-full bg-red-600 px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wider text-white">
+                        <span className="rounded-full bg-red-600 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-white">
                           <Percent aria-hidden className="mr-0.5 inline size-3" />
                           {discount}% off
                         </span>
@@ -324,7 +354,7 @@ export default async function StorePage({ params }: StorePageProps) {
                         href={orderLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 border-emerald-700 bg-emerald-600 px-4 font-black uppercase tracking-wide text-white transition-colors hover:bg-emerald-500"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-emerald-700 bg-emerald-600 px-4 font-bold uppercase tracking-wide text-white transition-colors hover:bg-emerald-500"
                       >
                         <MessageCircle aria-hidden className="size-4" /> WhatsApp
                       </a>
@@ -342,10 +372,10 @@ export default async function StorePage({ params }: StorePageProps) {
                       return smsHref ? (
                         <a
                           href={smsHref}
-                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 px-4 font-black uppercase tracking-wide transition-colors ${
+                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 font-bold uppercase tracking-wide transition-colors ${
                             pro
-                              ? 'border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
-                              : 'border-amber-950 text-amber-950 hover:bg-amber-100 dark:text-amber-50'
+                              ? 'border border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
+                              : 'border-2 border-amber-950 font-black text-amber-950 hover:bg-amber-100 dark:text-amber-50'
                           }`}
                         >
                           <MessageSquareText aria-hidden className="size-4" /> SMS
@@ -363,7 +393,7 @@ export default async function StorePage({ params }: StorePageProps) {
       <LeadCaptureCard storeName={store.name} slug={slug} />
 
       {store.contactPhone && waMeLink(store.contactPhone) && (
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs font-black uppercase tracking-widest text-amber-600">
+        <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs font-semibold uppercase tracking-widest text-primary">
           <Phone aria-hidden className="size-3.5" /> Orders land straight in the shop — WhatsApp,
           SMS or right here
         </p>

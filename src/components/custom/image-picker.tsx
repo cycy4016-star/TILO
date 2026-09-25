@@ -96,7 +96,7 @@ export function ImagePicker({
           <Button
             type="button"
             variant="outline"
-            className="h-9 rounded-full text-xs font-black uppercase tracking-wide"
+            className="h-9 rounded-full text-xs font-semibold"
             onClick={() => captureRef.current?.click()}
           >
             <Camera aria-hidden className="size-3.5" /> Take photo
@@ -104,7 +104,7 @@ export function ImagePicker({
           <Button
             type="button"
             variant="outline"
-            className="h-9 rounded-full text-xs font-black uppercase tracking-wide"
+            className="h-9 rounded-full text-xs font-semibold"
             onClick={() => galleryRef.current?.click()}
           >
             <ImagePlus aria-hidden className="size-3.5" /> Choose image
@@ -114,7 +114,7 @@ export function ImagePicker({
           <Button
             type="button"
             variant="ghost"
-            className="h-9 w-fit rounded-full text-xs font-black uppercase tracking-wide text-red-600 hover:text-red-700"
+            className="h-9 w-fit rounded-full text-xs font-semibold text-red-600 hover:text-red-700"
             onClick={remove}
           >
             <Trash2 aria-hidden className="size-3.5" />

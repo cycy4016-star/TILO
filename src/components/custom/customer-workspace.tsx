@@ -153,7 +153,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-primary font-black uppercase tracking-wide text-primary-foreground hover:bg-primary/90 sm:w-auto"
+          className="h-12 w-full rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
         >
           {form.formState.isSubmitting ? 'Pinning…' : 'Pin them up'}
         </Button>
@@ -263,7 +263,7 @@ export function CustomerWorkspace() {
           <Button
             type="button"
             onClick={() => void loadCustomers(query)}
-            className="rounded-full bg-primary font-black uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
+            className="rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Try again
           </Button>
@@ -293,22 +293,20 @@ export function CustomerWorkspace() {
         </div>
       ) : (
         <div id="customers-directory" className="scroll-mt-24 grid gap-3 sm:grid-cols-2">
-          {customers.map((customer, i) => (
+          {customers.map((customer) => (
             <div
               key={customer.id}
-              className={`group flex items-center gap-3 rounded-[1.75rem] border-2 border-amber-950 bg-white p-3 shadow-[4px_4px_0_0_#451a03] transition-all hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#451a03] sm:p-4 dark:bg-stone-900 ${
-                i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
-              }`}
+              className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-4 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               <Link
                 href={`/dashboard/customers/${customer.id}`}
                 className="flex min-w-0 flex-1 items-center gap-4"
               >
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-400 font-display text-lg font-black text-white">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-lg font-bold text-primary">
                   {customer.name.charAt(0).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-display font-black uppercase tracking-tight">
+                  <span className="block truncate font-semibold text-foreground">
                     {customer.name}
                   </span>
                   <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-stone-500">
@@ -354,14 +352,14 @@ export function CustomerWorkspace() {
                         type="button"
                         variant="outline"
                         aria-label={`Text ${customer.name}`}
-                        className="inline-flex size-10 rounded-full border-2 border-amber-950 p-0 hover:bg-amber-100"
+                        className="inline-flex size-10 rounded-full border-border p-0 hover:bg-muted"
                       >
                         <MessageSquareMore aria-hidden className="size-4" />
                       </Button>
                     }
                   />
                 )}
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                   <Flame aria-hidden className="size-3" />
                   {customer.orderCount}
                 </span>

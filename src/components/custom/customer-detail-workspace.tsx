@@ -270,7 +270,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                     href={chat}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-5 font-black uppercase tracking-wide text-white shadow-[3px_3px_0_0_rgba(0,0,0,0.25)] transition-colors hover:bg-emerald-500"
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500"
                   >
                     <MessageCircle aria-hidden className="size-4" /> Chat on WhatsApp
                   </a>
@@ -319,14 +319,14 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                     aria-hidden
                     className={`absolute left-0 top-1.5 size-4 rounded-full border-4 border-white dark:border-stone-900 ${statusDots[order.status]}`}
                   />
-                  <div className="rounded-[1.5rem] bg-muted/60 p-4 dark:bg-stone-800 sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4">
+                  <div className="rounded-xl bg-muted/60 p-4 sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-xs font-semibold text-primary">
                           {order.orderNumber}
                         </span>
                         <span
-                          className={`rounded-full px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-wider ${statusStyles[order.status]}`}
+                          className={`rounded-full px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider ${statusStyles[order.status]}`}
                         >
                           {statusLabels[order.status]}
                         </span>
@@ -334,12 +334,12 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                       <p className="mt-2 text-sm font-bold">{order.description}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         {order.amountPesewas != null && (
-                          <span className="font-mono text-sm font-black text-stone-800 dark:text-stone-100">
+                          <span className="font-mono text-sm font-semibold text-stone-800 dark:text-stone-100">
                             {formatGhs(order.amountPesewas)}
                           </span>
                         )}
                         {order.paidAt ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-wider text-white">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-white">
                             Paid {formatDate(order.paidAt)}
                           </span>
                         ) : order.amountPesewas != null ? (
@@ -349,7 +349,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                               size="sm"
                               disabled={updatingOrderId === order.id}
                               onClick={() => void collectPayment(order.id)}
-                              className="h-7 rounded-full bg-primary text-[0.7rem] font-black uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
+                              className="h-7 rounded-full bg-primary text-[0.7rem] font-semibold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
                             >
                               Collect payment
                             </Button>
@@ -359,7 +359,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                               size="sm"
                               disabled={updatingOrderId === order.id}
                               onClick={() => void markPaid(order.id)}
-                              className="h-7 rounded-full text-[0.7rem] font-black uppercase tracking-wider"
+                              className="h-7 rounded-full text-[0.7rem] font-semibold uppercase tracking-wider"
                             >
                               Mark paid
                             </Button>
@@ -383,7 +383,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                                 variant="outline"
                                 size="sm"
                                 disabled={updatingOrderId === order.id}
-                                className="h-7 rounded-full border-2 border-amber-950 text-[0.7rem] font-black uppercase tracking-wider"
+                                className="h-7 rounded-full border-border text-[0.7rem] font-semibold uppercase tracking-wider"
                               >
                                 <MessageSquareMore aria-hidden className="size-3" /> Confirm by SMS
                               </Button>

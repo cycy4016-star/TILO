@@ -241,7 +241,7 @@ export function SiteNav() {
                 key={item.href}
                 asChild
                 size="sm"
-                className="rounded-full bg-primary font-black uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
+                className="rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
                   {item.label}

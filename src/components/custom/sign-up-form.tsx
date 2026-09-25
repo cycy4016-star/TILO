@@ -162,7 +162,7 @@ export function SignUpForm() {
 
   return step === 'otp' ? (
     <form onSubmit={handleVerify} className="flex flex-col gap-3" noValidate>
-      <span className="flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-amber-600">
+      <span className="flex items-center justify-center gap-2 text-xs font-semibold text-primary">
         <KeyRound aria-hidden className="size-4" /> One last step
       </span>
       <Label htmlFor="sign-up-code">6-digit code</Label>
