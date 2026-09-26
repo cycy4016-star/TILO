@@ -27,26 +27,33 @@ function roundPercent(part: number, whole: number): number {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
 
     const monthStart = startOfMonth();
+    // Tenancy: the balance sheet is built from the caller's own store and
+    // orders only. The catalog is reached through their Store row so a shop can
+    // never be measured against a rival's stock.
+    const store = await prisma.store.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
     const [outstanding, moneyIn, catalog, lines] = await Promise.all([
       prisma.order.aggregate({
-        where: OUTSTANDING_WHERE,
+        where: { ...OUTSTANDING_WHERE, userId: user.id },
         _sum: { amountPesewas: true },
         _count: true,
       }),
       prisma.order.aggregate({
-        where: { paidAt: { gte: monthStart }, amountPesewas: { not: null } },
+        where: { userId: user.id, paidAt: { gte: monthStart }, amountPesewas: { not: null } },
         _sum: { amountPesewas: true },
         _count: true,
       }),
       prisma.storeItem.findMany({
-        where: { active: true },
+        where: { storeId: store?.id ?? '', active: true },
         select: { id: true, name: true, pricePesewas: true, costPricePesewas: true },
       }),
       prisma.orderLineItem.findMany({
-        where: { order: { status: { not: 'CANCELLED' } } },
+        where: { order: { userId: user.id, status: { not: 'CANCELLED' } } },
         select: {
           name: true,
           quantity: true,

@@ -12,13 +12,16 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
+    // Tenancy: the bell is this shop's own feed.
+    const where = { userId: user.id };
     const [items, unreadCount] = await Promise.all([
       prisma.notification.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
-      prisma.notification.count({ where: { readAt: null } }),
+      prisma.notification.count({ where: { ...where, readAt: null } }),
     ]);
     return NextResponse.json(
       NotificationFeed.parse({

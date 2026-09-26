@@ -61,12 +61,15 @@ export async function POST(request: Request, context: RouteContext) {
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
 
     const captured = await findOrCreateCustomer({
+      // Owner comes from the resolved store, never from the request.
+      userId: store.userId,
       name: parsed.data.name,
       phone: parsed.data.phone,
       town: parsed.data.town,
     });
 
     await notify({
+      userId: store.userId,
       kind: 'VISITOR_CAPTURED',
       title: `${captured.created ? 'New visitor joined' : 'Returning visitor'} — ${captured.name}`,
       message: [captured.phone, parsed.data.town?.trim(), parsed.data.note?.trim()]

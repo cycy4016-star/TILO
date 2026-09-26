@@ -41,6 +41,11 @@ export async function POST(request: Request) {
 
   const reference = event.data?.reference;
   if (event.event === 'charge.success' && reference) {
+    // No tenancy check is needed here, and none should be added: the webhook is
+    // unauthenticated, and settlePayment only ever touches the order that THIS
+    // reference was issued against (found by the unique reference, never by a
+    // client-supplied id), verifying the amount before marking it paid. A forged
+    // reference therefore settles nothing.
     await settlePayment({
       reference,
       providerStatus: event.data?.status ?? 'success',

@@ -25,6 +25,9 @@ vi.mock('server-only', () => ({}));
 
 const store = {
   id: 'store-1',
+  // The owner the public routes file every capture under — resolved from the
+  // storefront's own row, never from the visitor's request.
+  userId: 'owner-1',
   name: 'Kente Kitchen',
   slug: 'test',
   active: true,
@@ -81,20 +84,53 @@ describe('public order placement', () => {
     expect(body.ok).toBe(true);
     expect(body.order.orderNumber).toBe('TILO-20260922-A1B2C3D4');
     expect(body.createdCustomer).toBe(true);
+    // Everything the public flow writes is filed under the storefront's owner.
+    expect(db.prisma.customer.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ userId: 'owner-1' }) }),
+    );
     expect(db.prisma.customer.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ phone: '+233241112200' }),
+        data: expect.objectContaining({ phone: '+233241112200', userId: 'owner-1' }),
+      }),
+    );
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ userId: 'owner-1', customerId: 'customer-1' }),
       }),
     );
     expect(db.prisma.notification.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
+          userId: 'owner-1',
           kind: 'ORDER_PLACED',
           customerId: 'customer-1',
           orderId: 'order-1',
         }),
       }),
     );
+  });
+
+  it('keeps the same phone separate across two shops', async () => {
+    // The wall lookup is scoped by owner, so a customer of shop A is never
+    // reused as shop B's customer (which would leak A's address and history).
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findFirst.mockResolvedValue(item);
+    db.prisma.customer.findFirst.mockResolvedValue(null);
+    db.prisma.customer.create.mockResolvedValue(newCustomer);
+    db.prisma.order.create.mockResolvedValue(order);
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        body: JSON.stringify({ itemId: 'item-1', customerName: 'Ama', phone: '024 111 2200' }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+    expect(db.prisma.customer.findFirst).toHaveBeenCalledWith({
+      where: { phone: '+233241112200', userId: 'owner-1' },
+      orderBy: { createdAt: 'asc' },
+    });
   });
 
   it('reuses an existing regular instead of duplicating them', async () => {
@@ -235,6 +271,13 @@ describe('notification feed', () => {
       unreadCount: 3,
       items: [{ id: 'n-1', kind: 'ORDER_PLACED' }],
     });
+    // The bell and its unread tally are both scoped to the signed-in shop.
+    expect(db.prisma.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 'staff-1' } }),
+    );
+    expect(db.prisma.notification.count).toHaveBeenCalledWith({
+      where: { userId: 'staff-1', readAt: null },
+    });
   });
 
   it('requires auth before spilling the feed', async () => {
@@ -255,9 +298,11 @@ describe('notification feed', () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ unreadCount: 0 });
-    expect(db.prisma.notification.updateMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { readAt: null } }),
-    );
+    // Clears this shop's badge only — never another shop's.
+    expect(db.prisma.notification.updateMany).toHaveBeenCalledWith({
+      where: { userId: 'staff-1', readAt: null },
+      data: { readAt: expect.any(Date) },
+    });
   });
 });
 
@@ -273,10 +318,11 @@ describe('owner SMS dispatch', () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ ok: true, providerRef: 'ref-1' });
-    expect(sms.sendSms).toHaveBeenCalledWith('024 111 2200', 'Hello Ama!', 'MANUAL');
+    // Billed to the sending shop, so their "SMS this month" card is their own.
+    expect(sms.sendSms).toHaveBeenCalledWith('024 111 2200', 'Hello Ama!', 'MANUAL', 'staff-1');
     expect(db.prisma.notification.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ kind: 'SMS_SENT' }),
+        data: expect.objectContaining({ userId: 'staff-1', kind: 'SMS_SENT' }),
       }),
     );
   });

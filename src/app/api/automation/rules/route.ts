@@ -52,8 +52,10 @@ function serializeRule(rule: {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const rules = await prisma.automationRule.findMany({
+      // Tenancy: the switchboard is this shop's rules only.
+      where: { userId: user.id },
       orderBy: [{ createdAt: 'asc' }],
     });
     return NextResponse.json(AutomationRuleList.parse({ items: rules.map(serializeRule) }));
@@ -65,7 +67,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
@@ -77,6 +79,8 @@ export async function POST(request: Request) {
 
     const rule = await prisma.automationRule.create({
       data: {
+        // userId from the session — a rule is always born in its owner's shop.
+        userId: user.id,
         name: parsed.data.name,
         kind: parsed.data.kind,
         triggerStatus: parsed.data.triggerStatus ?? null,

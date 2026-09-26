@@ -6,6 +6,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
+import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { serializePromotion } from '@/lib/store-serializers';
 
@@ -15,10 +16,10 @@ type RouteContext = { params: Promise<{ promoId: string }> };
 
 export async function PUT(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { promoId } = await context.params;
-    const existing = await prisma.promotion.findUnique({ where: { id: promoId } });
-    if (!existing) return NextResponse.json({ error: 'Promo not found' }, { status: 404 });
+    // Tenancy: the artwork is only ever attached to the caller's own promo.
+    await requireOwnedStoreChild(user.id, 'promotion', promoId);
 
     let form: FormData;
     try {
@@ -42,10 +43,9 @@ export async function PUT(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { promoId } = await context.params;
-    const existing = await prisma.promotion.findUnique({ where: { id: promoId } });
-    if (!existing) return NextResponse.json({ error: 'Promo not found' }, { status: 404 });
+    await requireOwnedStoreChild(user.id, 'promotion', promoId);
 
     const updated = await prisma.promotion.update({
       where: { id: promoId },

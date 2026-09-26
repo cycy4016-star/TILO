@@ -1,5 +1,7 @@
-// Tilo Admin monitor page: every account and their sign-in pulse. Admin-only:
-// the server gate redirects anyone who isn't a boss away from this route.
+// Tilo Admin monitor page: every account and their sign-in pulse. Platform-admin
+// only: requireAdmin() now checks the role, so a signed-in shop owner who guesses
+// this URL is redirected to their dashboard. This is the ONE page in the app that
+// reads across shops.
 import type { Metadata } from 'next';
 import { AdminMonitor } from '@/components/custom/admin-monitor';
 import { requireAdmin } from '@/lib/require-admin';

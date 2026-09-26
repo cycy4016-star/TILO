@@ -76,6 +76,8 @@ export async function POST(request: Request, context: RouteContext) {
     if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
 
     const captured = await findOrCreateCustomer({
+      // Owner comes from the resolved store, never from the request.
+      userId: store.userId,
       name: parsed.data.customerName,
       phone: parsed.data.phone,
     });
@@ -84,6 +86,9 @@ export async function POST(request: Request, context: RouteContext) {
     const quantity = parsed.data.quantity;
     const order = await prisma.order.create({
       data: {
+        // The order is filed under the storefront's owner, so it shows up in that
+        // shop's dashboard and nowhere else.
+        userId: store.userId,
         customerId: captured.id,
         orderNumber: buildOrderNumber(),
         description: `${quantity}x ${item.name}${note ? ` — ${note}` : ''}`,
@@ -104,6 +109,7 @@ export async function POST(request: Request, context: RouteContext) {
     });
 
     await notify({
+      userId: store.userId,
       kind: 'ORDER_PLACED',
       title: `New order — ${item.name}`,
       message: `${captured.name} (${captured.phone}) ordered ${quantity}x ${item.name}. #${order.orderNumber}`,

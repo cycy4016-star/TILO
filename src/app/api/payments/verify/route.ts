@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     if (!isPaystackConfigured()) {
       return NextResponse.json({ error: 'Paystack is not configured' }, { status: 503 });
     }
@@ -24,7 +24,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'reference is required' }, { status: 400 });
     }
 
-    const payment = await prisma.paymentTransaction.findUnique({ where: { reference } });
+    // Tenancy: the transaction must belong to one of THIS shop's orders, checked
+    // through the order rather than the reference alone — a leaked reference from
+    // another shop's checkout must not settle (or reveal) anything here.
+    const payment = await prisma.paymentTransaction.findFirst({
+      where: { reference, order: { userId: user.id } },
+    });
     if (!payment) return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
 
     const verified = await verifyTransaction(reference);

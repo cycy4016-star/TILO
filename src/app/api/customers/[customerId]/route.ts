@@ -12,10 +12,12 @@ type RouteContext = { params: Promise<{ customerId: string }> };
 
 export async function GET(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { customerId } = await context.params;
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
+    // Tenancy: scoped to the session user, so another shop's customer id 404s
+    // instead of leaking their profile and order history.
+    const customer = await prisma.customer.findFirst({
+      where: { id: customerId, userId: user.id },
       include: {
         _count: { select: { orders: true } },
         orders: { orderBy: { createdAt: 'desc' } },

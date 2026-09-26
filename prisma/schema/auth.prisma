@@ -1,13 +1,18 @@
 // better-auth (v1.6.x) core models for the Prisma adapter — verbatim shape
 // emitted by `npx @better-auth/cli generate`, plus admin plugin fields on
-// User/Session. Self-contained: relations exist ONLY among these four models;
-// NO @relation to any other module's models.
+// User/Session.
 // Datasource + generator live in prisma/schema/_base.prisma (framework-owned by
 // the template). Do NOT redeclare them here.
 //
 // emailAndPassword is enabled in src/lib/auth.ts — the password lives on Account.
 // The admin plugin is enabled in src/lib/auth.ts and adds role/ban metadata.
 // @@map keeps the physical table names lowercase, exactly what better-auth's adapter queries.
+//
+// The `role` column is a PLATFORM role, not a per-shop one. Sign-ups default to
+// "user"; only an account whose phone/email matches ADMIN_PHONE/ADMIN_EMAIL is
+// promoted to "admin" (see src/lib/auth.ts). Per-shop ownership is modelled by
+// the reverse relations below — every business row carries a `userId` pointing
+// back here, and that column is the tenancy boundary for all reads and writes.
 
 model User {
   id                  String    @id
@@ -30,6 +35,13 @@ model User {
   updatedAt           DateTime
   sessions            Session[]
   accounts            Account[]
+  // Per-shop ownership. One user = one workspace, so each of these is a
+  // one-to-many from the account that signed up.
+  customers       Customer[]
+  orders          Order[]
+  store           Store?
+  automationRules AutomationRule[]
+  notifications   Notification[]
 
   @@unique([email])
   @@map("user")

@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
 const db = vi.hoisted(() => ({
   prisma: {
-    customer: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn() },
+    // Tenancy: owner-scoped reads go through findFirst({ id, userId }) or
+    // findUnique({ userId }) — never a bare findUnique on a client-supplied id.
+    customer: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
     order: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -13,10 +15,11 @@ const db = vi.hoisted(() => ({
       aggregate: vi.fn(),
       findFirst: vi.fn(),
     },
-    store: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+    store: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
     storeItem: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -24,6 +27,7 @@ const db = vi.hoisted(() => ({
     storePost: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -88,6 +92,35 @@ describe('customer routes', () => {
     });
   });
 
+  it('scopes the customer list to the signed-in shop', async () => {
+    db.prisma.customer.findMany.mockResolvedValue([]);
+    const { GET } = await import('@/app/api/customers/route');
+    await GET(new Request('http://test/api/customers'));
+    expect(db.prisma.customer.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 'staff-1' } }),
+    );
+  });
+
+  it('stamps the session owner on a new customer, ignoring the request body', async () => {
+    db.prisma.customer.create.mockResolvedValue(customer);
+    const { POST } = await import('@/app/api/customers/route');
+    const response = await POST(
+      new Request('http://test/api/customers', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          userId: 'someone-else',
+        }),
+      }),
+    );
+    expect(response.status).toBe(201);
+    expect(db.prisma.customer.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ userId: 'staff-1' }) }),
+    );
+  });
+
   it('returns field errors for invalid customer writes', async () => {
     const { POST } = await import('@/app/api/customers/route');
     const response = await POST(
@@ -110,12 +143,25 @@ describe('customer routes', () => {
   });
 
   it('returns 404 for an unknown customer detail record', async () => {
-    db.prisma.customer.findUnique.mockResolvedValue(null);
+    db.prisma.customer.findFirst.mockResolvedValue(null);
     const { GET } = await import('@/app/api/customers/[customerId]/route');
     const response = await GET(new Request('http://test/api/customers/missing'), {
       params: Promise.resolve({ customerId: 'missing' }),
     });
     expect(response.status).toBe(404);
+  });
+
+  it("hides another shop's customer instead of returning it", async () => {
+    // The lookup is scoped to the session user, so a foreign id simply misses.
+    db.prisma.customer.findFirst.mockResolvedValue(null);
+    const { GET } = await import('@/app/api/customers/[customerId]/route');
+    const response = await GET(new Request('http://test/api/customers/customer-1'), {
+      params: Promise.resolve({ customerId: 'customer-1' }),
+    });
+    expect(response.status).toBe(404);
+    expect(db.prisma.customer.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'customer-1', userId: 'staff-1' } }),
+    );
   });
 });
 
@@ -128,7 +174,9 @@ describe('order routes', () => {
     );
     expect(response.status).toBe(200);
     expect(db.prisma.order.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { customerId: 'customer-1', status: 'PENDING' } }),
+      expect.objectContaining({
+        where: { userId: 'staff-1', customerId: 'customer-1', status: 'PENDING' },
+      }),
     );
     await expect(response.json()).resolves.toMatchObject({
       items: [{ orderNumber: order.orderNumber }],
@@ -143,6 +191,7 @@ describe('order routes', () => {
     expect(db.prisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
+          userId: 'staff-1',
           OR: [
             { orderNumber: { contains: 'apron', mode: 'insensitive' } },
             { description: { contains: 'apron', mode: 'insensitive' } },
@@ -166,7 +215,7 @@ describe('order routes', () => {
   });
 
   it('rejects an order for a missing customer', async () => {
-    db.prisma.customer.findUnique.mockResolvedValue(null);
+    db.prisma.customer.findFirst.mockResolvedValue(null);
     const { POST } = await import('@/app/api/orders/route');
     const response = await POST(
       new Request('http://test/api/orders', {
@@ -176,6 +225,41 @@ describe('order routes', () => {
     );
     expect(response.status).toBe(404);
     expect(db.prisma.order.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses to raise an order against another shop's customer", async () => {
+    // The customer lookup is scoped, so a foreign customerId misses and the
+    // order is never created against them.
+    db.prisma.customer.findFirst.mockResolvedValue(null);
+    const { POST } = await import('@/app/api/orders/route');
+    const response = await POST(
+      new Request('http://test/api/orders', {
+        method: 'POST',
+        body: JSON.stringify({ customerId: 'customer-1', description: 'Stock delivery' }),
+      }),
+    );
+    expect(response.status).toBe(404);
+    expect(db.prisma.customer.findFirst).toHaveBeenCalledWith({
+      where: { id: 'customer-1', userId: 'staff-1' },
+    });
+    expect(db.prisma.order.create).not.toHaveBeenCalled();
+  });
+
+  it('files a new order under the session owner', async () => {
+    db.prisma.customer.findFirst.mockResolvedValue(customer);
+    db.prisma.store.findUnique.mockResolvedValue({ id: 'store-1' });
+    db.prisma.order.create.mockResolvedValue(order);
+    const { POST } = await import('@/app/api/orders/route');
+    const response = await POST(
+      new Request('http://test/api/orders', {
+        method: 'POST',
+        body: JSON.stringify({ customerId: 'customer-1', description: '12 branded aprons' }),
+      }),
+    );
+    expect(response.status).toBe(201);
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ userId: 'staff-1' }) }),
+    );
   });
 
   it('rejects invalid status updates and handles missing orders', async () => {
@@ -188,7 +272,7 @@ describe('order routes', () => {
       { params: Promise.resolve({ orderId: 'order-1' }) },
     );
     expect(invalid.status).toBe(400);
-    db.prisma.order.findUnique.mockResolvedValue(null);
+    db.prisma.order.findFirst.mockResolvedValue(null);
     const missing = await PATCH(
       new Request('http://test/api/orders/missing', {
         method: 'PATCH',
@@ -205,7 +289,7 @@ describe('order routes', () => {
       status: 'COMPLETED' as const,
       paidAt: new Date('2026-09-19T12:00:00.000Z'),
     };
-    db.prisma.order.findUnique.mockResolvedValue(order);
+    db.prisma.order.findFirst.mockResolvedValue(order);
     db.prisma.order.update.mockResolvedValue(paid);
     const { PATCH } = await import('@/app/api/orders/[orderId]/route');
     const response = await PATCH(
@@ -216,8 +300,9 @@ describe('order routes', () => {
       { params: Promise.resolve({ orderId: 'order-1' }) },
     );
     expect(response.status).toBe(200);
+    // The write itself is tenant-guarded, not just the read before it.
     expect(db.prisma.order.update).toHaveBeenCalledWith({
-      where: { id: 'order-1' },
+      where: { id: 'order-1', userId: 'staff-1' },
       data: { paidAt: new Date('2026-09-19T12:00:00.000Z') },
     });
     await expect(response.json()).resolves.toMatchObject({
@@ -225,6 +310,20 @@ describe('order routes', () => {
       amountPesewas: 4550,
       paidAt: '2026-09-19T12:00:00.000Z',
     });
+  });
+
+  it("refuses to mutate another shop's order", async () => {
+    db.prisma.order.findFirst.mockResolvedValue(null);
+    const { PATCH } = await import('@/app/api/orders/[orderId]/route');
+    const response = await PATCH(
+      new Request('http://test/api/orders/order-1', {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'COMPLETED' }),
+      }),
+      { params: Promise.resolve({ orderId: 'order-1' }) },
+    );
+    expect(response.status).toBe(404);
+    expect(db.prisma.order.update).not.toHaveBeenCalled();
   });
 });
 
@@ -293,7 +392,7 @@ describe('store routes', () => {
   };
 
   it('creates the workspace store on first save', async () => {
-    db.prisma.store.findFirst.mockResolvedValue(null);
+    db.prisma.store.findUnique.mockResolvedValue(null);
     db.prisma.store.create.mockResolvedValue({ ...store, items: [] });
     const { PUT } = await import('@/app/api/store/route');
     const response = await PUT(
@@ -308,14 +407,33 @@ describe('store routes', () => {
       }),
     );
     expect(response.status).toBe(200);
+    // One storefront per account: the owner is stamped from the session, keyed by
+    // the unique Store.userId, never taken from the body.
     expect(db.prisma.store.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ slug: 'amas-boutique' }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ slug: 'amas-boutique', userId: 'staff-1' }),
+      }),
     );
     await expect(response.json()).resolves.toMatchObject({
       id: 'store-1',
       slug: 'amas-boutique',
       items: [],
     });
+  });
+
+  it("cannot claim another shop's storefront on a second save", async () => {
+    db.prisma.store.findUnique.mockResolvedValue(store);
+    db.prisma.store.update.mockResolvedValue({ ...store, items: [] });
+    const { PUT } = await import('@/app/api/store/route');
+    const response = await PUT(
+      new Request('http://test/api/store', {
+        method: 'PUT',
+        body: JSON.stringify({ name: store.name, slug: store.slug, active: true }),
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(db.prisma.store.create).not.toHaveBeenCalled();
+    expect(db.prisma.store.update).toHaveBeenCalled();
   });
 
   it('rejects an invalid store link word', async () => {
@@ -331,7 +449,7 @@ describe('store routes', () => {
   });
 
   it('blocks items until a store exists', async () => {
-    db.prisma.store.findFirst.mockResolvedValue(null);
+    db.prisma.store.findUnique.mockResolvedValue(null);
     const { POST } = await import('@/app/api/store/items/route');
     const response = await POST(
       new Request('http://test/api/store/items', {
@@ -344,7 +462,7 @@ describe('store routes', () => {
   });
 
   it('adds an item to an existing store', async () => {
-    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.store.findUnique.mockResolvedValue(store);
     db.prisma.storeItem.create.mockResolvedValue(item);
     const { POST } = await import('@/app/api/store/items/route');
     const response = await POST(
@@ -362,13 +480,48 @@ describe('store routes', () => {
     });
   });
 
+  it("refuses to sell another shop's catalogue", async () => {
+    db.prisma.store.findUnique.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([]);
+    const { POST } = await import('@/app/api/orders/route');
+    db.prisma.customer.findFirst.mockResolvedValue(customer);
+    const response = await POST(
+      new Request('http://test/api/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId: 'customer-1',
+          description: 'order',
+          lines: [{ storeItemId: 'item-from-another-shop', quantity: 1 }],
+        }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(db.prisma.storeItem.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ storeId: 'store-1' }) }),
+    );
+  });
+
   it('returns 404 when removing an unknown item', async () => {
-    db.prisma.storeItem.findUnique.mockResolvedValue(null);
+    db.prisma.storeItem.findFirst.mockResolvedValue(null);
     const { DELETE } = await import('@/app/api/store/items/[itemId]/route');
     const response = await DELETE(new Request('http://test/api/store/items/missing'), {
       params: Promise.resolve({ itemId: 'missing' }),
     });
     expect(response.status).toBe(404);
+    expect(db.prisma.storeItem.delete).not.toHaveBeenCalled();
+  });
+
+  it("refuses to delete another shop's item", async () => {
+    db.prisma.storeItem.findFirst.mockResolvedValue(null);
+    const { DELETE } = await import('@/app/api/store/items/[itemId]/route');
+    const response = await DELETE(new Request('http://test/api/store/items/item-1'), {
+      params: Promise.resolve({ itemId: 'item-1' }),
+    });
+    expect(response.status).toBe(404);
+    // Reached THROUGH the owner's store, so a guessed cuid can't be resolved.
+    expect(db.prisma.storeItem.findFirst).toHaveBeenCalledWith({
+      where: { id: 'item-1', store: { userId: 'staff-1' } },
+    });
     expect(db.prisma.storeItem.delete).not.toHaveBeenCalled();
   });
 
@@ -432,7 +585,7 @@ describe('store post routes', () => {
   };
 
   it('logs a share and returns the typed record', async () => {
-    db.prisma.storeItem.findUnique.mockResolvedValue(itemWithStore);
+    db.prisma.storeItem.findFirst.mockResolvedValue(itemWithStore);
     db.prisma.storePost.create.mockResolvedValue(posted);
     const { POST } = await import('@/app/api/store/posts/route');
     const response = await POST(
@@ -455,7 +608,7 @@ describe('store post routes', () => {
   });
 
   it('returns 404 when the item does not exist', async () => {
-    db.prisma.storeItem.findUnique.mockResolvedValue(null);
+    db.prisma.storeItem.findFirst.mockResolvedValue(null);
     const { POST } = await import('@/app/api/store/posts/route');
     const response = await POST(
       new Request('http://test/api/store/posts', {
@@ -480,7 +633,7 @@ describe('store post routes', () => {
   });
 
   it('lists the publishing log newest first', async () => {
-    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.store.findUnique.mockResolvedValue(store);
     db.prisma.storePost.findMany.mockResolvedValue([posted]);
     const { GET } = await import('@/app/api/store/posts/route');
     const response = await GET(new Request('http://test/api/store/posts'));
@@ -491,7 +644,7 @@ describe('store post routes', () => {
   });
 
   it('marks a shared push as posted with its link', async () => {
-    db.prisma.storePost.findUnique.mockResolvedValue(posted);
+    db.prisma.storePost.findFirst.mockResolvedValue(posted);
     db.prisma.storePost.update.mockResolvedValue({
       ...posted,
       status: 'PUBLISHED',
@@ -516,12 +669,32 @@ describe('store post routes', () => {
   });
 
   it('returns 404 when removing an unknown push', async () => {
-    db.prisma.storePost.findUnique.mockResolvedValue(null);
+    db.prisma.storePost.findFirst.mockResolvedValue(null);
     const { DELETE } = await import('@/app/api/store/posts/[postId]/route');
     const response = await DELETE(new Request('http://test/api/store/posts/missing'), {
       params: Promise.resolve({ postId: 'missing' }),
     });
     expect(response.status).toBe(404);
     expect(db.prisma.storePost.delete).not.toHaveBeenCalled();
+  });
+
+  it("refuses to touch another shop's push log", async () => {
+    db.prisma.storePost.findFirst.mockResolvedValue(null);
+    const { PATCH } = await import('@/app/api/store/posts/[postId]/route');
+    const response = await PATCH(
+      new Request('http://test/api/store/posts/post-1', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: 'PUBLISHED',
+          externalUrl: 'https://www.tiktok.com/@amas/video/1',
+        }),
+      }),
+      { params: Promise.resolve({ postId: 'post-1' }) },
+    );
+    expect(response.status).toBe(404);
+    expect(db.prisma.storePost.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'post-1', store: { userId: 'staff-1' } } }),
+    );
+    expect(db.prisma.storePost.update).not.toHaveBeenCalled();
   });
 });

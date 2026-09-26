@@ -49,7 +49,7 @@ function serializeCustomer(customer: {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const url = new URL(request.url);
     const parsedQuery = CustomerListQuery.safeParse({
       q: url.searchParams.get('q') || undefined,
@@ -58,16 +58,20 @@ export async function GET(request: Request) {
 
     const q = parsedQuery.data.q;
     const customers = await prisma.customer.findMany({
-      where: q
-        ? {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { company: { contains: q, mode: 'insensitive' } },
-              { email: { contains: q, mode: 'insensitive' } },
-              { phone: { contains: q, mode: 'insensitive' } },
-            ],
-          }
-        : undefined,
+      // Tenancy: only this shop's own customers are ever listed.
+      where: {
+        userId: user.id,
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' as const } },
+                { company: { contains: q, mode: 'insensitive' as const } },
+                { email: { contains: q, mode: 'insensitive' as const } },
+                { phone: { contains: q, mode: 'insensitive' as const } },
+              ],
+            }
+          : {}),
+      },
       orderBy: [{ updatedAt: 'desc' }, { name: 'asc' }],
       take: 100,
       include: { _count: { select: { orders: true } } },
@@ -82,7 +86,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
@@ -93,7 +97,9 @@ export async function POST(request: Request) {
     if (!parsed.success) return validationResponse(parsed.error);
 
     const customer = await prisma.customer.create({
-      data: parsed.data,
+      // userId is stamped from the session, never from the request body, so a
+      // client cannot create a row inside another shop.
+      data: { ...parsed.data, userId: user.id },
       include: { _count: { select: { orders: true } } },
     });
     return NextResponse.json(serializeCustomer(customer), { status: 201 });

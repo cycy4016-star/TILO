@@ -54,7 +54,7 @@ type RouteContext = { params: Promise<{ ruleId: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { ruleId } = await context.params;
     let body: unknown;
     try {
@@ -65,7 +65,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     const parsed = AutomationRuleUpdate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
 
-    const existing = await prisma.automationRule.findUnique({ where: { id: ruleId } });
+    // Tenancy: another shop's rule id 404s instead of being editable.
+    const existing = await prisma.automationRule.findFirst({
+      where: { id: ruleId, userId: user.id },
+    });
     if (!existing) {
       return NextResponse.json({ error: 'Rule not found' }, { status: 404 });
     }
@@ -105,9 +108,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { ruleId } = await context.params;
-    const existing = await prisma.automationRule.findUnique({ where: { id: ruleId } });
+    const existing = await prisma.automationRule.findFirst({
+      where: { id: ruleId, userId: user.id },
+    });
     if (!existing) {
       return NextResponse.json({ error: 'Rule not found' }, { status: 404 });
     }

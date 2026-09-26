@@ -10,9 +10,10 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     await prisma.notification.updateMany({
-      where: { readAt: null },
+      // Tenancy: "Got it" clears THIS shop's badge only — never another shop's.
+      where: { userId: user.id, readAt: null },
       data: { readAt: new Date() },
     });
     return NextResponse.json(NotificationReadResult.parse({ unreadCount: 0 }));

@@ -23,26 +23,34 @@ function startOfMonthIso(): string {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
+    // Tenancy: every aggregate is scoped to the caller's own orders, so the
+    // money figures a shop sees are only ever its own.
+    const outstandingWhere = { ...OUTSTANDING_WHERE, userId: user.id };
+    const paidThisMonthWhere = {
+      userId: user.id,
+      paidAt: { gte: startOfMonthIso() },
+      amountPesewas: { not: null },
+    };
 
     const [outstanding, oldest, recovered, topChases] = await Promise.all([
       prisma.order.aggregate({
-        where: OUTSTANDING_WHERE,
+        where: outstandingWhere,
         _sum: { amountPesewas: true },
         _count: true,
       }),
       prisma.order.findFirst({
-        where: OUTSTANDING_WHERE,
+        where: outstandingWhere,
         orderBy: { createdAt: 'asc' },
         select: { createdAt: true },
       }),
       prisma.order.aggregate({
-        where: { paidAt: { gte: startOfMonthIso() }, amountPesewas: { not: null } },
+        where: paidThisMonthWhere,
         _sum: { amountPesewas: true },
         _count: true,
       }),
       prisma.order.findMany({
-        where: OUTSTANDING_WHERE,
+        where: outstandingWhere,
         orderBy: { createdAt: 'asc' },
         take: 5,
         include: { customer: { select: { id: true, name: true, phone: true } } },

@@ -18,8 +18,9 @@ const ITEM_ORDER: Prisma.StoreItemOrderByWithRelationInput[] = [
 
 export async function PUT(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    // Tenancy: the logo is written onto the caller's own store only.
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store)
       return NextResponse.json({ errors: { form: 'Create the store first' } }, { status: 409 });
 
@@ -46,8 +47,8 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store)
       return NextResponse.json({ errors: { form: 'Create the store first' } }, { status: 409 });
 

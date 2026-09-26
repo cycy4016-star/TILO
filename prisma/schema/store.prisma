@@ -1,7 +1,9 @@
 // Tilo app code.
-// Storefront catalog: a store (one per workspace) with the items it sells —
-// products or services. The public page at /store/[slug] is the "Jumia" face:
-// customers browse and order on WhatsApp from the item's chat button.
+// Storefront catalog: a store with the items it sells — products or services.
+// One store per signed-up account (`userId` is unique), so every catalogue,
+// promotion, image and social row hangs off an owner and is unreachable from
+// another shop. The public page at /store/[slug] is the "Jumia" face: customers
+// browse and order on WhatsApp from the item's chat button.
 
 enum StoreItemKind {
   PRODUCT
@@ -29,6 +31,9 @@ enum PromotionKind {
 
 model Store {
   id           String      @id @default(cuid())
+  // Owning account. Unique — one storefront per sign-up, and the ownership key
+  // every catalogue route resolves through before touching a child row.
+  userId       String      @unique
   name         String
   slug         String      @unique
   tagline      String?
@@ -49,13 +54,14 @@ model Store {
   // storefront arrangement: "vibrant" is the loud yellow-black look, while
   // "professional" is the clean business layout. Stored as a plain string; the
   // UI falls back to the default when the value is unknown.
-appearance   String             @default("professional")
+  appearance   String             @default("professional")
   // Store logo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/[slug]/logo (no object storage needed).
   logo         Bytes?
   logoMime     String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items        StoreItem[]
   posts        StorePost[]
   promotions   Promotion[]

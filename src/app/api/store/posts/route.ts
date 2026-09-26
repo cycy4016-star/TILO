@@ -5,6 +5,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { SocialPostCreate, SocialPostList, SocialPostRecord } from '@/lib/contracts/social';
 import { prisma } from '@/lib/db';
+import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +14,9 @@ const POST_ORDER = [{ createdAt: 'desc' as const }, { id: 'desc' as const }];
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    // Tenancy: the push log is reached through the caller's own store.
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store) return NextResponse.json(SocialPostList.parse({ items: [] }));
     const posts = await prisma.storePost.findMany({
       where: { storeId: store.id },
@@ -31,7 +33,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
@@ -41,8 +43,9 @@ export async function POST(request: Request) {
     const parsed = SocialPostCreate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
 
-    const item = await prisma.storeItem.findUnique({ where: { id: parsed.data.itemId } });
-    if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    // Tenancy: the item is resolved through the caller's own store, so a
+    // "Share to TikTok" can never be logged against another shop's product.
+    const item = await requireOwnedStoreChild(user.id, 'item', parsed.data.itemId);
 
     const post = await prisma.storePost.create({
       data: {

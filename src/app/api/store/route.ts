@@ -1,5 +1,5 @@
-// authenticated store settings API. One store per workspace: GET returns it
-// (or 404 until created), PUT creates or updates it.
+// authenticated store settings API. One store per account: GET returns the
+// signed-in user's own store (or 404 until created), PUT creates or updates it.
 import 'server-only';
 
 import { Prisma } from '@prisma/client';
@@ -24,8 +24,11 @@ type StoreWithItems = Prisma.StoreGetPayload<typeof storeWithItems>;
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst({
+    const user = await requireAuth(request);
+    // Tenancy: resolved through Store.userId (unique) — never a global
+    // findFirst, which would hand the caller whichever shop happened to be first.
+    const store = await prisma.store.findUnique({
+      where: { userId: user.id },
       include: { items: { orderBy: ITEM_ORDER } },
     });
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
@@ -39,7 +42,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
@@ -49,7 +52,7 @@ export async function PUT(request: Request) {
     const parsed = StoreUpsert.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
 
-    const existing = await prisma.store.findFirst();
+    const existing = await prisma.store.findUnique({ where: { userId: user.id } });
     const data = parsed.data;
     let store: StoreWithItems;
     try {
@@ -59,7 +62,12 @@ export async function PUT(request: Request) {
             data,
             ...storeWithItems,
           })
-        : await prisma.store.create({ data, ...storeWithItems });
+        : await prisma.store.create({
+            // One storefront per account: userId is stamped from the session and
+            // is unique, so a second sign-up can never hijack this shop's URL.
+            data: { ...data, userId: user.id },
+            ...storeWithItems,
+          });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json(

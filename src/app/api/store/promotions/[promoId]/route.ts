@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { PromotionUpdate } from '@/lib/contracts/promotion';
 import { prisma } from '@/lib/db';
+import { requireOwnedStoreChild } from '@/lib/ownership';
 import { dateOnlyToDate } from '@/lib/promotions';
 import { requireAuth } from '@/lib/require-auth';
 import { serializePromotion } from '@/lib/store-serializers';
@@ -30,10 +31,10 @@ function dataFromInput(input: z.output<typeof PromotionUpdate>): Prisma.Promotio
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { promoId } = await context.params;
-    const existing = await prisma.promotion.findUnique({ where: { id: promoId } });
-    if (!existing) return NextResponse.json({ error: 'Promo not found' }, { status: 404 });
+    // Tenancy: resolved through the caller's own store before any write.
+    await requireOwnedStoreChild(user.id, 'promotion', promoId);
 
     let body: unknown;
     try {
@@ -57,10 +58,9 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { promoId } = await context.params;
-    const existing = await prisma.promotion.findUnique({ where: { id: promoId } });
-    if (!existing) return NextResponse.json({ error: 'Promo not found' }, { status: 404 });
+    await requireOwnedStoreChild(user.id, 'promotion', promoId);
     await prisma.promotion.delete({ where: { id: promoId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

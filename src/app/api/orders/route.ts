@@ -78,7 +78,7 @@ function serializeOrder(order: OrderWithLines) {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const url = new URL(request.url);
     const parsedQuery = OrderListQuery.safeParse({
       customerId: url.searchParams.get('customerId') || undefined,
@@ -87,7 +87,9 @@ export async function GET(request: Request) {
     });
     if (!parsedQuery.success) return validationResponse(parsedQuery.error);
 
-    const where: Prisma.OrderWhereInput = {};
+    // Tenancy: userId is the base predicate — filters can only ever narrow this
+    // shop's own orders, never widen them.
+    const where: Prisma.OrderWhereInput = { userId: user.id };
     const { customerId, status, q } = parsedQuery.data;
     if (customerId) where.customerId = customerId;
     if (status) where.status = status;
@@ -125,7 +127,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
@@ -135,16 +137,24 @@ export async function POST(request: Request) {
     const parsed = OrderCreate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
 
-    const customer = await prisma.customer.findUnique({ where: { id: parsed.data.customerId } });
+    // Tenancy: the customer must belong to this shop, so an order can never be
+    // raised against another shop's customer by id.
+    const customer = await prisma.customer.findFirst({
+      where: { id: parsed.data.customerId, userId: user.id },
+    });
     if (!customer) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
 
     // Resolve line items to the current catalog values so price + cost get
-    // snapshotted at sale time. Unknown item ids are rejected.
-    const items = parsed.data.lines?.length
-      ? await prisma.storeItem.findMany({
-          where: { id: { in: parsed.data.lines.map((l) => l.storeItemId) } },
-        })
-      : [];
+    // snapshotted at sale time. Unknown item ids are rejected — and the lookup
+    // runs through the owner's store, so another shop's catalogue can't be sold
+    // (or price-probed) from this dashboard.
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
+    const items =
+      parsed.data.lines?.length && store
+        ? await prisma.storeItem.findMany({
+            where: { id: { in: parsed.data.lines.map((l) => l.storeItemId) }, storeId: store.id },
+          })
+        : [];
     const itemById = new Map(items.map((i) => [i.id, i]));
     const lineData = (parsed.data.lines ?? []).map((line) => {
       const item = itemById.get(line.storeItemId);
@@ -165,6 +175,8 @@ export async function POST(request: Request) {
 
     const order = await prisma.order.create({
       data: {
+        // userId from the session, so the order lands in this shop only.
+        userId: user.id,
         customerId: parsed.data.customerId,
         description: parsed.data.description,
         status: parsed.data.status,

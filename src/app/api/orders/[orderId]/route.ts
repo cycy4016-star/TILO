@@ -12,7 +12,7 @@ type RouteContext = { params: Promise<{ orderId: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { orderId } = await context.params;
     let body: unknown;
     try {
@@ -30,7 +30,10 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
-    const existing = await prisma.order.findUnique({ where: { id: orderId } });
+    // Tenancy: the order must belong to this shop. This is the read that decides
+    // whether the caller may write, so it is scoped — another shop's orderId
+    // 404s instead of being mutated.
+    const existing = await prisma.order.findFirst({ where: { id: orderId, userId: user.id } });
     if (!existing) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
     const data: {
@@ -44,7 +47,9 @@ export async function PATCH(request: Request, context: RouteContext) {
       data.paidAt = parsed.data.paidAt ? new Date(parsed.data.paidAt) : null;
 
     const updated = await prisma.order.update({
-      where: { id: orderId },
+      // Update by (id, userId) rather than bare id, so the write itself is
+      // tenant-guarded even if the row changes between the check and the write.
+      where: { id: orderId, userId: user.id },
       data,
     });
     return NextResponse.json(

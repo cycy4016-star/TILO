@@ -8,6 +8,8 @@ import type { NotificationKind } from '@prisma/client';
 import { prisma } from '@/lib/db';
 
 export type NotifyInput = {
+  /** Owning account — the notification is written into that shop's bell only. */
+  userId: string;
   kind: NotificationKind;
   title: string;
   message?: string | null;
@@ -19,6 +21,7 @@ export async function notify(input: NotifyInput): Promise<void> {
   try {
     await prisma.notification.create({
       data: {
+        userId: input.userId,
         kind: input.kind,
         title: input.title,
         message: input.message ?? null,

@@ -18,6 +18,9 @@ export async function GET(request: Request) {
   if (!(await authorize(request))) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  // Deliberately cross-shop: this is the operator's platform feed, guarded by
+  // CRON_SECRET (not a user session). POST below likewise sweeps every shop's
+  // rules — the per-shop sweep is the owner-triggered /api/automation/sweep.
   const events = await import('@/lib/db').then(({ prisma }) =>
     prisma.automationEvent.findMany({
       orderBy: { createdAt: 'desc' },

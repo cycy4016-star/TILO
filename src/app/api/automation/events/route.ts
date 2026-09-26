@@ -10,8 +10,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const events = await prisma.automationEvent.findMany({
+      // Tenancy: reached through the caller's own rules. Events are the audit
+      // log of what the switchboard texted, including customer names and phone
+      // numbers in `message`, so another shop's log must never be readable.
+      where: { rule: { userId: user.id } },
       orderBy: { createdAt: 'desc' },
       take: 30,
       select: {

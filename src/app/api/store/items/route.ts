@@ -17,8 +17,9 @@ const ITEM_ORDER: Prisma.StoreItemOrderByWithRelationInput[] = [
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    // Tenancy: the catalogue is reached through the caller's own store.
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store) return NextResponse.json(StoreItemList.parse({ items: [] }));
     const items = await prisma.storeItem.findMany({
       where: { storeId: store.id },
@@ -33,8 +34,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store) {
       return NextResponse.json({ errors: { form: 'Create the store first' } }, { status: 409 });
     }

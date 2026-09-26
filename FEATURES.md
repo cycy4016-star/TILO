@@ -13,14 +13,37 @@ where it lives, and what is deliberately not built yet.
 
 ## 1. Tenancy & deployment model
 
-- **One workspace per deployment (single-tenant).** There is no
-  `Workspace`/`Organization` model. Every signed-in user sees the same customer,
-  order, store, and automation data. To serve another business, deploy another
-  instance with its own database and env.
+- **One shop per account (multi-tenant, one database).** There is no
+  `Workspace`/`Organization` model — the `User` row *is* the shop. Every business
+  row carries a `userId` pointing at the account that owns it, and every route
+  filters on that column, so N sign-ups share one deployment without ever seeing
+  each other's data.
+  - `Customer.userId`, `Order.userId`, `Store.userId` (`@unique` — one
+    storefront per account), `AutomationRule.userId`, `Notification.userId`.
+  - `SmsUsage.userId` is **nullable and has no FK**: sign-up OTPs are sent before
+    an account exists, and the platform summary digests belong to no shop. Shop
+    sends (automation, manual) are stamped, so each shop's "SMS this month" card
+    and ledger rows are its own.
+  - `StoreItem`, `Promotion` and `StorePost` have no `userId` of their own —
+    they are reached *through* their store (`store: { userId }`), so a guessed
+    cuid cannot be resolved against another shop.
+  - Public storefront writes (`/api/public/store/[slug]/*`) resolve the owner
+    from the slug's `Store` row and stamp it; the request body can never choose
+    the owner.
+  - The `userId` columns are internal routing and are never returned to the
+    client (the response contracts in `src/lib/contracts/` don't declare them).
+- **Cross-shop reads are deliberate and few:** `/dashboard/admin` +
+  `/api/admin/users` (the operator's account monitor, `admin` role only) and the
+  CRON_SECRET-guarded `/api/cron/rules` feed + summary digest addressed to
+  `SMS_SUMMARY_RECIPIENT`. Everything else is owner-scoped.
 - The app is designed to run on Vercel or Render with a managed PostgreSQL
   database. `render.yaml` provisions both automatically.
 - Seeding is idempotent and runs at boot (`src/lib/seed.ts`); it is an
   intentional no-op today, so a fresh database boots clean and empty.
+- **Existing deployments:** migration
+  `20260926120000_add_user_ownership` adds the columns nullable, backfills every
+  pre-existing row to the earliest-created account (the original owner of the
+  single-tenant install), then tightens to `NOT NULL`.
 
 ---
 
@@ -63,15 +86,22 @@ where it lives, and what is deliberately not built yet.
   `inviteCode` additional field on `User`. Google/email-verified sign-ups are
   exempt (the identity is already trusted). The sign-up form shows the field
   when `NEXT_PUBLIC_SIGNUP_INVITE=true`. Leave the env empty for open sign-up.
-- **Admin role.** The better-auth `admin` plugin is enabled. The owner is
-  promoted **on phone verification** when their verified phone matches
-  `ADMIN_PHONE`, or their email matches `ADMIN_EMAIL`
-  (`auth.ts → grantAdminIfOwner`, also via `callbackOnVerification`). This fixes
-  the previous gap where admin required a *verified email* that nothing ever
-  verified.
-- **Server gates:** `requireAuth()` (any signed-in user) and `requireAdmin()`
-  (admin-only) both throw a 401 `Response`. Client-side gating uses
-  `useSession()` / `useIsAdmin()`.
+- **Platform admin role.** The better-auth `admin` plugin is enabled, but the
+  role is a **platform** role, not a per-shop one. Every sign-up is created as
+  `role: "user"` (`defaultRole` + the `user.create.before` hook in
+  `src/lib/auth.ts → resolveRole`); only the account whose verified phone matches
+  `ADMIN_PHONE` (preferred) or whose email matches `ADMIN_EMAIL` is promoted to
+  `"admin"`. Both env vars are optional — with neither set nobody is an admin and
+  the monitor is simply unreachable. **Pre-existing admins are left untouched.**
+  What `admin` grants is exactly one thing: reading `/dashboard/admin` and
+  `/api/admin/users`. It grants no shop access, because shops are separated by
+  the `userId` columns, not by a role.
+- **Server gates:** `requireAuth()` (any signed-in user — the gate for a shop's
+  own data) and `requireAdmin()` / `requireAdminUser()` (platform-admin only:
+  redirect `/dashboard` in a Server Component, throw a 403 `Response` in a route
+  handler — never redirect a fetch). Both check the role via the shared
+  `isAdminRole()` helper in `src/lib/roles.ts`. Client-side gating uses
+  `useSession()` / `useIsAdmin()`, the latter reading `data.user.role`.
 - **Profile** (`/profile`): shows name, phone, and (only when set) real email;
   avatar upload/capture/remove (stored on `User.image` as a data URL); sign-out.
 
@@ -257,6 +287,10 @@ where it lives, and what is deliberately not built yet.
 All routes own their data; client pages call them through `apiFetch` with a
 shared Zod contract (`src/lib/contracts/`). No Server Actions.
 
+Every `user` row below means *the signed-in account's own shop* — the handler
+filters on `userId` (or resolves the owner from the store) and a foreign id
+returns 404. See §1.
+
 | Method(s) | Route | Auth | Purpose |
 | --- | --- | --- | --- |
 | `*` | `/api/auth/[...all]` | public | better-auth (sign-up, sign-in, OTP, reset) |
@@ -293,9 +327,10 @@ shared Zod contract (`src/lib/contracts/`). No Server Actions.
 | `POST` | `/api/payments/initialize` | user | start Paystack checkout |
 | `GET` | `/api/payments/verify` | user | verify + settle a transaction |
 | `POST` | `/api/payments/webhook` | signature | Paystack webhook (source of truth) |
-| `GET`/`POST` | `/api/cron/rules` | cron secret | list events / run sweep |
+| `GET`/`POST` | `/api/cron/rules` | cron secret | list events / run sweep (all shops) |
 | `POST` | `/api/cron/daily-brief` | cron secret | morning pulse SMS |
 | `POST` | `/api/cron/weekly-summary` | cron secret | weekly pulse SMS |
+| `GET` | `/api/admin/users` | admin | platform account monitor (cross-shop, read-only) |
 
 ---
 
@@ -304,16 +339,19 @@ shared Zod contract (`src/lib/contracts/`). No Server Actions.
 **Location:** `prisma/schema/*.prisma`.
 
 - **Auth:** `User` (with `phoneNumber` unique + `phoneNumberVerified`, `role`,
-  `inviteCode`), `Session`, `Account`, `Verification`.
-- **Workspace:** `Customer`, `Order` (`amountPesewas`, `paidAt`, `OrderStatus`),
-  `AutomationRule`, `AutomationEvent`.
-- **SMS:** `SmsUsage` (`source`, `to`, `message`, `segments`, `credits`, `ok`,
-  `providerRef`, `error`, `createdAt`).
+  `inviteCode`, and the reverse ownership relations `customers`, `orders`,
+  `store`, `automationRules`, `notifications`), `Session`, `Account`,
+  `Verification`.
+- **Shop data (every row owned):** `Customer` (`userId`), `Order` (`userId`),
+  `AutomationRule` (`userId`), `Notification` (`userId`).
+- **Store:** `Store` (`userId` **unique** — one storefront per account;
+  `logo`/`logoMime` bytea), `StoreItem` (`PRODUCT`/`SERVICE`, price, sortOrder,
+  active, `image`/`imageMime` bytea), `Promotion`, `SocialPost` — the last three
+  are reached through their `store`, not by their own `userId`.
+- **SMS:** `SmsUsage` (`userId` nullable, no FK — see §1), `source`, `to`,
+  `message`, `segments`, `credits`, `ok`, `providerRef`, `error`, `createdAt`.
 - **Payments:** `PaymentTransaction` (`reference` unique, `orderId`, amount,
   currency, status, email, authorizationUrl, providerRef, raw).
-- **Store:** `Store` (with `logo`/`logoMime` bytea), `StoreItem`
-  (`PRODUCT`/`SERVICE`, price, sortOrder, active, `image`/`imageMime` bytea),
-  `SocialPost` (platform, caption, status, externalUrl).
 
 Migrations live in `prisma/migrations/` and are applied with
 `prisma migrate deploy`.
@@ -324,9 +362,19 @@ Migrations live in `prisma/migrations/` and are applied with
 
 - Per-request CSP nonce + security headers (`proxy.ts`, `src/lib/csp.ts`,
   `next.config.ts`).
-- Every data route is gated by `requireAuth`/`requireAdmin` (401 otherwise).
+- **Tenant isolation is the `userId` column, not a role.** Every read filters on
+  it and every write is guarded by it: a foreign `id` 404s instead of resolving.
+  Writes that could race (`order.update`) key on `(id, userId)`, and the
+  automation sweep re-reads the order under its advisory lock scoped to the
+  rule's owner, so even a forged action can't flip another shop's order.
+- `userId` is never accepted from a request body on a create, and never
+  serialized to the client.
+- `requireAuth()` gates shop routes (401 signed out); `requireAdmin()` /
+  `requireAdminUser()` gate the two cross-account routes (redirect / 403). The
+  Admin nav entry is hidden from non-admins, with the page re-checking.
 - The Paystack webhook is authenticated by HMAC-SHA512 signature over the raw
-  body, compared in constant time.
+  body, compared in constant time, and settles only the order its reference was
+  issued against.
 - Secrets live only in env; `.env.local` is git-ignored, `.env.example` ships
   placeholders.
 
@@ -380,9 +428,10 @@ provider error instead of a silent drop).
 
 ## 18. Testing
 
-- Vitest unit/integration suite (145 tests): contracts, route handlers,
-  permissions policy, CSP, nav, store, promotions, live-orders (public order
-  placement, lead capture, notifications, SMS dispatch), sms templates,
+- Vitest unit/integration suite (162 tests): contracts, route handlers, tenant
+  isolation (foreign customer/order/item/post 404s, cross-shop phone reuse,
+  owner-stamped public captures, notification + SMS ownership), the platform
+  role policy, CSP, nav, store, promotions, live-orders, sms templates,
   instrumentation, SEO text.
 - Postgres integration tests via `npm run test:postgres` (needs
   `TEST_DATABASE_URL`).
@@ -391,7 +440,8 @@ provider error instead of a silent drop).
 
 ## 19. Deliberately not built (yet)
 
-- **Multi-tenant workspaces** — one workspace per deployment by design.
+- **Accounts/roles beyond `user` + platform `admin`** — no shop-level
+  teammate seats, invites, or per-shop roles yet; one account = one shop.
 - **WhatsApp Business API** — contact links use `wa.me`; no Cloud API sending.
 - **Live social publishing** — the social queue tracks captions/links; it does
   not call TikTok/Instagram/Facebook APIs.

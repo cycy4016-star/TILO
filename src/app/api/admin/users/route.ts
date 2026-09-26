@@ -1,10 +1,13 @@
-// Admin monitor API: every Tilo account with their sign-in pulse. Admin-only.
+// Admin monitor API: every Tilo account with their sign-in pulse. This is the
+// one route that deliberately reads ACROSS shops — it is the platform operator's
+// view, guarded by requireAdminUser (403 for a signed-in non-admin).
 import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { AdminUserMonitor, AdminUserRow } from '@/lib/contracts/admin';
 import { prisma } from '@/lib/db';
 import { requireAdminUser } from '@/lib/require-admin-api';
+import { isAdminRole } from '@/lib/roles';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +57,9 @@ export async function GET(request: Request) {
       AdminUserMonitor.parse({
         users: rows,
         totalUsers: users.length,
-        adminCount: users.filter((user) => user.role === 'admin').length,
+        // Counted with the same helper the gate uses, so the number on screen can
+        // never disagree with who is actually able to open this page.
+        adminCount: users.filter((user) => isAdminRole(user.role)).length,
         // Users who opened the app since the month began (a session exists).
         activeThisMonth: users.filter((user) =>
           user.sessions.some((session) => session.createdAt >= monthStart),

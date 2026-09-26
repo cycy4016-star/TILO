@@ -6,6 +6,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
+import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStoreItem } from '@/lib/store-serializers';
 
@@ -15,10 +16,10 @@ type RouteContext = { params: Promise<{ itemId: string }> };
 
 export async function PUT(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { itemId } = await context.params;
-    const existing = await prisma.storeItem.findUnique({ where: { id: itemId } });
-    if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    // Tenancy: the photo is only ever attached to the caller's own item.
+    await requireOwnedStoreChild(user.id, 'item', itemId);
 
     let form: FormData;
     try {
@@ -42,10 +43,9 @@ export async function PUT(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { itemId } = await context.params;
-    const existing = await prisma.storeItem.findUnique({ where: { id: itemId } });
-    if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    await requireOwnedStoreChild(user.id, 'item', itemId);
 
     const item = await prisma.storeItem.update({
       where: { id: itemId },

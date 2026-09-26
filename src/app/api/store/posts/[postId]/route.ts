@@ -5,6 +5,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { SocialPostRecord, SocialPostUpdate } from '@/lib/contracts/social';
 import { prisma } from '@/lib/db';
+import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +14,10 @@ type RouteContext = { params: Promise<{ postId: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { postId } = await context.params;
+    // Tenancy: resolved through the caller's own store before any write.
+    await requireOwnedStoreChild(user.id, 'post', postId);
     let body: unknown;
     try {
       body = await request.json();
@@ -23,9 +26,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     const parsed = SocialPostUpdate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
-
-    const existing = await prisma.storePost.findUnique({ where: { id: postId } });
-    if (!existing) return NextResponse.json({ error: 'Post not found' }, { status: 404 });
 
     // A post can only be marked PUBLISHED with the finished link; going back to
     // SHARED clears any link (it was not actually posted).
@@ -53,10 +53,9 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { postId } = await context.params;
-    const existing = await prisma.storePost.findUnique({ where: { id: postId } });
-    if (!existing) return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    await requireOwnedStoreChild(user.id, 'post', postId);
     await prisma.storePost.delete({ where: { id: postId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

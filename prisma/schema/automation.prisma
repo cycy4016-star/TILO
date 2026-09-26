@@ -20,6 +20,9 @@ enum AutomationEventKind {
 
 model AutomationRule {
   id            String         @id @default(cuid())
+  // Owning account. The sweep only ever evaluates one shop's rules, and the
+  // events feed is filtered by it.
+  userId        String
   name          String
   kind          AutomationKind
   // triggerStatus is NULL for kinds that are not keyed to a status window
@@ -34,8 +37,11 @@ model AutomationRule {
   enabled        Boolean        @default(true)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   events         AutomationEvent[]
 
+  @@index([userId])
+  @@index([userId, enabled])
   @@index([enabled, kind])
   @@index([enabled, triggerStatus])
 }

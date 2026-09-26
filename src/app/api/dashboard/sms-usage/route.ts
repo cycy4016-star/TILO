@@ -17,24 +17,39 @@ function startOfMonth(): Date {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const monthStart = startOfMonth();
+    // Tenancy: the spend readout is this shop's own ledger only, so a shop is
+    // never shown (or billed for) another shop's traffic. Sign-up OTPs carry no
+    // userId and are therefore outside every shop's total by design.
+    const owned = { userId: user.id };
+    const monthWhere = { ...owned, ok: true, createdAt: { gte: monthStart } };
 
     const [month, monthFailed, allTime, bySource, recent] = await Promise.all([
       prisma.smsUsage.aggregate({
-        where: { ok: true, createdAt: { gte: monthStart } },
+        where: monthWhere,
         _sum: { credits: true },
         _count: true,
       }),
-      prisma.smsUsage.count({ where: { ok: false, createdAt: { gte: monthStart } } }),
-      prisma.smsUsage.aggregate({ where: { ok: true }, _sum: { credits: true }, _count: true }),
+      prisma.smsUsage.count({
+        where: { ...owned, ok: false, createdAt: { gte: monthStart } },
+      }),
+      prisma.smsUsage.aggregate({
+        where: { ...owned, ok: true },
+        _sum: { credits: true },
+        _count: true,
+      }),
       prisma.smsUsage.groupBy({
         by: ['source'],
-        where: { ok: true, createdAt: { gte: monthStart } },
+        where: monthWhere,
         _sum: { credits: true },
         _count: true,
       }),
-      prisma.smsUsage.findMany({ orderBy: { createdAt: 'desc' }, take: 10 }),
+      prisma.smsUsage.findMany({
+        where: owned,
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
     ]);
 
     const monthCredits = month._sum.credits ?? 0;

@@ -65,6 +65,7 @@ function scrubOtp(message: string): string {
 type UsageEntry = {
   to: string;
   source: SmsSource;
+  userId?: string | null;
   body: string;
   segments: number;
   credits: number;
@@ -170,10 +171,20 @@ async function sendViaBms(to: string, message: string, isOtp = false): Promise<S
   };
 }
 
+/**
+ * Send one SMS and record it in the ledger.
+ *
+ * @param userId the shop the send is billed to / read back under. Pass the
+ *   session user for a dashboard-initiated or automation send so the "SMS this
+ *   month" card counts only that shop's traffic. Omit for sends that belong to
+ *   no shop yet: sign-up OTPs (no account exists) and the platform summary
+ *   digest (see runSummary in lib/automation).
+ */
 export async function sendSms(
   to: string,
   message: string,
   source: SmsSource = 'MANUAL',
+  userId?: string | null,
 ): Promise<SmsSendResult> {
   const recipient = normalizePhone(to);
   let result: SmsSendResult;
@@ -203,6 +214,7 @@ export async function sendSms(
   await logUsage({
     to: recipient,
     source,
+    userId: userId ?? null,
     body: source === 'OTP' ? scrubOtp(message) : message,
     segments,
     credits: segments,

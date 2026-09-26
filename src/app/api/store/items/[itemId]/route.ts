@@ -4,6 +4,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { StoreItemUpdate } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
+import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStoreItem } from '@/lib/store-serializers';
 
@@ -13,7 +14,7 @@ type RouteContext = { params: Promise<{ itemId: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { itemId } = await context.params;
     let body: unknown;
     try {
@@ -24,11 +25,12 @@ export async function PATCH(request: Request, context: RouteContext) {
     const parsed = StoreItemUpdate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
 
-    const existing = await prisma.storeItem.findUnique({ where: { id: itemId } });
-    if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
-
-    const item = await prisma.storeItem.update({ where: { id: itemId }, data: parsed.data });
-    return NextResponse.json(serializeStoreItem(item));
+    // Tenancy: the item is resolved through the caller's own store, so another
+    // shop's item id 404s instead of being editable.
+    const item = await requireOwnedStoreChild(user.id, 'item', itemId);
+    void item;
+    const updated = await prisma.storeItem.update({ where: { id: itemId }, data: parsed.data });
+    return NextResponse.json(serializeStoreItem(updated));
   } catch (error) {
     if (error instanceof Response) return error;
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -37,10 +39,9 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
     const { itemId } = await context.params;
-    const existing = await prisma.storeItem.findUnique({ where: { id: itemId } });
-    if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    await requireOwnedStoreChild(user.id, 'item', itemId);
     await prisma.storeItem.delete({ where: { id: itemId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

@@ -29,7 +29,8 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { dashboardNavItems } from '@/lib/dashboard-nav';
+import { useIsAdmin } from '@/lib/auth-client';
+import { visibleNavItems } from '@/lib/dashboard-nav';
 import { cn } from '@/lib/utils';
 
 type QuickAction = {
@@ -113,12 +114,16 @@ const LANDING_SECTIONS: QuickAction[] = [
   { label: 'Contact', icon: PartyPopper, sectionId: 'start' },
 ];
 
-function buildGroups(pathname: string, isDashboard: boolean): Group[] {
+function buildGroups(pathname: string, isDashboard: boolean, isAdmin: boolean): Group[] {
   if (isDashboard) {
     const groups: Group[] = [
       {
         label: 'Go to a page',
-        actions: dashboardNavItems.map((i) => ({ label: i.label, icon: i.icon, href: i.href })),
+        actions: visibleNavItems(isAdmin).map((i) => ({
+          label: i.label,
+          icon: i.icon,
+          href: i.href,
+        })),
       },
     ];
     const sections = DASHBOARD_SECTIONS.find((s) => s.match(pathname))?.actions;
@@ -168,8 +173,9 @@ export interface QuickAccessPanelProps {
 
 export function QuickAccessPanel({ onClose }: QuickAccessPanelProps) {
   const pathname = usePathname();
+  const isAdmin = useIsAdmin();
   const isDashboard = isPath(pathname, '/dashboard');
-  const groups = buildGroups(pathname, isDashboard);
+  const groups = buildGroups(pathname, isDashboard, isAdmin);
 
   // Close when the route changes (e.g. after using a page action).
   const lastPath = useRef(pathname);

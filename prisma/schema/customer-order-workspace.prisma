@@ -1,4 +1,10 @@
 // Tilo customer and order workspace models.
+//
+// TENANCY: every row is owned by the signed-up account that created it. The
+// `userId` column is the isolation boundary — API routes filter on it so one
+// shop can never read or write another shop's rows. Orders repeat `userId`
+// (rather than joining through customer) so the dashboard aggregates stay a
+// single-table query.
 
 enum OrderStatus {
   PENDING
@@ -9,6 +15,8 @@ enum OrderStatus {
 
 model Customer {
   id        String   @id @default(cuid())
+  // Owning account. Set on create; every read/write filters on it.
+  userId    String
   name      String
   company   String?
   email     String?
@@ -16,10 +24,16 @@ model Customer {
   address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders    Order[]
   events    AutomationEvent[]
   notifications Notification[]
 
+  @@index([userId])
+  @@index([userId, name])
+  @@index([userId, company])
+  @@index([userId, email])
+  @@index([userId, phone])
   @@index([name])
   @@index([company])
   @@index([email])
@@ -28,6 +42,9 @@ model Customer {
 
 model Order {
   id            String      @id @default(cuid())
+  // Owning account — mirrors the customer's owner, denormalized for the
+  // dashboard aggregates.
+  userId        String
   orderNumber   String
   customerId    String
   description   String
@@ -37,12 +54,17 @@ model Order {
   paidAt        DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   events        AutomationEvent[]
   payments      PaymentTransaction[]
   notifications Notification[]
   lines         OrderLineItem[]
 
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, paidAt])
+  @@index([userId, createdAt])
   @@index([customerId])
   @@index([status])
   @@index([orderNumber])

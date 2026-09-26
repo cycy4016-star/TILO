@@ -1,5 +1,5 @@
 // authenticated store promotion API: list + create promos (sales / coupon
-// codes). One store per workspace, so there is no storeId in the URL.
+// codes). One store per account, so there is no storeId in the URL.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -13,8 +13,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    // Tenancy: promos are reached through the caller's own store.
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store) return NextResponse.json(PromotionList.parse({ items: [] }));
     const promotions = await prisma.promotion.findMany({
       where: { storeId: store.id },
@@ -29,8 +30,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
-    const store = await prisma.store.findFirst();
+    const user = await requireAuth(request);
+    const store = await prisma.store.findUnique({ where: { userId: user.id } });
     if (!store) {
       return NextResponse.json({ errors: { form: 'Create the store first' } }, { status: 409 });
     }

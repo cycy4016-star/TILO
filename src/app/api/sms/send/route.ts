@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
 
     let body: unknown;
     try {
@@ -33,9 +33,11 @@ export async function POST(request: Request) {
     }
 
     const { to, message, template } = parsed.data;
-    const result = await sendSms(to, message, 'MANUAL');
+    // Tenancy: the send is billed to, and notified against, the sending shop.
+    const result = await sendSms(to, message, 'MANUAL', user.id);
 
     await notify({
+      userId: user.id,
       kind: result.ok ? 'SMS_SENT' : 'SMS_FAILED',
       title: result.ok
         ? `SMS sent${template ? ` — ${template}` : ''}`

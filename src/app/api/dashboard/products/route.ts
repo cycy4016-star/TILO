@@ -16,10 +16,12 @@ function roundPercent(part: number, whole: number): number {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth(request);
+    const user = await requireAuth(request);
 
     const lines = await prisma.orderLineItem.findMany({
-      where: { order: { status: { not: 'CANCELLED' } } },
+      // Tenancy: reached through the caller's own orders, so a shop's margin
+      // table can only be built from revenue it actually booked.
+      where: { order: { userId: user.id, status: { not: 'CANCELLED' } } },
       select: {
         name: true,
         quantity: true,

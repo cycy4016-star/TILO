@@ -3,15 +3,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { dashboardNavItems } from '@/lib/dashboard-nav';
+import { useIsAdmin } from '@/lib/auth-client';
+import { visibleNavItems } from '@/lib/dashboard-nav';
 import { cn } from '@/lib/utils';
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const isAdmin = useIsAdmin();
 
   return (
     <nav aria-label="Dashboard" className="flex flex-wrap gap-2 lg:grid">
-      {dashboardNavItems.map((item) => {
+      {visibleNavItems(isAdmin).map((item) => {
         const Icon = item.icon;
         const active = pathname === item.href;
 

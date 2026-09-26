@@ -13,9 +13,29 @@ import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 import { sendSms } from '@/lib/sms';
 
-// Compose the app's hooks — don't overwrite them. Every account is a sole owner
-// of the shop: the `admin` role is granted to all sign-ups (user.create.before).
+// Compose the app's hooks — don't overwrite them. `role` is a PLATFORM role:
+// sign-ups default to "user" and only the account matching ADMIN_PHONE /
+// ADMIN_EMAIL is promoted to "admin". Per-shop access is not granted by role at
+// all — it comes from the `userId` ownership columns (see prisma/schema), which
+// every data route filters on.
 const appHooks = authConfig.databaseHooks;
+
+// Resolve the platform owner. Returns "admin" only for the account whose
+// verified phone matches ADMIN_PHONE (preferred) or whose email matches
+// ADMIN_EMAIL; every other sign-up is a plain "user". Both env vars are
+// optional — with neither set, nobody is an admin and the /dashboard/admin
+// monitor is simply unreachable, which is the safe default for a deployment
+// that only needs shops.
+function resolveRole(phone: string | null, email: string): 'admin' | 'user' {
+  const adminPhone = env.ADMIN_PHONE?.trim();
+  if (adminPhone) {
+    const normalized = toE164(adminPhone);
+    if (phone && phone === normalized) return 'admin';
+  }
+  const adminEmail = env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (adminEmail && email.toLowerCase() === adminEmail) return 'admin';
+  return 'user';
+}
 
 // Trusted origins for better-auth Origin/CSRF checks. baseURL's own origin is
 // always trusted implicitly. Add comma-separated extra origins via
@@ -37,7 +57,7 @@ const phoneVerifiedSignUp: BetterAuthPlugin = {
   endpoints: {
     // POST /phone-number/sign-up — creates the account ONLY after the OTP is
     // proven. Mirrors verifyPhoneNumberOTP then the internal signUpEmail path;
-    // app databaseHooks (invite gate, E.164 + unique phone, admin role,
+    // app databaseHooks (invite gate, E.164 + unique phone, platform role,
     // phoneNumberVerified) still run on the create.
     signUpPhone: createAuthEndpoint(
       '/phone-number/sign-up',
@@ -310,10 +330,10 @@ export const auth = betterAuth({
               emailVerified,
               phoneNumber: phone,
               phoneNumberVerified: base.phoneNumberVerified === true,
-              // Every account is a sole owner of the shop: grant the admin role
-              // to all sign-ups. There is no crew/user tier — each user has the
-              // full switchboard, automations and dashboards from day one.
-              role: 'admin',
+              // Platform role, NOT per-shop access. Shops are isolated by the
+              // `userId` ownership columns; this only marks the operator who
+              // may read the cross-account admin monitor.
+              role: resolveRole(phone, base.email),
             },
           };
         },
@@ -322,10 +342,10 @@ export const auth = betterAuth({
   },
   plugins: [
     admin({
-      // Every account is a sole owner: the admin role is assigned on creation
-      // (see user.create.before), so the default (used for API-created users)
-      // matches.
-      defaultRole: 'admin',
+      // Sign-ups are "user"; only the ADMIN_PHONE / ADMIN_EMAIL account is an
+      // "admin" (resolveRole above). defaultRole covers rows created outside
+      // the sign-up paths, e.g. /admin/create-user.
+      defaultRole: 'user',
       adminRoles: ['admin'],
     }),
     // Phone is the primary identity. OTP confirmation is ON: every phone-first

@@ -30,15 +30,21 @@ export const authClient = createAuthClient({
 export const { signIn, signUp, signOut, useSession } = authClient;
 
 /**
- * `true` while a user is signed in. Every account is a sole owner of the shop
- * (the server grants `admin` to all sign-ups, so there is no crew tier), so
- * "is admin" collapses to "is signed in".
+ * `true` only for a PLATFORM admin — the account promoted at sign-up by
+ * ADMIN_PHONE / ADMIN_EMAIL. This is not "is this a shop owner": every signed-in
+ * account owns its own workspace and runs the full dashboard without any role.
+ * Use it to reveal cross-account UI (the /dashboard/admin account monitor).
  *
- * Returns `false` while the session is still loading and for logged-out
- * visitors. The role lives on **`data.user.role`**; it is NOT
- * `data.session.user.role`.
+ * Returns `false` while the session is still loading and for ordinary users. The
+ * role lives on **`data.user.role`**; it is NOT `data.session.user.role`.
  */
 export function useIsAdmin(): boolean {
   const { data } = useSession();
-  return Boolean(data?.user);
+  if (!data?.user) return false;
+  const role = (data.user as { role?: string | null }).role;
+  if (!role) return false;
+  return role
+    .split(',')
+    .map((part) => part.trim())
+    .includes('admin');
 }

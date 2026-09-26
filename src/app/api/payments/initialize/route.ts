@@ -28,7 +28,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ errors: { orderId: 'Order is required' } }, { status: 400 });
     }
 
-    const order = await prisma.order.findUnique({ where: { id: parsed.data.orderId } });
+    // Tenancy: only this shop's own order can be charged — a checkout started
+    // against a rival's order would take their customer's money into this shop.
+    const order = await prisma.order.findFirst({
+      where: { id: parsed.data.orderId, userId: user.id },
+    });
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     if (!order.amountPesewas || order.amountPesewas <= 0) {
       return NextResponse.json({ error: 'This order has no amount to charge' }, { status: 400 });

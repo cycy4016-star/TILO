@@ -11,11 +11,17 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
 ## What is included
 
 - Marketing home at `/` (`src/app/(setup)/page.tsx`) with product sections.
+- **Multi-tenant by account:** every sign-up gets its own shop. Customers,
+  orders, catalogue, storefront, automations, notifications, payment
+  transactions, and shop SMS all carry the owning account's `userId`, and every
+  route filters on it — one deployment serves many businesses with no shared
+  data. `FEATURES.md` §1 has the full map.
 - Auth: phone-first login/signup/forgot-password/profile (`src/app/(auth)/**`).
   Sign-up collects name + phone + password (email optional), then confirms the
   number with an SMS OTP. Password resets go by SMS too. Session API at
-  `/api/auth/*` (`src/app/api/auth/[...all]/route.ts`), `requireAuth` /
-  `requireAdmin` server gates, `useSession` client hook.
+  `/api/auth/*` (`src/app/api/auth/[...all]/route.ts`), `requireAuth` server gate
+  for your own shop, `requireAdmin` for the platform monitor, `useSession` /
+  `useIsAdmin` client hooks.
 - SMS usage ledger + `SMS this month` dashboard card (`/api/dashboard/sms-usage`).
 - Optional Paystack checkout for orders (`/api/payments/{initialize,verify,webhook}`).
 - Dashboard at `/dashboard` with a customer directory, customer detail + linked
@@ -62,9 +68,12 @@ See `.env.example` for the full list:
   (required in production).
 - `BETTER_AUTH_TRUSTED_ORIGINS` — optional comma-separated extra origins
   (preview deployments, custom domains).
-- `ADMIN_EMAIL` / `ADMIN_PHONE` — optional. The first user whose verified phone
+- `ADMIN_EMAIL` / `ADMIN_PHONE` — optional. The account whose verified phone
   matches `ADMIN_PHONE` (preferred), or whose email matches `ADMIN_EMAIL`, gets
-  the `admin` role.
+  the platform `admin` role; every other sign-up is a plain `user`. `admin` only
+  unlocks the read-only account monitor at `/dashboard/admin` — it is not a
+  per-shop role, and it grants no access to any shop's data. With neither var
+  set, nobody is an admin. Already-promoted admins are never demoted.
 - `SIGNUP_INVITE_CODE` — optional. When set, phone-first sign-ups must submit
   this exact invite code or they are rejected (Google/email-verified sign-ups
   are exempt). Pair with `NEXT_PUBLIC_SIGNUP_INVITE=true` so the sign-up form
@@ -158,6 +167,11 @@ npm run db:migrate:deploy  # apply migrations (CI / production)
 npm run db:studio          # inspect data
 ```
 
+Upgrading an existing single-tenant install? `20260926120000_add_user_ownership`
+adds the ownership columns, backfills every pre-existing row to the
+earliest-created account (the original owner), then tightens the constraints —
+back up first, and confirm the earliest account is the one you want to keep.
+
 ## Project structure
 
 ```text
@@ -174,12 +188,15 @@ src/
   app/api/orders            Order list/create/status update
   app/api/auth/[...all]     better-auth handler
   lib/contracts/            Shared Zod contracts (customer, order)
-  lib/auth.ts               better-auth server instance + admin bootstrap
-  lib/require-auth.ts       Server gate for signed-in users
-  lib/require-admin.ts      Server gate for admins
+  lib/auth.ts               better-auth server instance + role bootstrap
+  lib/require-auth.ts       Server gate for signed-in users (their own shop)
+  lib/require-admin.ts      Server gate for the platform admin monitor
+  lib/require-admin-api.ts  API twin of the admin gate (403, never a redirect)
+  lib/ownership.ts          Tenant lookups (requireOwnedCustomer/Order/…)
+  lib/roles.ts              isAdminRole() — the single role check
   components/custom/        CustomerWorkspace, CustomerDetailWorkspace, OrderForm, SiteNav
   components/ui/            shadcn primitives
-tests/unit                  Vitest (contracts, routes, CSP, SEO)
+tests/unit                  Vitest (contracts, routes, tenant isolation, roles, CSP, SEO)
 tests/integration           Postgres persistence (needs TEST_DATABASE_URL)
 ```
 

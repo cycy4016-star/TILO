@@ -10,6 +10,12 @@
 //                 — deduplicated through the AutomationEvent log so a rule
 //                 only fires once per order/customer.
 // Every action is written to AutomationEvent so the switchboard can audit it.
+//
+// Tenancy: each rule belongs to one account (AutomationRule.userId) and every
+// collect() below reads only that owner's orders/customers, using the rule's own
+// userId. The cron sweep iterates ALL owners' rules, so this is the single place
+// that guarantees one shop's rule can never text another shop's customers or
+// flip another shop's orders.
 import 'server-only';
 
 import type { AutomationRule, Customer, Order, OrderStatus, Prisma } from '@prisma/client';
@@ -111,7 +117,7 @@ type CustomerWithLatest = Customer & { orders: { createdAt: Date }[] };
 
 type Plugin = { label: string; collect: (rule: Rule, now: Date) => Promise<Action[]> };
 
-/** Orders that have sat in a status past the rule's wait window. */
+/** Orders that have sat in a status past the rule's wait window (this shop only). */
 async function staleOrders(
   rule: Rule,
   now: Date,
@@ -121,6 +127,7 @@ async function staleOrders(
   const status = statuses ?? (rule.triggerStatus ? [rule.triggerStatus] : undefined);
   return prisma.order.findMany({
     where: {
+      userId: rule.userId,
       ...(status ? { status: { in: status } } : {}),
       ...(status ? { updatedAt: { lte: threshold } } : {}),
     },
@@ -132,7 +139,7 @@ function collectStatusWindow(rule: Rule, now: Date): Promise<OrderWithCustomer[]
   const threshold = after(now, rule.waitHours);
   if (!rule.triggerStatus) return Promise.resolve([]);
   return prisma.order.findMany({
-    where: { status: rule.triggerStatus, updatedAt: { lte: threshold } },
+    where: { userId: rule.userId, status: rule.triggerStatus, updatedAt: { lte: threshold } },
     include: { customer: true },
   });
 }
@@ -226,7 +233,7 @@ export const AUTOMATION_PLUGINS = {
     label: 'Paid receipt',
     collect: async (rule): Promise<Action[]> => {
       const orders = await prisma.order.findMany({
-        where: { paidAt: { not: null } },
+        where: { userId: rule.userId, paidAt: { not: null } },
         include: { customer: true },
       });
       return orders
@@ -252,6 +259,7 @@ export const AUTOMATION_PLUGINS = {
       const threshold = after(now, rule.waitHours);
       const orders = await prisma.order.findMany({
         where: {
+          userId: rule.userId,
           amountPesewas: { not: null },
           paidAt: null,
           // Do not nag about orders the shop already closed.
@@ -303,7 +311,7 @@ export const AUTOMATION_PLUGINS = {
     collect: async (rule, now): Promise<Action[]> => {
       const threshold = after(now, rule.waitHours);
       const customers = await prisma.customer.findMany({
-        where: { phone: { not: null } },
+        where: { userId: rule.userId, phone: { not: null } },
         include: {
           orders: { select: { createdAt: true }, orderBy: { createdAt: 'desc' }, take: 1 },
         },
@@ -371,8 +379,18 @@ async function claimSms(
   return 'claimed';
 }
 
-export async function runAutomationSweep(now = new Date()): Promise<SweepSummary> {
-  const rules = await prisma.automationRule.findMany({ where: { enabled: true } });
+/**
+ * Evaluate enabled automation rules and act.
+ *
+ * @param now  injected clock (tests)
+ * @param userId  when given, sweep ONLY that account's rules — used by the
+ *   owner-triggered "Run now" button so a shop can only ever run its own
+ *   automation. Omitted by the platform cron, which sweeps every shop.
+ */
+export async function runAutomationSweep(now = new Date(), userId?: string): Promise<SweepSummary> {
+  const rules = await prisma.automationRule.findMany({
+    where: { enabled: true, ...(userId ? { userId } : {}) },
+  });
   let nudged = 0;
   let flipped = 0;
 
@@ -386,8 +404,11 @@ export async function runAutomationSweep(now = new Date()): Promise<SweepSummary
         if (action.from === action.to) continue;
         const didFlip = await prisma.$transaction(async (tx) => {
           await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${SWEEP_LOCK}))`;
-          const current = await tx.order.findUnique({
-            where: { id: action.orderId },
+          // Re-read under the lock, scoped to the rule's owner: even if an
+          // action were somehow forged with a foreign orderId, the status flip
+          // can only ever land on an order this rule's shop owns.
+          const current = await tx.order.findFirst({
+            where: { id: action.orderId, userId: rule.userId },
             select: { status: true },
           });
           if (!current || current.status === action.to) return false;
@@ -414,7 +435,9 @@ export async function runAutomationSweep(now = new Date()): Promise<SweepSummary
       });
       if (claim !== 'claimed') continue;
 
-      const result = await sendSms(action.to, action.message, 'AUTOMATION');
+      // Billed to the rule's own shop, so its "SMS this month" card reflects only
+      // the messages its own automations sent.
+      const result = await sendSms(action.to, action.message, 'AUTOMATION', rule.userId);
       try {
         await prisma.automationEvent.updateMany({
           where: {
@@ -446,6 +469,11 @@ async function runSummary(
   if (!recipient || !isSmsConfigured()) {
     return { ok: false, skipped: true, sent: false, message: null };
   }
+  // Unlike every shop-facing automation above, this digest is deliberately
+  // PLATFORM-wide: it is addressed to SMS_SUMMARY_RECIPIENT (the operator's own
+  // number, from the environment) and never to a shop owner, so counting across
+  // accounts reports platform health rather than leaking one shop's numbers to
+  // another. It writes rule-less AutomationEvent rows, which belong to no shop.
   const since = new Date(Date.now() - hours * 3_600_000);
   // One brief per window: skip if a summary already landed inside this period,
   // so a double-fired cron can't result in duplicate summary texts.
