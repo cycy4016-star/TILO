@@ -3,13 +3,40 @@
 // hasLogo/hasImage flags that mirror whether image bytes exist in the DB).
 import 'server-only';
 
+import { Prisma } from '@prisma/client';
+import { CategoryRecord } from '@/lib/contracts/category';
 import { PromotionRecord } from '@/lib/contracts/promotion';
 import { AppearanceKey, StoreItemRecord, StorePayload, ThemeKey } from '@/lib/contracts/store';
 import { normalizeAppearance, normalizeTheme } from '@/lib/theme';
 
+// Canonical include every route must use when returning a StorePayload:
+// without `categories` (and its item count) serializeStore() cannot parse the
+// row. Built with Prisma.validator so spreading it into a find/create/update
+// call still selects the right overload — a plain `satisfies` const would
+// collapse those calls to the no-include signature.
+const ITEM_ORDER: Prisma.StoreItemOrderByWithRelationInput[] = [
+  { sortOrder: 'asc' },
+  { name: 'asc' },
+];
+
+const CATEGORY_ORDER: Prisma.ProductCategoryOrderByWithRelationInput[] = [
+  { sortOrder: 'asc' },
+  { name: 'asc' },
+];
+
+export const storeInclude = Prisma.validator<Prisma.StoreDefaultArgs>()({
+  include: {
+    items: { orderBy: ITEM_ORDER },
+    categories: { orderBy: CATEGORY_ORDER, include: { _count: { select: { items: true } } } },
+  },
+});
+
 export type StoreItemRow = {
   id: string;
   storeId: string;
+  // Shelf heading, or null for an uncategorised item / one whose category
+  // was deleted (the FK is SetNull).
+  categoryId: string | null;
   kind: 'PRODUCT' | 'SERVICE';
   name: string;
   description: string | null;
@@ -19,6 +46,18 @@ export type StoreItemRow = {
   sortOrder: number;
   active: boolean;
   image: Uint8Array | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type CategoryRow = {
+  id: string;
+  storeId: string;
+  name: string;
+  sortOrder: number;
+  active: boolean;
+  // Prisma `_count: { select: { items: true } }` — how many products sit here.
+  _count?: { items: number };
   createdAt: Date;
   updatedAt: Date;
 };
@@ -37,6 +76,7 @@ export type StoreRow = {
   logo: Uint8Array | null;
   createdAt: Date;
   updatedAt: Date;
+  categories: CategoryRow[];
   items: StoreItemRow[];
 };
 
@@ -63,6 +103,7 @@ export function serializeStoreItem(item: StoreItemRow) {
     kind: item.kind,
     name: item.name,
     description: item.description,
+    categoryId: item.categoryId,
     pricePesewas: item.pricePesewas,
     costPricePesewas: item.costPricePesewas,
     compareAtPricePesewas: item.compareAtPricePesewas,
@@ -71,6 +112,22 @@ export function serializeStoreItem(item: StoreItemRow) {
     hasImage: item.image != null,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
+  });
+}
+
+// itemCount is read from Prisma's _count when the route includes it; a route
+// that omits the count serialises a category as having zero products rather
+// than failing the parse.
+export function serializeCategory(category: CategoryRow) {
+  return CategoryRecord.parse({
+    id: category.id,
+    storeId: category.storeId,
+    name: category.name,
+    sortOrder: category.sortOrder,
+    active: category.active,
+    itemCount: category._count?.items ?? 0,
+    createdAt: category.createdAt.toISOString(),
+    updatedAt: category.updatedAt.toISOString(),
   });
 }
 
@@ -109,6 +166,7 @@ export function serializeStore(store: StoreRow) {
     hasLogo: store.logo != null,
     createdAt: store.createdAt.toISOString(),
     updatedAt: store.updatedAt.toISOString(),
+    categories: store.categories.map(serializeCategory),
     items: store.items.map(serializeStoreItem),
   });
 }

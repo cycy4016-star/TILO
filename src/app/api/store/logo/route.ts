@@ -2,19 +2,13 @@
 // DELETE removes it. Stored in Postgres so it survives Render's ephemeral disk.
 import 'server-only';
 
-import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStore } from '@/lib/store-serializers';
+import { serializeStore, storeInclude } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
-
-const ITEM_ORDER: Prisma.StoreItemOrderByWithRelationInput[] = [
-  { sortOrder: 'asc' },
-  { name: 'asc' },
-];
 
 export async function PUT(request: Request) {
   try {
@@ -36,7 +30,7 @@ export async function PUT(request: Request) {
     const updated = await prisma.store.update({
       where: { id: store.id },
       data: { logo: image.bytes, logoMime: image.mime },
-      include: { items: { orderBy: ITEM_ORDER } },
+      ...storeInclude,
     });
     return NextResponse.json(serializeStore(updated));
   } catch (error) {
@@ -55,7 +49,7 @@ export async function DELETE(request: Request) {
     const updated = await prisma.store.update({
       where: { id: store.id },
       data: { logo: null, logoMime: null },
-      include: { items: { orderBy: ITEM_ORDER } },
+      ...storeInclude,
     });
     return NextResponse.json(serializeStore(updated));
   } catch (error) {

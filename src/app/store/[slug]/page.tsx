@@ -1,26 +1,16 @@
 // Public storefront — the "Jumia" face. Server-rendered (good for sharing),
-// fed by the open /api/public/store/[slug] route. Order buttons open WhatsApp
-// with the item + price pre-filled into a chat with the store.
+// fed by the open /api/public/store/[slug] route. The catalogue itself is a
+// client island (StoreCatalog) so one basket can span every card on the page.
 
-import {
-  MessageCircle,
-  MessageSquareText,
-  Package,
-  Percent,
-  Phone,
-  Tag,
-  Wrench,
-} from 'lucide-react';
+import { MessageCircle, Phone, Tag } from 'lucide-react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { LeadCaptureCard } from '@/components/custom/storefront/lead-capture-card';
-import { StoreOrderButton } from '@/components/custom/storefront/store-order-button';
-import { formatGhs } from '@/lib/contracts/order';
+import { type CatalogGroup, StoreCatalog } from '@/components/custom/storefront/store-catalog';
 import { StorePublic } from '@/lib/contracts/store';
 import { env } from '@/lib/env';
-import { smsLink, waMeLink, waMessageLink } from '@/lib/phone';
-import { formatPromoDate, itemDiscountPercent, promoHeadline, promoTerms } from '@/lib/promotions';
-import { orderRequestSms } from '@/lib/sms-templates';
+import { waMeLink, waMessageLink } from '@/lib/phone';
+import { formatPromoDate, promoHeadline, promoTerms } from '@/lib/promotions';
 
 type StorePageProps = { params: Promise<{ slug: string }> };
 
@@ -44,10 +34,37 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
   };
 }
 
-const kindLabels: Record<'PRODUCT' | 'SERVICE', string> = {
-  PRODUCT: 'Product',
-  SERVICE: 'Service',
-};
+// Bucket the flat item list by shelf, in the same order the manager shows.
+//
+// A shop with no categories lands everything in one unlabelled group, so the
+// page renders exactly as it did before shelves existed. Once categories are in
+// play, anything the owner never filed gets an "Everything else" heading rather
+// than sitting awkwardly under a named shelf.
+function buildGroups(
+  categories: StorePublic['categories'],
+  items: StorePublic['items'],
+): CatalogGroup[] {
+  const buckets = [...categories]
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+    .map((category) => ({
+      id: category.id,
+      label: category.name,
+      items: [] as CatalogGroup['items'],
+    }));
+  const loose: CatalogGroup['items'] = [];
+  for (const item of items) {
+    const bucket = buckets.find((entry) => entry.id === item.categoryId);
+    if (bucket) bucket.items.push(item);
+    else loose.push(item);
+  }
+  const groups: CatalogGroup[] = buckets
+    .filter((bucket) => bucket.items.length > 0)
+    .map(({ label, items: groupItems }) => ({ label, items: groupItems }));
+  if (loose.length > 0) {
+    groups.push({ label: groups.length > 0 ? 'Everything else' : null, items: loose });
+  }
+  return groups;
+}
 
 export default async function StorePage({ params }: StorePageProps) {
   const { slug } = await params;
@@ -60,6 +77,7 @@ export default async function StorePage({ params }: StorePageProps) {
   );
 
   const pro = store.appearance === 'professional';
+  const groups = buildGroups(store.categories, store.items);
 
   return (
     <main
@@ -249,145 +267,13 @@ export default async function StorePage({ params }: StorePageProps) {
           </p>
         </section>
       ) : (
-        <section className="mt-8 grid gap-4 sm:grid-cols-2">
-          {store.items.map((item, i) => {
-            const discount = itemDiscountPercent(item);
-            const orderLink = waMessageLink(
-              store.contactPhone,
-              `Hi ${store.name}! Please, add for me: ${item.name} — ${
-                discount != null
-                  ? `${formatGhs(item.pricePesewas)}, was ${formatGhs(item.compareAtPricePesewas ?? 0)} (${discount}% off)`
-                  : formatGhs(item.pricePesewas)
-              }.`,
-            );
-            return (
-              <article
-                key={item.id}
-                className={`flex flex-col border-2 bg-white dark:bg-stone-900 ${
-                  pro
-                    ? 'rounded-2xl border-[var(--tl-200)] p-6'
-                    : `rounded-[1.75rem] border-amber-950 p-6 shadow-[5px_5px_0_0_#451a03] ${
-                        i % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
-                      }`
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <span
-                    className={`flex size-12 items-center justify-center rounded-2xl text-white ${
-                      pro ? 'bg-[var(--tl-700)]' : 'bg-gradient-to-br from-amber-500 to-amber-400'
-                    }`}
-                  >
-                    {item.kind === 'SERVICE' ? (
-                      <Wrench aria-hidden className="size-5" />
-                    ) : (
-                      <Package aria-hidden className="size-5" />
-                    )}
-                  </span>
-                  <span
-                    className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wider ${
-                      pro
-                        ? 'bg-primary/10 text-primary'
-                        : 'bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
-                    }`}
-                  >
-                    {kindLabels[item.kind]}
-                  </span>
-                </div>
-                {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="mt-4 aspect-[4/3] w-full rounded-2xl border-2 border-amber-100 object-cover dark:border-stone-800"
-                  />
-                )}
-                <h2
-                  className={`mt-4 ${
-                    pro
-                      ? 'text-xl font-semibold'
-                      : 'font-display text-xl font-black uppercase tracking-tight'
-                  }`}
-                >
-                  {item.name}
-                </h2>
-                {item.description && (
-                  <p className="mt-1 flex-1 text-sm font-medium leading-relaxed text-stone-600 dark:text-stone-300">
-                    {item.description}
-                  </p>
-                )}
-                <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
-                  <div className="grid gap-0.5">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`${
-                          pro
-                            ? 'text-xl font-bold text-[var(--tl-900)]'
-                            : 'font-mono text-xl font-black text-amber-950 dark:text-amber-50'
-                        }`}
-                      >
-                        {formatGhs(item.pricePesewas)}
-                      </span>
-                      {discount != null && (
-                        <span className="rounded-full bg-red-600 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-white">
-                          <Percent aria-hidden className="mr-0.5 inline size-3" />
-                          {discount}% off
-                        </span>
-                      )}
-                    </span>
-                    {discount != null && (
-                      <span className="text-sm font-medium text-stone-400 line-through">
-                        {formatGhs(item.compareAtPricePesewas ?? 0)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-2">
-                  <StoreOrderButton
-                    itemId={item.id}
-                    itemName={item.name}
-                    pricePesewas={item.pricePesewas}
-                    storeName={store.name}
-                    slug={slug}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    {orderLink && (
-                      <a
-                        href={orderLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-emerald-700 bg-emerald-600 px-4 font-bold uppercase tracking-wide text-white transition-colors hover:bg-emerald-500"
-                      >
-                        <MessageCircle aria-hidden className="size-4" /> WhatsApp
-                      </a>
-                    )}
-                    {(() => {
-                      const smsHref = smsLink(
-                        store.contactPhone,
-                        orderRequestSms({
-                          storeName: store.name,
-                          itemName: item.name,
-                          priceGhs: formatGhs(item.pricePesewas),
-                          quantity: 1,
-                        }),
-                      );
-                      return smsHref ? (
-                        <a
-                          href={smsHref}
-                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 font-bold uppercase tracking-wide transition-colors ${
-                            pro
-                              ? 'border border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
-                              : 'border-2 border-amber-950 font-black text-amber-950 hover:bg-amber-100 dark:text-amber-50'
-                          }`}
-                        >
-                          <MessageSquareText aria-hidden className="size-4" /> SMS
-                        </a>
-                      ) : null;
-                    })()}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </section>
+        <StoreCatalog
+          slug={slug}
+          storeName={store.name}
+          contactPhone={store.contactPhone}
+          pro={pro}
+          groups={groups}
+        />
       )}
 
       <LeadCaptureCard storeName={store.name} slug={slug} />

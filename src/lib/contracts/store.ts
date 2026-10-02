@@ -1,5 +1,6 @@
 // Client-safe storefront contracts shared by routes and islands.
 import { z } from 'zod';
+import { CategoryRecord, CategorySummary } from '@/lib/contracts/category';
 import { PromotionSummary } from '@/lib/contracts/promotion';
 
 export const StoreItemKind = z.enum(['PRODUCT', 'SERVICE']);
@@ -50,6 +51,9 @@ export const StoreItemCreate = z.object({
   name: z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'),
   kind: StoreItemKind.default('PRODUCT'),
   description: optionalText(500),
+  // Shelf heading this product sits under. Null/absent = uncategorised, which
+  // the storefront groups under its own bucket rather than hiding.
+  categoryId: z.string().trim().min(1).nullable().optional(),
   pricePesewas: priceRule,
   // What it costs the workspace to source/deliver this item (pesewas).
   // Optional; powers the owner's gross-profit analytics when filled in.
@@ -69,6 +73,8 @@ export const StoreItemUpdate = z.object({
   name: z.string().trim().min(1, 'Name is required').max(80, 'Name is too long').optional(),
   kind: StoreItemKind.optional(),
   description: optionalText(500),
+  // undefined = leave the category alone, null = remove it from every shelf.
+  categoryId: z.string().trim().min(1).nullable().optional(),
   pricePesewas: priceRule.optional(),
   costPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
   compareAtPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
@@ -82,6 +88,9 @@ export const StoreItemRecord = z.object({
   kind: StoreItemKind,
   name: z.string(),
   description: z.string().nullable(),
+  // Null for uncategorised items and for any item whose category was deleted
+  // (the FK is SetNull — removing a shelf never removes its products).
+  categoryId: z.string().nullable(),
   pricePesewas: z.number().int().nonnegative(),
   costPricePesewas: z.number().int().nonnegative().nullable(),
   compareAtPricePesewas: z.number().int().nonnegative().nullable(),
@@ -115,6 +124,9 @@ export const StorePayload = z.object({
   hasLogo: z.boolean(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  // Ordered shelf headings. Empty for a store that never created one, which
+  // the manager renders as a "no categories yet" prompt.
+  categories: z.array(CategoryRecord),
   items: z.array(StoreItemRecord),
 });
 
@@ -130,12 +142,15 @@ export const StorePublic = z.object({
   logoUrl: z.string().nullable(),
   theme: ThemeKey,
   appearance: AppearanceKey,
+  categories: z.array(CategorySummary),
   items: z.array(
     z.object({
       id: z.string(),
       kind: StoreItemKind,
       name: z.string(),
       description: z.string().nullable(),
+      // Null = uncategorised; the storefront buckets those under "More".
+      categoryId: z.string().nullable(),
       pricePesewas: z.number().int().nonnegative(),
       compareAtPricePesewas: z.number().int().nonnegative().nullable(),
       imageUrl: z.string().nullable(),

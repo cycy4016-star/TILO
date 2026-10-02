@@ -28,9 +28,9 @@ export type DashboardNavItem = {
 
 const allNavItems: DashboardNavItem[] = [
   { href: '/dashboard', label: 'Pulse', icon: LayoutDashboard },
+  { href: '/dashboard/store', label: 'Catalogue', icon: Store },
   { href: '/dashboard/orders', label: 'Orders', icon: FireExtinguisher },
   { href: '/dashboard/customers', label: 'People', icon: Users },
-  { href: '/dashboard/store', label: 'Store', icon: Store },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/intelligence', label: 'Intelligence', icon: BrainCircuit },
   { href: '/dashboard/automations', label: 'Switchboard', icon: Bot },

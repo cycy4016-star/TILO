@@ -53,6 +53,10 @@ export async function requireOwnedOrder(userId: string, orderId: string) {
  * the child's own id — that is what stops one shop editing another's catalogue by
  * guessing a cuid.
  *
+ * Categories get their own helper (requireOwnedCategory) below: adding a fourth
+ * arm here would widen the union and break every caller that reads a field only
+ * some of the row types have.
+ *
  * @param model  'item' | 'promotion' | 'post'
  */
 export async function requireOwnedStoreChild<T extends 'item' | 'promotion' | 'post'>(
@@ -76,6 +80,40 @@ export async function requireOwnedStoreChild<T extends 'item' | 'promotion' | 'p
   });
   if (!row) throw Response.json({ error: 'Post not found' }, { status: 404 });
   return row;
+}
+
+/**
+ * Resolve a shelf heading (ProductCategory) for the signed-in user.
+ *
+ * Same rule as requireOwnedStoreChild: reached through the owner's store, so a
+ * guessed cuid 404s instead of resolving against another shop. Returns the
+ * concrete row type (no union), so callers can read `name` / `storeId` freely.
+ */
+export async function requireOwnedCategory(userId: string, id: string) {
+  const row = await prisma.productCategory.findFirst({ where: { id, store: { userId } } });
+  if (!row) throw Response.json({ error: 'Category not found' }, { status: 404 });
+  return row;
+}
+
+/**
+ * Throws a 400 unless `categoryId` is null/undefined or belongs to this store.
+ *
+ * Item create/update accept a `categoryId` from the body, so without this check
+ * one shop could staple its product onto another shop's shelf (the FK only
+ * cares that the row exists, not who owns it).
+ */
+export async function requireOwnCategoryId(storeId: string, categoryId: string | null | undefined) {
+  if (!categoryId) return;
+  const row = await prisma.productCategory.findFirst({
+    where: { id: categoryId, storeId },
+    select: { id: true },
+  });
+  if (!row) {
+    throw Response.json(
+      { errors: { categoryId: 'Pick a category from this catalogue' } },
+      { status: 400 },
+    );
+  }
 }
 
 /** The signed-in user's id, for the many routes that only need the ownership key. */

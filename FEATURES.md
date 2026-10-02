@@ -1,10 +1,11 @@
 # Tilo — Feature Inventory
 
-Tilo is a WhatsApp-led business operations workspace for small Ghanaian/African
-businesses. It turns conversations, notebooks, and spreadsheets into one
-operating system: customers, linked orders, money chasing, an SMS automation
-engine, a catalogue/storefront, and social sharing — behind one authenticated
-dashboard.
+Tilo is a hosted shop page for small Ghanaian/African businesses. Sign up, put
+your products on shelves with photos and prices, share one link, and let
+customers check out a basket from `/store/<slug>` — the order lands itemised and
+totalled in your dashboard. Around that core sit a customer directory, order
+history, an SMS automation engine, money chasing, and social sharing, all behind
+one authenticated dashboard.
 
 This document lists **everything the app does today**, what each piece is for,
 where it lives, and what is deliberately not built yet.
@@ -266,16 +267,33 @@ where it lives, and what is deliberately not built yet.
 
 - Manage a store: name, slug (URL-safe), tagline, description, contact phone,
   active toggle, and a **logo** (capture or upload).
+- **Shelves (`ProductCategory`)** group the catalogue: name, sort order, active
+  toggle, and a live item count. A product picks a shelf
+  (`StoreItem.categoryId`, nullable) or sits unshelved. Renaming onto a shelf
+  that already has that name returns `409`; deleting a shelf with products on it
+  returns `409` with the count, and deleting an empty one clears the products'
+  `categoryId`.
 - Catalogue **items** as `PRODUCT` or `SERVICE`, each with name, description,
-  price (pesewas), sort order, active flag, and a **photo** (capture or upload).
+  price (pesewas), an optional **compare-at "was" price** for discounts, the
+  shelf it sits on, sort order, active flag, and a **photo** (capture or upload).
 - **Images live in Postgres** (`Store.logo`/`StoreItem.image` bytea columns) and
   are served read-only by public routes — no object storage, so they survive
   Render's ephemeral disk and deploy with no extra setup. Photos are compressed
   client-side (canvas, ~1280px JPEG) before upload and capped server-side (item
   5 MB, logo/avatar 2 MB).
 - **Public storefront** at `/store/<slug>` served by
-  `/api/public/store/<slug>`: live items only, no internal IDs. Draft/inactive
-  items are hidden. The hero shows the logo and shelf cards show item photos.
+  `/api/public/store/<slug>`: items grouped under shelf headings in `sortOrder`
+  order, unshelved products under "Everything else". Only `active` shelves and
+  their products are exposed — hiding a shelf hides its products from the page
+  *and* from ordering, and draft/inactive items never appear. The hero shows the
+  logo and shelf cards show item photos.
+- **Multi-item basket:** each product card carries an add button and a quantity
+  stepper; a sticky bar totals the basket and opens a checkout dialog that POSTs
+  `{ lines, customerName, phone, note }` to `/api/public/store/<slug>/orders`.
+  That one rate-limited request prices every line, refuses items that are hidden,
+  inactive or no longer shelved, and writes an `Order` plus one `OrderLineItem`
+  per line. Every product still carries one-tap WhatsApp and SMS links, and the
+  shop owner is notified as the order arrives.
 - Store dashboard (`store-workspace.tsx`) shows photo thumbnails on shelf cards
   and supports replace/remove for both logo and item photos in their forms.
 
@@ -318,7 +336,9 @@ returns 404. See §1.
 | `GET` | `/api/notifications` | user | live activity feed + unread count |
 | `POST` | `/api/notifications/read` | user | mark all notifications read |
 | `POST` | `/api/sms/send` | user | send a manual TILO SMS to a customer |
-| `GET/PUT` | `/api/store` | user | read/upsert the store |
+| `GET/PUT` | `/api/store` | user | read/upsert the store (payload includes shelves) |
+| `GET/POST` | `/api/store/categories` | user | list shelves (with item counts), create |
+| `PATCH/DELETE` | `/api/store/categories/[categoryId]` | user | rename/reorder, toggle active, delete (`409` when non-empty) |
 | `GET/POST` | `/api/store/items` | user | list/create catalogue items |
 | `PATCH/DELETE` | `/api/store/items/[itemId]` | user | update/delete item |
 | `PUT/DELETE` | `/api/store/items/[itemId]/image` | user | attach/remove item photo |
@@ -330,7 +350,7 @@ returns 404. See §1.
 | `GET/POST` | `/api/store/posts` | user | social queue list/create |
 | `PATCH/DELETE` | `/api/store/posts/[postId]` | user | update/delete queued post |
 | `GET` | `/api/public/store/[slug]` | public | public storefront |
-| `POST` | `/api/public/store/[slug]/orders` | public + rate-limit | storefront order placement (auto-adds customer) |
+| `POST` | `/api/public/store/[slug]/orders` | public + rate-limit | multi-line basket checkout (auto-adds customer) |
 | `POST` | `/api/public/store/[slug]/leads` | public + rate-limit | visitor capture with consent |
 | `GET` | `/api/public/store/items/[itemId]/image` | public | item photo bytes |
 | `GET` | `/api/public/store/promotions/[promoId]/image` | public | promotion photo bytes |
@@ -356,9 +376,11 @@ returns 404. See §1.
 - **Shop data (every row owned):** `Customer` (`userId`), `Order` (`userId`),
   `AutomationRule` (`userId`), `Notification` (`userId`).
 - **Store:** `Store` (`userId` **unique** — one storefront per account;
-  `logo`/`logoMime` bytea), `StoreItem` (`PRODUCT`/`SERVICE`, price, sortOrder,
-  active, `image`/`imageMime` bytea), `Promotion`, `SocialPost` — the last three
-  are reached through their `store`, not by their own `userId`.
+  `logo`/`logoMime` bytea), `ProductCategory` (shelf: name, sortOrder, active),
+  `StoreItem` (`PRODUCT`/`SERVICE`, `pricePesewas`, `compareAtPricePesewas`,
+  `categoryId` nullable with `onDelete: SetNull`, sortOrder, active,
+  `image`/`imageMime` bytea), `Promotion`, `SocialPost` — the last four are
+  reached through their `store`, not by their own `userId`.
 - **SMS:** `SmsUsage` (`userId` nullable, no FK — see §1), `source`, `to`,
   `message`, `segments`, `credits`, `ok`, `providerRef`, `error`, `createdAt`.
 - **Payments:** `PaymentTransaction` (`reference` unique, `orderId`, amount,

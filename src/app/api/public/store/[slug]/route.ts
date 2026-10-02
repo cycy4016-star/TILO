@@ -19,8 +19,18 @@ export async function GET(_request: Request, context: RouteContext) {
     const store = await prisma.store.findFirst({
       where: { slug, active: true },
       include: {
-        items: {
+        categories: {
           where: { active: true },
+          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+        },
+        items: {
+          // Live products only. An item also drops out when its shelf is
+          // hidden, so switching a category off takes the whole shelf off the
+          // storefront instead of stranding those products under no heading.
+          where: {
+            active: true,
+            OR: [{ categoryId: null }, { category: { active: true } }],
+          },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         },
         promotions: {
@@ -48,11 +58,17 @@ export async function GET(_request: Request, context: RouteContext) {
         logoUrl: store.logo ? `/api/public/store/${store.slug}/logo` : null,
         theme: ThemeKey.parse(normalizeTheme(store.theme)),
         appearance: AppearanceKey.parse(normalizeAppearance(store.appearance)),
+        categories: store.categories.map((category) => ({
+          id: category.id,
+          name: category.name,
+          sortOrder: category.sortOrder,
+        })),
         items: store.items.map((item) => ({
           id: item.id,
           kind: item.kind,
           name: item.name,
           description: item.description,
+          categoryId: item.categoryId,
           pricePesewas: item.pricePesewas,
           compareAtPricePesewas: item.compareAtPricePesewas,
           imageUrl: item.image ? `/api/public/store/items/${item.id}/image` : null,

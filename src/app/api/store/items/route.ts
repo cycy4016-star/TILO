@@ -5,6 +5,7 @@ import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { StoreItemCreate, StoreItemList } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
+import { requireOwnCategoryId } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStoreItem } from '@/lib/store-serializers';
 
@@ -47,6 +48,9 @@ export async function POST(request: Request) {
     }
     const parsed = StoreItemCreate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
+    // The body chooses the shelf, so it has to be one of THIS shop's shelves —
+    // the FK alone would happily accept another shop's category id.
+    await requireOwnCategoryId(store.id, parsed.data.categoryId);
 
     const item = await prisma.storeItem.create({
       data: { ...parsed.data, storeId: store.id },

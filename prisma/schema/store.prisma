@@ -30,17 +30,17 @@ enum PromotionKind {
 }
 
 model Store {
-  id           String      @id @default(cuid())
+  id           String            @id @default(cuid())
   // Owning account. Unique — one storefront per sign-up, and the ownership key
   // every catalogue route resolves through before touching a child row.
-  userId       String      @unique
+  userId       String            @unique
   name         String
-  slug         String      @unique
+  slug         String            @unique
   tagline      String?
   description  String?
   // Number the WhatsApp order buttons deep-link to. Local Ghana format.
   contactPhone String?
-  active       Boolean     @default(true)
+  active       Boolean           @default(true)
   // Announcement headline shown above the catalog on the storefront
   // (e.g. "Mid-sem sale — use code STUDENT10"). Empty = no banner.
   promoBanner  String?
@@ -49,53 +49,81 @@ model Store {
   // storefront — by seeding --brand-h/c/l in globals.css. Validated client-side
   // against ThemeKey; stored as a plain string so unknown keys degrade to the
   // default gold seed rather than crashing the page.
-  theme        String      @default("gold")
+  theme        String            @default("gold")
   // Owner-chosen layout/appearance preset key (see src/lib/theme.ts). Picks the
   // storefront arrangement: "vibrant" is the loud yellow-black look, while
   // "professional" is the clean business layout. Stored as a plain string; the
   // UI falls back to the default when the value is unknown.
-  appearance   String             @default("professional")
+  appearance   String            @default("professional")
   // Store logo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/[slug]/logo (no object storage needed).
   logo         Bytes?
   logoMime     String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items        StoreItem[]
   posts        StorePost[]
   promotions   Promotion[]
+  categories   ProductCategory[]
 
   @@index([slug])
 }
 
+// A shelf heading inside one store's catalogue — "Beads", "Wall art", "Custom
+// orders". Reached through the store rather than owning a userId of its own,
+// so a guessed cuid cannot resolve against another shop (same rule as
+// StoreItem / Promotion / StorePost). Items point at their category with a
+// nullable FK, so a category delete orphans its items instead of taking the
+// products with it.
+model ProductCategory {
+  id        String      @id @default(cuid())
+  storeId   String
+  name      String
+  sortOrder Int         @default(0)
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  store     Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  items     StoreItem[]
+
+  @@index([storeId])
+}
+
 model StoreItem {
-  id           String        @id @default(cuid())
-  storeId      String
-  kind         StoreItemKind @default(PRODUCT)
-  name         String
-  description  String?
-  pricePesewas Int
+  id                    String           @id @default(cuid())
+  storeId               String
+  // Shelf heading this product sits under. Null = uncategorised (every item
+  // that predates categories lands here, and the storefront groups those
+  // under their own bucket rather than hiding them). SetNull on delete so
+  // removing a category never removes the products in it.
+  categoryId            String?
+  kind                  StoreItemKind    @default(PRODUCT)
+  name                  String
+  description           String?
+  pricePesewas          Int
   // What it costs the workspace to deliver/source this item, in pesewas.
   // Optional — used by the owner's Intelligence dashboard to compute gross
   // profit per unit and overall margins. Never exposed on the public storefront.
-  costPricePesewas Int?
+  costPricePesewas      Int?
   // Original "was" price in pesewas. When set higher than pricePesewas the
   // storefront shows it struck through with an auto "+X% off" badge.
   compareAtPricePesewas Int?
-  sortOrder    Int           @default(0)
-  active       Boolean       @default(true)
+  sortOrder             Int              @default(0)
+  active                Boolean          @default(true)
   // Item photo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/items/[itemId]/image.
-  image        Bytes?
-  imageMime    String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  posts        StorePost[]
-  orderLines   OrderLineItem[]
+  image                 Bytes?
+  imageMime             String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  store                 Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category              ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  posts                 StorePost[]
+  orderLines            OrderLineItem[]
 
   @@index([storeId])
+  @@index([categoryId])
 }
 
 model StorePost {

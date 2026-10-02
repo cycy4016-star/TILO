@@ -1,6 +1,6 @@
-// Public order placement on the storefront: a visitor picks an item, drops
+// Public order placement on the storefront: a visitor fills a basket, drops
 // name + phone (and a note), and the order lands straight in the owner's
-// orders + customers, with a bell notification. No account, no cart.
+// orders + customers, with a bell notification. No account needed.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -70,10 +70,26 @@ export async function POST(request: Request, context: RouteContext) {
     const store = await prisma.store.findFirst({ where: { slug, active: true } });
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
 
-    const item = await prisma.storeItem.findFirst({
-      where: { id: parsed.data.itemId, storeId: store.id, active: true },
+    // One query for the whole basket, then a missing-id check — a shopper whose
+    // basket references a product that went inactive (or onto a hidden shelf)
+    // gets a single clear failure rather than a half-built order.
+    const requested = [...new Set(parsed.data.lines.map((line) => line.itemId))];
+    const found = await prisma.storeItem.findMany({
+      where: {
+        id: { in: requested },
+        storeId: store.id,
+        active: true,
+        // Hiding a shelf hides its products everywhere, ordering included.
+        OR: [{ categoryId: null }, { category: { active: true } }],
+      },
     });
-    if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    const byId = new Map(found.map((row) => [row.id, row]));
+    if (requested.some((id) => !byId.has(id))) {
+      return NextResponse.json(
+        { error: 'Some items in your basket are no longer available' },
+        { status: 404 },
+      );
+    }
 
     const captured = await findOrCreateCustomer({
       // Owner comes from the resolved store, never from the request.
@@ -83,7 +99,23 @@ export async function POST(request: Request, context: RouteContext) {
     });
 
     const note = parsed.data.note?.trim();
-    const quantity = parsed.data.quantity;
+    const lines = parsed.data.lines.flatMap((line) => {
+      const item = byId.get(line.itemId);
+      // Every id was checked above, so this always lands — but a row that
+      // somehow vanished must fail loudly rather than ship a short order.
+      if (!item) {
+        throw Response.json(
+          { error: 'Some items in your basket are no longer available' },
+          { status: 404 },
+        );
+      }
+      return [{ item, quantity: line.quantity }];
+    });
+    const amountPesewas = lines.reduce(
+      (total, line) => total + line.item.pricePesewas * line.quantity,
+      0,
+    );
+    const summary = lines.map((line) => `${line.quantity}x ${line.item.name}`).join(', ');
     const order = await prisma.order.create({
       data: {
         // The order is filed under the storefront's owner, so it shows up in that
@@ -91,28 +123,34 @@ export async function POST(request: Request, context: RouteContext) {
         userId: store.userId,
         customerId: captured.id,
         orderNumber: buildOrderNumber(),
-        description: `${quantity}x ${item.name}${note ? ` — ${note}` : ''}`,
+        description: note ? `${summary} — ${note}` : summary,
         status: 'PENDING',
         // Real money is expected for storefront orders, so the amount is derived
-        // from the item price and the line is snapshotted into history.
-        amountPesewas: item.pricePesewas * quantity,
+        // from the item prices and every line is snapshotted into history.
+        amountPesewas,
         lines: {
-          create: {
-            storeItemId: item.id,
-            name: item.name,
-            unitPricePesewas: item.pricePesewas,
-            unitCostPesewas: item.costPricePesewas,
-            quantity,
-          },
+          create: lines.map((line) => ({
+            storeItemId: line.item.id,
+            name: line.item.name,
+            unitPricePesewas: line.item.pricePesewas,
+            unitCostPesewas: line.item.costPricePesewas,
+            quantity: line.quantity,
+          })),
         },
       },
     });
 
+    // Hoisted so the single-line wording still reads naturally without an
+    // unguarded array index.
+    const lead = lines[0];
     await notify({
       userId: store.userId,
       kind: 'ORDER_PLACED',
-      title: `New order — ${item.name}`,
-      message: `${captured.name} (${captured.phone}) ordered ${quantity}x ${item.name}. #${order.orderNumber}`,
+      title:
+        lead && lines.length === 1
+          ? `New order — ${lead.item.name}`
+          : `New order — ${lines.length} items`,
+      message: `${captured.name} (${captured.phone}) ordered ${summary}. #${order.orderNumber}`,
       customerId: captured.id,
       orderId: order.id,
     });

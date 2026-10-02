@@ -4,7 +4,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { StoreItemUpdate } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
-import { requireOwnedStoreChild } from '@/lib/ownership';
+import { requireOwnCategoryId, requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStoreItem } from '@/lib/store-serializers';
 
@@ -28,7 +28,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     // Tenancy: the item is resolved through the caller's own store, so another
     // shop's item id 404s instead of being editable.
     const item = await requireOwnedStoreChild(user.id, 'item', itemId);
-    void item;
+    // A PATCH may move the product to another shelf — that shelf must also be
+    // this shop's, or the write would link across tenants.
+    await requireOwnCategoryId(item.storeId, parsed.data.categoryId);
     const updated = await prisma.storeItem.update({ where: { id: itemId }, data: parsed.data });
     return NextResponse.json(serializeStoreItem(updated));
   } catch (error) {

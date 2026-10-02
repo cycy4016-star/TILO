@@ -1,8 +1,11 @@
 # Tilo
 
-Tilo is your WhatsApp-led business operations workspace. It turns conversations,
-notebooks, spreadsheets, and scattered files into one clear operating system:
-customers, linked orders, and daily follow-up in a single authenticated dashboard.
+Tilo is a hosted shop page for small businesses. A sign-up gets a shareable
+catalogue at `/store/<slug>` — products grouped on shelves with photos,
+prices (with a struck-through "before" where you discount), and a basket
+customers fill themselves. Every checkout lands in the owner's dashboard as an
+itemised, totalled order. WhatsApp and SMS stay attached: one tap from any
+product, a customer directory, order history, and optional automation SMS.
 
 Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn UI,
 better-auth (phone + password with SMS OTP, optional email, admin roles),
@@ -11,6 +14,16 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
 ## What is included
 
 - Marketing home at `/` (`src/app/(setup)/page.tsx`) with product sections.
+- **Public storefront at `/store/[slug]`** (`src/app/store/[slug]/page.tsx`):
+  shelved product groups, photos, price-before/price-now, one-tap WhatsApp and
+  SMS per item, and a multi-item basket that posts to
+  `/api/public/store/[slug]/orders`. Hiding a shelf hides its products from the
+  public page *and* from ordering.
+- **Catalogue manager at `/dashboard/store`**
+  (`src/components/custom/store-workspace.tsx`): shelf CRUD, product images,
+  price pairs, active toggles, and a grouped catalogue list. The shelf id rides
+  on `StoreItem.categoryId`; deleting a non-empty shelf is refused with a `409`
+  so nothing is orphaned silently.
 - **Multi-tenant by account:** every sign-up gets its own shop. Customers,
   orders, catalogue, storefront, automations, notifications, payment
   transactions, and shop SMS all carry the owning account's `userId`, and every
@@ -178,23 +191,28 @@ back up first, and confirm the earliest account is the one you want to keep.
 prisma/
   schema/_base.prisma        Datasource + generator
   schema/auth.prisma         better-auth User/Session/Account/Verification
+  schema/store.prisma        Store, StoreItem, ProductCategory (the catalogue)
   schema/customer-order-workspace.prisma  Customer + Order models
   migrations/                Committed migration SQL
 src/
   app/(setup)/page.tsx      Marketing home at /
   app/(auth)/               Login / signup / profile
-  app/(dashboard)/dashboard Customers + customer detail + overview
+  app/(dashboard)/dashboard Store, orders, customers, automations, admin
+  app/store/[slug]/         Public storefront (no session)
+  app/api/store/**          Shelf + product CRUD for the owner
+  app/api/public/store/**   Read-only payload + basket checkout
   app/api/customers         Customer list/create/detail
   app/api/orders            Order list/create/status update
   app/api/auth/[...all]     better-auth handler
-  lib/contracts/            Shared Zod contracts (customer, order)
+  lib/contracts/            Shared Zod contracts (store, category, order, …)
   lib/auth.ts               better-auth server instance + role bootstrap
   lib/require-auth.ts       Server gate for signed-in users (their own shop)
   lib/require-admin.ts      Server gate for the platform admin monitor
   lib/require-admin-api.ts  API twin of the admin gate (403, never a redirect)
-  lib/ownership.ts          Tenant lookups (requireOwnedCustomer/Order/…)
+  lib/ownership.ts          Tenant lookups (requireOwnedCustomer/Order/Category/…)
   lib/roles.ts              isAdminRole() — the single role check
-  components/custom/        CustomerWorkspace, CustomerDetailWorkspace, OrderForm, SiteNav
+  components/custom/        StoreWorkspace, StorePublish, CustomerWorkspace, SiteNav
+  components/custom/storefront/  StoreCatalog, LeadCaptureCard
   components/ui/            shadcn primitives
 tests/unit                  Vitest (contracts, routes, tenant isolation, roles, CSP, SEO)
 tests/integration           Postgres persistence (needs TEST_DATABASE_URL)

@@ -22,6 +22,18 @@ const storePayload = {
   hasLogo: false,
   createdAt: '2026-09-21T00:00:00.000Z',
   updatedAt: '2026-09-21T00:00:00.000Z',
+  categories: [
+    {
+      id: 'cat-1',
+      storeId: 'store-1',
+      name: 'Aprons',
+      sortOrder: 0,
+      active: true,
+      itemCount: 1,
+      createdAt: '2026-09-21T00:00:00.000Z',
+      updatedAt: '2026-09-21T00:00:00.000Z',
+    },
+  ],
   items: [
     {
       id: 'item-1',
@@ -29,6 +41,7 @@ const storePayload = {
       kind: 'PRODUCT' as const,
       name: 'Branded apron',
       description: 'One colour',
+      categoryId: 'cat-1',
       pricePesewas: 4550,
       costPricePesewas: null,
       compareAtPricePesewas: null,
@@ -96,12 +109,14 @@ describe('store contracts', () => {
       theme: 'gold',
       appearance: 'vibrant',
       logoUrl: null,
+      categories: [{ id: 'cat-1', name: 'Aprons', sortOrder: 0 }],
       items: [
         {
           id: 'item-1',
           kind: 'PRODUCT',
           name: 'Branded apron',
           description: null,
+          categoryId: 'cat-1',
           pricePesewas: 4550,
           compareAtPricePesewas: null,
           imageUrl: null,
@@ -112,5 +127,35 @@ describe('store contracts', () => {
     expect(result.success).toBe(true);
     const items = result.success ? result.data.items : [];
     expect(items[0]).not.toHaveProperty('storeId');
+  });
+
+  it('buckets uncategorised products under a null category', () => {
+    const result = StorePublic.safeParse({
+      name: storePayload.name,
+      slug: storePayload.slug,
+      tagline: null,
+      description: null,
+      promoBanner: null,
+      contactPhone: null,
+      theme: 'gold',
+      appearance: 'professional',
+      logoUrl: null,
+      categories: [],
+      items: [
+        {
+          id: 'item-2',
+          kind: 'PRODUCT',
+          name: 'Loose product',
+          description: null,
+          categoryId: null,
+          pricePesewas: 1000,
+          compareAtPricePesewas: null,
+          imageUrl: null,
+        },
+      ],
+      promotions: [],
+    });
+    expect(result.success).toBe(true);
+    expect(result.success ? result.data.items[0]?.categoryId : undefined).toBeNull();
   });
 });

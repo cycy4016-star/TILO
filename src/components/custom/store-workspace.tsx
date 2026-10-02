@@ -4,15 +4,10 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  ArrowLeft,
   Calendar,
-  Camera,
   Copy,
   ExternalLink,
-  type LucideIcon,
-  Megaphone,
-  MessageCircle,
-  Music2,
+  FolderPlus,
   Package,
   Pencil,
   Percent,
@@ -22,7 +17,7 @@ import {
   Trash2,
   Wrench,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -31,6 +26,7 @@ import {
   ImagePicker,
   type ImageSelection,
 } from '@/components/custom/image-picker';
+import { PublishDialog, PublishLog } from '@/components/custom/store-publish';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -59,6 +55,12 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import {
+  CategoryCreate,
+  type CategoryRecord,
+  CategoryRecord as CategorySchema,
+  CategoryUpdate,
+} from '@/lib/contracts/category';
 import { formatGhs } from '@/lib/contracts/order';
 import {
   PromotionCreate,
@@ -66,12 +68,7 @@ import {
   PromotionRecord,
   PromotionUpdate,
 } from '@/lib/contracts/promotion';
-import {
-  type SocialPlatformValue,
-  SocialPostList,
-  SocialPostRecord,
-  type SocialPostStatusValue,
-} from '@/lib/contracts/social';
+import { SocialPostList, type SocialPostRecord } from '@/lib/contracts/social';
 import {
   StoreItemCreate,
   StoreItemKind,
@@ -86,12 +83,6 @@ import {
 import { applyServerErrors } from '@/lib/forms';
 import { compressImageFile } from '@/lib/image';
 import { formatPromoDate, promoHeadline, promoTerms, promotionState } from '@/lib/promotions';
-import {
-  buildSocialCaption,
-  SOCIAL_PLATFORM_DEFS,
-  type SocialPlatformDef,
-  shareUrlFor,
-} from '@/lib/social';
 import { uploadImageFile } from '@/lib/uploads';
 
 function getErrorBody(error: unknown): unknown {
@@ -124,341 +115,9 @@ const kindLabels: Record<StoreItemRecord['kind'], string> = {
   SERVICE: 'Service',
 };
 
-const platformIcons: Record<SocialPlatformValue, LucideIcon> = {
-  TIKTOK: Music2,
-  INSTAGRAM: Camera,
-  FACEBOOK_PAGE: Megaphone,
-  WHATSAPP_STATUS: MessageCircle,
-};
-
-const statusStyles: Record<SocialPostStatusValue, string> = {
-  SHARED: 'bg-muted text-muted-foreground',
-  PUBLISHED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-};
-
-function platformDef(value: SocialPlatformValue): SocialPlatformDef {
-  const entry = SOCIAL_PLATFORM_DEFS.find((candidate) => candidate.value === value);
-  if (!entry) throw new Error(`Unknown social platform: ${value}`);
-  return entry;
-}
-
-function formatPostTime(value: string): string {
-  return new Date(value).toLocaleString('en-GH', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function PlatformBadge({ value }: { value: SocialPlatformValue }) {
-  const def = platformDef(value);
-  const Icon = platformIcons[def.value];
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-      <Icon aria-hidden className="size-3.5" /> {def.label}
-    </span>
-  );
-}
-
-function PublishDialog({
-  item,
-  store,
-  onLogged,
-  onClose,
-}: {
-  item: StoreItemRecord;
-  store: StoreRecord;
-  onLogged: (post: SocialPostRecord) => void;
-  onClose: () => void;
-}) {
-  const [platform, setPlatform] = useState<SocialPlatformValue | null>(null);
-  const [caption, setCaption] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const storefrontUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/store/${store.slug}`
-      : `/store/${store.slug}`;
-
-  function pick(entry: SocialPlatformDef) {
-    setPlatform(entry.value);
-    setCaption(buildSocialCaption(item, store.name, storefrontUrl, entry.value));
-  }
-
-  async function publish() {
-    if (!platform) return;
-    const def = platformDef(platform);
-    const target = shareUrlFor(platform, caption);
-    if (target) {
-      const opened = window.open(target, '_blank', 'noopener,noreferrer');
-      if (!opened) window.location.href = target;
-    }
-    setBusy(true);
-    try {
-      try {
-        await navigator.clipboard.writeText(caption);
-      } catch {
-        toast.warning('Copy failed — grab the caption from the box below');
-      }
-      const post = await apiFetch('/api/store/posts', {
-        method: 'POST',
-        body: JSON.stringify({ itemId: item.id, platform, caption }),
-        schema: SocialPostRecord,
-      });
-      onLogged(post);
-      toast.success(
-        target
-          ? `${def.label} opened — finish the post there`
-          : `Caption copied — paste it as your ${def.label}`,
-      );
-      onClose();
-    } catch {
-      toast.error('Could not log the post');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="grid gap-4">
-      {platform === null ? (
-        <div className="grid gap-2">
-          {SOCIAL_PLATFORM_DEFS.map((entry) => {
-            const Icon = platformIcons[entry.value];
-            return (
-              <button
-                key={entry.value}
-                type="button"
-                onClick={() => pick(entry)}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:bg-muted"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon aria-hidden className="size-5" />
-                </span>
-                <span className="flex-1">
-                  <span className="block text-sm font-semibold">{entry.label}</span>
-                  <span className="block text-xs text-muted-foreground">{entry.hint}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Back to platforms"
-              onClick={() => {
-                setPlatform(null);
-                setCaption('');
-              }}
-              className="size-9 rounded-full"
-            >
-              <ArrowLeft aria-hidden className="size-4" />
-            </Button>
-            <PlatformBadge value={platform} />
-          </div>
-          <div className="grid gap-2">
-            <label
-              htmlFor="publish-caption"
-              className="text-sm font-semibold text-muted-foreground"
-            >
-              Caption
-            </label>
-            <textarea
-              id="publish-caption"
-              value={caption}
-              onChange={(event) => setCaption(event.target.value)}
-              rows={6}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              We copy this and open {platformDef(platform).label} — posting stays hands-on. Tweak it
-              here first.
-            </p>
-          </div>
-          <Button
-            type="button"
-            disabled={busy || caption.trim().length === 0}
-            onClick={() => void publish()}
-            className="h-11 font-semibold"
-          >
-            <Share2 aria-hidden className="size-4" />
-            {busy ? 'Opening…' : `Copy & open ${platformDef(platform).label}`}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PublishLog({
-  posts,
-  onMarked,
-  onRemoved,
-}: {
-  posts: SocialPostRecord[];
-  onMarked: (post: SocialPostRecord) => void;
-  onRemoved: (postId: string) => void;
-}) {
-  const [markingUrl, setMarkingUrl] = useState<string | null>(null);
-  const [url, setUrl] = useState('');
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  async function markPosted(post: SocialPostRecord) {
-    setBusyId(post.id);
-    try {
-      const updated = await apiFetch(`/api/store/posts/${post.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'PUBLISHED', externalUrl: url.trim() || null }),
-        schema: SocialPostRecord,
-      });
-      onMarked(updated);
-      setMarkingUrl(null);
-      setUrl('');
-      toast.success('Marked as posted');
-    } catch {
-      toast.error('Could not save that');
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function removePost(post: SocialPostRecord) {
-    try {
-      await apiFetch(`/api/store/posts/${post.id}`, { method: 'DELETE' });
-      onRemoved(post.id);
-      toast.success('Removed from the log');
-    } catch {
-      toast.error('Could not remove');
-    }
-  }
-
-  function reopen(post: SocialPostRecord) {
-    const reopenUrl = shareUrlFor(post.platform, post.caption);
-    if (reopenUrl) {
-      const opened = window.open(reopenUrl, '_blank', 'noopener,noreferrer');
-      if (!opened) window.location.href = reopenUrl;
-      return;
-    }
-    void navigator.clipboard
-      .writeText(post.caption)
-      .then(() => toast.success('Caption copied'))
-      .catch(() => toast.warning('Copy failed — select the caption yourself'));
-  }
-
-  if (posts.length === 0) {
-    return (
-      <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
-        <p className="font-semibold">Nothing pushed yet</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Tap Share on an item and it lands here.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-5 grid gap-3">
-      {posts.map((post) => {
-        const Icon = platformIcons[post.platform];
-        return (
-          <div key={post.id} className="rounded-xl border border-border bg-card p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <PlatformBadge value={post.platform} />
-              <span className="min-w-0 truncate text-sm font-semibold">{post.itemName}</span>
-              <span
-                className={`ml-auto rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider ${statusStyles[post.status]}`}
-              >
-                {post.status === 'PUBLISHED' ? 'Posted' : 'Shared'}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {formatPostTime(post.createdAt)}
-              </span>
-            </div>
-            <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm text-muted-foreground">
-              {post.caption}
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {post.status === 'PUBLISHED' && post.externalUrl ? (
-                <Button
-                  asChild
-                  variant="outline"
-                  className="h-9 rounded-full text-xs font-semibold"
-                >
-                  <a href={post.externalUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink aria-hidden className="size-3.5" /> View post
-                  </a>
-                </Button>
-              ) : markingUrl === post.id ? (
-                <>
-                  <Input
-                    value={url}
-                    onChange={(event) => setUrl(event.target.value)}
-                    placeholder="Paste the post link…"
-                    className="h-9 min-w-0 flex-1 rounded-full text-sm"
-                  />
-                  <Button
-                    type="button"
-                    disabled={busyId === post.id}
-                    onClick={() => void markPosted(post)}
-                    className="h-9 rounded-full font-semibold"
-                  >
-                    {busyId === post.id ? 'Saving…' : 'Done'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setMarkingUrl(null);
-                      setUrl('');
-                    }}
-                    className="h-9 rounded-full text-xs font-semibold"
-                  >
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => reopen(post)}
-                    className="h-9 rounded-full text-xs font-semibold"
-                  >
-                    <Icon aria-hidden className="size-3.5" /> Reopen
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setMarkingUrl(post.id)}
-                    className="h-9 rounded-full text-xs font-semibold"
-                  >
-                    Mark posted
-                  </Button>
-                </>
-              )}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Remove from log"
-                onClick={() => void removePost(post)}
-                className="ml-auto size-9 rounded-full text-red-600 hover:text-red-700"
-              >
-                <Trash2 aria-hidden className="size-4" />
-              </Button>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// Radix Select will not accept "" as an <SelectItem value>, so "no shelf" is
+// spelled out here and converted back to null when the payload is built.
+const NO_CATEGORY = '__none__';
 
 function StoreForm({
   initial,
@@ -665,12 +324,122 @@ function StoreForm({
   );
 }
 
-function ItemForm({
+// Shelf-heading editor. A category is just a name plus an on/off switch, so
+// this stays a one-field dialog rather than the full ItemForm machinery.
+function CategoryForm({
   initial,
   onSaved,
   onClose,
 }: {
+  initial: CategoryRecord | null;
+  onSaved: (category: CategoryRecord) => void;
+  onClose: () => void;
+}) {
+  const schema = initial ? CategoryUpdate : CategoryCreate;
+  type SchemaInput = z.input<typeof schema>;
+
+  const form = useForm<SchemaInput, unknown>({
+    resolver: zodResolver(schema),
+    defaultValues: initial
+      ? { name: initial.name, active: initial.active, sortOrder: initial.sortOrder }
+      : { name: '', active: true },
+  });
+
+  async function onSubmit(values: SchemaInput) {
+    try {
+      const saved = initial
+        ? await apiFetch(`/api/store/categories/${initial.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(values),
+            schema: CategorySchema,
+          })
+        : await apiFetch('/api/store/categories', {
+            method: 'POST',
+            body: JSON.stringify(values),
+            schema: CategorySchema,
+          });
+      onSaved(saved);
+      toast.success(initial ? 'Category updated' : 'Category added');
+    } catch (error) {
+      const applied = applyServerErrors(getErrorBody(error), form.setError);
+      if (!applied) toast.error('Could not save the category');
+      return;
+    }
+    onClose();
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category name</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Beads, Wall art, Custom orders…"
+                  {...field}
+                  className="rounded-2xl"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="active"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
+              <div>
+                <FormLabel className="!mt-0">Show on the public page</FormLabel>
+                <p className="text-xs text-muted-foreground">
+                  Hiding a shelf also hides every product on it.
+                </p>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-label="Show on the public page"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            className="h-11 rounded-full font-semibold"
+          >
+            {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save category' : 'Add category'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="h-11 rounded-full font-semibold"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+function ItemForm({
+  initial,
+  categories,
+  onSaved,
+  onClose,
+}: {
   initial: StoreItemRecord | null;
+  categories: CategoryRecord[];
   onSaved: (item: StoreItemRecord) => void;
   onClose: () => void;
 }) {
@@ -682,6 +451,9 @@ function ItemForm({
     initial?.compareAtPricePesewas != null ? pesewasToCedis(initial.compareAtPricePesewas) : '',
   );
   const [image, setImage] = useState<ImageSelection>(emptyImageSelection);
+  // Held outside react-hook-form like the price fields: the shelf is optional
+  // and Radix Select refuses "" as an item value, so it needs a sentinel.
+  const [categoryId, setCategoryId] = useState<string>(initial?.categoryId ?? NO_CATEGORY);
   const imageUrl = initial?.hasImage ? `/api/public/store/items/${initial.id}/image` : null;
 
   const schema = initial ? StoreItemUpdate : StoreItemCreate;
@@ -728,6 +500,7 @@ function ItemForm({
     const payload = {
       ...values,
       description: cleanOptional((values as { description?: string }).description),
+      categoryId: categoryId === NO_CATEGORY ? null : categoryId,
       pricePesewas: amountPesewas,
       compareAtPricePesewas,
       costPricePesewas,
@@ -814,6 +587,29 @@ function ItemForm({
             )}
           />
         </div>
+        <FormItem>
+          <Label>Category</Label>
+          <div>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger className="rounded-2xl" aria-label="Category">
+                <SelectValue placeholder="Choose a shelf" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_CATEGORY}>No category</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                    {!category.active ? ' (hidden)' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Group products so shoppers can browse by shelf —
+            {categories.length === 0 ? ' create one first.' : ' customers see these as sections.'}
+          </p>
+        </FormItem>
         <div className="grid gap-4 sm:grid-cols-2">
           <FormItem>
             <Label>Price (cedis)</Label>
@@ -1235,7 +1031,27 @@ export function StoreWorkspace() {
     open: boolean;
     editing: PromotionRecord | null;
   }>({ open: false, editing: null });
+  const [categoryDialog, setCategoryDialog] = useState<{
+    open: boolean;
+    editing: CategoryRecord | null;
+  }>({ open: false, editing: null });
   const [copied, setCopied] = useState(false);
+
+  // The catalogue renders grouped by shelf, so bucket the flat item list once
+  // per store change rather than re-scanning it inside the JSX.
+  const catalogueGroups = useMemo(() => {
+    const ordered = [...(store?.categories ?? [])].sort(
+      (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name),
+    );
+    const buckets = ordered.map((category) => ({ category, items: [] as StoreItemRecord[] }));
+    const loose: StoreItemRecord[] = [];
+    for (const item of store?.items ?? []) {
+      const bucket = buckets.find((entry) => entry.category.id === item.categoryId);
+      if (bucket) bucket.items.push(item);
+      else loose.push(item);
+    }
+    return { buckets, loose };
+  }, [store]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1316,6 +1132,58 @@ export function StoreWorkspace() {
     }
   }
 
+  async function toggleCategory(category: CategoryRecord) {
+    try {
+      const updated = await apiFetch(`/api/store/categories/${category.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active: !category.active }),
+        schema: CategorySchema,
+      });
+      saveCategory(updated);
+      toast.success(updated.active ? 'Category is live' : 'Category hidden');
+    } catch {
+      toast.error('Could not update the category');
+    }
+  }
+
+  function saveCategory(category: CategoryRecord) {
+    setStore((current) => {
+      if (!current) return current;
+      const exists = current.categories.some((entry) => entry.id === category.id);
+      return {
+        ...current,
+        categories: exists
+          ? current.categories.map((entry) => (entry.id === category.id ? category : entry))
+          : [...current.categories, category],
+      };
+    });
+  }
+
+  async function deleteCategory(category: CategoryRecord) {
+    try {
+      await apiFetch(`/api/store/categories/${category.id}`, { method: 'DELETE' });
+      // The API refuses a delete while products are on the shelf, so by here the
+      // heading is empty — but belt and braces: any stray reference falls back
+      // to "Uncategorised" instead of vanishing.
+      setStore((current) =>
+        current
+          ? {
+              ...current,
+              categories: current.categories.filter((entry) => entry.id !== category.id),
+              items: current.items.map((item) =>
+                item.categoryId === category.id ? { ...item, categoryId: null } : item,
+              ),
+            }
+          : current,
+      );
+      toast.success('Category removed');
+    } catch (error) {
+      // A non-empty delete answers 409 with the exact count to move.
+      const body = getErrorBody(error) as { error?: string } | undefined;
+      toast.error(typeof body?.error === 'string' ? body.error : 'Could not remove the category');
+    }
+  }
+
   function savePromo(promo: PromotionRecord) {
     setPromotions((current) =>
       current == null
@@ -1374,6 +1242,88 @@ export function StoreWorkspace() {
         >
           Try again
         </Button>
+      </div>
+    );
+  }
+
+  // One product/service row. Extracted because the grouped catalogue renders it
+  // once per shelf plus a final uncategorised bucket.
+  function renderItem(item: StoreItemRecord) {
+    return (
+      <div
+        key={item.id}
+        className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
+      >
+        {item.hasImage ? (
+          <span className="size-12 shrink-0 overflow-hidden rounded-lg">
+            <img
+              src={`/api/public/store/items/${item.id}/image`}
+              alt=""
+              className="size-full object-cover"
+            />
+          </span>
+        ) : (
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            {item.kind === 'SERVICE' ? (
+              <Wrench aria-hidden className="size-5" />
+            ) : (
+              <Package aria-hidden className="size-5" />
+            )}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-sm font-semibold">{item.name}</span>
+            {!item.active && (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                Hidden
+              </span>
+            )}
+          </p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-primary">
+              {kindLabels[item.kind]}
+            </span>
+            <span className="font-mono text-sm font-semibold text-foreground">
+              {formatGhs(item.pricePesewas)}
+            </span>
+          </p>
+          {item.description && (
+            <p className="mt-1 truncate text-xs text-muted-foreground">{item.description}</p>
+          )}
+        </div>
+        <div className="flex shrink-0 gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Push ${item.name} to socials`}
+            onClick={() => setPublishItem(item)}
+            className="size-9 rounded-full"
+          >
+            <Share2 aria-hidden className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Edit ${item.name}`}
+            onClick={() => setItemDialog({ open: true, editing: item })}
+            className="size-9 rounded-full"
+          >
+            <Pencil aria-hidden className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Remove ${item.name}`}
+            onClick={() => void deleteItem(item)}
+            className="size-9 rounded-full text-red-600 hover:text-red-700"
+          >
+            <Trash2 aria-hidden className="size-4" />
+          </Button>
+        </div>
       </div>
     );
   }
@@ -1452,6 +1402,84 @@ export function StoreWorkspace() {
       </div>
 
       {store && (
+        <section id="categories" className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold">Categories</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                The shelves your products sit on — shoppers browse your page by these.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 font-semibold"
+              onClick={() => setCategoryDialog({ open: true, editing: null })}
+            >
+              <FolderPlus aria-hidden className="size-4" /> New category
+            </Button>
+          </div>
+
+          {store.categories.length === 0 ? (
+            <div className="mt-5 rounded-lg border border-dashed border-border px-5 py-8 text-center">
+              <p className="font-semibold">No categories yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Optional — but shelves are what keep a long catalogue browsable.
+              </p>
+            </div>
+          ) : (
+            <ul className="mt-5 grid gap-2">
+              {store.categories.map((category) => (
+                <li
+                  key={category.id}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-semibold">{category.name}</span>
+                      {!category.active && (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Hidden
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {category.itemCount} {category.itemCount === 1 ? 'product' : 'products'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={category.active}
+                    onCheckedChange={() => void toggleCategory(category)}
+                    aria-label={`Show ${category.name} on the public page`}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Edit ${category.name}`}
+                    onClick={() => setCategoryDialog({ open: true, editing: category })}
+                    className="size-9 rounded-full"
+                  >
+                    <Pencil aria-hidden className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Remove ${category.name}`}
+                    onClick={() => void deleteCategory(category)}
+                    className="size-9 rounded-full text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 aria-hidden className="size-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {store && (
         <section id="the-shelf" className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -1477,86 +1505,43 @@ export function StoreWorkspace() {
               </p>
             </div>
           ) : (
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {store.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
-                >
-                  {item.hasImage ? (
-                    <span className="size-12 shrink-0 overflow-hidden rounded-lg">
-                      <img
-                        src={`/api/public/store/items/${item.id}/image`}
-                        alt=""
-                        className="size-full object-cover"
-                      />
-                    </span>
-                  ) : (
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      {item.kind === 'SERVICE' ? (
-                        <Wrench aria-hidden className="size-5" />
-                      ) : (
-                        <Package aria-hidden className="size-5" />
-                      )}
-                    </span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="flex flex-wrap items-center gap-2">
-                      <span className="truncate text-sm font-semibold">{item.name}</span>
-                      {!item.active && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                          Hidden
+            <div className="mt-5 space-y-5">
+              {catalogueGroups.buckets
+                .filter((group) => group.items.length > 0)
+                .map((group) => (
+                  <div key={group.category.id}>
+                    <p className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <FolderPlus aria-hidden className="size-3.5 text-primary" />
+                      <span>{group.category.name}</span>
+                      {!group.category.active && (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold normal-case tracking-wide text-muted-foreground">
+                          Hidden from the public page
                         </span>
                       )}
-                    </p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-primary">
-                        {kindLabels[item.kind]}
-                      </span>
-                      <span className="font-mono text-sm font-semibold text-foreground">
-                        {formatGhs(item.pricePesewas)}
+                      <span className="font-mono normal-case">
+                        {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
                       </span>
                     </p>
-                    {item.description && (
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {item.description}
-                      </p>
-                    )}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {group.items.map((item) => renderItem(item))}
+                    </div>
                   </div>
-                  <div className="flex shrink-0 gap-1.5">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Push ${item.name} to socials`}
-                      onClick={() => setPublishItem(item)}
-                      className="size-9 rounded-full"
-                    >
-                      <Share2 aria-hidden className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Edit ${item.name}`}
-                      onClick={() => setItemDialog({ open: true, editing: item })}
-                      className="size-9 rounded-full"
-                    >
-                      <Pencil aria-hidden className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Remove ${item.name}`}
-                      onClick={() => void deleteItem(item)}
-                      className="size-9 rounded-full text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 aria-hidden className="size-4" />
-                    </Button>
+                ))}
+              {catalogueGroups.loose.length > 0 && (
+                <div>
+                  <p className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <FolderPlus aria-hidden className="size-3.5" />
+                    <span>Uncategorised</span>
+                    <span className="font-mono normal-case">
+                      {catalogueGroups.loose.length}{' '}
+                      {catalogueGroups.loose.length === 1 ? 'item' : 'items'}
+                    </span>
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {catalogueGroups.loose.map((item) => renderItem(item))}
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </section>
@@ -1768,6 +1753,7 @@ export function StoreWorkspace() {
           <ItemForm
             key={itemDialog.editing?.id ?? 'new'}
             initial={itemDialog.editing}
+            categories={store?.categories ?? []}
             onSaved={(item) => {
               setStore((current) =>
                 current
@@ -1807,6 +1793,30 @@ export function StoreWorkspace() {
             initial={promoDialog.editing}
             onSaved={savePromo}
             onClose={() => setPromoDialog({ open: false, editing: null })}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={categoryDialog.open}
+        onOpenChange={(open) => setCategoryDialog({ open, editing: null })}
+      >
+        <DialogContent className="rounded-xl sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {categoryDialog.editing ? 'Edit the category' : 'New category'}
+            </DialogTitle>
+            <DialogDescription>
+              {categoryDialog.editing
+                ? 'Rename the shelf or hide it from the public page.'
+                : 'A shelf heading shoppers can browse by — e.g. Beads or Wall art.'}
+            </DialogDescription>
+          </DialogHeader>
+          <CategoryForm
+            key={categoryDialog.editing?.id ?? 'new'}
+            initial={categoryDialog.editing}
+            onSaved={saveCategory}
+            onClose={() => setCategoryDialog({ open: false, editing: null })}
           />
         </DialogContent>
       </Dialog>

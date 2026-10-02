@@ -6,7 +6,7 @@ const db = vi.hoisted(() => ({
   prisma: {
     customer: { findFirst: vi.fn(), create: vi.fn() },
     store: { findFirst: vi.fn() },
-    storeItem: { findFirst: vi.fn() },
+    storeItem: { findMany: vi.fn(), findFirst: vi.fn() },
     order: { create: vi.fn() },
     notification: {
       findMany: vi.fn(),
@@ -57,10 +57,19 @@ beforeEach(() => {
   auth.requireAuth.mockResolvedValue({ id: 'staff-1', email: 'staff@example.test' });
 });
 
+// The public capture routes rate-limit per IP (5/min). Every order request here
+// claims to come from a different visitor, so the suite never trips its own
+// limiter no matter how many cases it grows to.
+let visitorCount = 0;
+function visitorIp() {
+  visitorCount += 1;
+  return `203.0.113.${visitorCount}`;
+}
+
 describe('public order placement', () => {
   it('places an order and creates the customer from the phone', async () => {
     db.prisma.store.findFirst.mockResolvedValue(store);
-    db.prisma.storeItem.findFirst.mockResolvedValue(item);
+    db.prisma.storeItem.findMany.mockResolvedValue([item]);
     db.prisma.customer.findFirst.mockResolvedValue(null);
     db.prisma.customer.create.mockResolvedValue(newCustomer);
     db.prisma.order.create.mockResolvedValue(order);
@@ -69,9 +78,9 @@ describe('public order placement', () => {
     const response = await POST(
       new Request('http://test/api/public/store/test/orders', {
         method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
         body: JSON.stringify({
-          itemId: 'item-1',
-          quantity: 1,
+          lines: [{ itemId: 'item-1', quantity: 1 }],
           customerName: 'Ama',
           phone: '024 111 2200',
         }),
@@ -114,7 +123,7 @@ describe('public order placement', () => {
     // The wall lookup is scoped by owner, so a customer of shop A is never
     // reused as shop B's customer (which would leak A's address and history).
     db.prisma.store.findFirst.mockResolvedValue(store);
-    db.prisma.storeItem.findFirst.mockResolvedValue(item);
+    db.prisma.storeItem.findMany.mockResolvedValue([item]);
     db.prisma.customer.findFirst.mockResolvedValue(null);
     db.prisma.customer.create.mockResolvedValue(newCustomer);
     db.prisma.order.create.mockResolvedValue(order);
@@ -123,7 +132,12 @@ describe('public order placement', () => {
     await POST(
       new Request('http://test/api/public/store/test/orders', {
         method: 'POST',
-        body: JSON.stringify({ itemId: 'item-1', customerName: 'Ama', phone: '024 111 2200' }),
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1' }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
       }),
       { params: Promise.resolve({ slug: 'test' }) },
     );
@@ -135,7 +149,7 @@ describe('public order placement', () => {
 
   it('reuses an existing regular instead of duplicating them', async () => {
     db.prisma.store.findFirst.mockResolvedValue(store);
-    db.prisma.storeItem.findFirst.mockResolvedValue(item);
+    db.prisma.storeItem.findMany.mockResolvedValue([item]);
     db.prisma.customer.findFirst.mockResolvedValue(existingCustomer);
     db.prisma.order.create.mockResolvedValue(order);
 
@@ -143,7 +157,12 @@ describe('public order placement', () => {
     const response = await POST(
       new Request('http://test/api/public/store/test/orders', {
         method: 'POST',
-        body: JSON.stringify({ itemId: 'item-1', customerName: 'Ama', phone: '024 111 2200' }),
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1' }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
       }),
       { params: Promise.resolve({ slug: 'test' }) },
     );
@@ -158,7 +177,12 @@ describe('public order placement', () => {
     const response = await POST(
       new Request('http://test/api/public/store/test/orders', {
         method: 'POST',
-        body: JSON.stringify({ itemId: 'item-1', quantity: 1, customerName: '', phone: '' }),
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 1 }],
+          customerName: '',
+          phone: '',
+        }),
       }),
       { params: Promise.resolve({ slug: 'test' }) },
     );
@@ -168,17 +192,91 @@ describe('public order placement', () => {
 
   it('keeps the stove cold for a missing item', async () => {
     db.prisma.store.findFirst.mockResolvedValue(store);
-    db.prisma.storeItem.findFirst.mockResolvedValue(null);
+    db.prisma.storeItem.findMany.mockResolvedValue([]);
     const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
     const response = await POST(
       new Request('http://test/api/public/store/test/orders', {
         method: 'POST',
-        body: JSON.stringify({ itemId: 'gone', customerName: 'Ama', phone: '024 111 2200' }),
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'gone' }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
       }),
       { params: Promise.resolve({ slug: 'test' }) },
     );
     expect(response.status).toBe(404);
     expect(db.prisma.order.create).not.toHaveBeenCalled();
+  });
+
+  it('prices a multi-line basket and snapshots every line', async () => {
+    const basketItem = {
+      id: 'item-2',
+      storeId: 'store-1',
+      name: 'Kente scarf',
+      active: true,
+      pricePesewas: 2500,
+      costPricePesewas: 1000,
+    };
+    const apron = { ...item, pricePesewas: 4550, costPricePesewas: 2000 };
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    // One query resolves the whole basket, so a hidden product anywhere in it
+    // fails the whole order instead of silently dropping a line.
+    db.prisma.storeItem.findMany.mockResolvedValue([apron, basketItem]);
+    db.prisma.customer.findFirst.mockResolvedValue(existingCustomer);
+    db.prisma.order.create.mockResolvedValue({ ...order, amountPesewas: 11600 });
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [
+            { itemId: 'item-1', quantity: 2 },
+            { itemId: 'item-2', quantity: 1 },
+          ],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(db.prisma.storeItem.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          storeId: 'store-1',
+          active: true,
+          id: { in: ['item-1', 'item-2'] },
+        }),
+      }),
+    );
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          // 2 x 45.50 + 1 x 25.00
+          amountPesewas: 11600,
+          description: '2x Branded apron, 1x Kente scarf',
+          lines: {
+            create: [
+              expect.objectContaining({
+                storeItemId: 'item-1',
+                quantity: 2,
+                unitPricePesewas: 4550,
+              }),
+              expect.objectContaining({
+                storeItemId: 'item-2',
+                quantity: 1,
+                unitPricePesewas: 2500,
+              }),
+            ],
+          },
+        }),
+      }),
+    );
   });
 });
 

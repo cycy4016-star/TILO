@@ -1,2 +1,19 @@
--- Make Professional the default platform look for fresh appearance rows.
-ALTER TABLE "AppearancePreference" ALTER COLUMN "appearance" SET DEFAULT 'professional';
+-- Intentionally empty.
+--
+-- This migration originally contained:
+--     ALTER TABLE "AppearancePreference" ALTER COLUMN "appearance" SET DEFAULT 'professional';
+-- but it is timestamped 2026-09-25T13:00 while the table it alters is only
+-- created by 20260926100000_add_appearance_preference (2026-09-26T10:00).
+-- Prisma applies migrations in timestamp order, so replaying this on a fresh
+-- database raised P1014 ("The underlying table for model AppearancePreference
+-- does not exist") and made `prisma migrate deploy` fail before it ever
+-- reached the migration that creates the table.
+--
+-- The statement now lives inside 20260926100000, applied immediately after
+-- the CREATE TABLE, so the column is born with the correct default and no
+-- separate ALTER is needed.
+--
+-- Recovery: if a database already recorded this migration under its previous
+-- content and now reports a checksum mismatch (P3009), re-baseline it with:
+--     npx prisma migrate resolve --applied 20260925130000_professional_default_appearance
+-- This migration is a no-op either way, so resolving it is always safe.

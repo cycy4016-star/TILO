@@ -4,15 +4,42 @@
 import { z } from 'zod';
 import { OrderItem } from '@/lib/contracts/order';
 
-// An order placed on the storefront, no account needed. Just item + qty +
-// who they are. Phones are normalised to E.164 server-side before saving.
-export const PublicOrderCreate = z.object({
+// One line in a storefront basket. The basket is a list of these, so a visitor
+// can push several products into one order instead of starting over each time.
+export const PublicOrderLine = z.object({
   itemId: z.string().trim().min(1, 'Item is required'),
   quantity: z.number().int('Quantity must be a whole number').min(1).max(99).default(1),
-  customerName: z.string().trim().min(1, 'Your name is needed').max(120, 'Name is too long'),
-  phone: z.string().trim().min(1, 'A phone number is needed').max(40, 'Phone is too long'),
-  note: z.string().trim().max(300, 'Keep the note under 300 characters').optional(),
 });
+
+// An order placed on the storefront, no account needed. Just the basket +
+// who they are. Phones are normalised to E.164 server-side before saving.
+export const PublicOrderCreate = z
+  .object({
+    lines: z
+      .array(PublicOrderLine)
+      .min(1, 'Add at least one item')
+      .max(20, 'Keep the basket to 20 different items'),
+    customerName: z.string().trim().min(1, 'Your name is needed').max(120, 'Name is too long'),
+    phone: z.string().trim().min(1, 'A phone number is needed').max(40, 'Phone is too long'),
+    note: z.string().trim().max(300, 'Keep the note under 300 characters').optional(),
+  })
+  .superRefine((value, ctx) => {
+    // Two lines for the same product would snapshot it twice in the order
+    // history; the cart maths that produces this should never manage it, so a
+    // crafted payload is a client bug worth surfacing rather than quietly
+    // doubling the total.
+    const seen = new Set<string>();
+    for (const [index, line] of value.lines.entries()) {
+      if (seen.has(line.itemId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['lines', index, 'itemId'],
+          message: 'That item is already in the basket',
+        });
+      }
+      seen.add(line.itemId);
+    }
+  });
 
 export const PublicOrderResult = z.object({
   ok: z.literal(true),

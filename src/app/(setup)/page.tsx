@@ -5,13 +5,12 @@ import {
   BadgeCheck,
   BarChart3,
   Boxes,
-  ClipboardList,
   Flame,
-  HeartHandshake,
-  MessagesSquare,
+  Images,
+  Link2,
+  MessageCircle,
+  ShoppingBasket,
   Store,
-  Truck,
-  Wallet,
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -38,29 +37,29 @@ const TICKER = [
 
 const TOOLKIT = [
   {
-    icon: MessagesSquare,
-    title: 'Chat inbox, organised',
-    body: 'Every WhatsApp thread becomes a trackable conversation — nothing slips through the cracks.',
-  },
-  {
-    icon: ClipboardList,
-    title: 'Orders with memory',
-    body: 'Quotes, jobs, and deliveries stay attached to the customer who asked for them.',
-  },
-  {
     icon: Boxes,
-    title: 'Stock that flags itself',
-    body: 'Low shelves raise their hand before your best seller runs dry mid-week.',
+    title: 'A shelf per category',
+    body: 'Group products under shelves you name — Beads, Wall art, Pantry — and reorder them with a tap.',
   },
   {
-    icon: Wallet,
-    title: 'Money, mobile-first',
-    body: 'Invoices and MoMo payments sit next to the work they belong to.',
+    icon: Images,
+    title: 'Photos that do the selling',
+    body: 'One picture and a short blurb per product, shown on your shop page exactly as you put them.',
   },
   {
-    icon: HeartHandshake,
-    title: 'Follow-up fuel',
-    body: 'A clear queue of who to nudge, when, and why — no more cold leads.',
+    icon: Link2,
+    title: 'One link to share',
+    body: 'Your shop lives at tilo.app/store/yourname — paste it into a bio, a status, or a reply to "how much?"',
+  },
+  {
+    icon: ShoppingBasket,
+    title: 'A basket, not a chat',
+    body: 'Customers add several items and check out once. The order arrives priced, itemised and totalled.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'WhatsApp and SMS stay',
+    body: 'Every product keeps a tap-to-message and tap-to-SMS line, so the conversation never goes dark.',
   },
   {
     icon: BarChart3,
@@ -69,20 +68,22 @@ const TOOLKIT = [
   },
 ];
 
-const WEEK = [
-  ['Mon', 'Map the chaos', 'We shadow your busiest day and sketch how work really flows.'],
-  ['Wed', 'Build your Tilo', 'Customers, orders, and queues get shaped around your trade.'],
-  ['Fri', 'Launch day', 'Your team runs a real market day on Tilo, with us by your side.'],
-];
-
-const DAYS = [
-  { label: 'M', id: 'mon', workday: true },
-  { label: 'T', id: 'tue', workday: true },
-  { label: 'W', id: 'wed', workday: true },
-  { label: 'T', id: 'thu', workday: true },
-  { label: 'F', id: 'fri', workday: true },
-  { label: 'S', id: 'sat', workday: false },
-  { label: 'S', id: 'sun', workday: false },
+const STEPS = [
+  [
+    '1',
+    'Add your products',
+    'Name, price, one photo each — then drop them onto the shelves you just named.',
+  ],
+  [
+    '2',
+    'Share your link',
+    'One shop link for your bio, your status, your flyers, and every "where can I see it?".',
+  ],
+  [
+    '3',
+    'Orders arrive',
+    'Multi-item baskets land in your dashboard with quantities and totals already worked out.',
+  ],
 ];
 
 export default function TiloHome() {
@@ -93,21 +94,21 @@ export default function TiloHome() {
         <div className="mx-auto max-w-6xl px-5 pb-14 pt-14 sm:px-8 sm:pb-16 sm:pt-20">
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              <Flame className="size-3.5 text-primary" aria-hidden /> New
+              <Flame className="size-3.5 text-primary" aria-hidden /> Self-serve
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              <Store className="size-3.5" aria-hidden /> Built for chat-led teams
+              <Store className="size-3.5" aria-hidden /> Live in minutes
             </span>
           </div>
 
           <h1 className="mt-8 max-w-3xl text-balance text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-            Chat. Sell.
+            List it. Share it.
             <br />
-            <span className="text-primary">Repeat.</span>
+            <span className="text-primary">Sell it.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg font-medium text-muted-foreground">
-            Tilo turns your buzzing WhatsApp into a business that runs itself — customers, orders,
-            stock, and follow-ups all in one calm place.
+            Tilo gives you a shop page for your products — shelves, photos, prices — plus one link
+            to share and a basket your customers fill themselves. WhatsApp and SMS stay attached.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
@@ -116,9 +117,9 @@ export default function TiloHome() {
               size="lg"
               className="h-14 w-full justify-center rounded-lg bg-primary px-8 text-base font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
             >
-              <a href="mailto:hello@tilo.app?subject=Put%20my%20business%20on%20Tilo">
-                Start on Tilo <ArrowRight aria-hidden className="size-4" />
-              </a>
+              <Link href="/signup">
+                Open your shop <ArrowRight aria-hidden className="size-4" />
+              </Link>
             </Button>
             <Button
               asChild
@@ -130,40 +131,19 @@ export default function TiloHome() {
             </Button>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-10">
-            <div className="sm:flex sm:items-center sm:gap-4">
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-                {DAYS.map((day) => (
-                  <div
-                    key={day.id}
-                    className={`flex aspect-square items-center justify-center rounded-md text-sm font-semibold sm:text-base ${
-                      day.workday
-                        ? 'bg-primary/10 text-primary'
-                        : 'border border-dashed border-border text-muted-foreground'
-                    }`}
-                  >
-                    {day.label}
-                  </div>
-                ))}
+          <div className="mt-12 flex flex-wrap gap-x-10 gap-y-6">
+            {[
+              ['2 min', 'to publish a product'],
+              ['1 link', 'to share everywhere'],
+              ['24/7', 'customers can order'],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <p className="text-3xl font-bold text-foreground">{value}</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {label}
+                </p>
               </div>
-              <p className="mt-3 max-w-[10rem] text-xs font-semibold uppercase tracking-widest text-muted-foreground sm:mt-0">
-                Your week, finally in tune
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-x-8 gap-y-4">
-              {[
-                ['120+', 'chats organised weekly'],
-                ['7 days', 'to go live'],
-                ['1', 'place for it all'],
-              ].map(([value, label]) => (
-                <div key={label}>
-                  <p className="text-3xl font-bold text-foreground">{value}</p>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    {label}
-                  </p>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
 
@@ -176,7 +156,7 @@ export default function TiloHome() {
       <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">The shift</p>
         <h2 className="mt-3 max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-          From messy inbox to <span className="text-primary">a system that works</span>
+          From “how much?” in the DMs to <span className="text-primary">a shop that answers</span>
         </h2>
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
@@ -184,10 +164,10 @@ export default function TiloHome() {
               Before Tilo
             </p>
             <ul className="mt-4 space-y-3 text-base font-medium text-muted-foreground sm:text-lg">
-              <li>“Who promised what on Tuesday?”</li>
-              <li>Quotes lost between voice notes</li>
-              <li>Stock surprises at the worst hour</li>
-              <li>Follow-ups living in someone&apos;s head</li>
+              <li>“How much again?” asked every day</li>
+              <li>Prices living in old status posts</li>
+              <li>Orders retyped by hand into a book</li>
+              <li>“Is it still available?” at midnight</li>
             </ul>
           </div>
           <div className="rounded-xl border border-primary/20 bg-primary/[0.06] p-6 sm:p-8">
@@ -195,10 +175,10 @@ export default function TiloHome() {
               <BadgeCheck className="size-4" aria-hidden /> With Tilo
             </p>
             <ul className="mt-4 space-y-3 text-base font-semibold sm:text-lg">
-              <li>Every promise has an owner and a date</li>
-              <li>Orders ride along with their customer</li>
-              <li>Low stock waves a flag early</li>
-              <li>The queue tells you who to call next</li>
+              <li>One shop link answers every price question</li>
+              <li>Shelves you rename in a tap</li>
+              <li>Multi-item baskets priced for you</li>
+              <li>Hide a shelf and its products go with it</li>
             </ul>
           </div>
         </div>
@@ -243,22 +223,22 @@ export default function TiloHome() {
         </div>
       </section>
 
-      {/* GO LIVE IN A WEEK */}
-      <section id="week" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 sm:px-8 sm:py-24">
+      {/* THREE STEPS */}
+      <section id="steps" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 sm:px-8 sm:py-24">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Go live in a week
+          Three steps
         </p>
         <h2 className="mt-3 max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-          From Monday chaos to <span className="text-primary">Friday launch</span>
+          From an empty page to <span className="text-primary">taking orders</span>
         </h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {WEEK.map(([day, title, body]) => (
+          {STEPS.map(([step, title, body]) => (
             <div
-              key={day}
+              key={step}
               className="relative overflow-hidden rounded-xl border border-border bg-card p-6 sm:p-8"
             >
               <p className="inline-flex rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
-                {day}
+                {step}
               </p>
               <h3 className="mt-4 text-2xl font-bold">{title}</h3>
               <p className="mt-2 font-medium text-muted-foreground">{body}</p>
@@ -266,9 +246,9 @@ export default function TiloHome() {
           ))}
         </div>
         <div className="mt-8 flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-foreground">
-          <Truck className="size-6 shrink-0 text-primary" aria-hidden />
+          <BadgeCheck className="size-6 shrink-0 text-primary" aria-hidden />
           <p className="font-medium">
-            We come to you. Real counters, real rush hour, real practice — not slides.
+            No site build, no agency and no code — your shop link works the moment you publish it.
           </p>
         </div>
       </section>
@@ -283,11 +263,11 @@ export default function TiloHome() {
             <Flame className="size-4" aria-hidden /> Your turn
           </p>
           <h2 className="mt-4 max-w-3xl text-balance text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-            Give us the messy inbox. We&apos;ll bring the system.
+            Put your shop up this afternoon.
           </h2>
           <p className="mt-5 max-w-xl text-lg font-medium text-background/70">
-            Tell us where work gets stuck today. In seven days, your whole team could be running on
-            one rhythm.
+            Add your products, share one link, and take orders that arrive already priced, itemised
+            and totalled.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <Button
@@ -295,9 +275,9 @@ export default function TiloHome() {
               size="lg"
               className="h-14 w-full justify-center rounded-lg bg-primary px-8 text-base font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
             >
-              <a href="mailto:hello@tilo.app?subject=Put%20my%20business%20on%20Tilo">
-                Get Tilo <ArrowRight aria-hidden className="size-4" />
-              </a>
+              <Link href="/signup">
+                Open your shop <ArrowRight aria-hidden className="size-4" />
+              </Link>
             </Button>
             <Button
               asChild

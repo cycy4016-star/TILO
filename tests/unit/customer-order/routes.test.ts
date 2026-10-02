@@ -373,6 +373,9 @@ describe('store routes', () => {
     promoBanner: null,
     contactPhone: '024 000 0000',
     active: true,
+    // The manager payload always carries the shelf headings (with their item
+    // counts) — serializeStore() cannot parse a row without them.
+    categories: [],
     createdAt: new Date('2026-09-21T00:00:00.000Z'),
     updatedAt: new Date('2026-09-21T00:00:00.000Z'),
   };
@@ -382,6 +385,7 @@ describe('store routes', () => {
     kind: 'PRODUCT' as const,
     name: 'Branded apron',
     description: null,
+    categoryId: null,
     pricePesewas: 4550,
     costPricePesewas: null,
     compareAtPricePesewas: null,

@@ -7,29 +7,20 @@ import { NextResponse } from 'next/server';
 import { StoreUpsert } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStore } from '@/lib/store-serializers';
+import { serializeStore, storeInclude } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
-const ITEM_ORDER: Prisma.StoreItemOrderByWithRelationInput[] = [
-  { sortOrder: 'asc' },
-  { name: 'asc' },
-];
-
-// Canonical include so create/update in GET/PUT stay in one serializable shape.
-const storeWithItems = Prisma.validator<Prisma.StoreDefaultArgs>()({
-  include: { items: { orderBy: ITEM_ORDER } },
-});
-type StoreWithItems = Prisma.StoreGetPayload<typeof storeWithItems>;
+type StoreWithItems = Prisma.StoreGetPayload<typeof storeInclude>;
 
 export async function GET(request: Request) {
   try {
     const user = await requireAuth(request);
-    // Tenancy: resolved through Store.userId (unique) — never a global
+    // Tenancy: resolved through Store.userId (unique) â€” never a global
     // findFirst, which would hand the caller whichever shop happened to be first.
     const store = await prisma.store.findUnique({
       where: { userId: user.id },
-      include: { items: { orderBy: ITEM_ORDER } },
+      ...storeInclude,
     });
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
 
@@ -60,18 +51,18 @@ export async function PUT(request: Request) {
         ? await prisma.store.update({
             where: { id: existing.id },
             data,
-            ...storeWithItems,
+            ...storeInclude,
           })
         : await prisma.store.create({
             // One storefront per account: userId is stamped from the session and
             // is unique, so a second sign-up can never hijack this shop's URL.
             data: { ...data, userId: user.id },
-            ...storeWithItems,
+            ...storeInclude,
           });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json(
-          { errors: { slug: 'That link is already taken — try another' } },
+          { errors: { slug: 'That link is already taken â€” try another' } },
           { status: 409 },
         );
       }

@@ -8,8 +8,7 @@ import { SmsDispatch, SmsUsageOverview } from '@/lib/contracts/sms';
 describe('public-store contracts', () => {
   it('accepts a valid storefront order', () => {
     const result = PublicOrderCreate.safeParse({
-      itemId: 'item-1',
-      quantity: 2,
+      lines: [{ itemId: 'item-1', quantity: 2 }],
       customerName: 'Ama',
       phone: '024 111 2200',
       note: '  ',
@@ -17,23 +16,55 @@ describe('public-store contracts', () => {
     expect(result.success).toBe(true);
   });
 
-  it('defaults quantity to one', () => {
-    const result = PublicOrderCreate.parse({
-      itemId: 'item-1',
+  it('takes several lines in one basket', () => {
+    const parsed = PublicOrderCreate.parse({
+      lines: [{ itemId: 'item-1', quantity: 2 }, { itemId: 'item-2' }],
       customerName: 'Ama',
       phone: '024 111 2200',
     });
-    expect(result.quantity).toBe(1);
+    expect(parsed.lines).toHaveLength(2);
+    expect(parsed.lines[1]?.quantity).toBe(1);
+  });
+
+  it('requires at least one line', () => {
+    expect(
+      PublicOrderCreate.safeParse({
+        lines: [],
+        customerName: 'Ama',
+        phone: '024 111 2200',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects the same product twice in one basket', () => {
+    const result = PublicOrderCreate.safeParse({
+      lines: [
+        { itemId: 'item-1', quantity: 1 },
+        { itemId: 'item-1', quantity: 3 },
+      ],
+      customerName: 'Ama',
+      phone: '024 111 2200',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.lines?.[0]).toContain('already in the basket');
+    }
   });
 
   it('rejects surly quantities', () => {
     expect(
-      PublicOrderCreate.safeParse({ itemId: 'x', quantity: 0, customerName: 'Ama', phone: 'p' })
-        .success,
+      PublicOrderCreate.safeParse({
+        lines: [{ itemId: 'x', quantity: 0 }],
+        customerName: 'Ama',
+        phone: 'p',
+      }).success,
     ).toBe(false);
     expect(
-      PublicOrderCreate.safeParse({ itemId: 'x', quantity: 100, customerName: 'Ama', phone: 'p' })
-        .success,
+      PublicOrderCreate.safeParse({
+        lines: [{ itemId: 'x', quantity: 100 }],
+        customerName: 'Ama',
+        phone: 'p',
+      }).success,
     ).toBe(false);
   });
 

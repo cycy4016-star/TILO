@@ -3,7 +3,7 @@
 
 export const siteName = 'Tilo';
 export const siteDescription =
-  'The vibrant workspace for chat-led businesses — customers, orders, and follow-up in one place.';
+  'A shareable shop page for your products — categories, photos and prices, a basket customers fill themselves, and orders that land itemised in your dashboard.';
 
 // PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
 // readable here) — set to match your brand seed.
