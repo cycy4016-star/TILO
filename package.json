@@ -2,7 +2,7 @@
   "name": "tilo",
   "version": "0.1.0",
   "private": true,
-  "description": "Tilo — WhatsApp-led business operations workspace",
+  "description": "Tilo — a hosted shop page with categories, photos and a basket customers order from",
   "engines": {
     "node": ">=20.18.1"
   },
@@ -16,7 +16,7 @@
     "format": "biome format --write",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:postgres": "node --test tests/integration/",
+    "test:postgres": "node --test \"tests/integration/**/*.test.mjs\"",
     "db:generate": "prisma generate",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
