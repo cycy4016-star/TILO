@@ -111,6 +111,127 @@ export const AUTOMATION_KIND_META: Record<AutomationKindValue, AutomationKindMet
   },
 };
 
+// Tap-first options. The switchboard renders these as <Select> lists so wiring a
+// rule is picking, not typing. The engine reads the SAME tables
+// (src/lib/automation.ts) so the picker and the sender can never drift apart.
+
+// "How long do I wait" — the old free-text number box. Every entry is a value
+// the contract already accepts (1..1440 whole hours).
+export const WAIT_PRESETS = [
+  { hours: 2, label: '2 hours' },
+  { hours: 6, label: '6 hours' },
+  { hours: 12, label: '12 hours' },
+  { hours: 24, label: '1 day' },
+  { hours: 48, label: '2 days' },
+  { hours: 72, label: '3 days' },
+  { hours: 168, label: '1 week' },
+  { hours: 336, label: '2 weeks' },
+  { hours: 720, label: '30 days' },
+] as const;
+
+// Message text per kind. `template: ''` means "use Tilo's wording" — that is
+// deliberately the empty string so the server default keeps owning the copy and
+// an update to the house text reaches every shop that never overrode it. The
+// other entries are the tap-to-send rewrites; 'CUSTOM' reveals the textarea.
+export const CUSTOM_MESSAGE = 'CUSTOM';
+
+export type MessagePreset = {
+  id: string;
+  label: string;
+  template: string;
+};
+
+export const MESSAGE_PRESETS: Record<AutomationKindValue, MessagePreset[]> = {
+  SMS_NUDGE: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'friendly',
+      label: 'Friendly check-in',
+      template:
+        'Hi {customerName}, just checking on order {orderNumber} — is everything still on track? - Tilo',
+    },
+    {
+      id: 'urgent',
+      label: 'Firm but kind',
+      template:
+        'Hello {customerName}, order {orderNumber} is still {statusLabel}. Can we confirm when you will be able to take it? - Tilo',
+    },
+  ],
+  STATUS_FLIP: [],
+  READY_PING: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'pickup',
+      label: 'Ready for pickup',
+      template:
+        'Hello {customerName}, order {orderNumber} is ready — come and collect it whenever suits you! - Tilo',
+    },
+  ],
+  STALL_ALERT: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'short',
+      label: 'Short alert',
+      template: 'Order {orderNumber} ({customerName}) has been {statusLabel} too long - Tilo',
+    },
+  ],
+  PAYMENT_CONFIRMED: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'thanks',
+      label: 'Warm thank-you',
+      template:
+        'Thank you {customerName}! We have received {amount} for order {orderNumber}. - Tilo',
+    },
+  ],
+  PAYMENT_REMINDER: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'polite',
+      label: 'Polite nudge',
+      template:
+        'Hello {customerName}, {amount} is still outstanding on order {orderNumber}. No rush - just so you know. - Tilo',
+    },
+    {
+      id: 'holding',
+      label: 'Order on hold',
+      template:
+        'Hi {customerName}, we are holding order {orderNumber} ({amount}) until payment clears. - Tilo',
+    },
+  ],
+  REVIEW_REQUEST: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'rating',
+      label: '1–5 rating',
+      template:
+        'Hello {customerName}, thanks for taking order {orderNumber}! Rate us 1-5 with a reply. - Tilo',
+    },
+  ],
+  RE_ENGAGE: [
+    { id: 'default', label: 'Tilo’s wording', template: '' },
+    {
+      id: 'offer',
+      label: 'Come back offer',
+      template:
+        'Hello {customerName}, it has been a while! We would love to have you back - reply and we will send you our latest. - Tilo',
+    },
+  ],
+};
+
+// Suggested rule names so "Name this rule" starts filled in for anyone who does
+// not want to invent one. Purely a default — the field stays editable.
+export const KIND_NAME_SUGGESTION: Record<AutomationKindValue, string> = {
+  SMS_NUDGE: 'Nudge orders waiting too long',
+  STATUS_FLIP: 'Auto-advance orders',
+  READY_PING: 'Text when an order is done',
+  STALL_ALERT: 'Alert me about stuck orders',
+  PAYMENT_CONFIRMED: 'Thank customers who pay',
+  PAYMENT_REMINDER: 'Chase unpaid orders',
+  REVIEW_REQUEST: 'Ask for a review after delivery',
+  RE_ENGAGE: 'Win back quiet customers',
+};
+
 const AutomationRuleBase = z.object({
   name: z.string().trim().min(1, 'Give the rule a name').max(60, 'Name is too long'),
   kind: AutomationKind,

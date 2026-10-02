@@ -49,6 +49,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { useSession } from '@/lib/auth-client';
 import {
   AUTOMATION_KIND_META,
   AutomationEventList,
@@ -58,8 +59,12 @@ import {
   AutomationRuleItem,
   AutomationRuleList,
   AutomationSweepResult,
+  CUSTOM_MESSAGE,
   type AutomationEventItem as EventRecord,
+  KIND_NAME_SUGGESTION,
+  MESSAGE_PRESETS,
   type AutomationRuleItem as RuleRecord,
+  WAIT_PRESETS,
 } from '@/lib/contracts/automation';
 import { OrderStatus } from '@/lib/contracts/order';
 import { applyServerErrors } from '@/lib/forms';
@@ -115,6 +120,13 @@ function humanizeHours(hours: number) {
     : `${Math.floor(hours / 24)}d ${hours % 24 ? `${hours % 24}h` : ''}`;
 }
 
+// Which preset (if any) the stored message text is, so the picker opens on the
+// right row. Text that matches nothing is the shop's own wording.
+function resolveMessageMode(message: string, kind: AutomationKindValue): string {
+  const presets = MESSAGE_PRESETS[kind] ?? [];
+  return presets.find((preset) => preset.template === message)?.id ?? CUSTOM_MESSAGE;
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('en-GH', { dateStyle: 'medium', timeStyle: 'short' }).format(
     new Date(value),
@@ -130,6 +142,8 @@ function RuleForm({
   onSaved: (rule: RuleRecord) => void;
   onCancelled: () => void;
 }) {
+  const { data: session } = useSession();
+  const myPhone = session?.user?.phoneNumber ?? '';
   const form = useForm<
     z.input<typeof AutomationRuleCreate>,
     unknown,
@@ -148,7 +162,7 @@ function RuleForm({
           enabled: rule.enabled,
         }
       : {
-          name: '',
+          name: KIND_NAME_SUGGESTION.SMS_NUDGE,
           kind: 'SMS_NUDGE',
           triggerStatus: 'PENDING',
           waitHours: 24,
@@ -162,6 +176,34 @@ function RuleForm({
   const kind = form.watch('kind');
   const isEditing = Boolean(rule);
   const meta = AUTOMATION_KIND_META[kind] as AutomationKindMeta;
+  const messagePresets = MESSAGE_PRESETS[kind] ?? [];
+  const storedMessage = rule?.message ?? '';
+  const [messageMode, setMessageMode] = useState(() =>
+    resolveMessageMode(storedMessage, rule?.kind ?? 'SMS_NUDGE'),
+  );
+  const [recipientMode, setRecipientMode] = useState<'me' | 'custom'>(() =>
+    rule?.recipient && rule.recipient !== myPhone ? 'custom' : 'me',
+  );
+
+  // The stall alert goes to a phone — almost always the shop owner's own. So the
+  // common case is one tap ("my number") and the keyboard only opens for the
+  // rare shop that alerts a colleague.
+  useEffect(() => {
+    if (recipientMode === 'me' && myPhone && !form.getValues('recipient')) {
+      form.setValue('recipient', myPhone);
+    }
+  }, [form, myPhone, recipientMode]);
+
+  // A rule saved before the presets existed may hold a wait time that is not in
+  // the list; keep it selectable instead of silently rewriting it.
+  const waitHours = form.watch('waitHours');
+  const waitOptions =
+    WAIT_PRESETS.some((preset) => preset.hours === waitHours) || !waitHours
+      ? WAIT_PRESETS
+      : [
+          ...WAIT_PRESETS,
+          { hours: waitHours, label: `${humanizeHours(waitHours)} (your last value)` },
+        ];
 
   async function onSubmit(values: z.output<typeof AutomationRuleCreate>) {
     try {
@@ -182,10 +224,26 @@ function RuleForm({
   }
 
   function switchKind(next: AutomationKindValue) {
+    const previous = kind;
     form.setValue('kind', next);
     const nextMeta = AUTOMATION_KIND_META[next];
     if (nextMeta.requiresStatus && !form.getValues('triggerStatus')) {
       form.setValue('triggerStatus', nextMeta.defaultStatus);
+    }
+    // Offer the new automation's wording, but never throw away text the shop
+    // typed itself.
+    const current = form.getValues('message') ?? '';
+    if (!current || resolveMessageMode(current, previous) !== CUSTOM_MESSAGE) {
+      form.setValue('message', MESSAGE_PRESETS[next]?.[0]?.template ?? '');
+      setMessageMode(MESSAGE_PRESETS[next]?.[0]?.id ?? CUSTOM_MESSAGE);
+    } else {
+      setMessageMode(CUSTOM_MESSAGE);
+    }
+    if (!isEditing) {
+      const name = form.getValues('name');
+      if (!name || name === KIND_NAME_SUGGESTION[previous]) {
+        form.setValue('name', KIND_NAME_SUGGESTION[next]);
+      }
     }
   }
 
@@ -239,9 +297,23 @@ function RuleForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{waitLabel(kind)}</FormLabel>
-                <FormControl>
-                  <Input type="number" min={1} {...field} className="rounded-2xl" />
-                </FormControl>
+                <Select
+                  value={String(field.value ?? '')}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <FormControl>
+                    <SelectTrigger className="rounded-2xl">
+                      <SelectValue placeholder="Pick how long" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {waitOptions.map((preset) => (
+                      <SelectItem key={preset.hours} value={String(preset.hours)}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -280,9 +352,40 @@ function RuleForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Alert phone (your WhatsApp number)</FormLabel>
-                <FormControl>
-                  <Input placeholder="+233 24 000 0000" {...field} className="rounded-2xl" />
-                </FormControl>
+                <Select
+                  value={recipientMode}
+                  onValueChange={(value) => {
+                    const mode = value === 'custom' ? 'custom' : 'me';
+                    setRecipientMode(mode);
+                    if (mode === 'me') {
+                      field.onChange(myPhone);
+                    } else if (!field.value) {
+                      field.onChange('');
+                    }
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className="rounded-2xl">
+                      <SelectValue placeholder="Pick a number" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="me" disabled={!myPhone}>
+                      {myPhone ? `My number — ${myPhone}` : 'My number (not set yet)'}
+                    </SelectItem>
+                    <SelectItem value="custom">A different number</SelectItem>
+                  </SelectContent>
+                </Select>
+                {recipientMode === 'custom' && (
+                  <Input
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="+233 24 000 0000"
+                    {...field}
+                    value={field.value ?? ''}
+                    className="rounded-2xl"
+                  />
+                )}
                 <FormDescription>Where alerts are sent when an order stalls.</FormDescription>
                 <FormMessage />
               </FormItem>
@@ -322,17 +425,43 @@ function RuleForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Message</FormLabel>
-                <FormControl>
+                <Select
+                  value={messageMode}
+                  onValueChange={(value) => {
+                    setMessageMode(value);
+                    if (value !== CUSTOM_MESSAGE) {
+                      const preset = messagePresets.find((entry) => entry.id === value);
+                      field.onChange(preset?.template ?? '');
+                    }
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className="rounded-2xl">
+                      <SelectValue placeholder="Pick a message" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {messagePresets.map((preset) => (
+                      <SelectItem key={preset.id} value={preset.id}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={CUSTOM_MESSAGE}>Write my own</SelectItem>
+                  </SelectContent>
+                </Select>
+                {messageMode === CUSTOM_MESSAGE && (
                   <Textarea
                     rows={3}
                     placeholder={messagePlaceholder}
                     {...field}
+                    value={field.value ?? ''}
                     className="rounded-2xl"
                   />
-                </FormControl>
+                )}
                 <FormDescription>
                   Uses {`{customerName} {orderNumber} {description} {statusLabel}`}. For payment
-                  rules add {`{amount}`} (renders as GHS). Left empty for the house default.
+                  rules add {`{amount}`} (renders as GHS). Tilo&rsquo;s wording updates on its own,
+                  so most shops never need to write a message.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

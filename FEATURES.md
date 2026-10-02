@@ -197,6 +197,17 @@ where it lives, and what is deliberately not built yet.
   | `PAYMENT_REMINDER` | Chase an unpaid order that has an amount. |
   | `REVIEW_REQUEST` | Ask for a review after delivery. |
   | `RE_ENGAGE` | Win back customers with no order in weeks. |
+- **Tap-first rule builder** — every field a rule needs is a picker, so wiring an
+  automation takes taps, not typing. Name starts pre-filled from the kind
+  (`KIND_NAME_SUGGESTION`), wait time picks from `WAIT_PRESETS` (2h → 30 days, and a
+  rule saved with a non-preset value keeps that value as its own row), the message
+  picks from `MESSAGE_PRESETS` (Tilo's wording + ready rewrites per kind), and the
+  stall-alert phone defaults to "my number" from the session with "a different
+  number" as the escape hatch. Only "Write my own" opens a keyboard. Those tables
+  live in the client-safe contract and `src/lib/automation.ts` reads the SAME
+  `MESSAGE_PRESETS` for its house wording, so the picker and the sender cannot
+  drift — and because the default is the empty string, improving Tilo's copy
+  reaches every shop that never overrode it.
 - Per-rule: name, trigger status, wait time (hours), message template, recipient,
   target status, enabled toggle. Cross-field validation picks the right fields
   per kind.

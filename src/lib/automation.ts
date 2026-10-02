@@ -19,6 +19,7 @@
 import 'server-only';
 
 import type { AutomationRule, Customer, Order, OrderStatus, Prisma } from '@prisma/client';
+import { type AutomationKindValue, MESSAGE_PRESETS } from '@/lib/contracts/automation';
 import { prisma } from '@/lib/db';
 import { env } from '@/lib/env';
 import { isSmsConfigured, sendSms } from '@/lib/sms';
@@ -38,20 +39,14 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELLED: 'cancelled',
 };
 
-const DEFAULT_MESSAGES = {
-  SMS_NUDGE:
-    'Hello {customerName}, your order {orderNumber} is still {statusLabel}. Reply and we will get it moving - Tilo',
-  READY_PING: 'Hello {customerName}, great news — order {orderNumber} is ready for pickup! - Tilo',
-  STALL_ALERT:
-    'Heads up: order {orderNumber} ({customerName}) has been {statusLabel} for too long. Deal with it - Tilo',
-  PAYMENT_CONFIRMED:
-    'Hello {customerName}, payment {amount} for order {orderNumber} received — thank you! - Tilo',
-  PAYMENT_REMINDER:
-    'Hello {customerName}, gentle reminder that {amount} is still owed for order {orderNumber}. We keep your order for pickup - Tilo',
-  REVIEW_REQUEST:
-    'Hello {customerName}, how was order {orderNumber}? Reply 1-5 so we do better - Tilo',
-  RE_ENGAGE: 'Hello {customerName}, been a while! Want us to fire something fresh for you? - Tilo',
-} as const;
+// The house wording lives in the client-safe contract so the switchboard's
+// tap-to-pick message list and the engine that actually sends can never drift.
+const DEFAULT_MESSAGES = Object.fromEntries(
+  Object.entries(MESSAGE_PRESETS).map(([kind, presets]) => [
+    kind,
+    presets.find((preset) => preset.id === 'default')?.template ?? '',
+  ]),
+) as Record<AutomationKindValue, string>;
 
 function formatGhs(pesewas: number): string {
   const cedis = pesewas / 100;

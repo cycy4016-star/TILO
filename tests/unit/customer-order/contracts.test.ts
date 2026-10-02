@@ -5,6 +5,9 @@ import {
   AutomationKind,
   AutomationRuleCreate,
   AutomationRuleItem,
+  KIND_NAME_SUGGESTION,
+  MESSAGE_PRESETS,
+  WAIT_PRESETS,
 } from '@/lib/contracts/automation';
 import { CustomerCreate, CustomerDetail, CustomerList } from '@/lib/contracts/customer';
 import {
@@ -131,6 +134,59 @@ describe('automation contracts', () => {
     );
     for (const kind of AutomationKind.options) {
       expect(AUTOMATION_KIND_META[kind]).toBeDefined();
+    }
+  });
+
+  it('offers a tap option for every field a rule has to set', () => {
+    // Every kind that texts somebody needs a message the shop can pick without
+    // typing, and it must be the FIRST entry so "Tilo's wording" is the default.
+    for (const kind of AutomationKind.options) {
+      const meta = AUTOMATION_KIND_META[kind];
+      expect(KIND_NAME_SUGGESTION[kind]).toBeTruthy();
+      if (!meta.usesMessage) {
+        expect(MESSAGE_PRESETS[kind]).toEqual([]);
+        continue;
+      }
+      const presets = MESSAGE_PRESETS[kind];
+      expect(presets.length).toBeGreaterThan(0);
+      const [house, ...rewrites] = presets;
+      expect(house?.id).toBe('default');
+      // Empty template == fall through to the engine's house wording, so an
+      // update to the default reaches every shop that never overrode it.
+      expect(house?.template).toBe('');
+      for (const preset of rewrites) {
+        expect(preset.template).not.toBe('');
+      }
+      for (const preset of presets) {
+        expect(preset.label).toBeTruthy();
+        expect(
+          AutomationRuleCreate.safeParse({
+            name: 'Rule',
+            kind,
+            waitHours: 24,
+            triggerStatus: 'PENDING',
+            recipient: '+233241112200',
+            message: preset.template,
+          }).success,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('only offers wait times the contract accepts', () => {
+    expect(WAIT_PRESETS.length).toBeGreaterThan(0);
+    const hours = WAIT_PRESETS.map((preset) => preset.hours);
+    expect(new Set(hours).size).toBe(hours.length);
+    for (const preset of WAIT_PRESETS) {
+      expect(preset.label).toBeTruthy();
+      expect(
+        AutomationRuleCreate.safeParse({
+          name: 'Rule',
+          kind: 'SMS_NUDGE',
+          waitHours: preset.hours,
+          triggerStatus: 'PENDING',
+        }).success,
+      ).toBe(true);
     }
   });
 
