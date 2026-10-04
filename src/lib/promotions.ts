@@ -42,11 +42,23 @@ export function isPromoLive(promo: PromoLike, now: Date = new Date()): boolean {
   return promotionState(promo, now) === 'live';
 }
 
-/** "Oct 5, 2026" from an ISO datetime — for the "Ends …" label. */
+/**
+ * "Oct 5, 2026" from an ISO datetime — for the "Ends …" label.
+ *
+ * `timeZone: 'UTC'` is required, not cosmetic. Promo dates are DATE-ONLY values
+ * stored as UTC midnight (see `dateOnlyToDate`), so formatting in the viewer's
+ * local zone would print the previous day for anyone west of UTC — a shop in
+ * Accra would see "Ends Oct 4" for a promo that ends Oct 5. Pinning UTC makes
+ * the rendering identical for every viewer, which is what a date-only value
+ * means.
+ */
 export function formatPromoDate(iso: string): string {
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(
-    new Date(iso),
-  );
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(iso));
 }
 
 /**
