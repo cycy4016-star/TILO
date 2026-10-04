@@ -333,6 +333,8 @@ returns 404. See §1.
 | `POST` | `/api/automation/sweep` | user | manually run the sweep |
 | `GET` | `/api/dashboard/overview` | user | money/order metrics |
 | `GET` | `/api/dashboard/sms-usage` | user | SMS usage + cost |
+| `GET` | `/api/dashboard/intelligence` | user | balance sheet: cost vs sell, realized order-line margins |
+| `GET` | `/api/dashboard/products` | user | per-item sales volume, revenue, cost, margin |
 | `GET` | `/api/notifications` | user | live activity feed + unread count |
 | `POST` | `/api/notifications/read` | user | mark all notifications read |
 | `POST` | `/api/sms/send` | user | send a manual TILO SMS to a customer |
@@ -347,6 +349,7 @@ returns 404. See §1.
 | `PUT/DELETE` | `/api/store/promotions/[promoId]/image` | user | attach/remove promo photo |
 | `PUT/DELETE` | `/api/store/logo` | user | attach/remove store logo |
 | `PUT/DELETE` | `/api/profile/image` | user | set/clear profile avatar |
+| `GET/PUT` | `/api/appearance` | user | the signed-in user's own theme + layout preset (not the storefront's look — that is `Store.theme`/`Store.appearance` via `/api/store`) |
 | `GET/POST` | `/api/store/posts` | user | social queue list/create |
 | `PATCH/DELETE` | `/api/store/posts/[postId]` | user | update/delete queued post |
 | `GET` | `/api/public/store/[slug]` | public | public storefront |

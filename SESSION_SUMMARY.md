@@ -157,6 +157,7 @@ Unknown field `image` for select statement on model StoreItem
 
 ### What
 - **Every signed-in user is an owner.** Removed the crew/user tier and the admin gate: all sessions get `role: admin` at creation (see `user.create.before` in `src/lib/auth.ts`), and "is admin" collapsed to "is signed in". Navigation, shell, and guards (`require-admin`, `require-admin-api`) were simplified accordingly.
+  > **Superseded.** As of `feb51d0` this is no longer true: `role` is a *platform* role again, sign-ups default to `user`, and only the account matching `ADMIN_PHONE` / `ADMIN_EMAIL` is promoted to `admin` (`resolveRole` in `src/lib/auth.ts`). The ownership point above — shop access comes from the row's `userId`, not from `role` — still holds. See §1.
 - **Automations opened to all users** — no admin route gate; the workspace now directs every signed-in account.
 - **Cost/profit + products + intelligence dashboards.** Added order line items and item cost price (migrations `add_cost_price_and_order_line_items`), new dashboard pages (admin users, intelligence, products) and APIs built from the order/usage data the workspace already collects.
 
