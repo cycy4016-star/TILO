@@ -110,7 +110,7 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
 // Public/marketing landing sections, for the menu on non-dashboard routes.
 const LANDING_SECTIONS: QuickAction[] = [
   { label: 'Features', icon: Wrench, sectionId: 'toolkit' },
-  { label: 'Getting started', icon: CalendarDays, sectionId: 'week' },
+  { label: 'Getting started', icon: CalendarDays, sectionId: 'steps' },
   { label: 'Contact', icon: PartyPopper, sectionId: 'start' },
 ];
 
