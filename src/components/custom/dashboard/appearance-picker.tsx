@@ -96,7 +96,7 @@ export function AppearancePicker() {
           variant="ghost"
           size="icon"
           aria-label="Change the platform's look"
-          className="relative size-9 rounded-full border border-border bg-transparent text-foreground hover:bg-muted"
+          className="relative size-9 rounded-md border border-border bg-background text-foreground hover:bg-muted"
         >
           <Palette aria-hidden className="size-4" />
           <span
@@ -110,12 +110,10 @@ export function AppearancePicker() {
         align="end"
         className="max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-border bg-popover p-3 shadow-md"
       >
-        <p className="px-1 pb-2 text-sm font-semibold">Platform look</p>
+        <p className="px-1 pb-2 text-small font-semibold text-foreground">Platform look</p>
 
-        <div className="px-1 pb-1 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
-          Color theme
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="px-1 pb-1 text-eyebrow">Color theme</div>
+        <div className="grid gap-2">
           {THEME_PRESETS.map((preset: ThemePreset) => {
             const selected = theme === preset.key;
             return (
@@ -125,25 +123,27 @@ export function AppearancePicker() {
                 aria-pressed={selected}
                 disabled={saving}
                 onClick={() => void save({ theme: preset.key })}
-                className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
-                  selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'
+                className={`flex items-center gap-2.5 rounded-md border border-border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
+                  selected
+                    ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
+                    : 'hover:bg-muted'
                 }`}
               >
                 <span className="flex shrink-0 -space-x-1">
                   <span
                     aria-hidden
-                    className="size-5 rounded-full border-2 border-background"
+                    className="size-8 rounded-md border border-border"
                     style={{ backgroundColor: preset.accents[0] }}
                   />
                   <span
                     aria-hidden
-                    className="size-5 rounded-full border-2 border-background"
+                    className="size-8 rounded-md border border-border"
                     style={{ backgroundColor: preset.accents[1] }}
                   />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold">{preset.label}</span>
-                  <span className="block truncate text-xs text-muted-foreground">
+                  <span className="block truncate text-caption font-medium">{preset.label}</span>
+                  <span className="block truncate text-caption text-muted-foreground">
                     {preset.tagline}
                   </span>
                 </span>
@@ -152,10 +152,8 @@ export function AppearancePicker() {
           })}
         </div>
 
-        <div className="px-1 pb-1 pt-3 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
-          Layout &amp; appearance
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="px-1 pb-1 pt-3 text-eyebrow">Layout &amp; appearance</div>
+        <div className="grid gap-2">
           {APPEARANCE_PRESETS.map((preset) => {
             const selected = appearance === preset.key;
             return (
@@ -165,16 +163,18 @@ export function AppearancePicker() {
                 aria-pressed={selected}
                 disabled={saving}
                 onClick={() => void save({ appearance: preset.key })}
-                className={`relative flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
-                  selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'
+                className={`relative flex items-center gap-2.5 rounded-md border border-border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
+                  selected
+                    ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
+                    : 'hover:bg-muted'
                 }`}
               >
                 {selected && (
                   <Check aria-hidden className="absolute right-2 top-2 size-3.5 text-primary" />
                 )}
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold">{preset.label}</span>
-                  <span className="block truncate text-xs text-muted-foreground">
+                  <span className="block truncate text-caption font-medium">{preset.label}</span>
+                  <span className="block truncate text-caption text-muted-foreground">
                     {preset.tagline}
                   </span>
                 </span>
@@ -183,7 +183,7 @@ export function AppearancePicker() {
           })}
         </div>
 
-        <p className="px-1 pt-3 text-[0.7rem] text-muted-foreground">
+        <p className="px-1 pt-3 text-caption text-muted-foreground">
           This is your platform look — the public storefront keeps its own.
         </p>
       </PopoverContent>

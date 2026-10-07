@@ -3,12 +3,14 @@
 
 import { Check, KeyRound } from 'lucide-react';
 import { useState } from 'react';
+import { SmsNotice } from '@/components/custom/sms-notice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient, signIn } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
+import { friendlyOtpError, useSmsStatus } from '@/lib/sms-status-client';
 
 // Phone-first sign-up: name + phone + password (email optional). Nothing is
 // created until the SMS code is proven — the custom /phone-number/sign-up
@@ -33,6 +35,11 @@ export function SignUpForm() {
   const [googlePending, setGooglePending] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [notice, setNotice] = useState<string | undefined>(undefined);
+  // Known state of the SMS provider. `null` means still probing (or the probe
+  // failed) — in that case we let the form submit and surface whatever the send
+  // returns rather than block on an unknown.
+  const sms = useSmsStatus();
+  const smsUnavailable = sms !== null && !sms.configured;
 
   async function handleGoogle() {
     setGooglePending(true);
@@ -53,7 +60,7 @@ export function SignUpForm() {
       phoneNumber: target,
     });
     if (otpError) {
-      setError(otpError.message ?? 'The code did not send. Try again.');
+      setError(friendlyOtpError(otpError.message));
       return false;
     }
     return true;
@@ -77,6 +84,12 @@ export function SignUpForm() {
     }
     if (env.NEXT_PUBLIC_SIGNUP_INVITE === 'true' && !inviteCode.trim()) {
       setError('Enter the invite code to join.');
+      return;
+    }
+    // Known-unconfigured provider: stop here rather than pay for the
+    // check-availability round trip whose OTP send is certain to fail.
+    if (smsUnavailable) {
+      setError('Text verification is not available on this deployment yet.');
       return;
     }
 
@@ -161,11 +174,13 @@ export function SignUpForm() {
   }
 
   return step === 'otp' ? (
-    <form onSubmit={handleVerify} className="flex flex-col gap-3" noValidate>
-      <span className="flex items-center justify-center gap-2 text-xs font-semibold text-primary">
+    <form onSubmit={handleVerify} className="space-y-4" noValidate>
+      <span className="flex items-center justify-center gap-2 text-eyebrow">
         <KeyRound aria-hidden className="size-4" /> One last step
       </span>
-      <Label htmlFor="sign-up-code">6-digit code</Label>
+      <Label htmlFor="sign-up-code" className="text-small font-medium">
+        6-digit code
+      </Label>
       <Input
         id="sign-up-code"
         name="code"
@@ -177,45 +192,56 @@ export function SignUpForm() {
         onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
         required
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
-      <p className="text-sm text-muted-foreground">
+      <p className="rounded-lg bg-muted px-4 py-3 text-small text-muted-foreground">
         {notice ?? `We texted a code to ${e164} — enter it to prove the number is yours.`}
       </p>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending || code.length < 6} className="h-12 w-full">
+      {error ? (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-small text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <Button
+        type="submit"
+        disabled={pending || code.length < 6}
+        className="mt-6 h-11 w-full rounded-md font-semibold"
+      >
         {pending ? 'Checking…' : 'Confirm my number'}
       </Button>
       <button
         type="button"
         onClick={() => void resend()}
         disabled={pending}
-        className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+        className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
         Resend the code
       </button>
     </form>
   ) : (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <SmsNotice />
       {env.NEXT_PUBLIC_GOOGLE_AUTH === 'true' ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <Button
             type="button"
             variant="outline"
             disabled={googlePending}
             onClick={() => void handleGoogle()}
-            className="h-12 w-full"
+            className="h-11 w-full rounded-md"
           >
             {googlePending ? 'Opening Google…' : 'Continue with Google'}
           </Button>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-stone-400">
-            <span className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
+          <div className="flex items-center gap-3 text-small text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
             or build one with your phone
-            <span className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
+            <span className="h-px flex-1 bg-border" />
           </div>
         </div>
       ) : null}
-      <Label htmlFor="sign-up-name">Name</Label>
+      <Label htmlFor="sign-up-name" className="text-small font-medium">
+        Name
+      </Label>
       <Input
         id="sign-up-name"
         name="name"
@@ -225,9 +251,11 @@ export function SignUpForm() {
         onChange={(e) => setName(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
-      <Label htmlFor="sign-up-phone">Phone number</Label>
+      <Label htmlFor="sign-up-phone" className="text-small font-medium">
+        Phone number
+      </Label>
       <Input
         id="sign-up-phone"
         name="phone"
@@ -238,9 +266,11 @@ export function SignUpForm() {
         onChange={(e) => setPhone(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
-      <Label htmlFor="sign-up-email">Email address (optional)</Label>
+      <Label htmlFor="sign-up-email" className="text-small font-medium">
+        Email address (optional)
+      </Label>
       <Input
         id="sign-up-email"
         name="email"
@@ -250,11 +280,13 @@ export function SignUpForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
       {env.NEXT_PUBLIC_SIGNUP_INVITE === 'true' ? (
         <>
-          <Label htmlFor="sign-up-invite">Invite code</Label>
+          <Label htmlFor="sign-up-invite" className="text-small font-medium">
+            Invite code
+          </Label>
           <Input
             id="sign-up-invite"
             name="inviteCode"
@@ -265,11 +297,13 @@ export function SignUpForm() {
             onChange={(e) => setInviteCode(e.target.value)}
             required
             aria-invalid={error ? true : undefined}
-            className="h-12 rounded-2xl"
+            className="h-11 rounded-md"
           />
         </>
       ) : null}
-      <Label htmlFor="sign-up-password">Password</Label>
+      <Label htmlFor="sign-up-password" className="text-small font-medium">
+        Password
+      </Label>
       <Input
         id="sign-up-password"
         name="password"
@@ -279,14 +313,25 @@ export function SignUpForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending} className="h-12 w-full">
+      {error ? (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-small text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <Button
+        type="submit"
+        disabled={pending || smsUnavailable}
+        className="mt-6 h-11 w-full rounded-md font-semibold"
+      >
         {pending ? 'Creating account…' : 'Create account'}
       </Button>
-      <p className="flex items-center justify-center gap-1 text-center text-xs font-bold uppercase tracking-widest text-stone-400">
-        <Check aria-hidden className="size-3.5" /> We&apos;ll text a code to your phone
+      <p className="flex items-center justify-center gap-1 text-center text-small text-muted-foreground">
+        <Check aria-hidden className="size-3.5" />
+        {smsUnavailable
+          ? 'SMS verification is switched off here'
+          : 'We\u2019ll text a code to your phone'}
       </p>
     </form>
   );

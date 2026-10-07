@@ -70,7 +70,9 @@ function sectionIdsOf(source: string, constName: string): string[] {
 
 const nav = read('src/lib/nav.ts');
 const assistiveMenu = read('src/components/custom/assistive-menu.tsx');
-const landingIds = idsIn(read('src/app/(setup)/page.tsx'));
+// Landing sections now live in page.tsx plus the landing components it
+// composes (src/components/landing/*) — scan both trees for declared ids.
+const landingIds = idsUnder('src/app/(setup)', 'src/components/landing');
 // Dashboard sections are split between the pages and the workspace components
 // they render (`orders-queue` lives in orders-workspace.tsx, not a page).
 const dashboardIds = idsUnder('src/app/(dashboard)', 'src/components/custom');

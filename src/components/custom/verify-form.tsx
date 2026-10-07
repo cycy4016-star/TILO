@@ -6,11 +6,13 @@
 import { Check, KeyRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { SmsNotice } from '@/components/custom/sms-notice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
 import { toE164 } from '@/lib/phone';
+import { friendlyOtpError, useSmsStatus } from '@/lib/sms-status-client';
 
 type Step = 'phone' | 'otp' | 'done';
 
@@ -30,6 +32,10 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
   const [notice, setNotice] = useState<string | undefined>(
     prefilled ? `We just texted a code to ${prefilled}.` : undefined,
   );
+  // `null` = still probing (or probe failed). Only a definitive "off" blocks a
+  // send — an unknown must not lock someone out of the rescue ramp.
+  const sms = useSmsStatus();
+  const smsUnavailable = sms !== null && !sms.configured;
 
   async function handlePhone(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,13 +45,17 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
       setError('Enter a valid phone number, e.g. 024 000 0000.');
       return;
     }
+    if (smsUnavailable) {
+      setError('Text verification is not available on this deployment yet.');
+      return;
+    }
     setPending(true);
     const { error: otpError } = await authClient.phoneNumber.sendOtp({
       phoneNumber: normalized,
     });
     setPending(false);
     if (otpError) {
-      setError(otpError.message ?? 'The code did not send. Try again.');
+      setError(friendlyOtpError(otpError.message));
       return;
     }
     setE164(normalized);
@@ -85,7 +95,7 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
     const { error: otpError } = await authClient.phoneNumber.sendOtp({ phoneNumber: e164 });
     setPending(false);
     if (otpError) {
-      setError(otpError.message ?? 'Could not resend the code.');
+      setError(friendlyOtpError(otpError.message));
       return;
     }
     setNotice(`New code sent to ${e164}.`);
@@ -97,14 +107,14 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
         <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Check aria-hidden className="size-6" />
         </span>
-        <p className="text-2xl font-bold">You&apos;re verified</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-h2">You&apos;re verified</p>
+        <p className="text-small text-muted-foreground">
           Your account is confirmed. Taking you to the dashboard…
         </p>
         <Button
           type="button"
           onClick={() => router.replace('/dashboard')}
-          className="rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+          className="h-11 w-full rounded-md font-semibold"
         >
           Go to dashboard
         </Button>
@@ -113,14 +123,13 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
   }
 
   return (
-    <form
-      onSubmit={step === 'phone' ? handlePhone : handleVerify}
-      className="flex flex-col gap-3"
-      noValidate
-    >
+    <form onSubmit={step === 'phone' ? handlePhone : handleVerify} className="space-y-4" noValidate>
       {step === 'phone' ? (
         <>
-          <Label htmlFor="verify-phone">Your phone number</Label>
+          <SmsNotice />
+          <Label htmlFor="verify-phone" className="text-small font-medium">
+            Your phone number
+          </Label>
           <Input
             id="verify-phone"
             name="phone"
@@ -131,12 +140,14 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
             onChange={(e) => setPhone(e.target.value)}
             required
             aria-invalid={error ? true : undefined}
-            className="h-12 rounded-2xl"
+            className="h-11 rounded-md"
           />
         </>
       ) : (
         <>
-          <Label htmlFor="verify-code">6-digit code</Label>
+          <Label htmlFor="verify-code" className="text-small font-medium">
+            6-digit code
+          </Label>
           <Input
             id="verify-code"
             name="code"
@@ -147,16 +158,26 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             required
             aria-invalid={error ? true : undefined}
-            className="h-12 rounded-2xl"
+            className="h-11 rounded-md"
           />
-          {notice ? <p className="text-sm text-muted-foreground">{notice}</p> : null}
+          {notice ? (
+            <p className="rounded-lg bg-muted px-4 py-3 text-small text-muted-foreground">
+              {notice}
+            </p>
+          ) : null}
         </>
       )}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-small text-destructive">
+          {error}
+        </p>
+      ) : null}
       <Button
         type="submit"
-        disabled={pending || (step === 'otp' && code.length < 6)}
-        className="h-12 w-full"
+        disabled={
+          pending || (step === 'otp' && code.length < 6) || (step === 'phone' && smsUnavailable)
+        }
+        className="mt-6 h-11 w-full rounded-md font-semibold"
       >
         {pending ? 'Working…' : step === 'phone' ? 'Send the code' : 'Confirm my number'}
       </Button>
@@ -166,7 +187,7 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
             type="button"
             onClick={resend}
             disabled={pending}
-            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+            className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             Resend the code
           </button>
@@ -180,13 +201,13 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
               setError(undefined);
               setStep('phone');
             }}
-            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+            className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             Use a different number
           </button>
         </>
       ) : null}
-      <p className="flex items-center justify-center gap-1 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+      <p className="flex items-center justify-center gap-1 text-center text-small text-muted-foreground">
         <KeyRound aria-hidden className="size-3.5" /> Unlocks your whole workspace
       </p>
     </form>

@@ -59,8 +59,8 @@ function PaymentReturnBody() {
 
   if (outcome.state === 'checking') {
     return (
-      <Card className="rounded-xl border border-border bg-card shadow-sm">
-        <CardContent className="flex items-center justify-center gap-3 py-16 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+      <Card className="rounded-2xl border border-border bg-card shadow-sm">
+        <CardContent className="flex items-center justify-center gap-3 py-16 text-body text-muted-foreground">
           <Loader2 aria-hidden className="size-5 animate-spin" />
           Confirming payment…
         </CardContent>
@@ -70,19 +70,19 @@ function PaymentReturnBody() {
 
   if (outcome.state === 'success') {
     return (
-      <Card className="rounded-xl border border-border bg-card text-center shadow-sm">
+      <Card className="rounded-2xl border border-border bg-card text-center shadow-sm">
         <CardHeader className="pb-2 pt-8 text-center">
           <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <CheckCircle2 aria-hidden className="size-7" />
           </span>
-          <CardTitle className="mt-4 text-2xl font-bold">Payment confirmed</CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardTitle className="mt-4 text-h2 font-display">Payment confirmed</CardTitle>
+          <CardDescription className="text-body text-muted-foreground">
             {formatGhs(outcome.amountPesewas)} received — the order has been marked paid.
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-8 pt-2">
           <a href="/dashboard/customers">
-            <Button className="h-11 font-semibold">Back to customers</Button>
+            <Button className="h-11 rounded-md font-semibold">Back to customers</Button>
           </a>
         </CardContent>
       </Card>
@@ -91,7 +91,7 @@ function PaymentReturnBody() {
 
   const pending = outcome.state === 'pending';
   return (
-    <Card className="rounded-xl border border-border bg-card text-center shadow-sm">
+    <Card className="rounded-2xl border border-border bg-card text-center shadow-sm">
       <CardHeader className="pb-2 pt-8 text-center">
         <span
           className={`mx-auto flex size-12 items-center justify-center rounded-xl ${
@@ -100,10 +100,10 @@ function PaymentReturnBody() {
         >
           <RotateCcw aria-hidden className="size-6" />
         </span>
-        <CardTitle className="mt-4 text-2xl font-bold">
+        <CardTitle className="mt-4 text-h2 font-display">
           {pending ? 'Not confirmed yet' : 'Payment did not go through'}
         </CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-body text-muted-foreground">
           {outcome.state === 'missing'
             ? 'No payment reference was returned. Your order is safe — check your customers list.'
             : outcome.message}
@@ -114,14 +114,14 @@ function PaymentReturnBody() {
           <Button
             variant="outline"
             onClick={() => window.location.reload()}
-            className="h-11 px-6 font-semibold"
+            className="h-11 rounded-md px-6 font-semibold"
           >
             <RotateCcw aria-hidden className="size-4" /> Check again
           </Button>
         ) : null}
         <div className="mt-3">
           <a href="/dashboard/customers">
-            <Button className="h-11 font-semibold">Back to customers</Button>
+            <Button className="h-11 rounded-md font-semibold">Back to customers</Button>
           </a>
         </div>
       </CardContent>
@@ -133,8 +133,8 @@ export function PaymentReturn() {
   return (
     <Suspense
       fallback={
-        <Card className="rounded-xl border border-border bg-card shadow-sm">
-          <CardContent className="flex items-center justify-center gap-3 py-16 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+        <Card className="rounded-2xl border border-border bg-card shadow-sm">
+          <CardContent className="flex items-center justify-center gap-3 py-16 text-body text-muted-foreground">
             <Loader2 aria-hidden className="size-5 animate-spin" />
             Confirming payment…
           </CardContent>

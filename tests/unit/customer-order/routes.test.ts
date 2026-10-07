@@ -373,6 +373,11 @@ describe('store routes', () => {
     promoBanner: null,
     contactPhone: '024 000 0000',
     active: true,
+    theme: 'gold',
+    appearance: 'professional',
+    logo: null,
+    autoPostDays: null,
+    autoPostLastAt: null,
     // The manager payload always carries the shelf headings (with their item
     // counts) — serializeStore() cannot parse a row without them.
     categories: [],
@@ -572,6 +577,11 @@ describe('store post routes', () => {
     description: null,
     contactPhone: '024 000 0000',
     active: true,
+    theme: 'gold',
+    appearance: 'professional',
+    logo: null,
+    autoPostDays: null,
+    autoPostLastAt: null,
     createdAt: new Date('2026-09-21T00:00:00.000Z'),
     updatedAt: new Date('2026-09-21T00:00:00.000Z'),
   };
@@ -583,6 +593,7 @@ describe('store post routes', () => {
     status: 'SHARED' as const,
     caption: 'Branded apron\nGH₵ 45.50\nOrder at https://tilo.app/store/amas-boutique',
     externalUrl: null,
+    auto: false,
     createdAt: new Date('2026-09-22T00:00:00.000Z'),
     updatedAt: new Date('2026-09-22T00:00:00.000Z'),
     item: { name: 'Branded apron' },

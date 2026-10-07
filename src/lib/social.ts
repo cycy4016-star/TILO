@@ -48,6 +48,11 @@ const HASHTAGS: Record<SocialPlatformValue, string[]> = {
   WHATSAPP_STATUS: [],
 };
 
+/** Platform tag line — shared by the manual caption and the auto-post draft. */
+export function hashtagsFor(platform: SocialPlatformValue): string[] {
+  return HASHTAGS[platform];
+}
+
 export interface PostableItem {
   name: string;
   description: string | null;

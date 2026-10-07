@@ -43,8 +43,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   if (isPending) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-background px-5 dark:bg-stone-950">
-        <p className="animate-pulse text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+      <main className="flex min-h-dvh items-center justify-center bg-background px-5">
+        <p className="animate-pulse text-caption uppercase tracking-widest text-muted-foreground">
           Loading…
         </p>
       </main>
@@ -55,8 +55,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
     // The effect above redirects to /login; this is the brief transition state,
     // not a stable screen.
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-background px-5 dark:bg-stone-950">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+      <main className="flex min-h-dvh items-center justify-center bg-background px-5">
+        <p className="text-caption uppercase tracking-widest text-muted-foreground">
           Signing you in…
         </p>
       </main>
@@ -66,17 +66,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <main
       data-platform="app"
-      className="relative flex h-dvh flex-col overflow-hidden bg-background text-foreground dark:bg-stone-950"
+      className="flex h-dvh flex-col overflow-hidden bg-background text-foreground"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/[0.05] to-transparent"
-      />
-      <div className="relative shrink-0 border-b border-border bg-background dark:bg-stone-950">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
+      <header className="shrink-0 border-b border-border bg-background">
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <TiloMark className="size-9" iconClassName="size-5" />
-            <span className="truncate font-display text-lg font-black uppercase tracking-tight text-foreground">
+            <span className="truncate font-display text-base font-semibold tracking-tight text-foreground">
               Tilo
             </span>
           </Link>
@@ -86,7 +82,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <button
                   type="button"
                   aria-label="Quick access menu"
-                  className="group hidden size-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 via-emerald-600 to-sky-700 text-white shadow-[0_6px_18px_-6px_rgba(6,95,70,0.5)] transition-transform duration-300 hover:scale-110 active:scale-95 sm:inline-flex"
+                  className="group hidden size-9 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted sm:inline-flex"
                 >
                   <Menu
                     aria-hidden
@@ -100,32 +96,28 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </Popover>
             <AppearancePicker />
             <NotificationBell />
-            <span className="hidden rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground sm:block">
+            <span className="hidden rounded-full border border-border px-2.5 py-1 text-caption font-medium text-muted-foreground sm:block">
               Boss
             </span>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="rounded-full border-border font-semibold text-foreground hover:bg-muted"
+              className="font-medium text-muted-foreground hover:text-foreground"
             >
               {signingOut ? 'Signing out…' : 'Sign out'}
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="relative mx-auto flex min-h-0 w-full max-w-7xl flex-1 gap-6 px-5 py-6 sm:px-8">
-        <aside className="hidden w-[220px] shrink-0 overflow-y-auto lg:block">
-          <div className="rounded-xl border border-border bg-card p-3">
-            <p className="truncate px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              {session.user.email ?? session.user.name ?? 'Account'}
-            </p>
-            <div className="mt-2">
-              <DashboardNav />
-            </div>
-          </div>
+      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 gap-8 px-4 py-6 sm:px-6">
+        <aside className="hidden w-56 shrink-0 lg:block">
+          <p className="truncate px-3 pb-2 text-caption font-medium text-muted-foreground">
+            {session.user.email ?? session.user.name ?? 'Account'}
+          </p>
+          <DashboardNav />
         </aside>
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</section>

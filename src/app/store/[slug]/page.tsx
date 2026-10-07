@@ -96,8 +96,9 @@ export default async function StorePage({ params }: StorePageProps) {
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-20"
           style={{
-            backgroundImage:
-              'radial-gradient(circle at 85% 20%, #facc15 0, transparent 35%), radial-gradient(circle at 10% 90%, #fcd34d 0, transparent 30%)',
+            backgroundImage: pro
+              ? 'radial-gradient(circle at 85% 20%, rgb(250 204 21 / 0.3) 0, transparent 45%)'
+              : 'radial-gradient(circle at 85% 20%, #facc15 0, transparent 35%), radial-gradient(circle at 10% 90%, #fcd34d 0, transparent 30%)',
           }}
         />
         <div className="relative">
@@ -105,32 +106,34 @@ export default async function StorePage({ params }: StorePageProps) {
             <img
               src={store.logoUrl}
               alt=""
-              className="mb-4 size-16 rounded-2xl bg-amber-50/10 object-contain p-1"
+              className={`mb-4 size-16 rounded-2xl object-contain p-1 ${
+                pro ? 'bg-white/10' : 'bg-amber-50/10'
+              }`}
             />
           )}
           <p
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ${
               pro
-                ? 'bg-[var(--tl-100)] text-[var(--tl-900)]'
-                : 'rotate-1 bg-amber-300 font-black text-amber-950'
+                ? 'text-caption font-medium bg-[var(--tl-100)] text-[var(--tl-900)]'
+                : 'text-[0.7rem] font-semibold uppercase tracking-[0.18em] rotate-1 bg-amber-300 font-black text-amber-950'
             }`}
           >
             {store.items.length} {store.items.length === 1 ? 'item' : 'items'}{' '}
             {pro ? 'in the catalogue' : 'on the shelf'}
           </p>
           <h1
-            className={`mt-4 leading-none sm:text-6xl ${
+            className={`mt-4 ${
               pro
-                ? 'font-display text-4xl font-bold text-[var(--tl-50)]'
-                : 'font-display text-4xl font-black uppercase text-amber-50'
+                ? 'font-display text-h1 text-[var(--tl-50)]'
+                : 'leading-none sm:text-6xl font-display text-4xl font-black uppercase text-amber-50'
             }`}
           >
             {store.name}
           </h1>
           {store.tagline && (
             <p
-              className={`mt-3 max-w-xl text-lg font-bold ${
-                pro ? 'text-[var(--tl-100)]' : 'text-amber-100'
+              className={`mt-3 max-w-xl ${
+                pro ? 'text-body-lg text-[var(--tl-200)]' : 'text-lg font-bold text-amber-100'
               }`}
             >
               {store.tagline}
@@ -138,19 +141,27 @@ export default async function StorePage({ params }: StorePageProps) {
           )}
           {store.description && (
             <p
-              className={`mt-2 max-w-xl text-sm font-medium leading-relaxed ${
-                pro ? 'text-[var(--tl-200)]' : 'text-amber-200/90'
+              className={`mt-2 max-w-xl ${
+                pro
+                  ? 'text-small text-[var(--tl-100)]'
+                  : 'text-sm font-medium leading-relaxed text-amber-200/90'
               }`}
             >
               {store.description}
             </p>
           )}
+          {/* Deliberate exception to the gold-accent rule: WhatsApp actions
+              keep the platform's own green, because "this opens a chat" is a
+              stronger signal than brand consistency. See store-catalog's
+              per-item WhatsApp button for the matching treatment. */}
           {chat && (
             <a
               href={chat}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-emerald-600 px-6 font-bold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-emerald-500"
+              className={`mt-6 inline-flex h-11 items-center gap-2 bg-emerald-600 px-6 text-white shadow-sm transition-colors hover:bg-emerald-500 ${
+                pro ? 'rounded-md font-semibold' : 'rounded-full font-bold uppercase tracking-wide'
+              }`}
             >
               <MessageCircle aria-hidden className="size-4" /> Chat with us
             </a>
@@ -162,7 +173,7 @@ export default async function StorePage({ params }: StorePageProps) {
         <section
           className={`mt-6 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-center ${
             pro
-              ? 'border border-border bg-muted/60 text-sm font-medium text-muted-foreground'
+              ? 'border border-border bg-muted/60 text-small font-medium text-muted-foreground'
               : 'rounded-2xl border-2 border-[var(--tl-cta-border)] bg-[var(--tl-banner)] font-display text-sm font-black uppercase tracking-wide text-amber-900 dark:border-amber-700 dark:bg-stone-900 dark:text-amber-300'
           }`}
         >
@@ -173,7 +184,11 @@ export default async function StorePage({ params }: StorePageProps) {
 
       {store.promotions.length > 0 && (
         <section className="mt-8">
-          <h2 className={`text-2xl font-bold ${pro ? '' : 'font-display font-black uppercase'}`}>
+          <h2
+            className={
+              pro ? 'font-display text-h3' : 'text-2xl font-bold font-display font-black uppercase'
+            }
+          >
             Today&apos;s offers
           </h2>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -182,10 +197,12 @@ export default async function StorePage({ params }: StorePageProps) {
               return (
                 <article
                   key={`${promo.name}-${promo.code ?? 'any'}-${index}`}
-                  className={`flex flex-col border-2 bg-white dark:bg-stone-900 ${
+                  className={`flex flex-col ${
                     pro
-                      ? 'rounded-2xl border-[var(--tl-200)] p-5'
-                      : `rounded-[1.75rem] border-amber-950 p-5 shadow-[5px_5px_0_0_#451a03] ${
+                      ? // border-border: a warm --tl-200 hairline reads as a
+                        // selection outline once the card goes dark.
+                        'rounded-2xl border border-border bg-card p-5'
+                      : `border-2 bg-white dark:bg-stone-900 rounded-[1.75rem] border-amber-950 p-5 shadow-[5px_5px_0_0_#451a03] ${
                           index % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
                         }`
                   }`}
@@ -194,48 +211,72 @@ export default async function StorePage({ params }: StorePageProps) {
                     <img
                       src={promo.imageUrl}
                       alt=""
-                      className="mb-3 aspect-[16/9] w-full rounded-2xl border-2 border-amber-100 object-cover dark:border-stone-800"
+                      className={`mb-3 aspect-[16/9] w-full rounded-2xl object-cover ${
+                        pro
+                          ? 'border border-border'
+                          : 'border-2 border-amber-100 dark:border-stone-800'
+                      }`}
                     />
                   )}
                   <p
                     className={`${
                       pro
-                        ? 'text-2xl font-extrabold tracking-tight'
-                        : 'font-mono text-2xl font-black'
-                    } text-emerald-700 dark:text-emerald-300`}
+                        ? 'text-h4 font-mono text-primary'
+                        : 'font-mono text-2xl font-black text-emerald-700 dark:text-emerald-300'
+                    }`}
                   >
                     {promoHeadline(promo)}
                   </p>
                   <p
                     className={`mt-1 ${
                       pro
-                        ? 'text-base font-semibold'
+                        ? 'text-body font-semibold'
                         : 'font-display font-black uppercase tracking-tight'
                     }`}
                   >
                     {promo.name}
                   </p>
                   {terms.length > 0 && (
-                    <p className="mt-1 text-xs font-medium text-stone-500">{terms.join(' · ')}</p>
+                    <p
+                      className={
+                        pro
+                          ? 'mt-1 text-caption text-muted-foreground'
+                          : 'mt-1 text-xs font-medium text-stone-500'
+                      }
+                    >
+                      {terms.join(' · ')}
+                    </p>
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {promo.code ? (
                       <span
-                        className={`rounded-full px-3 py-1 font-mono text-xs tracking-widest ${
+                        className={`rounded-full px-3 py-1 font-mono ${
                           pro
-                            ? 'bg-primary/10 font-semibold text-primary'
-                            : 'bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
+                            ? 'text-caption font-medium bg-primary/10 text-primary'
+                            : 'text-xs tracking-widest bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
                         }`}
                       >
                         CODE {promo.code}
                       </span>
                     ) : (
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      <span
+                        className={
+                          pro
+                            ? 'rounded-full bg-primary/10 px-3 py-1 text-caption font-medium text-primary'
+                            : 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        }
+                      >
                         No code needed
                       </span>
                     )}
                     {promo.endsAt && (
-                      <span className="text-xs font-medium text-stone-400">
+                      <span
+                        className={
+                          pro
+                            ? 'text-caption text-muted-foreground'
+                            : 'text-xs font-medium text-stone-400'
+                        }
+                      >
                         Ends {formatPromoDate(promo.endsAt)}
                       </span>
                     )}
@@ -249,14 +290,16 @@ export default async function StorePage({ params }: StorePageProps) {
 
       {store.items.length === 0 ? (
         <section
-          className={`mt-8 rounded-2xl border-2 border-dashed px-5 py-16 text-center ${
-            pro ? 'border-[var(--tl-200)]' : 'border-amber-400'
+          className={`mt-8 rounded-2xl border-dashed px-5 py-16 text-center ${
+            pro ? 'border border-border' : 'border-2 border-amber-400'
           }`}
         >
           <p
-            className={`text-xl font-bold ${
-              pro ? 'text-[var(--tl-900)]' : 'font-display font-black uppercase'
-            }`}
+            className={
+              pro
+                ? 'text-h4 font-display text-foreground'
+                : 'text-xl font-bold font-display font-black uppercase'
+            }
           >
             Restocking soon
           </p>
@@ -279,7 +322,11 @@ export default async function StorePage({ params }: StorePageProps) {
       <LeadCaptureCard storeName={store.name} slug={slug} />
 
       {store.contactPhone && waMeLink(store.contactPhone) && (
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs font-semibold uppercase tracking-widest text-primary">
+        <p
+          className={`mt-8 flex items-center justify-center gap-2 text-center ${
+            pro ? 'text-eyebrow' : 'text-xs font-semibold uppercase tracking-widest text-primary'
+          }`}
+        >
           <Phone aria-hidden className="size-3.5" /> Orders land straight in the shop — WhatsApp,
           SMS or right here
         </p>

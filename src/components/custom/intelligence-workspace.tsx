@@ -48,7 +48,7 @@ export function IntelligenceWorkspace() {
   if (error || !data) {
     return (
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-semibold text-destructive">
+        <p className="text-small text-destructive">
           We could not load your summary. Please try again.
         </p>
       </section>
@@ -59,15 +59,15 @@ export function IntelligenceWorkspace() {
     <div className="grid gap-6">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium uppercase tracking-wide text-primary">
             <BrainCircuit aria-hidden className="size-3.5" /> Intelligence
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium uppercase tracking-wide text-muted-foreground">
             <Scale aria-hidden className="size-3.5" /> The balance sheet
           </span>
         </div>
-        <h1 className="mt-5 text-3xl font-bold">Know your numbers.</h1>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground">
+        <h1 className="mt-5 text-h1 font-display">Know your numbers.</h1>
+        <p className="mt-2 max-w-md text-body text-muted-foreground">
           What you&apos;re owed, what the catalogue is worth, and what actually earns.
         </p>
       </section>
@@ -77,13 +77,11 @@ export function IntelligenceWorkspace() {
           <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Coins aria-hidden className="size-5" />
           </span>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Money in (month)
-          </p>
-          <p className="mt-1 text-3xl font-bold text-foreground">
+          <p className="mt-4 text-caption font-medium text-muted-foreground">Money in (month)</p>
+          <p className="mt-1 text-h3 font-display text-foreground">
             {formatGhs(data.moneyInMonthPesewas)}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-small text-muted-foreground">
             {data.moneyInMonthCount} paid {data.moneyInMonthCount === 1 ? 'order' : 'orders'}
           </p>
         </article>
@@ -91,13 +89,11 @@ export function IntelligenceWorkspace() {
           <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <TrendingUp aria-hidden className="size-5" />
           </span>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Outstanding balance
-          </p>
-          <p className="mt-1 text-3xl font-bold text-foreground">
+          <p className="mt-4 text-caption font-medium text-muted-foreground">Outstanding balance</p>
+          <p className="mt-1 text-h3 font-display text-foreground">
             {formatGhs(data.outstandingPesewas)}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-small text-muted-foreground">
             {data.outstandingCount} open {data.outstandingCount === 1 ? 'order' : 'orders'}
           </p>
         </article>
@@ -105,13 +101,13 @@ export function IntelligenceWorkspace() {
           <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Package aria-hidden className="size-5" />
           </span>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="mt-4 text-caption font-medium text-muted-foreground">
             Catalogue value at retail
           </p>
-          <p className="mt-1 text-3xl font-bold text-foreground">
+          <p className="mt-1 text-h3 font-display text-foreground">
             {formatGhs(data.catalogSellPesewas)}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-small text-muted-foreground">
             {data.catalogItemCount} live {data.catalogItemCount === 1 ? 'item' : 'items'}
           </p>
         </article>
@@ -119,39 +115,41 @@ export function IntelligenceWorkspace() {
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
-          <h2 className="flex items-center gap-2 text-xl font-bold">
+          <h2 className="flex items-center gap-2 text-h3 font-display">
             <Scale aria-hidden className="size-5 text-primary" /> Catalogue economics
           </h2>
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">What it sells for</span>
-              <span className="font-mono text-sm font-semibold">
+              <span className="text-small text-muted-foreground">What it sells for</span>
+              <span className="font-mono text-small font-semibold">
                 {formatGhs(data.catalogSellPesewas)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">What it costs to hold</span>
-              <span className="font-mono text-sm font-semibold">
+              <span className="text-small text-muted-foreground">What it costs to hold</span>
+              <span className="font-mono text-small font-semibold">
                 {formatGhs(data.catalogCostPesewas)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">Potential profit</span>
-              <span className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="text-small text-muted-foreground">Potential profit</span>
+              <span className="font-mono text-small font-semibold text-primary">
                 {formatGhs(data.catalogProfitPesewas)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">Margin at retail</span>
-              <span className="font-mono text-sm font-semibold">{data.catalogMarginPercent}%</span>
+              <span className="text-small text-muted-foreground">Margin at retail</span>
+              <span className="font-mono text-small font-semibold">
+                {data.catalogMarginPercent}%
+              </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">Items missing a cost price</span>
-              <span className="font-mono text-sm font-semibold">{data.itemsMissingCost}</span>
+              <span className="text-small text-muted-foreground">Items missing a cost price</span>
+              <span className="font-mono text-small font-semibold">{data.itemsMissingCost}</span>
             </div>
           </div>
           {data.itemsMissingCost > 0 && (
-            <div className="mt-5 rounded-lg border border-dashed border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+            <div className="mt-5 rounded-xl border border-border bg-muted/40 px-4 py-3 text-small text-muted-foreground">
               {data.itemsMissingCost} {data.itemsMissingCost === 1 ? 'item has' : 'items have'} no
               cost price, {data.itemsMissingCost === 1 ? 'so it' : 'so they'} can&apos;t count its
               margin. Add cost prices in your catalogue to sharpen these numbers.
@@ -167,21 +165,21 @@ export function IntelligenceWorkspace() {
         </article>
 
         <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
-          <h2 className="flex items-center gap-2 text-xl font-bold text-primary">
+          <h2 className="flex items-center gap-2 text-h3 font-display text-primary">
             <TrendingUp aria-hidden className="size-5" /> Realized margins
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-small text-muted-foreground">
             From actual sold orders, once costs are taken out.
           </p>
-          <p className="mt-5 text-4xl font-bold text-foreground">
+          <p className="mt-5 text-h2 font-display text-foreground">
             {formatGhs(data.realizedProfitPesewas)}
           </p>
-          <p className="mt-2 text-sm font-semibold text-foreground">
+          <p className="mt-2 text-small font-medium text-foreground">
             {data.realizedRevenuePesewas > 0
               ? `${data.realizedMarginPercent}% margin on ${data.realizedUnitCount} sold ${data.realizedUnitCount === 1 ? 'unit' : 'units'}`
               : 'No productized sales yet'}
           </p>
-          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+          <p className="mt-5 text-small leading-relaxed text-muted-foreground">
             {formatGhs(data.realizedRevenuePesewas)} sold, {formatGhs(data.realizedCogsPesewas)} in
             cost, across {data.realizedOrderCount} orders. Sell through the storefront or add line
             items to orders and this figure updates automatically.
@@ -193,13 +191,13 @@ export function IntelligenceWorkspace() {
         id="biggest-earners"
         className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
       >
-        <h2 className="flex items-center gap-2 text-xl font-bold">
+        <h2 className="flex items-center gap-2 text-h3 font-display">
           <Package aria-hidden className="size-5 text-primary" /> Biggest earners
         </h2>
         {data.topItems.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
-            <p className="text-lg font-semibold">No ranked items yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="mt-4 rounded-xl border border-border bg-muted/40 p-6 text-center">
+            <p className="text-h4 font-display">No ranked items yet</p>
+            <p className="mt-1 text-small text-muted-foreground">
               Products with sold line items will line up here by profit.
             </p>
           </div>
@@ -208,13 +206,13 @@ export function IntelligenceWorkspace() {
             {data.topItems.map((item) => (
               <div key={item.name} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{item.name}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="truncate text-small font-medium">{item.name}</p>
+                  <p className="mt-0.5 text-caption text-muted-foreground">
                     {item.unitCount} sold · {formatGhs(item.revenuePesewas)} at{' '}
                     {item.marginPercent != null ? `${item.marginPercent}% margin` : 'no cost set'}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-primary">
+                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-primary">
                   {formatGhs(item.profitPesewas)} earned
                 </span>
               </div>

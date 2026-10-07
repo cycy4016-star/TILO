@@ -26,6 +26,7 @@ import {
   ImagePicker,
   type ImageSelection,
 } from '@/components/custom/image-picker';
+import { AutoPostsPanel, SocialsPanel } from '@/components/custom/store-auto-posts';
 import { PublishDialog, PublishLog } from '@/components/custom/store-publish';
 import { Button } from '@/components/ui/button';
 import {
@@ -189,7 +190,7 @@ function StoreForm({
               <FormItem>
                 <FormLabel>Store name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ama's Boutique" {...field} className="rounded-2xl" />
+                  <Input placeholder="Ama's Boutique" {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -202,7 +203,7 @@ function StoreForm({
               <FormItem>
                 <FormLabel>Link word</FormLabel>
                 <FormControl>
-                  <Input placeholder="amas-boutique" {...field} className="rounded-2xl" />
+                  <Input placeholder="amas-boutique" {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
                 <p className="text-xs text-muted-foreground">
@@ -222,7 +223,7 @@ function StoreForm({
                 <Input
                   placeholder="e.g. Printed gear, made in Accra"
                   {...field}
-                  className="rounded-2xl"
+                  className="rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -239,7 +240,7 @@ function StoreForm({
                 <Input
                   placeholder="Mid-sem sale — quote STUDENT10 in your order!"
                   {...field}
-                  className="rounded-2xl"
+                  className="rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -265,7 +266,7 @@ function StoreForm({
             <FormItem>
               <FormLabel>WhatsApp number for orders</FormLabel>
               <FormControl>
-                <Input placeholder="024 000 0000" {...field} className="rounded-2xl" />
+                <Input placeholder="024 000 0000" {...field} className="rounded-md" />
               </FormControl>
               <FormMessage />
               <p className="text-xs text-muted-foreground">
@@ -285,7 +286,7 @@ function StoreForm({
                   rows={3}
                   placeholder="What do you make or do?"
                   {...field}
-                  className="rounded-2xl"
+                  className="rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -315,7 +316,7 @@ function StoreForm({
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full font-semibold sm:w-auto"
+          className="h-11 w-full rounded-md font-semibold sm:w-auto"
         >
           {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save store' : 'Set up store'}
         </Button>
@@ -381,7 +382,7 @@ function CategoryForm({
                 <Input
                   placeholder="Beads, Wall art, Custom orders…"
                   {...field}
-                  className="rounded-2xl"
+                  className="rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -414,7 +415,7 @@ function CategoryForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full font-semibold"
+            className="h-11 rounded-md font-semibold"
           >
             {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save category' : 'Add category'}
           </Button>
@@ -422,7 +423,7 @@ function CategoryForm({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-11 rounded-full font-semibold"
+            className="h-11 rounded-md font-semibold"
           >
             Cancel
           </Button>
@@ -555,7 +556,7 @@ function ItemForm({
                   <Input
                     placeholder="Branded apron, one colour"
                     {...field}
-                    className="rounded-2xl"
+                    className="rounded-md"
                   />
                 </FormControl>
                 <FormMessage />
@@ -570,7 +571,7 @@ function ItemForm({
                 <FormLabel>What is it?</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-md">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -591,7 +592,7 @@ function ItemForm({
           <Label>Category</Label>
           <div>
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger className="rounded-2xl" aria-label="Category">
+              <SelectTrigger className="rounded-md" aria-label="Category">
                 <SelectValue placeholder="Choose a shelf" />
               </SelectTrigger>
               <SelectContent>
@@ -620,7 +621,7 @@ function ItemForm({
                 placeholder="45.50"
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
           </FormItem>
@@ -633,7 +634,7 @@ function ItemForm({
                 placeholder="28.00"
                 value={cost}
                 onChange={(event) => setCost(event.target.value)}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -650,7 +651,7 @@ function ItemForm({
                 placeholder="60.00"
                 value={compareAt}
                 onChange={(event) => setCompareAt(event.target.value)}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -670,7 +671,7 @@ function ItemForm({
                   rows={3}
                   placeholder="What exactly do they get?"
                   {...field}
-                  className="rounded-2xl"
+                  className="rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -712,7 +713,7 @@ function ItemForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full font-semibold"
+            className="h-11 rounded-md font-semibold"
           >
             {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save item' : 'Add item'}
           </Button>
@@ -720,7 +721,7 @@ function ItemForm({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-11 rounded-full font-semibold"
+            className="h-11 rounded-md font-semibold"
           >
             Cancel
           </Button>
@@ -853,7 +854,7 @@ function PromoForm({
               <FormItem>
                 <FormLabel>Promo name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Mid-sem sale" {...field} className="rounded-2xl" />
+                  <Input placeholder="Mid-sem sale" {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
                 <p className="text-xs text-muted-foreground">
@@ -876,7 +877,7 @@ function PromoForm({
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     ref={field.ref}
-                    className="rounded-2xl uppercase"
+                    className="rounded-md uppercase"
                   />
                 </FormControl>
                 <FormMessage />
@@ -896,7 +897,7 @@ function PromoForm({
                 <FormLabel>How much off?</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-md">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -918,7 +919,7 @@ function PromoForm({
                 placeholder={currentKind === 'PERCENT' ? '10' : '5'}
                 value={valueRaw}
                 onChange={(event) => setValueRaw(event.target.value)}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
           </FormItem>
@@ -932,7 +933,7 @@ function PromoForm({
               placeholder="50"
               value={minOrderRaw}
               onChange={(event) => setMinOrderRaw(event.target.value)}
-              className="rounded-2xl"
+              className="rounded-md"
             />
           </div>
           <p className="text-xs text-muted-foreground">
@@ -947,7 +948,7 @@ function PromoForm({
                 type="date"
                 value={startsAt}
                 onChange={(event) => setStartsAt(event.target.value)}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
           </FormItem>
@@ -958,7 +959,7 @@ function PromoForm({
                 type="date"
                 value={endsAt}
                 onChange={(event) => setEndsAt(event.target.value)}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
           </FormItem>
@@ -998,7 +999,7 @@ function PromoForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-full font-semibold"
+            className="h-11 rounded-md font-semibold"
           >
             {form.formState.isSubmitting ? 'Saving…' : initial ? 'Save promo' : 'Create promo'}
           </Button>
@@ -1006,7 +1007,7 @@ function PromoForm({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-11 rounded-full font-semibold"
+            className="h-11 rounded-md font-semibold"
           >
             Cancel
           </Button>
@@ -1222,7 +1223,7 @@ export function StoreWorkspace() {
 
   if (loading) {
     return (
-      <div className="flex min-h-64 items-center justify-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+      <div className="flex min-h-64 items-center justify-center text-caption font-medium text-muted-foreground">
         Loading your store…
       </div>
     );
@@ -1231,7 +1232,7 @@ export function StoreWorkspace() {
   if (error) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center">
-        <p className="text-2xl font-bold">Store unavailable</p>
+        <p className="text-h4 font-display">Store unavailable</p>
         <p className="mt-2 text-sm text-muted-foreground">
           We could not load your store. Please try again.
         </p>
@@ -1275,13 +1276,13 @@ export function StoreWorkspace() {
           <p className="flex flex-wrap items-center gap-2">
             <span className="truncate text-sm font-semibold">{item.name}</span>
             {!item.active && (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-medium text-muted-foreground">
                 Hidden
               </span>
             )}
           </p>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-primary">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
               {kindLabels[item.kind]}
             </span>
             <span className="font-mono text-sm font-semibold text-foreground">
@@ -1299,7 +1300,7 @@ export function StoreWorkspace() {
             size="icon"
             aria-label={`Push ${item.name} to socials`}
             onClick={() => setPublishItem(item)}
-            className="size-9 rounded-full"
+            className="size-9 rounded-md"
           >
             <Share2 aria-hidden className="size-4" />
           </Button>
@@ -1309,7 +1310,7 @@ export function StoreWorkspace() {
             size="icon"
             aria-label={`Edit ${item.name}`}
             onClick={() => setItemDialog({ open: true, editing: item })}
-            className="size-9 rounded-full"
+            className="size-9 rounded-md"
           >
             <Pencil aria-hidden className="size-4" />
           </Button>
@@ -1319,7 +1320,7 @@ export function StoreWorkspace() {
             size="icon"
             aria-label={`Remove ${item.name}`}
             onClick={() => void deleteItem(item)}
-            className="size-9 rounded-full text-red-600 hover:text-red-700"
+            className="size-9 rounded-md text-destructive"
           >
             <Trash2 aria-hidden className="size-4" />
           </Button>
@@ -1331,12 +1332,10 @@ export function StoreWorkspace() {
   return (
     <div className="grid gap-6">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-          The storefront
-        </p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+        <p className="text-eyebrow">The storefront</p>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">{store ? store.name : 'Your shop window'}</h1>
+            <h1 className="text-h2 font-display">{store ? store.name : 'Your shop window'}</h1>
             <p className="mt-2 max-w-lg text-sm text-muted-foreground">
               {store
                 ? 'Customers see this page — browse it, then order items straight to your WhatsApp.'
@@ -1351,7 +1350,7 @@ export function StoreWorkspace() {
           id="store-details"
           className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
         >
-          <h2 className="flex items-center gap-2 text-xl font-bold">
+          <h2 className="flex items-center gap-2 text-h3 font-display">
             <StoreIcon aria-hidden className="size-5 text-primary" /> Store details
           </h2>
           <div className="mt-4">
@@ -1362,7 +1361,7 @@ export function StoreWorkspace() {
         <div className="grid content-start gap-6">
           {store ? (
             <section className="rounded-xl border border-border bg-muted/40 p-6">
-              <h2 className="flex items-center gap-2 text-lg font-bold">
+              <h2 className="flex items-center gap-2 text-h4 font-display">
                 <ExternalLink aria-hidden className="size-5 text-primary" /> Share this page
               </h2>
               {storefrontUrl && (
@@ -1377,12 +1376,12 @@ export function StoreWorkspace() {
                 <Button
                   type="button"
                   onClick={() => void copyLink()}
-                  className="h-10 font-semibold"
+                  className="h-9 rounded-md font-semibold"
                 >
                   <Copy aria-hidden className="size-4" /> {copied ? 'Copied!' : 'Copy link'}
                 </Button>
                 {storefrontUrl && (
-                  <Button asChild variant="outline" className="h-10 font-semibold">
+                  <Button asChild variant="outline" className="h-9 rounded-md font-semibold">
                     <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink aria-hidden className="size-4" /> Preview
                     </a>
@@ -1391,9 +1390,9 @@ export function StoreWorkspace() {
               </div>
             </section>
           ) : (
-            <section className="rounded-xl border border-dashed border-border bg-card p-6">
-              <p className="text-lg font-bold">Not live yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+            <section className="rounded-xl border border-border bg-muted/40 p-6 text-small text-muted-foreground">
+              <p className="text-h4 font-display text-foreground">Not live yet</p>
+              <p className="mt-1">
                 Save the store details first — you&apos;ll get a shareable link here.
               </p>
             </section>
@@ -1405,7 +1404,7 @@ export function StoreWorkspace() {
         <section id="categories" className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold">Categories</h2>
+              <h2 className="text-h3 font-display">Categories</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 The shelves your products sit on — shoppers browse your page by these.
               </p>
@@ -1421,9 +1420,9 @@ export function StoreWorkspace() {
           </div>
 
           {store.categories.length === 0 ? (
-            <div className="mt-5 rounded-lg border border-dashed border-border px-5 py-8 text-center">
-              <p className="font-semibold">No categories yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+              <p className="text-h4 font-display text-foreground">No categories yet</p>
+              <p className="mt-1">
                 Optional — but shelves are what keep a long catalogue browsable.
               </p>
             </div>
@@ -1438,7 +1437,7 @@ export function StoreWorkspace() {
                     <p className="flex flex-wrap items-center gap-2">
                       <span className="truncate text-sm font-semibold">{category.name}</span>
                       {!category.active && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-medium text-muted-foreground">
                           Hidden
                         </span>
                       )}
@@ -1458,7 +1457,7 @@ export function StoreWorkspace() {
                     size="icon"
                     aria-label={`Edit ${category.name}`}
                     onClick={() => setCategoryDialog({ open: true, editing: category })}
-                    className="size-9 rounded-full"
+                    className="size-9 rounded-md"
                   >
                     <Pencil aria-hidden className="size-4" />
                   </Button>
@@ -1468,7 +1467,7 @@ export function StoreWorkspace() {
                     size="icon"
                     aria-label={`Remove ${category.name}`}
                     onClick={() => void deleteCategory(category)}
-                    className="size-9 rounded-full text-red-600 hover:text-red-700"
+                    className="size-9 rounded-md text-destructive"
                   >
                     <Trash2 aria-hidden className="size-4" />
                   </Button>
@@ -1483,7 +1482,7 @@ export function StoreWorkspace() {
         <section id="the-shelf" className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold">Catalogue</h2>
+              <h2 className="text-h3 font-display">Catalogue</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Everything people can order — products and services together.
               </p>
@@ -1498,9 +1497,9 @@ export function StoreWorkspace() {
           </div>
 
           {store.items.length === 0 ? (
-            <div className="mt-5 rounded-lg border border-dashed border-border px-5 py-10 text-center">
-              <p className="text-lg font-semibold">Empty catalogue</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+              <p className="text-h4 font-display text-foreground">Empty catalogue</p>
+              <p className="mt-1">
                 Add your first product or service — it appears on the public page right away.
               </p>
             </div>
@@ -1510,11 +1509,11 @@ export function StoreWorkspace() {
                 .filter((group) => group.items.length > 0)
                 .map((group) => (
                   <div key={group.category.id}>
-                    <p className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="mb-2 flex flex-wrap items-center gap-2 text-caption font-medium text-muted-foreground">
                       <FolderPlus aria-hidden className="size-3.5 text-primary" />
                       <span>{group.category.name}</span>
                       {!group.category.active && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold normal-case tracking-wide text-muted-foreground">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-medium text-muted-foreground">
                           Hidden from the public page
                         </span>
                       )}
@@ -1529,7 +1528,7 @@ export function StoreWorkspace() {
                 ))}
               {catalogueGroups.loose.length > 0 && (
                 <div>
-                  <p className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <p className="mb-2 flex flex-wrap items-center gap-2 text-caption font-medium text-muted-foreground">
                     <FolderPlus aria-hidden className="size-3.5" />
                     <span>Uncategorised</span>
                     <span className="font-mono normal-case">
@@ -1552,9 +1551,9 @@ export function StoreWorkspace() {
           id="sales-and-promos"
           className="rounded-xl border border-border bg-card p-6 sm:p-7"
         >
-          <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold">Sales &amp; promos</h2>
+              <h2 className="text-h3 font-display">Sales &amp; promos</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Discounts and codes — customers see them as &quot;Today&apos;s offers&quot; on your
                 page.
@@ -1570,13 +1569,13 @@ export function StoreWorkspace() {
           </div>
 
           {promotions === null ? (
-            <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
-              <p className="font-semibold">Loading promos…</p>
+            <div className="mt-4 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+              <p className="font-medium text-foreground">Loading promos…</p>
             </div>
           ) : promotions.length === 0 ? (
-            <div className="mt-5 rounded-lg border border-dashed border-border px-5 py-10 text-center">
-              <p className="text-lg font-semibold">No promos yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+              <p className="text-h4 font-display text-foreground">No promos yet</p>
+              <p className="mt-1">
                 Add a sale or a discount code and your page becomes a deal customers share.
               </p>
             </div>
@@ -1588,13 +1587,12 @@ export function StoreWorkspace() {
                   state === 'live'
                     ? {
                         label: 'Live now',
-                        className:
-                          'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+                        className: 'bg-primary/10 text-primary',
                       }
                     : state === 'upcoming'
                       ? {
                           label: 'Scheduled',
-                          className: 'bg-primary/10 text-primary',
+                          className: 'bg-muted text-foreground',
                         }
                       : state === 'ended'
                         ? {
@@ -1603,8 +1601,7 @@ export function StoreWorkspace() {
                           }
                         : {
                             label: 'Paused',
-                            className:
-                              'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
+                            className: 'bg-muted text-foreground',
                           };
                 const terms = promoTerms(promo);
                 const windowLabel = promo.startsAt
@@ -1638,21 +1635,21 @@ export function StoreWorkspace() {
                       <p className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-sm font-semibold">{promo.name}</span>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider ${pill.className}`}
+                          className={`rounded-full px-2 py-0.5 text-caption font-medium ${pill.className}`}
                         >
                           {pill.label}
                         </span>
                       </p>
                       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                        <span className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                        <span className="font-mono text-sm font-semibold text-foreground">
                           {promoHeadline(promo)}
                         </span>
                         {promo.code ? (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-primary">
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
                             CODE {promo.code}
                           </span>
                         ) : (
-                          <span className="rounded-full bg-muted px-2 py-0.5 font-semibold uppercase tracking-wider text-muted-foreground">
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-medium text-muted-foreground">
                             No code needed
                           </span>
                         )}
@@ -1679,7 +1676,7 @@ export function StoreWorkspace() {
                           size="icon"
                           aria-label={`Edit ${promo.name}`}
                           onClick={() => setPromoDialog({ open: true, editing: promo })}
-                          className="size-8 rounded-full"
+                          className="size-8 rounded-md"
                         >
                           <Pencil aria-hidden className="size-4" />
                         </Button>
@@ -1689,7 +1686,7 @@ export function StoreWorkspace() {
                           size="icon"
                           aria-label={`Remove ${promo.name}`}
                           onClick={() => void deletePromo(promo)}
-                          className="size-8 rounded-full text-red-600 hover:text-red-700"
+                          className="size-8 rounded-md text-destructive"
                         >
                           <Trash2 aria-hidden className="size-4" />
                         </Button>
@@ -1704,10 +1701,61 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section id="publish-log" className="rounded-xl border border-border bg-card p-6 sm:p-7">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+        <section id="socials" className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold">Post history</h2>
+              <h2 className="text-h3 font-display">Connected socials</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Where you post — auto drafts are written one per connected network.
+              </p>
+            </div>
+            <Share2 aria-hidden className="size-5 text-primary" />
+          </div>
+          <div className="mt-5">
+            <SocialsPanel />
+          </div>
+        </section>
+      )}
+
+      {store && (
+        <section id="auto-posts" className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-h3 font-display">Auto-posts</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ready-made drafts from your shelves — tap an icon to post it yourself.
+              </p>
+            </div>
+          </div>
+          <div className="mt-5">
+            <AutoPostsPanel
+              store={store}
+              posts={posts}
+              onStoreSaved={setStore}
+              onGenerated={() => {
+                apiFetch('/api/store/posts', { schema: SocialPostList })
+                  .then((result) => setPosts(result.items))
+                  .catch(() => {});
+              }}
+              onMarked={(post) =>
+                setPosts(
+                  (current) =>
+                    current?.map((entry) => (entry.id === post.id ? post : entry)) ?? current,
+                )
+              }
+              onRemoved={(postId) =>
+                setPosts((current) => current?.filter((entry) => entry.id !== postId) ?? current)
+              }
+            />
+          </div>
+        </section>
+      )}
+
+      {store && (
+        <section id="publish-log" className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-h3 font-display">Post history</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Every push goes here — mark it posted once it&apos;s live.
               </p>
@@ -1715,8 +1763,8 @@ export function StoreWorkspace() {
             <Share2 aria-hidden className="size-5 text-primary" />
           </div>
           {posts === null ? (
-            <div className="mt-4 rounded-lg border border-dashed border-border px-5 py-8 text-center">
-              <p className="font-semibold">Loading the log…</p>
+            <div className="mt-4 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+              <p className="font-medium text-foreground">Loading the log…</p>
             </div>
           ) : (
             <PublishLog
@@ -1741,7 +1789,7 @@ export function StoreWorkspace() {
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-h3">
               {itemDialog.editing ? 'Edit the item' : 'Add a new item'}
             </DialogTitle>
             <DialogDescription>
@@ -1779,7 +1827,7 @@ export function StoreWorkspace() {
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-h3">
               {promoDialog.editing ? 'Edit the promo' : 'New promo'}
             </DialogTitle>
             <DialogDescription>
@@ -1803,7 +1851,7 @@ export function StoreWorkspace() {
       >
         <DialogContent className="rounded-xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-h3">
               {categoryDialog.editing ? 'Edit the category' : 'New category'}
             </DialogTitle>
             <DialogDescription>
@@ -1829,9 +1877,7 @@ export function StoreWorkspace() {
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              Share &quot;{publishItem?.name}&quot;
-            </DialogTitle>
+            <DialogTitle className="text-h3">Share &quot;{publishItem?.name}&quot;</DialogTitle>
             <DialogDescription>
               Pick a place — we copy the caption and open that app so you finish the post.
             </DialogDescription>

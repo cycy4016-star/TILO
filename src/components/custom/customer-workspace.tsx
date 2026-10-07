@@ -84,7 +84,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ama's Boutique" {...field} className="rounded-2xl" />
+                  <Input placeholder="Ama's Boutique" {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -97,7 +97,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
               <FormItem>
                 <FormLabel>Outfit</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ama's Boutique Ltd." {...field} className="rounded-2xl" />
+                  <Input placeholder="Ama's Boutique Ltd." {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -116,7 +116,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
                     type="email"
                     placeholder="orders@example.com"
                     {...field}
-                    className="rounded-2xl"
+                    className="rounded-md"
                   />
                 </FormControl>
                 <FormMessage />
@@ -130,7 +130,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
               <FormItem>
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
-                  <Input placeholder="024 000 0000" {...field} className="rounded-2xl" />
+                  <Input placeholder="024 000 0000" {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,7 +144,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
             <FormItem>
               <FormLabel>Where to find them</FormLabel>
               <FormControl>
-                <Input placeholder="Osu, Accra" {...field} className="rounded-2xl" />
+                <Input placeholder="Osu, Accra" {...field} className="rounded-md" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -153,7 +153,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
+          className="h-11 w-full rounded-md bg-primary font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
         >
           {form.formState.isSubmitting ? 'Pinning…' : 'Pin them up'}
         </Button>
@@ -197,21 +197,19 @@ export function CustomerWorkspace() {
   return (
     <div className="grid gap-6">
       <section className="relative overflow-hidden rounded-xl border border-border bg-card p-7 sm:p-9">
-        <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-          Customer directory
-        </p>
+        <p className="relative text-eyebrow">Customer directory</p>
         <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Customers</h1>
+          <h1 className="text-h1 font-display">Customers</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="h-12 rounded-lg bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90">
+              <Button className="h-11 rounded-md bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90">
                 <Plus aria-hidden className="size-4" />
                 Add customer
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
               <DialogHeader>
-                <DialogTitle className="text-lg font-bold">Add a customer</DialogTitle>
+                <DialogTitle className="text-h4 font-display">Add a customer</DialogTitle>
                 <DialogDescription>
                   Add an email or phone so they&apos;re ready for follow-up.
                 </DialogDescription>
@@ -239,12 +237,13 @@ export function CustomerWorkspace() {
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search by name, email, or phone"
               aria-label="Search customers"
-              className="h-12 rounded-lg border-border bg-background pl-11"
+              className="h-11 rounded-md border-border bg-background pl-11"
             />
           </div>
           <Button
             type="submit"
-            className="h-12 rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+            variant="outline"
+            className="h-11 rounded-md border-border bg-background font-semibold text-foreground hover:bg-muted"
           >
             Search
           </Button>
@@ -252,31 +251,31 @@ export function CustomerWorkspace() {
       </section>
 
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border px-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="flex min-h-48 items-center justify-center rounded-xl border border-border bg-muted/40 px-6 text-small text-muted-foreground">
           Loading…
         </div>
       ) : error ? (
-        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 text-center">
-          <p role="alert" className="font-semibold text-foreground">
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
+          <p role="alert" className="text-small font-medium text-foreground">
             {error}
           </p>
           <Button
             type="button"
             onClick={() => void loadCustomers(query)}
-            className="rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+            className="h-9 rounded-md font-semibold"
           >
             Try again
           </Button>
         </div>
       ) : customers.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card px-6 text-center">
+        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
           <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Users aria-hidden className="size-6" />
           </span>
-          <p className="text-xl font-bold">
+          <p className="text-h4 font-display">
             {query ? 'No matching customers' : 'No customers yet'}
           </p>
-          <p className="max-w-sm text-sm font-medium text-muted-foreground">
+          <p className="max-w-sm text-small text-muted-foreground">
             {query
               ? 'Try another name or contact detail.'
               : 'Add your first customer and start tracking conversations.'}
@@ -285,7 +284,7 @@ export function CustomerWorkspace() {
             <Button
               type="button"
               onClick={() => setDialogOpen(true)}
-              className="mt-1 rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+              className="mt-1 h-11 rounded-md font-semibold"
             >
               Add your first customer
             </Button>
@@ -296,20 +295,20 @@ export function CustomerWorkspace() {
           {customers.map((customer) => (
             <div
               key={customer.id}
-              className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-4 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="group lift flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               <Link
                 href={`/dashboard/customers/${customer.id}`}
                 className="flex min-w-0 flex-1 items-center gap-4"
               >
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-lg font-bold text-primary">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-lg font-semibold text-primary">
                   {customer.name.charAt(0).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold text-foreground">
+                  <span className="block truncate font-medium text-foreground">
                     {customer.name}
                   </span>
-                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-stone-500">
+                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-caption font-medium text-muted-foreground">
                     {customer.company && <span>{customer.company}</span>}
                     {customer.email && (
                       <span className="inline-flex items-center gap-1">
@@ -336,7 +335,7 @@ export function CustomerWorkspace() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`WhatsApp ${customer.name}`}
-                        className="inline-flex size-10 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                        className="inline-flex size-10 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted"
                       >
                         <MessagesSquare aria-hidden className="size-4" />
                       </a>
@@ -352,14 +351,14 @@ export function CustomerWorkspace() {
                         type="button"
                         variant="outline"
                         aria-label={`Text ${customer.name}`}
-                        className="inline-flex size-10 rounded-full border-border p-0 hover:bg-muted"
+                        className="inline-flex size-10 rounded-md border-border p-0 hover:bg-muted"
                       >
                         <MessageSquareMore aria-hidden className="size-4" />
                       </Button>
                     }
                   />
                 )}
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium text-primary">
                   <Flame aria-hidden className="size-3" />
                   {customer.orderCount}
                 </span>

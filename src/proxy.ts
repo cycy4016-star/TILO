@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { buildCsp } from '@/lib/csp';
-import { cspExtraSources } from './next.user-config';
+import { cspExtraSources } from '../next.user-config';
 
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');

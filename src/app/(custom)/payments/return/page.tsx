@@ -9,12 +9,8 @@ export const metadata: Metadata = { title: 'Payment | Tilo' };
 
 export default function PaymentReturnPage() {
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#fefce8] px-5 py-16 dark:bg-stone-950">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute -left-24 top-[-10%] size-96 rounded-full bg-yellow-300 opacity-40 blur-3xl" />
-        <div className="absolute -right-24 bottom-[-10%] size-96 rounded-full bg-yellow-300 opacity-40 blur-3xl" />
-      </div>
-      <div className="relative w-full max-w-md">
+    <main className="flex min-h-dvh items-center justify-center bg-background px-5 py-16">
+      <div className="w-full max-w-md">
         <PaymentReturn />
       </div>
     </main>

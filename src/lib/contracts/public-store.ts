@@ -11,6 +11,17 @@ export const PublicOrderLine = z.object({
   quantity: z.number().int('Quantity must be a whole number').min(1).max(99).default(1),
 });
 
+// The next step after either capture is a reply on WhatsApp/SMS, so the number
+// has to actually dial: at least 9 digits once formatted is what wa.me accepts
+// and what the server-side `toE164` normalisation turns into a real E.164
+// number. Without this a typo silently becomes an unreachable customer row.
+const phoneField = z
+  .string()
+  .trim()
+  .min(1, 'A phone number is needed')
+  .max(40, 'Phone is too long')
+  .refine((value) => value.replace(/\D/g, '').length >= 9, 'That phone number looks too short');
+
 // An order placed on the storefront, no account needed. Just the basket +
 // who they are. Phones are normalised to E.164 server-side before saving.
 export const PublicOrderCreate = z
@@ -20,7 +31,7 @@ export const PublicOrderCreate = z
       .min(1, 'Add at least one item')
       .max(20, 'Keep the basket to 20 different items'),
     customerName: z.string().trim().min(1, 'Your name is needed').max(120, 'Name is too long'),
-    phone: z.string().trim().min(1, 'A phone number is needed').max(40, 'Phone is too long'),
+    phone: phoneField,
     note: z.string().trim().max(300, 'Keep the note under 300 characters').optional(),
   })
   .superRefine((value, ctx) => {
@@ -52,7 +63,7 @@ export const PublicOrderResult = z.object({
 // the card only saves them once they tick the opt-in box.
 export const PublicLeadCreate = z.object({
   name: z.string().trim().min(1, 'Your name is needed').max(120, 'Name is too long'),
-  phone: z.string().trim().min(1, 'A phone number is needed').max(40, 'Phone is too long'),
+  phone: phoneField,
   town: z.string().trim().max(120, 'Keep the town short').optional(),
   note: z.string().trim().max(300, 'Keep the note under 300 characters').optional(),
   consent: z.literal(true, { errorMap: () => ({ message: 'Tick the box so we can save you' }) }),

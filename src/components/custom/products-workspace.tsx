@@ -36,8 +36,8 @@ export function ProductsWorkspace() {
 
   if (error || !data) {
     return (
-      <section className="rounded-xl border border-border bg-card p-6">
-        <p className="text-sm font-semibold text-destructive">
+      <section className="rounded-xl border border-border bg-muted/40 p-6">
+        <p className="text-small font-medium text-destructive">
           We could not load your product performance. Please try again.
         </p>
       </section>
@@ -52,53 +52,45 @@ export function ProductsWorkspace() {
     <div className="grid gap-6">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
             <Package aria-hidden className="size-3.5" /> Products
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium text-muted-foreground">
             <TrendingUp aria-hidden className="size-3.5" /> What moves
           </span>
         </div>
-        <h1 className="mt-5 text-3xl font-bold">
+        <h1 className="mt-5 text-h1 font-display">
           Top <span className="text-primary">sellers.</span>
         </h1>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground">
+        <p className="mt-2 max-w-md text-small text-muted-foreground">
           Best-sellers, prices, cost and margins — one ranked sheet.
         </p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Total sold
-          </p>
-          <p className="mt-1 text-3xl font-bold text-foreground">{totalUnits}</p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="text-caption font-medium text-muted-foreground">Total sold</p>
+          <p className="mt-1 font-display text-h3 text-foreground">{totalUnits}</p>
+          <p className="mt-2 text-small text-muted-foreground">
             across {data.items.length} items ranked
           </p>
         </article>
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Revenue
-          </p>
-          <p className="mt-1 text-3xl font-bold text-foreground">{formatGhs(totalRevenue)}</p>
+          <p className="text-caption font-medium text-muted-foreground">Revenue</p>
+          <p className="mt-1 font-display text-h3 text-foreground">{formatGhs(totalRevenue)}</p>
         </article>
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Profit after cost
-          </p>
-          <p className="mt-1 text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-            {formatGhs(totalProfit)}
-          </p>
+          <p className="text-caption font-medium text-muted-foreground">Profit after cost</p>
+          <p className="mt-1 font-display text-h3 text-primary">{formatGhs(totalProfit)}</p>
         </article>
       </section>
 
       <section className="overflow-hidden rounded-xl border border-border bg-card">
         {data.items.length === 0 ? (
-          <div className="px-6 py-12 text-center">
+          <div className="bg-muted/40 px-6 py-12 text-center">
             <PackageX aria-hidden className="mx-auto size-10 text-muted-foreground" />
-            <p className="mt-3 text-lg font-semibold">Nothing counted yet</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+            <p className="mt-3 text-h4 font-display">Nothing counted yet</p>
+            <p className="mx-auto mt-1 max-w-sm text-small text-muted-foreground">
               When storefront orders and line-item orders are placed, their prices, costs and
               margins rank here automatically.
             </p>
@@ -107,7 +99,7 @@ export function ProductsWorkspace() {
           <div id="ranking-table" className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead>
-                <tr className="border-b border-border bg-muted/60 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
+                <tr className="border-b border-border bg-muted/60 text-caption font-medium uppercase tracking-widest text-muted-foreground">
                   <th className="px-5 py-3">Item</th>
                   <th className="px-5 py-3">Sold</th>
                   <th className="px-5 py-3">Price now</th>
@@ -119,38 +111,41 @@ export function ProductsWorkspace() {
               </thead>
               <tbody className="divide-y divide-border">
                 {data.items.map((item) => (
-                  <tr key={`${item.name}-${item.currentPricePesewas}`}>
+                  <tr
+                    key={`${item.name}-${item.currentPricePesewas}`}
+                    className="hover:bg-muted/50"
+                  >
                     <td className="px-5 py-3">
-                      <p className="text-sm font-semibold">{item.name}</p>
-                      <p className="mt-0.5 text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                      <p className="text-small font-medium">{item.name}</p>
+                      <p className="mt-0.5 text-caption text-muted-foreground">
                         {item.active === false ? 'Hidden' : (item.kind ?? 'Custom')}
                       </p>
                     </td>
-                    <td className="px-5 py-3 font-mono text-sm font-semibold">
+                    <td className="px-5 py-3 font-mono text-small font-semibold">
                       {item.unitCount}
-                      <span className="ml-1 text-[0.7rem] text-muted-foreground">
+                      <span className="ml-1 text-caption text-muted-foreground">
                         · {item.orderCount} orders
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-mono text-sm font-semibold">
+                    <td className="px-5 py-3 font-mono text-small font-semibold">
                       {item.currentPricePesewas != null ? formatGhs(item.currentPricePesewas) : '—'}
                     </td>
-                    <td className="px-5 py-3 font-mono text-sm font-semibold">
+                    <td className="px-5 py-3 font-mono text-small font-semibold">
                       {item.currentCostPesewas != null ? formatGhs(item.currentCostPesewas) : '—'}
                     </td>
-                    <td className="px-5 py-3 font-mono text-sm font-semibold">
+                    <td className="px-5 py-3 font-mono text-small font-semibold">
                       {formatGhs(item.revenuePesewas)}
                     </td>
-                    <td className="px-5 py-3 font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    <td className="px-5 py-3 font-mono text-small font-semibold text-foreground">
                       {formatGhs(item.profitPesewas)}
                     </td>
                     <td className="px-5 py-3">
                       {item.marginPercent != null ? (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-primary">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
                           {item.marginPercent}%
                         </span>
                       ) : (
-                        <span className="text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="text-caption font-medium text-muted-foreground">
                           No cost
                         </span>
                       )}

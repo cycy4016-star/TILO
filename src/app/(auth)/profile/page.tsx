@@ -55,29 +55,22 @@ export default function ProfilePage() {
 
   if (isPending) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-background px-5 dark:bg-stone-950">
-        <p className="animate-pulse text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-          Loading…
-        </p>
+      <main className="flex min-h-dvh items-center justify-center bg-background px-5">
+        <p className="animate-pulse text-eyebrow">Loading…</p>
       </main>
     );
   }
 
   if (!session?.user) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-background px-5 py-16 dark:bg-stone-950">
-        <Card className="w-full max-w-md rounded-xl border border-border bg-card shadow-sm dark:bg-stone-900">
+      <main className="flex min-h-dvh items-center justify-center bg-background px-5 py-16">
+        <Card className="w-full max-w-md rounded-xl border border-border bg-card shadow-sm">
           <CardHeader className="pb-2 text-center">
-            <CardTitle className="text-2xl font-bold">Sign in required</CardTitle>
-            <CardDescription className="font-medium">
-              Sign in to manage your profile
-            </CardDescription>
+            <CardTitle className="text-h4 font-display">Sign in required</CardTitle>
+            <CardDescription>Sign in to manage your profile</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <Button
-              asChild
-              className="h-12 w-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
-            >
+            <Button asChild className="h-11 w-full rounded-md font-semibold">
               <a href="/login">Sign in</a>
             </Button>
           </CardContent>
@@ -87,7 +80,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="bg-background px-5 py-12 dark:bg-stone-950">
+    <main className="bg-background px-5 py-12">
       <div className="relative mx-auto max-w-lg">
         <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-6">
           {session.user.image ? (
@@ -97,22 +90,22 @@ export default function ProfilePage() {
               className="size-16 shrink-0 rounded-lg object-cover"
             />
           ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-2xl font-bold text-primary">
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-h3 text-primary">
               {session.user.name?.charAt(0).toUpperCase() ?? '?'}
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-bold">{session.user.name}</h1>
-            <p className="truncate text-sm font-medium text-muted-foreground">
+            <h1 className="truncate text-h1 font-display">{session.user.name}</h1>
+            <p className="truncate text-small text-muted-foreground">
               {session.user.phoneNumber ?? session.user.email}
             </p>
           </div>
         </div>
 
-        <Card className="mt-5 rounded-xl border border-border bg-card shadow-sm dark:bg-stone-900">
+        <Card className="mt-5 rounded-xl border border-border bg-card shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Photo</CardTitle>
-            <CardDescription className="font-medium">
+            <CardTitle className="text-h4 font-display">Photo</CardTitle>
+            <CardDescription>
               A face for your account — snap one or pick from your gallery.
             </CardDescription>
           </CardHeader>
@@ -128,7 +121,7 @@ export default function ProfilePage() {
                 type="button"
                 disabled={savingAvatar || (!avatar.file && !avatar.cleared)}
                 onClick={() => void saveAvatar()}
-                className="h-10 rounded-md bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+                className="h-9 rounded-md font-semibold"
               >
                 {savingAvatar ? 'Saving…' : 'Save photo'}
               </Button>
@@ -136,27 +129,27 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-5 rounded-xl border border-border bg-card shadow-sm dark:bg-stone-900">
+        <Card className="mt-5 rounded-xl border border-border bg-card shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">Account details</CardTitle>
-            <CardDescription className="font-medium">Your details, on one card</CardDescription>
+            <CardTitle className="text-h4 font-display">Account details</CardTitle>
+            <CardDescription>Your details, on one card</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm font-semibold text-muted-foreground">Name</span>
-              <span className="font-bold">{session.user.name}</span>
+              <span className="text-caption font-medium text-muted-foreground">Name</span>
+              <span className="font-medium">{session.user.name}</span>
             </div>
             <Separator />
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm font-semibold text-muted-foreground">Phone</span>
-              <span className="font-bold">{session.user.phoneNumber ?? '—'}</span>
+              <span className="text-caption font-medium text-muted-foreground">Phone</span>
+              <span className="font-medium">{session.user.phoneNumber ?? '—'}</span>
             </div>
             {session.user.email && !session.user.email.endsWith('@phone.tilo') ? (
               <>
                 <Separator />
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-sm font-semibold text-muted-foreground">Email</span>
-                  <span className="font-bold">{session.user.email}</span>
+                  <span className="text-caption font-medium text-muted-foreground">Email</span>
+                  <span className="font-medium">{session.user.email}</span>
                 </div>
               </>
             ) : null}
@@ -176,7 +169,7 @@ export default function ProfilePage() {
                 setSigningOut(false);
               }
             }}
-            className="rounded-md border-border font-semibold hover:bg-muted"
+            className="h-9 rounded-md font-semibold"
           >
             {signingOut ? 'Signing out…' : 'Sign out'}
           </Button>

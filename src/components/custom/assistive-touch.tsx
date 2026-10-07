@@ -39,21 +39,18 @@ export function AssistiveTouch() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'group relative flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 via-emerald-600 to-sky-700 text-white shadow-[0_10px_28px_-8px_rgba(6,95,70,0.55)] ring-4 ring-background transition-transform duration-300 ease-out motion-safe:animate-tilo-float hover:scale-110 active:scale-95',
-          open && 'scale-110',
+          'group relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-brand ring-4 ring-background transition-transform duration-300 ease-out-expo motion-safe:animate-tilo-float hover:scale-105 active:scale-95',
+          open && 'scale-105',
         )}
       >
+        {/* Breathing ring — a gold halo so the orb reads as tappable. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-full bg-emerald-400/40 motion-safe:animate-tilo-ping"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/30 to-transparent"
+          className="pointer-events-none absolute inset-0 rounded-full bg-primary/40 motion-safe:animate-tilo-ping"
         />
         <span
           className={cn(
-            'pointer-events-none absolute right-full mr-2 hidden items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-semibold text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 md:flex',
+            'pointer-events-none absolute right-full mr-2 hidden items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-caption font-medium text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 md:flex',
             open && 'opacity-100',
           )}
         >

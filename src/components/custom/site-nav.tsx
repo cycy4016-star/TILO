@@ -93,6 +93,14 @@ function isDashboardPath(pathname: string) {
   return pathname === '/dashboard' || pathname.startsWith('/dashboard/');
 }
 
+// Top-bar link typography: quiet by default, `text-foreground` when current so
+// the active item reads as chosen rather than hovered. `size` stays at the
+// default h-9 — `size="sm"` would add `text-xs`, which the compiler emits after
+// `text-small` and would win, shrinking the nav type.
+const navLinkClasses =
+  'h-9 px-3 text-small font-medium text-muted-foreground hover:text-foreground';
+const navLinkActiveClasses = 'bg-accent text-accent-foreground text-foreground';
+
 export function SiteNav() {
   const isAuthenticated = useIsAuthenticated();
   // The brand links home, so drop a redundant '/' item from the rendered links.
@@ -119,14 +127,14 @@ export function SiteNav() {
     slot.type === 'link' ? isActive(slot.item.href) : slot.items.some((i) => isActive(i.href));
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 text-foreground backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <nav
         aria-label="Primary"
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
         <Link href="/" className="mr-2 flex min-w-0 items-center gap-2">
           <TiloMark className="size-8 rounded-xl" iconClassName="size-4" />
-          <span className="truncate font-display text-lg font-black uppercase tracking-tight">
+          <span className="truncate font-display text-[1.05rem] font-semibold tracking-tight">
             {siteName}
           </span>
         </Link>
@@ -139,8 +147,7 @@ export function SiteNav() {
                 key={slot.item.href}
                 asChild
                 variant="ghost"
-                size="sm"
-                className={cn(isActive(slot.item.href) && 'bg-accent text-accent-foreground')}
+                className={cn(navLinkClasses, isActive(slot.item.href) && navLinkActiveClasses)}
               >
                 <Link
                   href={slot.item.href}
@@ -154,8 +161,7 @@ export function SiteNav() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className={cn(isSlotActive(slot) && 'bg-accent text-accent-foreground')}
+                    className={cn(navLinkClasses, isSlotActive(slot) && navLinkActiveClasses)}
                   >
                     {slot.label}
                     <ChevronDown className="ml-1 size-4 opacity-60" aria-hidden />
@@ -183,8 +189,10 @@ export function SiteNav() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className={cn(overflow.some(isSlotActive) && 'bg-accent text-accent-foreground')}
+                  className={cn(
+                    navLinkClasses,
+                    overflow.some(isSlotActive) && navLinkActiveClasses,
+                  )}
                 >
                   More
                   <ChevronDown className="ml-1 size-4 opacity-60" aria-hidden />
@@ -233,15 +241,14 @@ export function SiteNav() {
         </div>
 
         {/* Right cluster: ml-auto pushes it right at every breakpoint */}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1.5">
           {/* Desktop secondary buttons */}
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center gap-1.5 md:flex">
             {secondary.map((item) => (
               <Button
                 key={item.href}
                 asChild
-                size="sm"
-                className="rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+                className="rounded-full bg-primary px-4 text-small font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
                   {item.label}
@@ -282,8 +289,9 @@ export function SiteNav() {
                         asChild
                         variant="ghost"
                         className={cn(
-                          'h-11 w-full justify-start',
-                          isActive(slot.item.href) && 'bg-accent text-accent-foreground',
+                          'h-11 w-full justify-start text-small font-medium',
+                          isActive(slot.item.href) &&
+                            'bg-accent text-accent-foreground text-foreground',
                         )}
                       >
                         <Link
@@ -296,7 +304,7 @@ export function SiteNav() {
                       </Button>
                     ) : (
                       <div key={`menu:${slot.label}`} className="flex flex-col gap-1">
-                        <p className="px-3 pt-2 text-xs font-medium text-muted-foreground">
+                        <p className="px-3 pt-3 text-caption uppercase tracking-widest text-muted-foreground">
                           {slot.label}
                         </p>
                         {slot.items.map((item) => (
@@ -305,8 +313,9 @@ export function SiteNav() {
                             asChild
                             variant="ghost"
                             className={cn(
-                              'h-11 w-full justify-start pl-6',
-                              isActive(item.href) && 'bg-accent text-accent-foreground',
+                              'h-11 w-full justify-start pl-6 text-small font-medium',
+                              isActive(item.href) &&
+                                'bg-accent text-accent-foreground text-foreground',
                             )}
                           >
                             <Link
@@ -328,7 +337,7 @@ export function SiteNav() {
                           key={item.href}
                           asChild
                           variant="secondary"
-                          className="h-11 w-full justify-start"
+                          className="h-11 w-full justify-start text-small font-medium"
                         >
                           <Link
                             href={item.href}
@@ -364,18 +373,15 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-border bg-background text-muted-foreground">
-      <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-4 px-4 pb-24 pt-8 sm:pb-8">
-        <p className="font-display text-2xl font-black uppercase tracking-tight text-foreground">
-          Tilo
-        </p>
-        <nav aria-label="Footer" className="flex flex-wrap items-center gap-1 text-sm">
+      <div className="container-page flex flex-wrap items-center justify-between gap-6 py-10 pb-24 sm:pb-8">
+        <p className="font-display text-h4 font-semibold tracking-tight text-foreground">Tilo</p>
+        <nav aria-label="Footer" className="flex flex-wrap items-center gap-1">
           {footer.map((item) => (
             <Button
               key={item.href}
               asChild
               variant="link"
-              size="sm"
-              className="font-bold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="text-small font-medium text-muted-foreground hover:text-foreground"
             >
               <Link href={item.href}>{item.label}</Link>
             </Button>

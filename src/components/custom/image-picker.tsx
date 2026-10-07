@@ -60,8 +60,8 @@ export function ImagePicker({
 
   const previewClass =
     shape === 'circle'
-      ? 'size-20 shrink-0 overflow-hidden rounded-full ring-2 ring-amber-950/20'
-      : 'size-20 shrink-0 overflow-hidden rounded-2xl';
+      ? 'size-20 shrink-0 overflow-hidden rounded-full ring-2 ring-border'
+      : 'size-20 shrink-0 overflow-hidden rounded-xl';
 
   return (
     <div className="flex items-center gap-4">
@@ -69,7 +69,7 @@ export function ImagePicker({
         {shownUrl ? (
           <img src={shownUrl} alt="" className="size-full object-cover" />
         ) : (
-          <div className="flex size-full items-center justify-center bg-amber-50 text-amber-400 dark:bg-stone-800">
+          <div className="flex size-full items-center justify-center bg-muted text-muted-foreground">
             <ImageIcon aria-hidden className="size-8" />
           </div>
         )}
@@ -96,7 +96,7 @@ export function ImagePicker({
           <Button
             type="button"
             variant="outline"
-            className="h-9 rounded-full text-xs font-semibold"
+            className="h-9 rounded-md text-small font-medium"
             onClick={() => captureRef.current?.click()}
           >
             <Camera aria-hidden className="size-3.5" /> Take photo
@@ -104,7 +104,7 @@ export function ImagePicker({
           <Button
             type="button"
             variant="outline"
-            className="h-9 rounded-full text-xs font-semibold"
+            className="h-9 rounded-md text-small font-medium"
             onClick={() => galleryRef.current?.click()}
           >
             <ImagePlus aria-hidden className="size-3.5" /> Choose image
@@ -114,7 +114,7 @@ export function ImagePicker({
           <Button
             type="button"
             variant="ghost"
-            className="h-9 w-fit rounded-full text-xs font-semibold text-red-600 hover:text-red-700"
+            className="h-9 w-fit rounded-md text-small font-medium text-destructive hover:text-destructive/90"
             onClick={remove}
           >
             <Trash2 aria-hidden className="size-3.5" />

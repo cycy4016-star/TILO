@@ -35,6 +35,7 @@
       "includes": [
         "src/app/**/route.ts",
         "src/app/layout.tsx",
+        "src/app/(setup)/page.tsx",
         "src/app/(dashboard)/dashboard/admin/page.tsx",
         "src/lib/**",
         "src/modules/**/server/**"
@@ -45,6 +46,7 @@
       "includes": [
         "src/components/custom/image-picker.tsx",
         "src/components/custom/store-workspace.tsx",
+        "src/components/custom/storefront/store-catalog.tsx",
         "src/app/(auth)/profile/page.tsx",
         "src/app/store/*/page.tsx"
       ],

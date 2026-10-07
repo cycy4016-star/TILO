@@ -68,26 +68,28 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       {env.NEXT_PUBLIC_GOOGLE_AUTH === 'true' ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <Button
             type="button"
             variant="outline"
             disabled={googlePending}
             onClick={() => void handleGoogle()}
-            className="w-full"
+            className="h-11 w-full rounded-md"
           >
             {googlePending ? 'Opening Google…' : 'Continue with Google'}
           </Button>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-stone-400">
-            <span className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
+          <div className="flex items-center gap-3 text-small text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
             or with your phone or email
-            <span className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
+            <span className="h-px flex-1 bg-border" />
           </div>
         </div>
       ) : null}
-      <Label htmlFor="sign-in-identifier">Phone number or email</Label>
+      <Label htmlFor="sign-in-identifier" className="text-small font-medium">
+        Phone number or email
+      </Label>
       <Input
         id="sign-in-identifier"
         name="identifier"
@@ -98,13 +100,15 @@ export function SignInForm() {
         onChange={(e) => setIdentifier(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
       <div className="flex items-center justify-between">
-        <Label htmlFor="sign-in-password">Password</Label>
+        <Label htmlFor="sign-in-password" className="text-small font-medium">
+          Password
+        </Label>
         <Link
           href="/forgot-password"
-          className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+          className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
           Forgot password?
         </Link>
@@ -118,10 +122,18 @@ export function SignInForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
         aria-invalid={error ? true : undefined}
-        className="h-12 rounded-2xl"
+        className="h-11 rounded-md"
       />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending} className="h-12 w-full">
+      {error ? (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-small text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <Button
+        type="submit"
+        disabled={pending}
+        className="mt-6 h-11 w-full rounded-md font-semibold"
+      >
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>

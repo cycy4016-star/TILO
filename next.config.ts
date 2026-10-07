@@ -18,7 +18,10 @@ const nextConfig: NextConfig = {
 
   images: {
     remotePatterns: [...userRemotePatterns],
-    localPatterns: [{ pathname: '/assets/**', search: '' }],
+    localPatterns: [
+      { pathname: '/assets/**', search: '' },
+      { pathname: '/samples/**', search: '' },
+    ],
     dangerouslyAllowLocalIP: false,
     qualities: [75],
   },

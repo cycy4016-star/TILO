@@ -5,28 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function SignupPage() {
   return (
-    <main className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center bg-background px-5 py-10 sm:py-16 dark:bg-stone-950">
-      <Card className="relative w-full max-w-md rounded-xl border border-border bg-card shadow-sm dark:bg-stone-900">
-        <CardHeader className="pb-2 text-center">
-          <TiloMark
-            className="mx-auto size-14 rounded-2xl shadow-[0_10px_24px_-10px_rgba(202,138,4,0.6)]"
-            iconClassName="size-7"
-          />
-          <p className="mx-auto mt-3 w-fit rounded-full bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-primary">
-            New here
-          </p>
-          <CardTitle className="mt-3 text-3xl font-bold">Create your account</CardTitle>
-          <CardDescription className="font-medium">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-12">
+      <Card className="w-full shadow-sm">
+        <CardHeader className="space-y-2 pb-2 text-center">
+          <TiloMark className="mx-auto size-12 rounded-xl shadow-brand" iconClassName="size-6" />
+          <p className="text-eyebrow">New here</p>
+          <CardTitle className="font-display text-h1">Create your account</CardTitle>
+          <CardDescription className="mt-2 text-small text-muted-foreground">
             Free to start — set up in minutes
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-4">
+        <CardContent className="pt-6">
           <SignUpForm />
-          <p className="mt-4 text-center text-sm font-medium text-muted-foreground">
+          <p className="mt-6 text-center text-small text-muted-foreground">
             Already have an account?{' '}
             <a
               href="/login"
-              className="font-semibold text-primary underline-offset-2 hover:underline"
+              className="font-medium text-primary underline-offset-2 hover:underline"
             >
               Sign in
             </a>

@@ -63,8 +63,8 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
         <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Check aria-hidden className="size-6" />
         </span>
-        <p className="mt-3 text-xl font-bold">You&apos;re on the list</p>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+        <p className="mt-3 font-display text-h4">You&apos;re on the list</p>
+        <p className="mx-auto mt-1 max-w-sm text-small text-muted-foreground">
           {storeName} has your details now. Order anytime — by WhatsApp, SMS or right here.
         </p>
       </section>
@@ -73,11 +73,11 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
 
   return (
     <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-      <p className="flex items-center gap-2 text-lg font-bold">
+      <p className="flex items-center gap-2 font-display text-h4">
         <Sparkles aria-hidden className="size-4 text-primary" />
         Leave your details
       </p>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <p className="mt-1 text-small text-muted-foreground">
         Share your WhatsApp number so {storeName} can confirm orders quickly and keep you posted.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -126,7 +126,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
       </div>
       <label
         htmlFor="lead-consent"
-        className="mt-4 flex items-start gap-3 text-sm text-muted-foreground"
+        className="mt-4 flex items-start gap-3 text-small text-muted-foreground"
       >
         <Checkbox
           id="lead-consent"
@@ -142,12 +142,12 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
           .
         </span>
       </label>
-      {error && <p className="mt-2 text-sm font-medium text-destructive">{error}</p>}
+      {error && <p className="mt-2 text-small font-medium text-destructive">{error}</p>}
       <Button
         type="button"
         disabled={busy}
         onClick={() => void submit()}
-        className="mt-4 h-11 font-semibold"
+        className="mt-4 h-11 rounded-md font-semibold"
       >
         {busy ? 'Saving…' : 'Save my details'}
       </Button>

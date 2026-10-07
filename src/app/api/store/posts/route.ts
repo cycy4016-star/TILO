@@ -55,6 +55,8 @@ export async function POST(request: Request) {
         caption: parsed.data.caption,
         status: 'SHARED',
         externalUrl: null,
+        // A hand-pressed share is never a scheduled draft.
+        auto: false,
       },
       include: { item: { select: { name: true } } },
     });
@@ -82,6 +84,7 @@ type PostedRow = {
   status: 'SHARED' | 'PUBLISHED';
   caption: string;
   externalUrl: string | null;
+  auto: boolean;
   createdAt: Date;
   updatedAt: Date;
   item: { name: string };
@@ -93,6 +96,7 @@ function serializePost(post: PostedRow) {
     storeId: post.storeId,
     itemId: post.itemId,
     itemName: post.item.name,
+    auto: post.auto,
     platform: post.platform,
     status: post.status,
     caption: post.caption,

@@ -47,7 +47,10 @@ const platformIcons: Record<SocialPlatformValue, LucideIcon> = {
 
 const statusStyles: Record<SocialPostStatusValue, string> = {
   SHARED: 'bg-muted text-muted-foreground',
-  PUBLISHED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+  // "Live" is the positive state, so it carries the brand accent as a tint —
+  // never a solid fill, and never a raw emerald literal (it bypassed every
+  // [data-theme] preset and the dark-mode token set).
+  PUBLISHED: 'bg-primary/10 text-primary',
 };
 
 function platformDef(value: SocialPlatformValue): SocialPlatformDef {
@@ -69,7 +72,7 @@ function PlatformBadge({ value }: { value: SocialPlatformValue }) {
   const def = platformDef(value);
   const Icon = platformIcons[def.value];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-eyebrow">
       <Icon aria-hidden className="size-3.5" /> {def.label}
     </span>
   );
@@ -286,7 +289,7 @@ function PublishLog({
               <PlatformBadge value={post.platform} />
               <span className="min-w-0 truncate text-sm font-semibold">{post.itemName}</span>
               <span
-                className={`ml-auto rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider ${statusStyles[post.status]}`}
+                className={`ml-auto rounded-full px-2 py-0.5 text-caption font-semibold uppercase ${statusStyles[post.status]}`}
               >
                 {post.status === 'PUBLISHED' ? 'Posted' : 'Shared'}
               </span>

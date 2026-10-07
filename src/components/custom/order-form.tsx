@@ -80,27 +80,22 @@ export function OrderForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Order label or description</FormLabel>
+              <FormLabel className="text-small font-medium">Order label or description</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="12 branded aprons for Friday delivery"
-                  rows={4}
-                  {...field}
-                  className="rounded-2xl"
-                />
+                <Textarea placeholder="12 branded aprons for Friday delivery" rows={4} {...field} />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-small text-destructive" />
             </FormItem>
           )}
         />
         <FormItem>
-          <FormLabel>Amount owed (cedis)</FormLabel>
+          <FormLabel className="text-small font-medium">Amount owed (cedis)</FormLabel>
           <FormControl>
             <Input
               type="text"
@@ -108,14 +103,13 @@ export function OrderForm({
               placeholder="45.50 — optional, powers payment reminders"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="rounded-2xl"
             />
           </FormControl>
         </FormItem>
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="h-12 w-full rounded-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+          className="h-11 w-full rounded-md font-semibold"
         >
           {form.formState.isSubmitting ? 'Creating…' : 'Create order'}
         </Button>

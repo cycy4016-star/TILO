@@ -94,7 +94,7 @@ function KindPill({ kind }: { kind: AutomationKindValue }) {
   const meta = AUTOMATION_KIND_META[kind];
   const Icon = KIND_ICONS[meta.icon];
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase text-primary">
+    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium uppercase tracking-wide text-primary">
       <Icon aria-hidden className="size-3" />
       {meta.label}
     </span>
@@ -257,7 +257,7 @@ function RuleForm({
             <FormItem>
               <FormLabel>Name this rule</FormLabel>
               <FormControl>
-                <Input placeholder="Chase overdue orders" {...field} className="rounded-2xl" />
+                <Input placeholder="Chase overdue orders" {...field} className="rounded-md" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -274,7 +274,7 @@ function RuleForm({
                 value={field.value}
               >
                 <FormControl>
-                  <SelectTrigger className="rounded-2xl">
+                  <SelectTrigger className="rounded-md">
                     <SelectValue placeholder="Pick one" />
                   </SelectTrigger>
                 </FormControl>
@@ -302,7 +302,7 @@ function RuleForm({
                   onValueChange={(value) => field.onChange(Number(value))}
                 >
                   <FormControl>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-md">
                       <SelectValue placeholder="Pick how long" />
                     </SelectTrigger>
                   </FormControl>
@@ -327,7 +327,7 @@ function RuleForm({
                   <FormLabel>When an order has been</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-2xl">
+                      <SelectTrigger className="rounded-md">
                         <SelectValue placeholder="Pick a status" />
                       </SelectTrigger>
                     </FormControl>
@@ -365,7 +365,7 @@ function RuleForm({
                   }}
                 >
                   <FormControl>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-md">
                       <SelectValue placeholder="Pick a number" />
                     </SelectTrigger>
                   </FormControl>
@@ -383,7 +383,7 @@ function RuleForm({
                     placeholder="+233 24 000 0000"
                     {...field}
                     value={field.value ?? ''}
-                    className="rounded-2xl"
+                    className="rounded-md"
                   />
                 )}
                 <FormDescription>Where alerts are sent when an order stalls.</FormDescription>
@@ -401,7 +401,7 @@ function RuleForm({
                 <FormLabel>Change it to</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <FormControl>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-md">
                       <SelectValue placeholder="Pick a destination" />
                     </SelectTrigger>
                   </FormControl>
@@ -436,7 +436,7 @@ function RuleForm({
                   }}
                 >
                   <FormControl>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-md">
                       <SelectValue placeholder="Pick a message" />
                     </SelectTrigger>
                   </FormControl>
@@ -455,7 +455,7 @@ function RuleForm({
                     placeholder={messagePlaceholder}
                     {...field}
                     value={field.value ?? ''}
-                    className="rounded-2xl"
+                    className="rounded-md"
                   />
                 )}
                 <FormDescription>
@@ -490,7 +490,7 @@ function RuleForm({
           <Button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="h-11 rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+            className="h-11 rounded-md font-semibold"
           >
             {form.formState.isSubmitting ? 'Saving…' : isEditing ? 'Save changes' : 'Create rule'}
           </Button>
@@ -589,31 +589,30 @@ export function AutomationsWorkspace() {
   return (
     <div className="grid gap-6">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-          Set it once, Tilo keeps the rhythm
-        </p>
+        <p className="text-eyebrow">Set it once, Tilo keeps the rhythm</p>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-3xl font-bold">Automation rules</h1>
+          <h1 className="text-h1 font-display">Automation rules</h1>
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
+              variant="outline"
               onClick={() => void runSweep()}
               disabled={sweeping}
-              className="h-11 font-semibold"
+              className="h-11 rounded-md font-semibold"
             >
               <Play aria-hidden className="size-4" />
               {sweeping ? 'Running…' : 'Run now'}
             </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="h-11 px-6 font-semibold">
+                <Button className="h-11 rounded-md font-semibold">
                   <Zap aria-hidden className="size-4" />
                   New rule
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold">Create a rule</DialogTitle>
+                  <DialogTitle className="text-h3 font-display">Create a rule</DialogTitle>
                   <DialogDescription>
                     Pick a trigger, set the timing, and Tilo handles the rest automatically.
                   </DialogDescription>
@@ -631,7 +630,7 @@ export function AutomationsWorkspace() {
             </Dialog>
           </div>
         </div>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+        <p className="mt-3 max-w-2xl text-small text-muted-foreground">
           Rules are checked by a daily sweep. Nudges, ready-pings, receipts and review asks text the
           customer once per order, ever; stall alerts and the daily brief text you. Set the rules
           once and Tilo keeps the rhythm going.
@@ -639,32 +638,36 @@ export function AutomationsWorkspace() {
       </section>
 
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border bg-card px-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 px-6 text-caption font-medium text-muted-foreground">
           Loading rules…
         </div>
       ) : error ? (
-        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-10 text-center">
-          <p role="alert" className="font-semibold text-destructive">
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 px-6 py-10 text-center">
+          <p role="alert" className="text-small text-destructive">
             {error}
           </p>
           <Button
             type="button"
             onClick={() => void loadRules()}
-            className="rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+            className="h-11 rounded-md font-semibold"
           >
             Try again
           </Button>
         </div>
       ) : rules.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center">
+        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 px-6 py-12 text-center">
           <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Zap aria-hidden className="size-6" />
           </span>
-          <p className="text-xl font-semibold">No rules yet</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
+          <p className="text-h4 font-display">No rules yet</p>
+          <p className="max-w-sm text-small text-muted-foreground">
             Create your first rule and Tilo will start monitoring your orders for you.
           </p>
-          <Button type="button" onClick={() => setDialogOpen(true)} className="mt-1 font-semibold">
+          <Button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            className="mt-1 h-11 rounded-md font-semibold"
+          >
             Create the first rule
           </Button>
         </div>
@@ -681,10 +684,10 @@ export function AutomationsWorkspace() {
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-base font-semibold tracking-tight">{rule.name}</h2>
+                    <h2 className="text-h4 font-display">{rule.name}</h2>
                     <KindPill kind={rule.kind} />
                   </div>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-small text-muted-foreground">
                     <Clock aria-hidden className="size-3.5" />
                     <span>
                       {meta.requiresStatus
@@ -694,22 +697,20 @@ export function AutomationsWorkspace() {
                     {meta.requiresRecipient && rule.recipient && (
                       <>
                         <span aria-hidden>→</span>
-                        <span className="font-semibold text-foreground">
-                          alert {rule.recipient}
-                        </span>
+                        <span className="font-medium text-foreground">alert {rule.recipient}</span>
                       </>
                     )}
                     {meta.requiresTarget && rule.targetStatus && (
                       <>
                         <span aria-hidden>→</span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-medium text-foreground">
                           change to {statusLabel(rule.targetStatus)}
                         </span>
                       </>
                     )}
                   </p>
                   {meta.usesMessage && rule.message && (
-                    <p className="mt-2 max-w-lg truncate text-xs text-muted-foreground">
+                    <p className="mt-2 max-w-lg truncate text-caption text-muted-foreground">
                       &ldquo;{rule.message}&rdquo;
                     </p>
                   )}
@@ -754,9 +755,9 @@ export function AutomationsWorkspace() {
         id="recent-activity"
         className="scroll-mt-24 rounded-xl border border-border bg-card p-5"
       >
-        <h2 className="text-lg font-bold">Recent activity</h2>
+        <h2 className="text-h3 font-display">Recent activity</h2>
         {events.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 text-small text-muted-foreground">
             Nothing yet. Once the daily sweep runs, every nudge and status change appears here.
           </p>
         ) : (
@@ -764,7 +765,7 @@ export function AutomationsWorkspace() {
             {events.map((event) => (
               <li
                 key={event.id}
-                className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 px-4 py-2.5 text-sm"
+                className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2.5 text-small"
               >
                 <span
                   className={`inline-flex size-6 items-center justify-center rounded-full ${
@@ -775,14 +776,16 @@ export function AutomationsWorkspace() {
                     {event.ok ? '✓' : '✕'}
                   </span>
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="text-caption font-medium text-muted-foreground">
                   {event.kind.replaceAll('_', ' ')}
                 </span>
-                {event.to && <span className="text-xs text-muted-foreground">{event.to}</span>}
-                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                {event.to && <span className="text-caption text-muted-foreground">{event.to}</span>}
+                <span className="min-w-0 flex-1 truncate text-caption text-muted-foreground">
                   {event.message ?? event.detail}
                 </span>
-                <time className="text-xs text-muted-foreground">{formatDate(event.createdAt)}</time>
+                <time className="text-caption text-muted-foreground">
+                  {formatDate(event.createdAt)}
+                </time>
               </li>
             ))}
           </ul>

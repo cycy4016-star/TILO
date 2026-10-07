@@ -4,8 +4,10 @@ Tilo is a hosted shop page for small businesses. A sign-up gets a shareable
 catalogue at `/store/<slug>` — products grouped on shelves with photos,
 prices (with a struck-through "before" where you discount), and a basket
 customers fill themselves. Every checkout lands in the owner's dashboard as an
-itemised, totalled order. WhatsApp and SMS stay attached: one tap from any
-product, a customer directory, order history, and optional automation SMS.
+itemised, totalled order. WhatsApp is the order channel: the confirmation hands
+the customer a pre-filled chat carrying the whole basket, and any product still
+has one-tap WhatsApp and SMS. Around that: a customer directory, order history,
+and optional automation SMS.
 
 Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn UI,
 better-auth (phone + password with SMS OTP, optional email, admin roles),
@@ -15,10 +17,13 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
 
 - Marketing home at `/` (`src/app/(setup)/page.tsx`) with product sections.
 - **Public storefront at `/store/[slug]`** (`src/app/store/[slug]/page.tsx`):
-  shelved product groups, photos, price-before/price-now, one-tap WhatsApp and
+  shelved product groups, photos, price-before/price-now, catalogue search
+  (name, description or shelf) with shelf filter chips, one-tap WhatsApp and
   SMS per item, and a multi-item basket that posts to
-  `/api/public/store/[slug]/orders`. Hiding a shelf hides its products from the
-  public page *and* from ordering.
+  `/api/public/store/[slug]/orders` — the confirmation then opens WhatsApp with
+  the full basket pre-filled, so the shop gets the order on chat *and* in the
+  dashboard. Hiding a shelf hides its products from the public page *and* from
+  ordering.
 - **Catalogue manager at `/dashboard/store`**
   (`src/components/custom/store-workspace.tsx`): shelf CRUD, product images,
   price pairs, active toggles, and a grouped catalogue list. The shelf id rides

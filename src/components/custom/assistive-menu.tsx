@@ -109,8 +109,10 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
 
 // Public/marketing landing sections, for the menu on non-dashboard routes.
 const LANDING_SECTIONS: QuickAction[] = [
-  { label: 'Features', icon: Wrench, sectionId: 'toolkit' },
-  { label: 'Getting started', icon: CalendarDays, sectionId: 'steps' },
+  { label: 'Features', icon: Wrench, sectionId: 'features' },
+  { label: 'Showcase', icon: Store, sectionId: 'showcase' },
+  { label: 'Getting started', icon: CalendarDays, sectionId: 'how-it-works' },
+  { label: 'Pricing', icon: Wallet, sectionId: 'pricing' },
   { label: 'Contact', icon: PartyPopper, sectionId: 'start' },
 ];
 
@@ -141,31 +143,6 @@ function buildGroups(pathname: string, isDashboard: boolean, isAdmin: boolean): 
   ];
 }
 
-// Per-item icon styling, cycled across the menu so each destination gets its own
-// color: vivid gradient tiles for page links, soft tinted chips for in-page
-// jumps. Adds the "3D" lift + colored glow that keeps the panel from looking
-// flat.
-const FALLBACK_ICON_ACCENT = {
-  tile: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-[0_8px_16px_-8px_rgba(245,158,11,0.6)]',
-  chip: 'border border-amber-200/70 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300',
-};
-
-const ICON_ACCENTS = [
-  FALLBACK_ICON_ACCENT,
-  {
-    tile: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-[0_8px_16px_-8px_rgba(16,185,129,0.6)]',
-    chip: 'border border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300',
-  },
-  {
-    tile: 'bg-gradient-to-br from-sky-500 to-sky-700 text-white shadow-[0_8px_16px_-8px_rgba(14,165,233,0.6)]',
-    chip: 'border border-sky-200/70 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300',
-  },
-  {
-    tile: 'bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-[0_8px_16px_-8px_rgba(139,92,246,0.6)]',
-    chip: 'border border-violet-200/70 bg-violet-50 text-violet-700 dark:border-violet-900/60 dark:bg-violet-950/40 dark:text-violet-300',
-  },
-];
-
 export interface QuickAccessPanelProps {
   /** Called when the panel wants to close (close button, after a jump). */
   onClose: () => void;
@@ -189,40 +166,31 @@ export function QuickAccessPanel({ onClose }: QuickAccessPanelProps) {
   return (
     <>
       <div className="flex items-center justify-between px-2 pb-2">
-        <p className="text-sm font-semibold text-foreground">Quick access</p>
+        <p className="text-small font-semibold text-foreground">Quick access</p>
         <button
           type="button"
           aria-label="Close quick access"
           onClick={onClose}
-          className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <CircleDot aria-hidden className="size-4" />
         </button>
       </div>
       {groups.map((group) => (
-        <div key={group.label} className="mb-2 last:mb-0">
-          <p className="px-2 pb-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
-            {group.label}
-          </p>
+        <div key={group.label} className="mb-3 last:mb-0">
+          <p className="px-2 pb-1.5 text-eyebrow">{group.label}</p>
           <div className="grid grid-cols-3 gap-2">
-            {group.actions.map((action, index) => {
+            {group.actions.map((action) => {
               const Icon = action.icon;
-              const accent = ICON_ACCENTS[index % ICON_ACCENTS.length] ?? FALLBACK_ICON_ACCENT;
               const shared = cn(
-                'group flex flex-col items-center gap-1.5 rounded-lg px-1 pb-2 pt-2.5 text-center transition-colors',
-                action.href ? 'hover:bg-muted' : 'hover:bg-secondary',
+                'group flex flex-col items-center gap-2 rounded-md px-1 pb-2 pt-2.5 text-center transition-colors hover:bg-muted',
               );
               const inner = (
                 <>
-                  <span
-                    className={cn(
-                      'flex size-11 items-center justify-center rounded-xl transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-110',
-                      action.href ? accent.tile : accent.chip,
-                    )}
-                  >
+                  <span className="flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:text-foreground">
                     <Icon aria-hidden className="size-5" />
                   </span>
-                  <span className="text-[0.68rem] font-semibold leading-tight text-muted-foreground">
+                  <span className="text-small font-medium leading-tight text-muted-foreground group-hover:text-foreground">
                     {action.label}
                   </span>
                 </>

@@ -96,6 +96,7 @@ describe('social contracts', () => {
       storeId: 'store-1',
       itemId: 'item-1',
       itemName: 'Branded apron',
+      auto: false,
       platform: 'INSTAGRAM' as const,
       status: 'SHARED' as const,
       caption: 'hello',

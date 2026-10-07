@@ -28,8 +28,11 @@ export interface NavItem {
 //   { label: 'Docs',    href: '/docs',    group: 'primary', menu: 'Resources' },
 //   { label: 'Sign in', href: '/login',   group: 'secondary' },
 export const navItems: NavItem[] = [
-  { label: 'Toolkit', href: '/#toolkit', group: 'primary', order: 1 },
-  { label: 'How it works', href: '/#steps', group: 'primary', order: 2 },
+  { label: 'Features', href: '/#features', group: 'primary', order: 1 },
+  { label: 'Showcase', href: '/#showcase', group: 'primary', order: 2 },
+  { label: 'How it works', href: '/#how-it-works', group: 'primary', order: 3 },
+  { label: 'Pricing', href: '/#pricing', group: 'primary', order: 4 },
+  { label: 'FAQ', href: '/#faq', group: 'primary', order: 5 },
   { label: 'Start', href: '/#start', group: 'secondary', order: 0 },
   { label: 'Workspace', href: '/dashboard', group: 'secondary', requiresAuth: true, order: 1 },
   { label: 'Privacy', href: '/privacy', group: 'footer', order: 0 },

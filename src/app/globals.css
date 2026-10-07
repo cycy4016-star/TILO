@@ -126,32 +126,41 @@
    --brand-h ALONE recolors the entire site. Keep values in range. */
 :root {
   --brand-h: 84; /* brand hue, 0–360 (oklch yellow — the Tilo colour) */
-  --brand-c: 0.19; /* brand chroma (saturation), 0–0.3 */
-  --brand-l: 0.78; /* lightness of the brand-500 step (yellow wants to stay bright) */
-  --radius: 1.1rem; /* corner roundness — cascades to every primitive */
+  /* Chroma 0.16 (was 0.19) and lightness 0.74 (was 0.78): the old seed read as
+     highlighter yellow. The dialled-back seed keeps the hue at 84 (gold is the
+     Tilo signature) but lands on a warmer, deeper amber that survives being a
+     button fill with dark text on it. */
+  --brand-c: 0.16; /* brand chroma (saturation), 0–0.3 */
+  --brand-l: 0.74; /* lightness of the brand-500 step */
+  /* 10px: buttons sit at 8px, cards at 14px — the crisp modern scale, replacing
+     the poster-round 1.1rem the template shipped with. */
+  --radius: 0.625rem; /* corner roundness — cascades to every primitive */
 
-  --font-display: "Arial Black", "Helvetica Neue", Helvetica, sans-serif;
-  --font-body: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  /* Set by next/font on <html> (src/lib/fonts.ts). The stacks after the comma
+     are the fallback when the webfont hasn't landed yet. */
+  --font-display: var(--font-inter-tight, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
+  --font-body: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
 
-  /* Interface chrome ramp consumed by the dashboard shell + storefront via
-      arbitrary-value classes (bg-[var(--tl-950)] etc.). Defaults are the exact
-      yellow values of the Tilo signature, so the gold theme renders
-      byte-for-byte like today; every other [data-theme] remaps them for a
-      coherent recolour alongside the derived --brand ramp above. */
-  --tl-950: #422006;
-  --tl-900: #713f12;
-  --tl-800: #854d0e;
-  --tl-700: #a16207;
-  --tl-600: #ca8a04;
-  --tl-500: #eab308;
-  --tl-400: #facc15;
-  --tl-300: #fde047;
-  --tl-200: #fef08a;
-  --tl-100: #fef9c3;
-  --tl-50: #fefce8;
-  --tl-cta: #ca8a04;
-  --tl-cta-border: #facc15;
-  --tl-banner: #fefce8;
+  /* Interface chrome ramp consumed by the storefront + dashboard via
+      arbitrary-value classes (bg-[var(--tl-950)] etc.). These are the GOLD
+      theme's own values: a warm espresso-to-bronze ramp that gives the public
+      shop page a real tonal gradient, replacing the flat mustard-brown the
+      template shipped with. Every other [data-theme] overrides them alongside
+      the derived --brand ramp above. */
+  --tl-950: #191308;
+  --tl-900: #2d2312;
+  --tl-800: #463518;
+  --tl-700: #6a5020;
+  --tl-600: #9a7428;
+  --tl-500: #c08f2f;
+  --tl-400: #dcb257;
+  --tl-300: #eed18f;
+  --tl-200: #f6e6bd;
+  --tl-100: #fbf3dd;
+  --tl-50: #fdfaf1;
+  --tl-cta: #8a6620;
+  --tl-cta-border: #d8b45e;
+  --tl-banner: #fdfaf1;
 }
 
 /* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)

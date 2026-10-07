@@ -263,7 +263,7 @@ where it lives, and what is deliberately not built yet.
 **Location:** `src/app/(dashboard)/dashboard/store/page.tsx`,
 `src/app/store/[slug]/page.tsx`, `src/components/custom/store-workspace.tsx`,
 `src/app/api/store/**`, `src/app/api/public/store/[slug]/route.ts`,
-`src/lib/contracts/store.ts`.
+`src/lib/contracts/store.ts`, `src/lib/whatsapp-templates.ts`.
 
 - Manage a store: name, slug (URL-safe), tagline, description, contact phone,
   active toggle, and a **logo** (capture or upload).
@@ -287,13 +287,24 @@ where it lives, and what is deliberately not built yet.
   their products are exposed — hiding a shelf hides its products from the page
   *and* from ordering, and draft/inactive items never appear. The hero shows the
   logo and shelf cards show item photos.
+- **Catalogue search & shelf filter:** the storefront grid is a client island
+  with a search box that matches item name, description *and* shelf name (typing
+  a category brings back everything filed under it), plus one chip per shelf and
+  an "All items" reset. Filtering only hides cards — the basket always spans the
+  whole catalogue — and reports an "N of M items" count with a clear-filters
+  escape hatch and a "No matches" empty state.
 - **Multi-item basket:** each product card carries an add button and a quantity
   stepper; a sticky bar totals the basket and opens a checkout dialog that POSTs
   `{ lines, customerName, phone, note }` to `/api/public/store/<slug>/orders`.
   That one rate-limited request prices every line, refuses items that are hidden,
-  inactive or no longer shelved, and writes an `Order` plus one `OrderLineItem`
-  per line. Every product still carries one-tap WhatsApp and SMS links, and the
-  shop owner is notified as the order arrives.
+  inactive or no longer shelved, and requires a dialable phone number (at least
+  9 digits) before it will create a customer row. It writes an `Order` plus one
+  `OrderLineItem` per line, then the confirmation screen hands the order to
+  **WhatsApp**: a receipt with the order number and a pre-filled `wa.me` message
+  (`src/lib/whatsapp-templates.ts`) carrying every line, the total, the
+  customer's name and number, and the note. Products also keep one-tap
+  per-item WhatsApp and SMS links, and the shop owner is notified as the order
+  arrives.
 - Store dashboard (`store-workspace.tsx`) shows photo thumbnails on shelf cards
   and supports replace/remove for both logo and item photos in their forms.
 
@@ -464,11 +475,11 @@ provider error instead of a silent drop).
 
 ## 18. Testing
 
-- Vitest unit/integration suite (162 tests): contracts, route handlers, tenant
+- Vitest unit/integration suite (191 tests): contracts, route handlers, tenant
   isolation (foreign customer/order/item/post 404s, cross-shop phone reuse,
   owner-stamped public captures, notification + SMS ownership), the platform
-  role policy, CSP, nav, store, promotions, live-orders, sms templates,
-  instrumentation, SEO text.
+  role policy, CSP, nav, store, promotions, live-orders, sms + whatsapp
+  templates, instrumentation, SEO text.
 - Postgres integration tests via `npm run test:postgres` (needs
   `TEST_DATABASE_URL`).
 

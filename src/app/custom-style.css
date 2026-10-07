@@ -1,119 +1,85 @@
-/* Your custom global CSS: keyframes, animation classes, one-off global
- * styles, and @import your own .css files. Prefer tw-animate-css for motion (animate-in,
- * fade-in, slide-in-from-bottom-N, duration-*). Edit HERE, not globals.css. */
+/* Tilo's custom global CSS.
+ *
+ * This is the seam for everything that is a *design decision* rather than a
+ * token: the expressive `vibrant` appearance, keyframes, and a small set of
+ * typography/polish rules. Theme tokens live in globals.css; components should
+ * reach for utilities before adding anything here.
+ *
+ * HISTORY: this file used to carry ~130 lines of `:root:not([data-appearance=
+ * "vibrant"])` overrides that untited rotations, flattened comic offset
+ * shadows, forced border-2 -> 1px and swapped Arial Black back to Segoe UI.
+ * That block existed to suppress a poster-style seed it disagreed with, and it
+ * targeted escaped literals (`shadow-[3px_3px_0_0_#451a03]`) that only matched
+ * the exact values in use at the time. It has been removed: the seed in
+ * globals.css now *is* the refined look, so there is nothing left to suppress.
+ * `vibrant` is expressed here as a positive opt-in instead.
+ */
 
-@keyframes tilo-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
+/* ============================================================
+   Appearance: the one expressive variant
+   ------------------------------------------------------------
+   `professional` (the default) needs no rules — it simply is the
+   globals.css seed. `vibrant` opts a page into the louder Tilo
+   personality: poster-round corners and a heavy display face.
+   Applied wherever the attribute lands (the platform sets it on
+   <html>; the storefront sets it on its own root element), so it
+   works on both.
+   ============================================================ */
+[data-appearance="vibrant"] {
+  --radius: 1.1rem;
+  --font-display: "Arial Black", "Segoe UI", Helvetica, sans-serif;
+}
+
+/* ============================================================
+   Typography polish
+   ============================================================ */
+
+/* The type scale (--text-h1 … --text-caption) carries size, leading, weight and
+   tracking but NOT font-family, so without this every heading would render in
+   the body face and the display/body distinction — the whole point of shipping
+   two fonts — would never appear. `@layer base` so an explicit `font-body` on a
+   given element still wins. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
   }
 }
 
-.animate-marquee {
-  animation: tilo-marquee 28s linear infinite;
+/* Balance short headings so a two-line title breaks near the middle instead of
+   leaving a widow; `pretty` keeps body copy from starting a line with a
+   dangling punctuation mark. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
 }
 
-.text-outline-cream {
-  -webkit-text-stroke: 2px var(--color-primary-foreground);
-  color: transparent;
+p {
+  text-wrap: pretty;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
-  }
+/* Gold-tinted selection, so highlight colour reads as brand rather than the
+   browser default blue. */
+::selection {
+  background: oklch(0.9 0.12 var(--brand-h));
+  color: oklch(0.2 0.03 var(--brand-h));
 }
 
-/* === Professional platform look (default) ===
-   Tilo ships a clean, business-ready UI. These rules neutralize the loud
-   poster styling (tilted cards, comic offset shadows, oversized radii, chunky
-   borders, Arial-black display type) into a calm, straight, corporate look.
-   They apply everywhere EXCEPT when <html data-appearance="vibrant"> opts back
-   into the loud Tilo-style panels (the AppearancePicker). Because this file is
-   unlayered author CSS it wins over the layered Tailwind utilities. */
-
-:root:not([data-appearance="vibrant"]) {
-  /* Crisper corners + the regular typeface for every "display" heading. */
-  --radius: 0.5rem;
-  --font-display: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-}
-
-:root:not([data-appearance="vibrant"]) {
-  /* Untip every tilted card, badge and logo mark. */
-  .rotate-0,
-  .rotate-1,
-  .rotate-2,
-  .rotate-3,
-  .rotate-6,
-  .rotate-12,
-  .-rotate-1,
-  .-rotate-2,
-  .-rotate-3,
-  .-rotate-6,
-  .-rotate-12,
-  .rotate-\[0\.4deg\],
-  .rotate-\[0\.5deg\],
-  .-rotate-\[0\.5deg\],
-  .rotate-\[1\.5deg\],
-  .-rotate-\[1\.5deg\],
-  .hover\:rotate-0,
-  .hover\:-rotate-6,
-  .hover\:-rotate-12,
-  .group-hover\:-rotate-6 {
-    rotate: 0deg;
-  }
-
-  /* Drop the comic offset shadows for an understated edge. */
-  .shadow-\[3px_3px_0_0_\#451a03\],
-  .shadow-\[3px_3px_0_0_rgba\(0\,0\,0\,0\.25\)\],
-  .shadow-\[4px_4px_0_0_\#451a03\],
-  .shadow-\[4px_4px_0_0_var\(--tl-950\)\],
-  .shadow-\[5px_5px_0_0_\#451a03\],
-  .shadow-\[5px_5px_0_0_var\(--tl-950\)\],
-  .shadow-\[6px_6px_0_0_\#451a03\],
-  .shadow-\[8px_8px_0_0_\#047857\],
-  .shadow-\[8px_8px_0_0_\#451a03\],
-  .shadow-\[8px_8px_0_0_var\(--tl-950\)\],
-  .hover\:shadow-\[3px_3px_0_0_\#451a03\],
-  .hover\:shadow-\[6px_6px_0_0_\#451a03\] {
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
-  }
-
-  /* Oversized poster corners -> modest, business-ready radius. */
-  .rounded-\[2rem\],
-  .rounded-\[1\.75rem\],
-  .rounded-\[1\.5rem\],
-  .rounded-\[1\.25rem\] {
-    border-radius: 0.5rem;
-  }
-
-  /* Chunky 2px/4px borders -> 1px, recolored to the neutral UI border. */
-  .border-2,
-  .border-b-4,
-  .border-t-4 {
-    border-width: 1px;
-  }
-  .border-amber-950,
-  .border-amber-700,
-  .border-amber-400,
-  .border-\[var\(--tl-950\)\] {
-    border-color: var(--border);
-  }
-
-  /* Neon-yellow action buttons -> the calm brand primary + its hover shade. */
-  .bg-yellow-600 {
-    background-color: var(--primary);
-  }
-  .hover\:bg-amber-700 {
-    background-color: var(--brand-700);
-  }
-}
+/* ============================================================
+   Motion
+   ============================================================ */
 
 /* Soft breathing ring on the assistive-touch menu orb, so it reads as a
-   tappable menu rather than a static dot. Runs only when the user hasn't asked
-   for reduced motion; the class pairs with Tailwind's `motion-safe:` variant. */
+   tappable menu rather than a static dot. Pairs with the `motion-safe:`
+   variant in the component. */
 @keyframes tilo-ping {
   0% {
     transform: scale(1);
@@ -125,62 +91,23 @@
     opacity: 0;
   }
 }
+
 .animate-tilo-ping {
   animation: tilo-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* === 3D life for the professional look ===
-   Small, tasteful depth: primary buttons carry a soft elevation and lift on
-   hover, cards rise by a couple of pixels, and the quick-access orbs float.
-   All of it stays within the professional appearance and honours reduced
-   motion. */
-
-:root:not([data-appearance="vibrant"]) .bg-primary {
-  box-shadow:
-    0 6px 16px -6px color-mix(in oklab, var(--primary) 55%, transparent),
-    0 1px 2px 0 rgb(0 0 0 / 0.06);
-  transform: translateZ(0);
-  transition:
-    transform 150ms ease,
-    box-shadow 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-@media (hover: hover) {
-  :root:not([data-appearance="vibrant"]) .bg-primary:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      0 10px 22px -8px color-mix(in oklab, var(--primary) 45%, transparent),
-      0 2px 4px 0 rgb(0 0 0 / 0.08);
-  }
-}
-
-:root:not([data-appearance="vibrant"]) .rounded-xl.border.bg-card {
-  transition:
-    transform 150ms ease,
-    box-shadow 150ms ease;
-}
-
-@media (hover: hover) {
-  :root:not([data-appearance="vibrant"]) .rounded-xl.border.bg-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.16);
-  }
-}
-
-/* Gentle floating bob for the quick-access orbs and dashboard hero blobs. */
+/* Gentle floating bob for the dashboard hero accents. */
 @keyframes tilo-float {
   0%,
   100% {
-    transform: translateY(0) rotateX(0deg);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-6px) rotateX(8deg);
+    transform: translateY(-6px);
   }
 }
 
-/* Diagonal light sweep that glides across the dashboard hero. */
+/* Diagonal light sweep that glides across a hero panel. */
 @keyframes tilo-sheen {
   0% {
     transform: translateX(-150%) skewX(-12deg);
@@ -199,9 +126,67 @@
   animation: tilo-sheen 7s ease-in-out infinite;
 }
 
+/* ============================================================
+   Depth
+   ------------------------------------------------------------
+   Primary actions get a brand-tinted elevation and lift a hair on hover, so
+   they read as pressable without a hard poster shadow. Scoped to actual
+   controls so a large `bg-primary` panel never picks up a stray shadow.
+   ============================================================ */
+button.bg-primary,
+a.bg-primary {
+  transform: translateZ(0);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+button.bg-primary,
+a.bg-primary {
+  box-shadow:
+    0 6px 16px -6px color-mix(in oklab, var(--primary) 55%, transparent),
+    0 1px 2px 0 rgb(0 0 0 / 0.06);
+}
+
+@media (hover: hover) {
+  button.bg-primary:hover,
+  a.bg-primary:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 10px 22px -8px color-mix(in oklab, var(--primary) 45%, transparent),
+      0 2px 4px 0 rgb(0 0 0 / 0.08);
+  }
+}
+
+/* Anything an author tagged `.lift` rises on hover — the shared affordance for
+   clickable cards, so they don't each need their own hover shadow. */
+.lift {
+  transition:
+    transform 180ms var(--ease-out-expo),
+    box-shadow 180ms var(--ease-out-expo);
+}
+
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.18);
+  }
+}
+
+/* ============================================================
+   Reduced motion — never animate movement for those who opt out
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+  .animate-tilo-ping,
   .animate-tilo-float,
-  .animate-tilo-sheen {
+  .animate-tilo-sheen,
+  .lift,
+  button.bg-primary,
+  a.bg-primary {
     animation: none;
+    transition: none;
+    transform: none;
   }
 }

@@ -73,6 +73,8 @@ export type StoreRow = {
   active: boolean;
   theme: string;
   appearance: string;
+  autoPostDays: number | null;
+  autoPostLastAt: Date | null;
   logo: Uint8Array | null;
   createdAt: Date;
   updatedAt: Date;
@@ -164,6 +166,8 @@ export function serializeStore(store: StoreRow) {
     theme,
     appearance,
     hasLogo: store.logo != null,
+    autoPostDays: store.autoPostDays,
+    autoPostLastAt: store.autoPostLastAt ? store.autoPostLastAt.toISOString() : null,
     createdAt: store.createdAt.toISOString(),
     updatedAt: store.updatedAt.toISOString(),
     categories: store.categories.map(serializeCategory),

@@ -20,12 +20,12 @@ export function DashboardCard({
   ...props
 }: DashboardCardProps) {
   return (
-    <Card className={cn('border-border/70 shadow-sm', className)} {...props}>
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 pb-3">
+    <Card className={cn('border-border shadow-sm', className)} {...props}>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 pb-4">
         <div className="grid gap-1">
-          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+          <CardTitle className="font-display text-h4">{title}</CardTitle>
           {description ? (
-            <CardDescription className="text-sm">{description}</CardDescription>
+            <CardDescription className="text-small">{description}</CardDescription>
           ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}

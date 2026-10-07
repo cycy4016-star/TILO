@@ -1,15 +1,13 @@
-// Tilo app code.
-//
-// Open Graph / Twitter image — name + colors come from `brandVisual.og` in src/lib/brand.ts.
+// Dynamic social-share image for the marketing home: brand colours, site
+// name and tagline, rendered at the standard 1200×630.
 import { ImageResponse } from 'next/og';
-import { brandVisual, siteName } from '@/lib/brand';
+import { brandVisual } from '@/lib/brand';
+import { siteDescription, siteName } from '@/lib/site';
 
-export const alt = siteName;
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default function OpengraphImage() {
-  const { background, foreground, tagline } = brandVisual.og;
   return new ImageResponse(
     <div
       style={{
@@ -17,21 +15,21 @@ export default function OpengraphImage() {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
         justifyContent: 'center',
-        background,
-        color: foreground,
-        padding: '0 80px',
-        textAlign: 'center',
+        padding: '96px',
+        background: brandVisual.og.background,
+        color: brandVisual.og.foreground,
+        fontFamily: 'system-ui, sans-serif',
       }}
     >
-      <div style={{ display: 'flex', fontSize: 96, fontWeight: 700, letterSpacing: '-0.02em' }}>
-        {siteName}
+      <div style={{ display: 'flex', fontSize: 88, fontWeight: 800 }}>{siteName}</div>
+      <div style={{ display: 'flex', marginTop: 24, fontSize: 40, opacity: 0.85 }}>
+        {brandVisual.og.tagline}
       </div>
-      {tagline ? (
-        <div style={{ display: 'flex', marginTop: 24, fontSize: 40, opacity: 0.7 }}>{tagline}</div>
-      ) : null}
+      <div style={{ display: 'flex', marginTop: 16, fontSize: 28, opacity: 0.6 }}>
+        {`${siteDescription.slice(0, 110)}…`}
+      </div>
     </div>,
-    size,
+    { ...size },
   );
 }

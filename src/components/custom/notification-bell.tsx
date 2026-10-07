@@ -96,7 +96,7 @@ export function NotificationBell() {
           size="icon"
           aria-label={`Activity, ${unread} unread`}
           onClick={() => void load()}
-          className="relative size-9 rounded-full border border-border bg-transparent text-foreground hover:bg-muted"
+          className="relative size-9 rounded-md border border-border bg-background text-foreground hover:bg-muted"
         >
           <Bell aria-hidden className="size-4" />
           {unread > 0 && (
@@ -111,13 +111,13 @@ export function NotificationBell() {
         className="w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover p-3 shadow-md"
       >
         <div className="flex items-center justify-between gap-2 px-1 pb-2">
-          <p className="text-sm font-semibold">Live feed</p>
+          <p className="text-small font-semibold text-foreground">Live feed</p>
           {unread > 0 && (
             <Button
               type="button"
               size="sm"
               onClick={() => void markRead()}
-              className="h-7 rounded-full bg-primary px-3 text-[0.7rem] font-semibold text-primary-foreground hover:bg-primary/90"
+              className="h-8 rounded-md px-3 text-caption font-semibold"
             >
               <Check aria-hidden className="size-3" /> Got it
             </Button>
@@ -125,9 +125,7 @@ export function NotificationBell() {
         </div>
         <div className="max-h-80 overflow-y-auto">
           {!feed || feed.items.length === 0 ? (
-            <p className="px-2 py-8 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              No activity yet
-            </p>
+            <p className="px-2 py-8 text-center text-eyebrow">No activity yet</p>
           ) : (
             <ol className="space-y-1">
               {feed.items.map((item) => {
@@ -136,29 +134,37 @@ export function NotificationBell() {
                 return (
                   <li
                     key={item.id}
-                    className={`flex gap-3 rounded-lg p-2.5 ${read ? 'opacity-60' : 'bg-muted/60'}`}
+                    className={`flex gap-3 rounded-md p-3 transition-colors hover:bg-muted ${
+                      read ? 'opacity-60' : ''
+                    }`}
                   >
                     <span
-                      className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                      className={`relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md ${
                         item.kind === 'SMS_FAILED'
                           ? 'bg-destructive/10 text-destructive'
                           : 'bg-primary/10 text-primary'
                       }`}
                     >
                       <Icon aria-hidden className="size-4" />
+                      {read ? null : (
+                        <span
+                          aria-hidden
+                          className="absolute -right-1 -top-1 size-2 rounded-full bg-primary"
+                        />
+                      )}
                     </span>
                     <span className="min-w-0">
-                      <span className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
+                      <span className="flex items-center gap-2 text-caption font-medium text-muted-foreground">
                         {kindLabels[NotificationKind.parse(item.kind)]}
-                        <span className="font-medium normal-case tracking-normal text-muted-foreground">
+                        <span className="font-normal text-muted-foreground">
                           {timeAgo(item.createdAt)}
                         </span>
                       </span>
-                      <span className="mt-0.5 block truncate text-sm font-medium">
+                      <span className="mt-0.5 block truncate text-small font-semibold">
                         {item.title}
                       </span>
                       {item.message && (
-                        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                        <span className="mt-0.5 block truncate text-caption text-muted-foreground">
                           {item.message}
                         </span>
                       )}
