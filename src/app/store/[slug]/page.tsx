@@ -102,6 +102,13 @@ export default async function StorePage({ params }: StorePageProps) {
           }}
         />
         <div className="relative">
+          {store.bannerUrl && (
+            <img
+              src={store.bannerUrl}
+              alt=""
+              className="mb-4 h-36 w-full rounded-2xl object-cover sm:h-48"
+            />
+          )}
           {store.logoUrl && (
             <img
               src={store.logoUrl}

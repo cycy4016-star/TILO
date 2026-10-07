@@ -8,7 +8,7 @@ import { apiFetch } from '@/lib/api-client';
 import { formatGhs } from '@/lib/contracts/order';
 import { DashboardProducts, type DashboardProducts as Products } from '@/lib/contracts/products';
 
-export function ProductsWorkspace() {
+export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }) {
   const [data, setData] = useState<Products | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -50,22 +50,24 @@ export function ProductsWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
-            <Package aria-hidden className="size-3.5" /> Products
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium text-muted-foreground">
-            <TrendingUp aria-hidden className="size-3.5" /> What moves
-          </span>
-        </div>
-        <h1 className="mt-5 text-h1 font-display">
-          Top <span className="text-primary">sellers.</span>
-        </h1>
-        <p className="mt-2 max-w-md text-small text-muted-foreground">
-          Best-sellers, prices, cost and margins — one ranked sheet.
-        </p>
-      </section>
+      {!hideIntro && (
+        <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
+              <Package aria-hidden className="size-3.5" /> Products
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium text-muted-foreground">
+              <TrendingUp aria-hidden className="size-3.5" /> What moves
+            </span>
+          </div>
+          <h1 className="mt-5 text-h1 font-display">
+            Top <span className="text-primary">sellers.</span>
+          </h1>
+          <p className="mt-2 max-w-md text-small text-muted-foreground">
+            Best-sellers, prices, cost and margins — one ranked sheet.
+          </p>
+        </section>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-3">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">

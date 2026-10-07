@@ -6,11 +6,7 @@
 # the public repository URL); Render provisions the Postgres database, links
 # DATABASE_URL automatically, runs migrations, then builds + starts Next.js.
 #
-# Scheduled automations are NOT a Render service here — trigger them from any
-# external scheduler (cron-job.org / GitHub Actions) with:
-#   POST https://<app>/api/cron/rules          (run the daily sweep)
-#   POST https://<app>/api/cron/weekly-summary (weekly pulse SMS)
-# Header: Authorization: Bearer <CRON_SECRET>
+# No schedulers: Tilo has no cron routes — nothing to trigger externally.
 
 # NOTE: Render's free Postgres instances are deleted after 30 days. For a
 # real rollout, set `plan: starter` (paid) after the trial — data survives
@@ -48,8 +44,6 @@ services:
       # `!!process.env.SKIP_ENV_VALIDATION`, so any non-empty value — even
       # 'false' — disables env validation and would mask a missing required
       # var. Keep it absent so the build validates the env vars loudly.
-      - key: CRON_SECRET
-        sync: false
       - key: SMS_PROVIDER
         value: 'bms'
       - key: BMS_API_KEY

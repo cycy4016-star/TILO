@@ -17,10 +17,8 @@ export const env = createEnv({
     // (e.g. Google sign-in) are exempt. Leave empty for open sign-up.
     SIGNUP_INVITE_CODE: z.string().optional(),
 
-    // Automations + SMS. All optional: the app boots without them, and the
-    // cron routes 404/401 when CRON_SECRET is unset. SMS actions are skipped
-    // by the sweep when no provider is configured.
-    CRON_SECRET: z.string().min(8).optional(),
+    // SMS (verification codes). All optional: the app boots without a
+    // provider, and OTP sends report their failure instead of faking success.
     SMS_PROVIDER: z.enum(['bms', 'arkesel', 'none']).default('none'),
     // BMS Africa (mNotify) — the approved Ghana bulk-SMS provider.
     BMS_API_KEY: z.string().optional(),
@@ -31,9 +29,6 @@ export const env = createEnv({
     BMS_SMS_TYPE: z.enum(['otp', 'bulk']).default('otp'),
     ARKESEL_API_KEY: z.string().optional(),
     ARKESEL_SENDER_ID: z.string().optional(),
-    SMS_SUMMARY_RECIPIENT: z.string().optional(),
-    // Cost of one SMS credit in pesewas (used for the dashboard estimate).
-    SMS_COST_PER_CREDIT_PESEWAS: z.coerce.number().int().nonnegative().default(5),
 
     // Transactional email (optional). Phone SMS is the primary verification
     // channel; email is a secondary/fallback used for password-reset links.
@@ -78,15 +73,12 @@ export const env = createEnv({
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_PHONE: process.env.ADMIN_PHONE,
     SIGNUP_INVITE_CODE: process.env.SIGNUP_INVITE_CODE,
-    CRON_SECRET: process.env.CRON_SECRET,
     SMS_PROVIDER: process.env.SMS_PROVIDER,
     BMS_API_KEY: process.env.BMS_API_KEY,
     BMS_SENDER_ID: process.env.BMS_SENDER_ID,
     BMS_SMS_TYPE: process.env.BMS_SMS_TYPE,
     ARKESEL_API_KEY: process.env.ARKESEL_API_KEY,
     ARKESEL_SENDER_ID: process.env.ARKESEL_SENDER_ID,
-    SMS_SUMMARY_RECIPIENT: process.env.SMS_SUMMARY_RECIPIENT,
-    SMS_COST_PER_CREDIT_PESEWAS: process.env.SMS_COST_PER_CREDIT_PESEWAS,
     EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,

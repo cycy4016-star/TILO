@@ -174,11 +174,9 @@ async function sendViaBms(to: string, message: string, isOtp = false): Promise<S
 /**
  * Send one SMS and record it in the ledger.
  *
- * @param userId the shop the send is billed to / read back under. Pass the
- *   session user for a dashboard-initiated or automation send so the "SMS this
- *   month" card counts only that shop's traffic. Omit for sends that belong to
- *   no shop yet: sign-up OTPs (no account exists) and the platform summary
- *   digest (see runSummary in lib/automation).
+ * @param userId the shop the send is billed to / read back under. Omit for
+ *   sends that belong to no shop yet — sign-up OTPs go out before an account
+ *   exists.
  */
 export async function sendSms(
   to: string,

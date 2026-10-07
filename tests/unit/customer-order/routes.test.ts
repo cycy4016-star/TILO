@@ -24,14 +24,6 @@ const db = vi.hoisted(() => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
-    storePost: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
   },
 }));
 
@@ -376,8 +368,7 @@ describe('store routes', () => {
     theme: 'gold',
     appearance: 'professional',
     logo: null,
-    autoPostDays: null,
-    autoPostLastAt: null,
+    banner: null,
     // The manager payload always carries the shelf headings (with their item
     // counts) — serializeStore() cannot parse a row without them.
     categories: [],
@@ -551,165 +542,5 @@ describe('store routes', () => {
       params: Promise.resolve({ slug: 'nope' }),
     });
     expect(missing.status).toBe(404);
-  });
-});
-
-describe('store post routes', () => {
-  const itemWithStore = {
-    id: 'item-1',
-    storeId: 'store-1',
-    kind: 'PRODUCT' as const,
-    name: 'Branded apron',
-    description: null,
-    pricePesewas: 4550,
-    costPricePesewas: null,
-    compareAtPricePesewas: null,
-    sortOrder: 0,
-    active: true,
-    createdAt: new Date('2026-09-21T00:00:00.000Z'),
-    updatedAt: new Date('2026-09-21T00:00:00.000Z'),
-  };
-  const store = {
-    id: 'store-1',
-    name: "Ama's Boutique",
-    slug: 'amas-boutique',
-    tagline: null,
-    description: null,
-    contactPhone: '024 000 0000',
-    active: true,
-    theme: 'gold',
-    appearance: 'professional',
-    logo: null,
-    autoPostDays: null,
-    autoPostLastAt: null,
-    createdAt: new Date('2026-09-21T00:00:00.000Z'),
-    updatedAt: new Date('2026-09-21T00:00:00.000Z'),
-  };
-  const posted = {
-    id: 'post-1',
-    storeId: 'store-1',
-    itemId: 'item-1',
-    platform: 'TIKTOK' as const,
-    status: 'SHARED' as const,
-    caption: 'Branded apron\nGH₵ 45.50\nOrder at https://tilo.app/store/amas-boutique',
-    externalUrl: null,
-    auto: false,
-    createdAt: new Date('2026-09-22T00:00:00.000Z'),
-    updatedAt: new Date('2026-09-22T00:00:00.000Z'),
-    item: { name: 'Branded apron' },
-  };
-
-  it('logs a share and returns the typed record', async () => {
-    db.prisma.storeItem.findFirst.mockResolvedValue(itemWithStore);
-    db.prisma.storePost.create.mockResolvedValue(posted);
-    const { POST } = await import('@/app/api/store/posts/route');
-    const response = await POST(
-      new Request('http://test/api/store/posts', {
-        method: 'POST',
-        body: JSON.stringify({ itemId: 'item-1', platform: 'TIKTOK', caption: posted.caption }),
-      }),
-    );
-    expect(response.status).toBe(201);
-    expect(db.prisma.storePost.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ storeId: 'store-1', status: 'SHARED' }),
-      }),
-    );
-    await expect(response.json()).resolves.toMatchObject({
-      id: 'post-1',
-      platform: 'TIKTOK',
-      itemName: 'Branded apron',
-    });
-  });
-
-  it('returns 404 when the item does not exist', async () => {
-    db.prisma.storeItem.findFirst.mockResolvedValue(null);
-    const { POST } = await import('@/app/api/store/posts/route');
-    const response = await POST(
-      new Request('http://test/api/store/posts', {
-        method: 'POST',
-        body: JSON.stringify({ itemId: 'missing', platform: 'INSTAGRAM', caption: 'hi' }),
-      }),
-    );
-    expect(response.status).toBe(404);
-    expect(db.prisma.storePost.create).not.toHaveBeenCalled();
-  });
-
-  it('rejects a share with no caption', async () => {
-    const { POST } = await import('@/app/api/store/posts/route');
-    const response = await POST(
-      new Request('http://test/api/store/posts', {
-        method: 'POST',
-        body: JSON.stringify({ itemId: 'item-1', platform: 'TIKTOK', caption: '' }),
-      }),
-    );
-    expect(response.status).toBe(400);
-    expect(db.prisma.storePost.create).not.toHaveBeenCalled();
-  });
-
-  it('lists the publishing log newest first', async () => {
-    db.prisma.store.findUnique.mockResolvedValue(store);
-    db.prisma.storePost.findMany.mockResolvedValue([posted]);
-    const { GET } = await import('@/app/api/store/posts/route');
-    const response = await GET(new Request('http://test/api/store/posts'));
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      items: [{ id: 'post-1', itemName: 'Branded apron' }],
-    });
-  });
-
-  it('marks a shared push as posted with its link', async () => {
-    db.prisma.storePost.findFirst.mockResolvedValue(posted);
-    db.prisma.storePost.update.mockResolvedValue({
-      ...posted,
-      status: 'PUBLISHED',
-      externalUrl: 'https://www.tiktok.com/@amas/video/1',
-    });
-    const { PATCH } = await import('@/app/api/store/posts/[postId]/route');
-    const response = await PATCH(
-      new Request('http://test/api/store/posts/post-1', {
-        method: 'PATCH',
-        body: JSON.stringify({
-          status: 'PUBLISHED',
-          externalUrl: 'https://www.tiktok.com/@amas/video/1',
-        }),
-      }),
-      { params: Promise.resolve({ postId: 'post-1' }) },
-    );
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      status: 'PUBLISHED',
-      externalUrl: 'https://www.tiktok.com/@amas/video/1',
-    });
-  });
-
-  it('returns 404 when removing an unknown push', async () => {
-    db.prisma.storePost.findFirst.mockResolvedValue(null);
-    const { DELETE } = await import('@/app/api/store/posts/[postId]/route');
-    const response = await DELETE(new Request('http://test/api/store/posts/missing'), {
-      params: Promise.resolve({ postId: 'missing' }),
-    });
-    expect(response.status).toBe(404);
-    expect(db.prisma.storePost.delete).not.toHaveBeenCalled();
-  });
-
-  it("refuses to touch another shop's push log", async () => {
-    db.prisma.storePost.findFirst.mockResolvedValue(null);
-    const { PATCH } = await import('@/app/api/store/posts/[postId]/route');
-    const response = await PATCH(
-      new Request('http://test/api/store/posts/post-1', {
-        method: 'PATCH',
-        body: JSON.stringify({
-          status: 'PUBLISHED',
-          externalUrl: 'https://www.tiktok.com/@amas/video/1',
-        }),
-      }),
-      { params: Promise.resolve({ postId: 'post-1' }) },
-    );
-    expect(response.status).toBe(404);
-    expect(db.prisma.storePost.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: 'post-1', store: { userId: 'staff-1' } } }),
-    );
-    expect(db.prisma.storePost.update).not.toHaveBeenCalled();
   });
 });

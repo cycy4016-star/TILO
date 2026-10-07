@@ -4,7 +4,7 @@ Tilo is a hosted shop page for small Ghanaian/African businesses. Sign up, put
 your products on shelves with photos and prices, share one link, and let
 customers check out a basket from `/store/<slug>` — the order lands itemised and
 totalled in your dashboard. Around that core sit a customer directory, order
-history, an SMS automation engine, money chasing, and social sharing, all behind
+history, sales analytics and card checkout, all behind
 one authenticated dashboard.
 
 This document lists **everything the app does today**, what each piece is for,
@@ -20,12 +20,11 @@ where it lives, and what is deliberately not built yet.
   filters on that column, so N sign-ups share one deployment without ever seeing
   each other's data.
   - `Customer.userId`, `Order.userId`, `Store.userId` (`@unique` — one
-    storefront per account), `AutomationRule.userId`, `Notification.userId`.
+    storefront per account), `Notification.userId`.
   - `SmsUsage.userId` is **nullable and has no FK**: sign-up OTPs are sent before
-    an account exists, and the platform summary digests belong to no shop. Shop
-    sends (automation, manual) are stamped, so each shop's "SMS this month" card
-    and ledger rows are its own.
-  - `StoreItem`, `Promotion` and `StorePost` have no `userId` of their own —
+    an account exists. It is a write-only ledger for verification codes — there
+    is no usage UI.
+  - `StoreItem`, `Promotion` and `SocialAccount` have no `userId` of their own —
     they are reached *through* their store (`store: { userId }`), so a guessed
     cuid cannot be resolved against another shop.
   - Public storefront writes (`/api/public/store/[slug]/*`) resolve the owner
@@ -34,9 +33,8 @@ where it lives, and what is deliberately not built yet.
   - The `userId` columns are internal routing and are never returned to the
     client (the response contracts in `src/lib/contracts/` don't declare them).
 - **Cross-shop reads are deliberate and few:** `/dashboard/admin` +
-  `/api/admin/users` (the operator's account monitor, `admin` role only) and the
-  CRON_SECRET-guarded `/api/cron/rules` feed + summary digest addressed to
-  `SMS_SUMMARY_RECIPIENT`. Everything else is owner-scoped.
+  `/api/admin/users` (the operator's account monitor, `admin` role only).
+  Everything else is owner-scoped.
 - The app is designed to run on Vercel or Render with a managed PostgreSQL
   database. `render.yaml` provisions both automatically.
 - Seeding is idempotent and runs at boot (`src/lib/seed.ts`); it is an
@@ -117,11 +115,11 @@ where it lives, and what is deliberately not built yet.
 - **Overview metrics** (`/api/dashboard/overview`): outstanding money, count of
   unpaid orders, age of the oldest unpaid order, money recovered this month.
 - **Money to chase card**: top outstanding orders, one tap to jump in.
-- **SMS this month card** (`/api/dashboard/sms-usage`,
-  `src/components/custom/dashboard/sms-usage-card.tsx`): messages sent and
-  failed this month, credits burned, estimated spend in GHS, breakdown by source
-  (sign-in codes / automations / briefs / manual), and lifetime totals.
-- **Navigation shell**: links to Dashboard, Customers, Store, Automations.
+- **Balance sheet**: cost vs sell and realized order-line margins
+  (`/api/dashboard/intelligence`).
+- **Product ranking**: per-item volume, revenue, cost and margin
+  (`/api/dashboard/products`).
+- **Navigation shell**: links to Analytics, Catalogue, Orders, Customers.
 
 ---
 
@@ -179,55 +177,31 @@ where it lives, and what is deliberately not built yet.
 
 ---
 
-## 7. Automations engine
+## 7. Analytics hub
 
-**Location:** `src/lib/automation.ts`, `src/lib/contracts/automation.ts`,
-`src/app/(dashboard)/dashboard/automations/**`,
-`src/components/custom/automations-workspace.tsx`,
-`src/app/api/automation/**`, `src/app/api/cron/**`.
+**Location:** `src/app/(dashboard)/dashboard/page.tsx`,
+`src/components/custom/dashboard/money-to-chase-card.tsx`,
+`src/components/custom/intelligence-workspace.tsx`,
+`src/components/custom/products-workspace.tsx`,
+`src/app/api/dashboard/{overview,intelligence,products}/route.ts`.
 
-- **Rule builder** with 8 kinds, each with a plain-language blurb, suggested
-  trigger status, and required fields:
-  | Kind | What it does |
-  | --- | --- |
-  | `SMS_NUDGE` | Text the customer a nudge when an order sits too long. |
-  | `STATUS_FLIP` | Move an order to the next status automatically. |
-  | `READY_PING` | Text the customer when an order is done. |
-  | `STALL_ALERT` | Text the owner when an order has been stuck too long. |
-  | `PAYMENT_CONFIRMED` | Text a receipt when an order is marked paid. |
-  | `PAYMENT_REMINDER` | Chase an unpaid order that has an amount. |
-  | `REVIEW_REQUEST` | Ask for a review after delivery. |
-  | `RE_ENGAGE` | Win back customers with no order in weeks. |
-- **Tap-first rule builder** — every field a rule needs is a picker, so wiring an
-  automation takes taps, not typing. Name starts pre-filled from the kind
-  (`KIND_NAME_SUGGESTION`), wait time picks from `WAIT_PRESETS` (2h → 30 days, and a
-  rule saved with a non-preset value keeps that value as its own row), the message
-  picks from `MESSAGE_PRESETS` (Tilo's wording + ready rewrites per kind), and the
-  stall-alert phone defaults to "my number" from the session with "a different
-  number" as the escape hatch. Only "Write my own" opens a keyboard. Those tables
-  live in the client-safe contract and `src/lib/automation.ts` reads the SAME
-  `MESSAGE_PRESETS` for its house wording, so the picker and the sender cannot
-  drift — and because the default is the empty string, improving Tilo's copy
-  reaches every shop that never overrode it.
-- Per-rule: name, trigger status, wait time (hours), message template, recipient,
-  target status, enabled toggle. Cross-field validation picks the right fields
-  per kind.
-- **Sweep** (`POST /api/cron/rules`): finds due rules, applies them, records
-  `AutomationEvent` rows (`SMS_SENT`, `STATUS_FLIPPED`, `SUMMARY_SENT`), and
-  de-duplicates so the same action isn't sent twice.
-- **Daily brief** (`POST /api/cron/daily-brief`) and **weekly summary**
-  (`POST /api/cron/weekly-summary`) text the owner a one-message pulse.
-- Cron routes are guarded by `Authorization: Bearer <CRON_SECRET>`; without the
-  secret they return 401.
-- Event feed UI (`/api/automation/events`) shows recent automation activity and
-  success/failure.
+- **One screen for the numbers.** `/dashboard` combines what used to be three
+  pages: money owed (`MoneyToChaseCard` over `/api/dashboard/overview`),
+  the margin balance sheet (`IntelligenceWorkspace` over
+  `/api/dashboard/intelligence`: cost vs sell, realized order-line margins),
+  and the product ranking (`ProductsWorkspace` over `/api/dashboard/products`:
+  per-item volume, revenue, cost, margin). The two workspaces render with
+  `hideIntro` so the hub keeps a single `h1`.
+- There is no automation engine, no scheduler and no SMS dashboard: the
+  `AutomationRule` / `AutomationEvent` tables were dropped in
+  `20261007141706_prune_to_catalogue_core`, with the rules API, the cron
+  routes and the switchboard UI.
 
 ---
 
 ## 8. SMS (BMS Africa / mNotify)
 
-**Location:** `src/lib/sms.ts`, `src/lib/env.ts`,
-`prisma/schema/sms.prisma`, `src/app/api/dashboard/sms-usage/route.ts`.
+**Location:** `src/lib/sms.ts`, `src/lib/env.ts`, `prisma/schema/sms.prisma`.
 
 - **Provider:** BMS Africa / mNotify (`SMS_PROVIDER=bms`, the active Ghana
   provider; Arkesel remains available via `SMS_PROVIDER=arkesel`). One JSON
@@ -238,10 +212,11 @@ where it lives, and what is deliberately not built yet.
   A send that BMS reports as fully rejected (DND /
   unprovisioned number) is recorded as a failure rather than a silent success.
   `sendSms(to, message, source)` never throws and returns `{ ok, providerRef, error }`.
-- **Sources** recorded on every send: `OTP`, `AUTOMATION`, `SUMMARY`, `MANUAL`.
+- **Verification codes only.** SMS exists to deliver sign-up OTPs (and password
+  resets). There is no bulk sender, no composer and no usage UI.
 - **Usage ledger.** Every attempt (success or failure) is written to the
   `SmsUsage` table with segment count, credits, provider reference, and error.
-  This powers the dashboard card and gives per-feature cost visibility.
+  Nothing reads it back today — it is an audit trail.
 - **Segment estimation:** `ceil(length / 160)`.
 
 ---
@@ -306,19 +281,20 @@ where it lives, and what is deliberately not built yet.
   per-item WhatsApp and SMS links, and the shop owner is notified as the order
   arrives.
 - Store dashboard (`store-workspace.tsx`) shows photo thumbnails on shelf cards
-  and supports replace/remove for both logo and item photos in their forms.
+  and supports replace/remove for logo, banner and item photos in their forms.
 
 ---
 
-## 11. Social publishing queue
+## 11. Socials as contact info
 
-**Location:** `src/app/api/store/posts/**`, `src/lib/contracts/social.ts`,
-`src/components/custom/store-workspace.tsx`.
+**Location:** `src/app/api/store/socials/route.ts`,
+`src/lib/contracts/social.ts`, `src/app/welcome/page.tsx`.
 
-- Press "Share to {platform}" on a catalogue item to queue a post with a caption.
+- Collected once at onboarding (`/welcome`, step 2): the networks the shop is
+  on, each with the owner's handle and an optional profile link.
 - Platforms: `TIKTOK`, `INSTAGRAM`, `FACEBOOK_PAGE`, `WHATSAPP_STATUS`.
-- Status: `SHARED → PUBLISHED`; a published push can store the external post URL.
-- This is a **tracking queue** (caption + link), not a platform API integration.
+- One row per platform per shop (`@@unique([storeId, platform])`), saved as a
+  batch and editable by revisiting `/welcome`. There is no publishing queue.
 
 ---
 
@@ -338,17 +314,11 @@ returns 404. See §1.
 | `GET` | `/api/customers/[customerId]` | user | read (with orders) |
 | `GET/POST` | `/api/orders` | user | list (customer/status/free-text search), create |
 | `PATCH` | `/api/orders/[orderId]` | user | update status/amount/paidAt |
-| `GET/POST` | `/api/automation/rules` | user | list, create rules |
-| `PATCH/DELETE` | `/api/automation/rules/[ruleId]` | user | update, delete rules |
-| `GET` | `/api/automation/events` | user | recent automation activity |
-| `POST` | `/api/automation/sweep` | user | manually run the sweep |
 | `GET` | `/api/dashboard/overview` | user | money/order metrics |
-| `GET` | `/api/dashboard/sms-usage` | user | SMS usage + cost |
 | `GET` | `/api/dashboard/intelligence` | user | balance sheet: cost vs sell, realized order-line margins |
 | `GET` | `/api/dashboard/products` | user | per-item sales volume, revenue, cost, margin |
 | `GET` | `/api/notifications` | user | live activity feed + unread count |
 | `POST` | `/api/notifications/read` | user | mark all notifications read |
-| `POST` | `/api/sms/send` | user | send a manual TILO SMS to a customer |
 | `GET/PUT` | `/api/store` | user | read/upsert the store (payload includes shelves) |
 | `GET/POST` | `/api/store/categories` | user | list shelves (with item counts), create |
 | `PATCH/DELETE` | `/api/store/categories/[categoryId]` | user | rename/reorder, toggle active, delete (`409` when non-empty) |
@@ -359,22 +329,20 @@ returns 404. See §1.
 | `PATCH/DELETE` | `/api/store/promotions/[promoId]` | user | update/delete promotion |
 | `PUT/DELETE` | `/api/store/promotions/[promoId]/image` | user | attach/remove promo photo |
 | `PUT/DELETE` | `/api/store/logo` | user | attach/remove store logo |
+| `PUT/DELETE` | `/api/store/banner` | user | attach/remove storefront banner |
+| `GET/PUT` | `/api/store/socials` | user | list/replace the shop's social accounts |
 | `PUT/DELETE` | `/api/profile/image` | user | set/clear profile avatar |
 | `GET/PUT` | `/api/appearance` | user | the signed-in user's own theme + layout preset (not the storefront's look — that is `Store.theme`/`Store.appearance` via `/api/store`) |
-| `GET/POST` | `/api/store/posts` | user | social queue list/create |
-| `PATCH/DELETE` | `/api/store/posts/[postId]` | user | update/delete queued post |
 | `GET` | `/api/public/store/[slug]` | public | public storefront |
 | `POST` | `/api/public/store/[slug]/orders` | public + rate-limit | multi-line basket checkout (auto-adds customer) |
 | `POST` | `/api/public/store/[slug]/leads` | public + rate-limit | visitor capture with consent |
 | `GET` | `/api/public/store/items/[itemId]/image` | public | item photo bytes |
 | `GET` | `/api/public/store/promotions/[promoId]/image` | public | promotion photo bytes |
 | `GET` | `/api/public/store/[slug]/logo` | public | store logo bytes |
+| `GET` | `/api/public/store/[slug]/banner` | public | storefront banner bytes |
 | `POST` | `/api/payments/initialize` | user | start Paystack checkout |
 | `GET` | `/api/payments/verify` | user | verify + settle a transaction |
 | `POST` | `/api/payments/webhook` | signature | Paystack webhook (source of truth) |
-| `GET`/`POST` | `/api/cron/rules` | cron secret | list events / run sweep (all shops) |
-| `POST` | `/api/cron/daily-brief` | cron secret | morning pulse SMS |
-| `POST` | `/api/cron/weekly-summary` | cron secret | weekly pulse SMS |
 | `GET` | `/api/admin/users` | admin | platform account monitor (cross-shop, read-only) |
 
 ---
@@ -385,15 +353,15 @@ returns 404. See §1.
 
 - **Auth:** `User` (with `phoneNumber` unique + `phoneNumberVerified`, `role`,
   `inviteCode`, and the reverse ownership relations `customers`, `orders`,
-  `store`, `automationRules`, `notifications`), `Session`, `Account`,
+  `store`, `notifications`), `Session`, `Account`,
   `Verification`.
 - **Shop data (every row owned):** `Customer` (`userId`), `Order` (`userId`),
-  `AutomationRule` (`userId`), `Notification` (`userId`).
+  `Notification` (`userId`).
 - **Store:** `Store` (`userId` **unique** — one storefront per account;
-  `logo`/`logoMime` bytea), `ProductCategory` (shelf: name, sortOrder, active),
+  `logo`/`logoMime` + `banner`/`bannerMime` bytea), `ProductCategory` (shelf: name, sortOrder, active),
   `StoreItem` (`PRODUCT`/`SERVICE`, `pricePesewas`, `compareAtPricePesewas`,
   `categoryId` nullable with `onDelete: SetNull`, sortOrder, active,
-  `image`/`imageMime` bytea), `Promotion`, `SocialPost` — the last four are
+  `image`/`imageMime` bytea), `Promotion`, `SocialAccount` — the last four are
   reached through their `store`, not by their own `userId`.
 - **SMS:** `SmsUsage` (`userId` nullable, no FK — see §1), `source`, `to`,
   `message`, `segments`, `credits`, `ok`, `providerRef`, `error`, `createdAt`.
@@ -407,13 +375,12 @@ Migrations live in `prisma/migrations/` and are applied with
 
 ## 14. Security
 
-- Per-request CSP nonce + security headers (`proxy.ts`, `src/lib/csp.ts`,
+- Per-request CSP nonce + security headers (`src/proxy.ts`, `src/lib/csp.ts`,
   `next.config.ts`).
 - **Tenant isolation is the `userId` column, not a role.** Every read filters on
   it and every write is guarded by it: a foreign `id` 404s instead of resolving.
-  Writes that could race (`order.update`) key on `(id, userId)`, and the
-  automation sweep re-reads the order under its advisory lock scoped to the
-  rule's owner, so even a forged action can't flip another shop's order.
+  Writes that could race (`order.update`) key on `(id, userId)`, so even a
+  forged action can't flip another shop's order.
 - `userId` is never accepted from a request body on a create, and never
   serialized to the client.
 - `requireAuth()` gates shop routes (401 signed out); `requireAdmin()` /
@@ -445,17 +412,16 @@ See `.env.example` for the annotated list.
   (production), `NEXT_PUBLIC_APP_URL`.
 - **Owner:** `ADMIN_PHONE` (preferred) / `ADMIN_EMAIL`; invite gate via
   `SIGNUP_INVITE_CODE` + `NEXT_PUBLIC_SIGNUP_INVITE=true`.
-- **Automation + SMS:** `CRON_SECRET`, `SMS_PROVIDER` (`bms` | `arkesel` | `none`),
-  `BMS_API_KEY`, `BMS_SENDER_ID`, `ARKESEL_API_KEY`, `ARKESEL_SENDER_ID`,
-  `SMS_SUMMARY_RECIPIENT`, `SMS_COST_PER_CREDIT_PESEWAS`.
+- **Verification SMS:** `SMS_PROVIDER` (`bms` | `arkesel` | `none`),
+  `BMS_API_KEY`, `BMS_SENDER_ID`, `BMS_SMS_TYPE`, `ARKESEL_API_KEY`,
+  `ARKESEL_SENDER_ID`.
 - **Email (optional):** `EMAIL_PROVIDER`, `RESEND_API_KEY`, `EMAIL_FROM`.
 - **Paystack (optional):** `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`,
   `PAYSTACK_CALLBACK_URL`.
 - **Google OAuth (optional):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
   client-side `NEXT_PUBLIC_GOOGLE_AUTH=true`.
 
-You can verify a BMS key + sender ID without any UI by running the app with
-`SMS_PROVIDER=bms` and invoking a send (e.g. the automation sweep), then
+You can verify a BMS key + sender ID by signing up with `SMS_PROVIDER=bms` and
 checking the `SmsUsage` rows (a failed send records `ok: false` with the
 provider error instead of a silent drop).
 
@@ -467,19 +433,18 @@ provider error instead of a silent drop).
 - **Checks:** `npm run typecheck`, `npm run lint`, `npm run test`.
 - **DB:** `db:generate`, `db:migrate:dev`, `db:migrate:deploy`, `db:studio`.
 - **Deploy:** Vercel (`vercel-build` runs `prisma generate && prisma migrate
-  deploy && next build`) or Render (`render.yaml`).
-- **Schedulers:** trigger the three `/api/cron/*` routes from cron-job.org or
-  GitHub Actions with the `CRON_SECRET` bearer header.
+  deploy && next build`) or Render (`render.yaml`). No schedulers — there are
+  no cron routes.
 
 ---
 
 ## 18. Testing
 
-- Vitest unit/integration suite (191 tests): contracts, route handlers, tenant
-  isolation (foreign customer/order/item/post 404s, cross-shop phone reuse,
-  owner-stamped public captures, notification + SMS ownership), the platform
-  role policy, CSP, nav, store, promotions, live-orders, sms + whatsapp
-  templates, instrumentation, SEO text.
+- Vitest unit/integration suite: contracts, route handlers, tenant
+  isolation (foreign customer/order/item 404s, cross-shop phone reuse,
+  owner-stamped public captures, notification ownership), the platform
+  role policy, onboarding gate, CSP, nav, store, promotions, live-orders,
+  sms + whatsapp templates, instrumentation, SEO text.
 - Postgres integration tests via `npm run test:postgres` (needs
   `TEST_DATABASE_URL`).
 
@@ -490,8 +455,8 @@ provider error instead of a silent drop).
 - **Accounts/roles beyond `user` + platform `admin`** — no shop-level
   teammate seats, invites, or per-shop roles yet; one account = one shop.
 - **WhatsApp Business API** — contact links use `wa.me`; no Cloud API sending.
-- **Live social publishing** — the social queue tracks captions/links; it does
-  not call TikTok/Instagram/Facebook APIs.
+- **Social publishing** — socials are contact info only; the app never posts to
+  TikTok/Instagram/Facebook on your behalf.
 - **Billing / subscription paywall** — Paystack is for collecting order
   payments only; the app itself is not metered or gated.
 - **Email templates / transactional volume** — email is a single reset-link
@@ -499,3 +464,23 @@ provider error instead of a silent drop).
 - **Paystack inline checkout & refunds** — only hosted checkout initialize,
   verify, and webhook settlement are implemented. `PAYSTACK_PUBLIC_KEY` is kept
   for a future inline flow.
+
+---
+
+## 20. Onboarding
+
+**Location:** `src/app/welcome/page.tsx`,
+`src/components/custom/onboarding-wizard.tsx`, `src/lib/onboarding.ts`,
+`src/app/(dashboard)/dashboard/layout.tsx`.
+
+- **Mandatory first-run setup.** Every new account lands on `/welcome` until the
+  shop is complete; the dashboard layout redirects there server-side
+  (`getSessionUser` → `getOnboardingStatus`), and `/welcome` bounces finished
+  shops to `/dashboard`. Revisiting `/welcome` later edits the same setup.
+- **Four steps, each saving through the owner APIs:** store info (name, link
+  word, tagline, order phone → `PUT /api/store`), socials (handles + links →
+  `PUT /api/store/socials`, WhatsApp prefilled from the order number),
+  visuals (logo → `/api/store/logo`, banner → `/api/store/banner`, avatar →
+  `/api/profile/image`), review with a live summary.
+- **Done means:** store has a name, link word and dialable phone (≥ 9 digits),
+  at least one social, and a logo or banner.

@@ -1,21 +1,11 @@
 // Tilo customer detail island: profile, orders, and status controls.
 'use client';
 
-import {
-  ArrowLeft,
-  Flame,
-  Mail,
-  MapPin,
-  MessageCircle,
-  MessageSquareMore,
-  Phone,
-  Zap,
-} from 'lucide-react';
+import { ArrowLeft, Flame, Mail, MapPin, MessageCircle, Phone, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { OrderForm } from '@/components/custom/order-form';
-import { SmsComposer } from '@/components/custom/sms-composer';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -34,8 +24,6 @@ import {
 } from '@/lib/contracts/order';
 import { PaymentInitializeResult } from '@/lib/contracts/payment';
 import { waMeLink } from '@/lib/phone';
-import { orderConfirmationSms } from '@/lib/sms-templates';
-import { useStoreName } from '@/lib/use-store-name';
 
 const statusLabels: Record<OrderRecord['status'], string> = {
   PENDING: 'Pending',
@@ -72,7 +60,6 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
-  const storeName = useStoreName();
 
   useEffect(() => {
     let cancelled = false;
@@ -268,21 +255,6 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                   </a>
                 ) : null;
               })()}
-            {customer.phone && storeName && (
-              <SmsComposer
-                phone={customer.phone}
-                customerName={customer.name}
-                storeName={storeName}
-                trigger={
-                  <Button
-                    type="button"
-                    className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                  >
-                    <MessageSquareMore aria-hidden className="size-4" /> Text them
-                  </Button>
-                }
-              />
-            )}
           </div>
         </div>
       </div>
@@ -357,31 +329,6 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                             </Button>
                           </>
                         ) : null}
-                        {customer.phone && storeName && (
-                          <SmsComposer
-                            phone={customer.phone}
-                            customerName={customer.name}
-                            storeName={storeName}
-                            templateKey="order-confirm"
-                            defaultMessage={orderConfirmationSms({
-                              storeName,
-                              customerName: customer.name,
-                              orderNumber: order.orderNumber,
-                              description: order.description,
-                            })}
-                            trigger={
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={updatingOrderId === order.id}
-                                className="h-7 rounded-md border-border text-caption font-medium"
-                              >
-                                <MessageSquareMore aria-hidden className="size-3" /> Confirm by SMS
-                              </Button>
-                            }
-                          />
-                        )}
                       </div>
                       <p className="mt-1 text-caption text-muted-foreground">
                         Created {formatDate(order.createdAt)}

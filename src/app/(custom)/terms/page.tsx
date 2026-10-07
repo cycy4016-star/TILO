@@ -13,8 +13,8 @@ const sections: LegalSection[] = [
   {
     heading: 'The service',
     body: [
-      `${businessName} is a business operations workspace: customers, linked orders, follow-up automations, SMS, an optional storefront, and online payments — all under one signed-in account.`,
-      `The service is provided "as is" for your business operations. You run your own automation rules and messages; the workspace delivers whatever you configure.`,
+      `${businessName} is a catalogue workspace: your storefront, products and shelves, linked customers and orders, and online payments — all under one signed-in account.`,
+      `The service is provided "as is" for your business operations.`,
     ],
   },
   {

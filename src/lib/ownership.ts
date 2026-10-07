@@ -47,19 +47,19 @@ export async function requireOwnedOrder(userId: string, orderId: string) {
 }
 
 /**
- * Resolve a store child row (item / promotion / post) for the signed-in user.
+ * Resolve a store child row (item / promotion) for the signed-in user.
  *
  * The child is reached THROUGH the owner's store, never by a bare `findUnique` on
  * the child's own id — that is what stops one shop editing another's catalogue by
  * guessing a cuid.
  *
- * Categories get their own helper (requireOwnedCategory) below: adding a fourth
+ * Categories get their own helper (requireOwnedCategory) below: adding a third
  * arm here would widen the union and break every caller that reads a field only
  * some of the row types have.
  *
- * @param model  'item' | 'promotion' | 'post'
+ * @param model  'item' | 'promotion'
  */
-export async function requireOwnedStoreChild<T extends 'item' | 'promotion' | 'post'>(
+export async function requireOwnedStoreChild<T extends 'item' | 'promotion'>(
   userId: string,
   model: T,
   id: string,
@@ -69,16 +69,8 @@ export async function requireOwnedStoreChild<T extends 'item' | 'promotion' | 'p
     if (!row) throw Response.json({ error: 'Item not found' }, { status: 404 });
     return row;
   }
-  if (model === 'promotion') {
-    const row = await prisma.promotion.findFirst({ where: { id, store: { userId } } });
-    if (!row) throw Response.json({ error: 'Promo not found' }, { status: 404 });
-    return row;
-  }
-  const row = await prisma.storePost.findFirst({
-    where: { id, store: { userId } },
-    include: { item: { select: { name: true } } },
-  });
-  if (!row) throw Response.json({ error: 'Post not found' }, { status: 404 });
+  const row = await prisma.promotion.findFirst({ where: { id, store: { userId } } });
+  if (!row) throw Response.json({ error: 'Promo not found' }, { status: 404 });
   return row;
 }
 

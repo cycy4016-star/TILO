@@ -39,14 +39,6 @@ export const StoreUpsert = z.object({
   // the fields without silently resetting the workspace look.
   theme: ThemeKey.optional(),
   appearance: AppearanceKey.optional(),
-  // Auto-post cadence in days. Absent = leave as is, null = switch it off.
-  autoPostDays: z
-    .number()
-    .int('Use whole days')
-    .min(1, 'Post at least once a month')
-    .max(60, 'Keep the gap under 60 days')
-    .nullable()
-    .optional(),
 });
 
 const priceRule = z
@@ -130,10 +122,9 @@ export const StorePayload = z.object({
   // true when a logo is uploaded (bytes live in the DB, served by
   // /api/public/store/[slug]/logo).
   hasLogo: z.boolean(),
-  // Auto-posting: cadence in days (null = off) and when the last batch was
-  // generated (null = never). Owner-facing only — never on the public face.
-  autoPostDays: z.number().int().nullable(),
-  autoPostLastAt: z.string().datetime().nullable(),
+  // true when a storefront banner is uploaded (bytes live in the DB, served
+  // by /api/public/store/[slug]/banner).
+  hasBanner: z.boolean(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   // Ordered shelf headings. Empty for a store that never created one, which
@@ -152,6 +143,7 @@ export const StorePublic = z.object({
   promoBanner: z.string().nullable(),
   contactPhone: z.string().nullable(),
   logoUrl: z.string().nullable(),
+  bannerUrl: z.string().nullable(),
   theme: ThemeKey,
   appearance: AppearanceKey,
   categories: z.array(CategorySummary),

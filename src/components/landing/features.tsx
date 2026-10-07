@@ -2,15 +2,7 @@
 // small pure-CSS animated visual. Server-rendered; motion is transform/opacity
 // micro-loops (pulse/ping) that vanish under prefers-reduced-motion via the
 // motion-safe variant.
-import {
-  Boxes,
-  Link2,
-  type LucideIcon,
-  MessageCircle,
-  Palette,
-  QrCode,
-  Sparkles,
-} from 'lucide-react';
+import { Boxes, Link2, type LucideIcon, MessageCircle, Palette, QrCode, Tag } from 'lucide-react';
 import { Reveal } from '@/components/custom/sample-showcase';
 import { FEATURES, type FeatureIcon } from '@/lib/landing-content';
 import { cn } from '@/lib/utils';
@@ -18,7 +10,7 @@ import { cn } from '@/lib/utils';
 export const FEATURE_ICON_MAP: Record<FeatureIcon, LucideIcon> = {
   boxes: Boxes,
   link: Link2,
-  sparkles: Sparkles,
+  tag: Tag,
   palette: Palette,
   chat: MessageCircle,
   qr: QrCode,
@@ -30,12 +22,6 @@ const BARS = [
   { id: 'bar-mid', height: 48 },
   { id: 'bar-high', height: 74 },
   { id: 'bar-max', height: 88 },
-];
-
-const DOTS = [
-  { id: 'dot-one', delay: 0 },
-  { id: 'dot-two', delay: 300 },
-  { id: 'dot-three', delay: 600 },
 ];
 
 const QR_CELLS = Array.from({ length: 25 }, (_, cell) => ({
@@ -72,17 +58,16 @@ function Visual({ icon }: { icon: FeatureIcon }) {
       </div>
     );
   }
-  if (icon === 'sparkles') {
+  if (icon === 'tag') {
     return (
-      <div aria-hidden className="flex items-center gap-2">
-        {DOTS.map((dot) => (
-          <span
-            key={dot.id}
-            className="size-2.5 rounded-full bg-primary motion-safe:animate-pulse"
-            style={{ animationDelay: `${dot.delay}ms` }}
-          />
-        ))}
-        <span className="text-caption text-muted-foreground">drafting captions…</span>
+      <div aria-hidden className="flex flex-wrap items-center gap-2">
+        <span className="rounded-md bg-primary px-2.5 py-1 font-mono text-caption font-semibold text-primary-foreground">
+          STUDENT10
+        </span>
+        <span className="rounded-md border border-border px-2.5 py-1 font-mono text-caption text-muted-foreground line-through">
+          GH₵ 300
+        </span>
+        <span className="text-caption font-semibold text-primary">GH₵ 250</span>
       </div>
     );
   }

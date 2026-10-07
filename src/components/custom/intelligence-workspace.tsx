@@ -13,7 +13,7 @@ import {
 } from '@/lib/contracts/intelligence';
 import { formatGhs } from '@/lib/contracts/order';
 
-export function IntelligenceWorkspace() {
+export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boolean }) {
   const [data, setData] = useState<Intelligence | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -57,20 +57,22 @@ export function IntelligenceWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium uppercase tracking-wide text-primary">
-            <BrainCircuit aria-hidden className="size-3.5" /> Intelligence
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium uppercase tracking-wide text-muted-foreground">
-            <Scale aria-hidden className="size-3.5" /> The balance sheet
-          </span>
-        </div>
-        <h1 className="mt-5 text-h1 font-display">Know your numbers.</h1>
-        <p className="mt-2 max-w-md text-body text-muted-foreground">
-          What you&apos;re owed, what the catalogue is worth, and what actually earns.
-        </p>
-      </section>
+      {!hideIntro && (
+        <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium uppercase tracking-wide text-primary">
+              <BrainCircuit aria-hidden className="size-3.5" /> Intelligence
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium uppercase tracking-wide text-muted-foreground">
+              <Scale aria-hidden className="size-3.5" /> The balance sheet
+            </span>
+          </div>
+          <h1 className="mt-5 text-h1 font-display">Know your numbers.</h1>
+          <p className="mt-2 max-w-md text-body text-muted-foreground">
+            What you&apos;re owed, what the catalogue is worth, and what actually earns.
+          </p>
+        </section>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-3">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">

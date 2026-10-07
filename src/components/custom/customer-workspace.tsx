@@ -2,21 +2,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Flame,
-  Mail,
-  MessageSquareMore,
-  MessagesSquare,
-  Phone,
-  Plus,
-  Search,
-  Users,
-} from 'lucide-react';
+import { Flame, Mail, MessagesSquare, Phone, Plus, Search, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { SmsComposer } from '@/components/custom/sms-composer';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -45,7 +35,6 @@ import {
 } from '@/lib/contracts/customer';
 import { applyServerErrors } from '@/lib/forms';
 import { waMeLink } from '@/lib/phone';
-import { useStoreName } from '@/lib/use-store-name';
 
 function getErrorBody(error: unknown): unknown {
   return error instanceof Error ? error.cause : undefined;
@@ -169,7 +158,6 @@ export function CustomerWorkspace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const storeName = useStoreName();
 
   const loadCustomers = useCallback(async (search: string) => {
     setLoading(true);
@@ -341,23 +329,6 @@ export function CustomerWorkspace() {
                       </a>
                     ) : null;
                   })()}
-                {customer.phone && storeName && (
-                  <SmsComposer
-                    phone={customer.phone}
-                    customerName={customer.name}
-                    storeName={storeName}
-                    trigger={
-                      <Button
-                        type="button"
-                        variant="outline"
-                        aria-label={`Text ${customer.name}`}
-                        className="inline-flex size-10 rounded-md border-border p-0 hover:bg-muted"
-                      >
-                        <MessageSquareMore aria-hidden className="size-4" />
-                      </Button>
-                    }
-                  />
-                )}
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium text-primary">
                   <Flame aria-hidden className="size-3" />
                   {customer.orderCount}

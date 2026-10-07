@@ -1,97 +1,34 @@
-// The social publishing kit: platform metadata + caption builder. Pure and
-// client-safe so the manager island and the API agree on what a post looks
-// like. This is the "creative kit" MVP — the owner taps Share, we copy the
-// caption and open the platform's composer; posting stays manual.
-import { formatGhs } from '@/lib/contracts/order';
+// The social directory kit: platform metadata for the networks a shop is on.
+// Pure and client-safe so onboarding, the manager and any contact surface
+// agree on what each network is called. Socials are contact info collected at
+// onboarding — there is no publishing queue.
 import type { SocialPlatformValue } from '@/lib/contracts/social';
 
 export interface SocialPlatformDef {
   value: SocialPlatformValue;
   label: string;
   hint: string;
-  // Where "Share" sends the owner. Null platforms are clipboard-only (the
-  // composer has no deep link that accepts a caption).
-  baseUrl: string | null;
 }
 
 export const SOCIAL_PLATFORM_DEFS: SocialPlatformDef[] = [
   {
     value: 'TIKTOK',
     label: 'TikTok',
-    hint: 'Copies the caption, then opens TikTok for you to upload.',
-    baseUrl: 'https://www.tiktok.com/tiktokstudio/upload',
+    hint: 'Your TikTok handle, so customers find your videos.',
   },
   {
     value: 'INSTAGRAM',
     label: 'Instagram',
-    hint: 'Copies the caption, then opens Instagram for your post.',
-    baseUrl: 'https://www.instagram.com/',
+    hint: 'Your Instagram handle for the bio link crowd.',
   },
   {
     value: 'FACEBOOK_PAGE',
     label: 'Facebook Page',
-    hint: 'Copies the caption, then opens Facebook to post on your page.',
-    baseUrl: 'https://www.facebook.com/',
+    hint: 'Your page name for Facebook shoppers.',
   },
   {
     value: 'WHATSAPP_STATUS',
-    label: 'WhatsApp Status',
-    hint: 'Opens WhatsApp with the caption ready — paste it into your Status.',
-    baseUrl: null,
+    label: 'WhatsApp',
+    hint: 'The number customers chat with — usually your order number.',
   },
 ];
-
-const HASHTAGS: Record<SocialPlatformValue, string[]> = {
-  TIKTOK: ['#smallbusiness', '#tiktokgh', '#shoplocal'],
-  INSTAGRAM: ['#smallbusiness', '#ghanabusiness', '#shoplocal'],
-  FACEBOOK_PAGE: ['#SmallBusiness', '#ShopLocal'],
-  WHATSAPP_STATUS: [],
-};
-
-/** Platform tag line — shared by the manual caption and the auto-post draft. */
-export function hashtagsFor(platform: SocialPlatformValue): string[] {
-  return HASHTAGS[platform];
-}
-
-export interface PostableItem {
-  name: string;
-  description: string | null;
-  pricePesewas: number;
-}
-
-const DESCRIPTION_LIMIT = 220;
-
-export function buildSocialCaption(
-  item: PostableItem,
-  storeName: string,
-  storeUrl: string,
-  platform: SocialPlatformValue,
-): string {
-  const description = item.description?.trim();
-  const lines = [
-    item.name,
-    formatGhs(item.pricePesewas),
-    description
-      ? description.length > DESCRIPTION_LIMIT
-        ? `${description.slice(0, DESCRIPTION_LIMIT)}…`
-        : description
-      : null,
-    `Order at ${storeUrl} — ${storeName}`,
-  ].filter((line): line is string => line !== null && line.length > 0);
-
-  const tags = HASHTAGS[platform];
-  if (tags.length > 0) lines.push(tags.join(' '));
-  return lines.join('\n');
-}
-
-// Where "Share" sends the owner, given the caption that goes in the composer.
-// WhatsApp is the only target that can carry the text in the URL itself; the
-// rest open their composer with the caption already copied to the clipboard.
-export function shareUrlFor(platform: SocialPlatformValue, caption: string): string | null {
-  if (platform === 'WHATSAPP_STATUS') {
-    const short = caption.slice(0, 1200);
-    return `https://wa.me/?text=${encodeURIComponent(short)}`;
-  }
-  const def = SOCIAL_PLATFORM_DEFS.find((entry) => entry.value === platform);
-  return def?.baseUrl ?? null;
-}

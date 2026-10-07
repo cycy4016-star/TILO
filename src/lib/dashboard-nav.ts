@@ -3,12 +3,9 @@
 // top-level page list. One source of truth so the sidebar and the ball never
 // drift apart. Client-safe: consumers are client components.
 import {
-  Bot,
-  BrainCircuit,
   FireExtinguisher,
   LayoutDashboard,
   type LucideIcon,
-  Package,
   ShieldCheck,
   Store,
   Users,
@@ -27,13 +24,10 @@ export type DashboardNavItem = {
 };
 
 const allNavItems: DashboardNavItem[] = [
-  { href: '/dashboard', label: 'Pulse', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Analytics', icon: LayoutDashboard },
   { href: '/dashboard/store', label: 'Catalogue', icon: Store },
   { href: '/dashboard/orders', label: 'Orders', icon: FireExtinguisher },
-  { href: '/dashboard/customers', label: 'People', icon: Users },
-  { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/intelligence', label: 'Intelligence', icon: BrainCircuit },
-  { href: '/dashboard/automations', label: 'Switchboard', icon: Bot },
+  { href: '/dashboard/customers', label: 'Customers', icon: Users },
   { href: '/dashboard/admin', label: 'Admin', icon: ShieldCheck, adminOnly: true },
 ];
 

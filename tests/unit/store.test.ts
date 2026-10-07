@@ -20,8 +20,7 @@ const storePayload = {
   theme: 'gold',
   appearance: 'vibrant',
   hasLogo: false,
-  autoPostDays: null,
-  autoPostLastAt: null,
+  hasBanner: false,
   createdAt: '2026-09-21T00:00:00.000Z',
   updatedAt: '2026-09-21T00:00:00.000Z',
   categories: [
@@ -111,6 +110,7 @@ describe('store contracts', () => {
       theme: 'gold',
       appearance: 'vibrant',
       logoUrl: null,
+      bannerUrl: null,
       categories: [{ id: 'cat-1', name: 'Aprons', sortOrder: 0 }],
       items: [
         {
@@ -142,6 +142,7 @@ describe('store contracts', () => {
       theme: 'gold',
       appearance: 'professional',
       logoUrl: null,
+      bannerUrl: null,
       categories: [],
       items: [
         {

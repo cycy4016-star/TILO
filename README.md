@@ -7,7 +7,7 @@ customers fill themselves. Every checkout lands in the owner's dashboard as an
 itemised, totalled order. WhatsApp is the order channel: the confirmation hands
 the customer a pre-filled chat carrying the whole basket, and any product still
 has one-tap WhatsApp and SMS. Around that: a customer directory, order history,
-and optional automation SMS.
+and sales analytics.
 
 Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn UI,
 better-auth (phone + password with SMS OTP, optional email, admin roles),
@@ -30,8 +30,8 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
   on `StoreItem.categoryId`; deleting a non-empty shelf is refused with a `409`
   so nothing is orphaned silently.
 - **Multi-tenant by account:** every sign-up gets its own shop. Customers,
-  orders, catalogue, storefront, automations, notifications, payment
-  transactions, and shop SMS all carry the owning account's `userId`, and every
+  orders, catalogue, storefront, notifications, and payment
+  transactions all carry the owning account's `userId`, and every
   route filters on it — one deployment serves many businesses with no shared
   data. `FEATURES.md` §1 has the full map.
 - Auth: phone-first login/signup/forgot-password/profile (`src/app/(auth)/**`).
@@ -40,15 +40,19 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
   `/api/auth/*` (`src/app/api/auth/[...all]/route.ts`), `requireAuth` server gate
   for your own shop, `requireAdmin` for the platform monitor, `useSession` /
   `useIsAdmin` client hooks.
-- SMS usage ledger + `SMS this month` dashboard card (`/api/dashboard/sms-usage`).
+- SMS verification codes over BMS/Arkesel (`src/lib/sms.ts`), recorded in the
+  `SmsUsage` ledger.
 - Optional Paystack checkout for orders (`/api/payments/{initialize,verify,webhook}`).
-- Dashboard at `/dashboard` with a customer directory, customer detail + linked
+- Dashboard at `/dashboard`: sales analytics (money owed, margins, product
+  rankings), plus a customer directory, customer detail + linked
   orders, order creation, and status updates (`PENDING → PROCESSING →
   COMPLETED / CANCELLED`).
+- Onboarding at `/welcome`: every new account sets up store info, socials,
+  and logo/banner/avatar before the dashboard opens.
 - Data plane: client pages call `/api/*` route handlers through `apiFetch`
   (`src/lib/api-client.ts`) with a shared Zod contract per resource
   (`src/lib/contracts/`). No Server Actions.
-- Security headers in `next.config.ts` + per-request CSP nonce in `proxy.ts`.
+- Security headers in `next.config.ts` + per-request CSP nonce in `src/proxy.ts`.
 - SEO plumbing: `src/lib/site.ts`, `robots.ts`, `sitemap.ts`, `manifest.ts`,
   default OG image, `/llms.txt`.
 
@@ -109,9 +113,8 @@ Google OAuth (optional — the alternative to phone + SMS):
   sign-up (users then pick phone *or* Google as their verified identity).
   Without the keys the buttons stay hidden even if set to `true`.
 
-Automation + SMS (all optional — the app boots without them):
+SMS for verification codes (all optional — the app boots without a provider):
 
-- `CRON_SECRET` — bearer secret for the scheduler cron routes (see below).
 - `SMS_PROVIDER` — `bms` | `arkesel` | `none` (default `none`).
 - `BMS_API_KEY` — BMS Africa / mNotify API key (https://bms.africa), the active
   Ghana provider. OTP confirmation codes are routed as `sms_type: "otp"`.
@@ -121,10 +124,6 @@ Automation + SMS (all optional — the app boots without them):
   while free credits only flow on the standard bulk route.
 - `ARKESEL_API_KEY` / `ARKESEL_SENDER_ID` — Arkesel (https://arkesel.com),
   alternative provider switched via `SMS_PROVIDER=arkesel`.
-- `SMS_SUMMARY_RECIPIENT` — phone (E.164 `+233...`) that gets the daily brief and the
-  weekly pulse.
-- `SMS_COST_PER_CREDIT_PESEWAS` — cost of one SMS credit, for the dashboard
-  estimate (default `5`).
 
 Email (optional — phone SMS is the primary verification/reset channel):
 
@@ -137,13 +136,6 @@ Paystack (optional — order checkout returns `503` until configured):
 - `PAYSTACK_SECRET_KEY` — secret key (https://paystack.com); enables the API.
 - `PAYSTACK_PUBLIC_KEY` — public key (kept for future inline checkout).
 - `PAYSTACK_CALLBACK_URL` — where Paystack returns the customer after checkout.
-
-Scheduled automation routes, guarded by `Authorization: Bearer <CRON_SECRET>`:
-
-- `POST /api/cron/rules` — run the automation sweep (nudges, flips, alerts, payment
-  reminders, win-backs). Run it on whatever cadence you sell (hourly = tighter chasing).
-- `POST /api/cron/daily-brief` — send this morning's one-text summary of yesterday.
-- `POST /api/cron/weekly-summary` — send this week's pulse SMS.
 
 ## Deploy to Vercel + Postgres
 
@@ -165,16 +157,12 @@ Scheduled automation routes, guarded by `Authorization: Bearer <CRON_SECRET>`:
 dashboard pick **New > Blueprint** and point it at this repo.
 
 - `DATABASE_URL` is linked automatically from the provisioned database.
-- Set `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `CRON_SECRET`, `SMS_*`,
+- Set `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `SMS_*`,
   `ADMIN_PHONE`, and the optional `RESEND_*` / `PAYSTACK_*` keys to real values
   after the first deploy (`sync: false` vars).
 - `BETTER_AUTH_SECRET` is generated automatically.
-- Store photos, the store logo, and profile avatars are stored in Postgres
+- Store photos, the store logo and banner, and profile avatars are stored in Postgres
   (no object storage), so they work on Render's ephemeral disk out of the box.
-- Wire up `POST https://<app>/api/cron/rules` (daily), 
-  `POST https://<app>/api/cron/daily-brief` (daily, morning),
-  and `POST https://<app>/api/cron/weekly-summary` (weekly) with the `CRON_SECRET`
-  header on cron-job.org / GitHub Actions.
 
 Database workflows:
 
@@ -202,7 +190,7 @@ prisma/
 src/
   app/(setup)/page.tsx      Marketing home at /
   app/(auth)/               Login / signup / profile
-  app/(dashboard)/dashboard Store, orders, customers, automations, admin
+  app/(dashboard)/dashboard Analytics hub, catalogue, orders, customers, admin
   app/store/[slug]/         Public storefront (no session)
   app/api/store/**          Shelf + product CRUD for the owner
   app/api/public/store/**   Read-only payload + basket checkout

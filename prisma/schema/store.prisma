@@ -17,11 +17,6 @@ enum SocialPlatform {
   WHATSAPP_STATUS
 }
 
-enum SocialPostStatus {
-  SHARED
-  PUBLISHED
-}
-
 // How a promotion takes money off. PERCENT = % of the item price,
 // FIXED = an exact amount in cedis (stored in pesewas).
 enum PromotionKind {
@@ -59,17 +54,14 @@ model Store {
   // Served by /api/public/store/[slug]/logo (no object storage needed).
   logo         Bytes?
   logoMime     String?
-  // Auto-posting cadence: how many days between generated batches. Null = the
-  // automation is off (the owner has never turned it on, or turned it off).
-  autoPostDays Int?
-  // When the last batch was generated — drives "next post in N days" and the
-  // due check. Null = never run.
-  autoPostLastAt DateTime?
+  // Wide storefront banner, stored in Postgres like the logo.
+  // Served by /api/public/store/[slug]/banner (no object storage needed).
+  banner       Bytes?
+  bannerMime   String?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items        StoreItem[]
-  posts        StorePost[]
   promotions   Promotion[]
   categories   ProductCategory[]
   socials      SocialAccount[]
@@ -77,9 +69,8 @@ model Store {
   @@index([slug])
 }
 
-// A social network the owner has connected, i.e. one of the icons they tap to
-// post. One row per platform per shop — the account is identified by its
-// handle, and auto-posting writes one draft per connected network.
+// A social network the owner is on — collected at onboarding and shown as
+// contact icons. One row per platform per shop, identified by its handle.
 model SocialAccount {
   id        String         @id @default(cuid())
   storeId   String
@@ -100,7 +91,7 @@ model SocialAccount {
 // A shelf heading inside one store's catalogue — "Beads", "Wall art", "Custom
 // orders". Reached through the store rather than owning a userId of its own,
 // so a guessed cuid cannot resolve against another shop (same rule as
-// StoreItem / Promotion / StorePost). Items point at their category with a
+// StoreItem / Promotion). Items point at their category with a
 // nullable FK, so a category delete orphans its items instead of taking the
 // products with it.
 model ProductCategory {
@@ -146,32 +137,10 @@ model StoreItem {
   updatedAt             DateTime         @updatedAt
   store                 Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category              ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  posts                 StorePost[]
   orderLines            OrderLineItem[]
 
   @@index([storeId])
   @@index([categoryId])
-}
-
-model StorePost {
-  id          String           @id @default(cuid())
-  storeId     String
-  itemId      String
-  platform    SocialPlatform
-  status      SocialPostStatus @default(SHARED)
-  caption     String
-  externalUrl String?
-  // True when the schedule drafted this row instead of the owner pressing
-  // Share by hand. Pending auto drafts live in the Auto-posts panel; once
-  // marked posted they join the ordinary history like any other push.
-  auto        Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  store       Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  item        StoreItem        @relation(fields: [itemId], references: [id], onDelete: Cascade)
-
-  @@index([storeId, createdAt])
-  @@index([itemId])
 }
 
 // A sale or discount code the owner can switch on/off. Customers see live

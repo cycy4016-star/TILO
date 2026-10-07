@@ -40,7 +40,6 @@ model User {
   customers       Customer[]
   orders          Order[]
   store           Store?
-  automationRules AutomationRule[]
   notifications   Notification[]
 
   @@unique([email])

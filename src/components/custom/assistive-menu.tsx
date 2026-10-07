@@ -7,8 +7,6 @@
 'use client';
 
 import {
-  Activity,
-  Bot,
   CalendarDays,
   CircleDot,
   FireExtinguisher,
@@ -17,7 +15,7 @@ import {
   Package,
   PartyPopper,
   Rocket,
-  ScrollText,
+  Scale,
   ShieldCheck,
   Store,
   Tag,
@@ -58,7 +56,8 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
     match: (p) => p === '/dashboard',
     actions: [
       { label: 'Money to chase', icon: Wallet, sectionId: 'money-to-chase' },
-      { label: 'SMS usage', icon: Activity, sectionId: 'sms-usage' },
+      { label: 'Balance sheet', icon: Scale, sectionId: 'balance-sheet' },
+      { label: 'Product ranking', icon: Trophy, sectionId: 'product-ranking' },
       { label: 'Quick links', icon: Rocket, sectionId: 'jump-pads' },
     ],
   },
@@ -83,22 +82,6 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
       { label: 'Store details', icon: Store, sectionId: 'store-details' },
       { label: 'Catalogue', icon: Package, sectionId: 'the-shelf' },
       { label: 'Sales & promotions', icon: Tag, sectionId: 'sales-and-promos' },
-      { label: 'Post history', icon: ScrollText, sectionId: 'publish-log' },
-    ],
-  },
-  {
-    match: (p) => p === '/dashboard/products',
-    actions: [{ label: 'Ranking', icon: Trophy, sectionId: 'ranking-table' }],
-  },
-  {
-    match: (p) => p === '/dashboard/intelligence',
-    actions: [{ label: 'Biggest earners', icon: Trophy, sectionId: 'biggest-earners' }],
-  },
-  {
-    match: (p) => p === '/dashboard/automations',
-    actions: [
-      { label: 'Rules', icon: Bot, sectionId: 'switchboard-rules' },
-      { label: 'Recent activity', icon: Activity, sectionId: 'recent-activity' },
     ],
   },
   {

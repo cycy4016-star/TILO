@@ -15,18 +15,18 @@ const sections: LegalSection[] = [
     heading: 'What we collect',
     body: [
       `Account details you give us on sign-up: your name, phone number, and (optionally) email. Phone numbers are verified with a one-time SMS code.`,
-      `The business data you run on ${businessName}: customers, orders, amounts, automation rules, store details, and catalogue items you create. Store logos, item photos, and profile avatars are stored with your account.`,
+      `The business data you run on ${businessName}: customers, orders, amounts, store details, and catalogue items you create. Store logos, banners, item photos, and profile avatars are stored with your account.`,
       `Storefront visitor data left on your public store: name, phone, town, and any note, collected only when a visitor ticks the opt-in box. Submissions are saved to your customers list.`,
-      `An SMS usage ledger records every message ${businessName} sends on your behalf — recipient, source (verification code, automation, brief, manual), segment count, and delivery result.`,
+      `An SMS usage ledger records the verification codes ${businessName} sends — recipient, segment count, and delivery result.`,
       `Payment data is handled by Paystack (recipient, amount, reference, status); ${businessName} stores the transaction reference and outcome needed to settle an order.`,
     ],
   },
   {
     heading: 'What we use it for',
     body: [
-      `To operate your workspace: authenticate you, keep your customers and orders in sync, run your automation rules, send SMS (verification codes, nudges, briefs), and process online payments.`,
+      `To operate your workspace: authenticate you, keep your customers and orders in sync, send verification codes by SMS, and process online payments.`,
       `To keep your storefront working: saved visitors show up in your customers list, and public catalogue images are served to shoppers.`,
-      `${businessName} does not sell personal data and does not use it for advertising on third-party platforms. Automation and brief text messages go only where your own rules and settings direct them.`,
+      `${businessName} does not sell personal data and does not use it for advertising on third-party platforms.`,
     ],
   },
   {

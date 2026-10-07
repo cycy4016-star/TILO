@@ -12,11 +12,11 @@ import {
   Pencil,
   Percent,
   Plus,
-  Share2,
   Store as StoreIcon,
   Trash2,
   Wrench,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -26,8 +26,6 @@ import {
   ImagePicker,
   type ImageSelection,
 } from '@/components/custom/image-picker';
-import { AutoPostsPanel, SocialsPanel } from '@/components/custom/store-auto-posts';
-import { PublishDialog, PublishLog } from '@/components/custom/store-publish';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -69,7 +67,6 @@ import {
   PromotionRecord,
   PromotionUpdate,
 } from '@/lib/contracts/promotion';
-import { SocialPostList, type SocialPostRecord } from '@/lib/contracts/social';
 import {
   StoreItemCreate,
   StoreItemKind,
@@ -151,6 +148,8 @@ function StoreForm({
   });
   const [logo, setLogo] = useState<ImageSelection>(emptyImageSelection);
   const logoUrl = initial?.hasLogo ? `/api/public/store/${initial.slug}/logo` : null;
+  const [banner, setBanner] = useState<ImageSelection>(emptyImageSelection);
+  const bannerUrl = initial?.hasBanner ? `/api/public/store/${initial.slug}/banner` : null;
 
   async function onSubmit(values: StoreUpsertInput) {
     try {
@@ -170,6 +169,17 @@ function StoreForm({
         saved = await uploadImageFile('/api/store/logo', compressed, logo.file.name, StorePayload);
       } else if (logo.cleared) {
         saved = await apiFetch('/api/store/logo', { method: 'DELETE', schema: StorePayload });
+      }
+      if (banner.file) {
+        const compressed = await compressImageFile(banner.file);
+        saved = await uploadImageFile(
+          '/api/store/banner',
+          compressed,
+          banner.file.name,
+          StorePayload,
+        );
+      } else if (banner.cleared) {
+        saved = await apiFetch('/api/store/banner', { method: 'DELETE', schema: StorePayload });
       }
       onSaved(saved);
       toast.success(initial ? 'Store saved' : 'Store is live!');
@@ -257,6 +267,15 @@ function StoreForm({
           </div>
           <p className="text-xs text-muted-foreground">
             A small logo for the header of your public page.
+          </p>
+        </FormItem>
+        <FormItem>
+          <Label>Banner</Label>
+          <div>
+            <ImagePicker currentUrl={bannerUrl} value={banner} onChange={setBanner} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            A wide banner across the top of your public page.
           </p>
         </FormItem>
         <FormField
@@ -1019,9 +1038,7 @@ function PromoForm({
 
 export function StoreWorkspace() {
   const [store, setStore] = useState<StoreRecord | null>(null);
-  const [posts, setPosts] = useState<SocialPostRecord[] | null>(null);
   const [promotions, setPromotions] = useState<PromotionRecord[] | null>(null);
-  const [publishItem, setPublishItem] = useState<StoreItemRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [itemDialog, setItemDialog] = useState<{ open: boolean; editing: StoreItemRecord | null }>({
@@ -1075,20 +1092,6 @@ export function StoreWorkspace() {
 
   useEffect(() => {
     let cancelled = false;
-    apiFetch('/api/store/posts', { schema: SocialPostList })
-      .then((result) => {
-        if (!cancelled) setPosts(result.items);
-      })
-      .catch(() => {
-        if (!cancelled) setPosts([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
     apiFetch('/api/store/promotions', { schema: PromotionList })
       .then((result) => {
         if (!cancelled) setPromotions(result.items);
@@ -1123,9 +1126,6 @@ export function StoreWorkspace() {
       await apiFetch(`/api/store/items/${item.id}`, { method: 'DELETE' });
       setStore((current) =>
         current ? { ...current, items: current.items.filter((i) => i.id !== item.id) } : current,
-      );
-      setPosts((current) =>
-        current ? current.filter((post) => post.itemId !== item.id) : current,
       );
       toast.success('Item removed');
     } catch {
@@ -1298,16 +1298,6 @@ export function StoreWorkspace() {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Push ${item.name} to socials`}
-            onClick={() => setPublishItem(item)}
-            className="size-9 rounded-md"
-          >
-            <Share2 aria-hidden className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
             aria-label={`Edit ${item.name}`}
             onClick={() => setItemDialog({ open: true, editing: item })}
             className="size-9 rounded-md"
@@ -1353,6 +1343,13 @@ export function StoreWorkspace() {
           <h2 className="flex items-center gap-2 text-h3 font-display">
             <StoreIcon aria-hidden className="size-5 text-primary" /> Store details
           </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Name, socials, logo and banner live in{' '}
+            <Link href="/welcome" className="font-semibold text-primary hover:underline">
+              store setup
+            </Link>
+            .
+          </p>
           <div className="mt-4">
             <StoreForm key={store?.id ?? 'new'} initial={store} onSaved={setStore} />
           </div>
@@ -1700,89 +1697,6 @@ export function StoreWorkspace() {
         </section>
       )}
 
-      {store && (
-        <section id="socials" className="rounded-xl border border-border bg-card p-6 sm:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-h3 font-display">Connected socials</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Where you post — auto drafts are written one per connected network.
-              </p>
-            </div>
-            <Share2 aria-hidden className="size-5 text-primary" />
-          </div>
-          <div className="mt-5">
-            <SocialsPanel />
-          </div>
-        </section>
-      )}
-
-      {store && (
-        <section id="auto-posts" className="rounded-xl border border-border bg-card p-6 sm:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-h3 font-display">Auto-posts</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Ready-made drafts from your shelves — tap an icon to post it yourself.
-              </p>
-            </div>
-          </div>
-          <div className="mt-5">
-            <AutoPostsPanel
-              store={store}
-              posts={posts}
-              onStoreSaved={setStore}
-              onGenerated={() => {
-                apiFetch('/api/store/posts', { schema: SocialPostList })
-                  .then((result) => setPosts(result.items))
-                  .catch(() => {});
-              }}
-              onMarked={(post) =>
-                setPosts(
-                  (current) =>
-                    current?.map((entry) => (entry.id === post.id ? post : entry)) ?? current,
-                )
-              }
-              onRemoved={(postId) =>
-                setPosts((current) => current?.filter((entry) => entry.id !== postId) ?? current)
-              }
-            />
-          </div>
-        </section>
-      )}
-
-      {store && (
-        <section id="publish-log" className="rounded-xl border border-border bg-card p-6 sm:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-h3 font-display">Post history</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Every push goes here — mark it posted once it&apos;s live.
-              </p>
-            </div>
-            <Share2 aria-hidden className="size-5 text-primary" />
-          </div>
-          {posts === null ? (
-            <div className="mt-4 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
-              <p className="font-medium text-foreground">Loading the log…</p>
-            </div>
-          ) : (
-            <PublishLog
-              posts={posts}
-              onMarked={(post) =>
-                setPosts(
-                  (current) =>
-                    current?.map((entry) => (entry.id === post.id ? post : entry)) ?? current,
-                )
-              }
-              onRemoved={(postId) =>
-                setPosts((current) => current?.filter((entry) => entry.id !== postId) ?? current)
-              }
-            />
-          )}
-        </section>
-      )}
-
       <Dialog
         open={itemDialog.open}
         onOpenChange={(open) => setItemDialog({ open, editing: null })}
@@ -1866,30 +1780,6 @@ export function StoreWorkspace() {
             onSaved={saveCategory}
             onClose={() => setCategoryDialog({ open: false, editing: null })}
           />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={publishItem !== null}
-        onOpenChange={(open) => {
-          if (!open) setPublishItem(null);
-        }}
-      >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="text-h3">Share &quot;{publishItem?.name}&quot;</DialogTitle>
-            <DialogDescription>
-              Pick a place — we copy the caption and open that app so you finish the post.
-            </DialogDescription>
-          </DialogHeader>
-          {publishItem && store && (
-            <PublishDialog
-              item={publishItem}
-              store={store}
-              onLogged={(post) => setPosts((current) => (current ? [post, ...current] : current))}
-              onClose={() => setPublishItem(null)}
-            />
-          )}
         </DialogContent>
       </Dialog>
     </div>

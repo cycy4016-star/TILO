@@ -1,36 +1,14 @@
-// Tilo dashboard overview.
+// Tilo analytics hub: money owed, the balance sheet and what moves —
+// Pulse, Intelligence and Products folded into one screen.
 'use client';
 
-import { Activity, ArrowUpRight, Bot, Flame, Users } from 'lucide-react';
+import { ArrowUpRight, BarChart3, Flame, Store, Users } from 'lucide-react';
 import Link from 'next/link';
 import { MoneyToChaseCard } from '@/components/custom/dashboard/money-to-chase-card';
-import { SmsUsageCard } from '@/components/custom/dashboard/sms-usage-card';
+import { IntelligenceWorkspace } from '@/components/custom/intelligence-workspace';
+import { ProductsWorkspace } from '@/components/custom/products-workspace';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/lib/auth-client';
-
-const TILES = [
-  {
-    icon: Users,
-    title: 'People',
-    body: 'Every customer, one search away.',
-    href: '/dashboard/customers',
-    cta: 'Open directory',
-  },
-  {
-    icon: Activity,
-    title: 'Orders',
-    body: 'Orders move, statuses flip, nothing stalls.',
-    href: '/dashboard/orders',
-    cta: 'See the flow',
-  },
-  {
-    icon: Bot,
-    title: 'Automations',
-    body: 'Nudges and status flips on autopilot.',
-    href: '/dashboard/automations',
-    cta: 'Open automations',
-  },
-];
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -49,16 +27,17 @@ export default function DashboardPage() {
         />
         <div className="relative flex flex-wrap items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
-            <Flame className="size-3.5" aria-hidden /> Command center
+            <BarChart3 className="size-3.5" aria-hidden /> Analytics
           </span>
         </div>
         <h1 className="relative mt-5 text-h1 font-display">Good to see you, {name}.</h1>
         <p className="relative mt-3 max-w-[46ch] text-body-lg text-muted-foreground">
-          The whole business in one clear view — people, orders, and the queue.
+          Money owed, what the catalogue is worth, and what actually earns — one screen.
         </p>
         <Button asChild className="relative mt-6 h-11 rounded-md px-6 font-semibold">
-          <Link href="/dashboard/customers">
-            Open the directory <ArrowUpRight aria-hidden />
+          <Link href="/dashboard/store">
+            <Store aria-hidden className="size-4" /> Open the catalogue
+            <ArrowUpRight aria-hidden />
           </Link>
         </Button>
       </section>
@@ -67,12 +46,38 @@ export default function DashboardPage() {
         <MoneyToChaseCard />
       </div>
 
-      <div id="sms-usage" className="scroll-mt-24">
-        <SmsUsageCard />
+      <div id="balance-sheet" className="scroll-mt-24">
+        <IntelligenceWorkspace hideIntro />
+      </div>
+
+      <div id="product-ranking" className="scroll-mt-24">
+        <ProductsWorkspace hideIntro />
       </div>
 
       <section id="jump-pads" className="scroll-mt-24 grid gap-4 md:grid-cols-3">
-        {TILES.map((tile) => (
+        {[
+          {
+            icon: Store,
+            title: 'Catalogue',
+            body: 'Shelves, products, prices and photos.',
+            href: '/dashboard/store',
+            cta: 'Curate the shelf',
+          },
+          {
+            icon: ArrowUpRight,
+            title: 'Orders',
+            body: 'Every sale, every status, one queue.',
+            href: '/dashboard/orders',
+            cta: 'Work the queue',
+          },
+          {
+            icon: Users,
+            title: 'Customers',
+            body: 'Every customer, one search away.',
+            href: '/dashboard/customers',
+            cta: 'Open directory',
+          },
+        ].map((tile) => (
           <article key={tile.title} className="lift rounded-xl border border-border bg-card p-6">
             <span className="inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <tile.icon className="size-5" aria-hidden />
@@ -91,6 +96,11 @@ export default function DashboardPage() {
           </article>
         ))}
       </section>
+
+      <p className="flex items-center gap-2 text-caption text-muted-foreground">
+        <Flame aria-hidden className="size-3.5 text-primary" />
+        Numbers update the moment orders move — paid, pending or cancelled.
+      </p>
     </div>
   );
 }

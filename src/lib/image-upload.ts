@@ -8,13 +8,14 @@ import 'server-only';
 // MIME types we accept (and serve back verbatim).
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-export type ImagePurpose = 'item' | 'logo' | 'avatar' | 'promo';
+export type ImagePurpose = 'item' | 'logo' | 'avatar' | 'promo' | 'banner';
 
 const MAX_BYTES: Record<ImagePurpose, number> = {
   item: 5 * 1024 * 1024, // 5 MB — matches the ~1280px client cap with headroom
   logo: 2 * 1024 * 1024, // 2 MB
   avatar: 2 * 1024 * 1024, // 2 MB
   promo: 5 * 1024 * 1024, // 5 MB — wide promo banner artwork
+  banner: 5 * 1024 * 1024, // 5 MB — wide storefront banner
 };
 
 export type ReadImageResult =

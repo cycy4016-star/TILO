@@ -56,6 +56,7 @@ export async function GET(_request: Request, context: RouteContext) {
         promoBanner: store.promoBanner,
         contactPhone: store.contactPhone,
         logoUrl: store.logo ? `/api/public/store/${store.slug}/logo` : null,
+        bannerUrl: store.banner ? `/api/public/store/${store.slug}/banner` : null,
         theme: ThemeKey.parse(normalizeTheme(store.theme)),
         appearance: AppearanceKey.parse(normalizeAppearance(store.appearance)),
         categories: store.categories.map((category) => ({

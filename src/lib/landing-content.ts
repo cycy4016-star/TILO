@@ -29,7 +29,7 @@ export const LANDING = {
   },
 } as const;
 
-export const FEATURE_ICONS = ['boxes', 'link', 'sparkles', 'palette', 'chat', 'qr'] as const;
+export const FEATURE_ICONS = ['boxes', 'link', 'tag', 'palette', 'chat', 'qr'] as const;
 export type FeatureIcon = (typeof FEATURE_ICONS)[number];
 
 export type Feature = {
@@ -53,9 +53,9 @@ export const FEATURES: Feature[] = [
     span: 1,
   },
   {
-    icon: 'sparkles',
-    title: 'Auto-posting drafts',
-    body: 'Set a rhythm and Tilo writes captioned drafts from your shelves — one per connected network. You tap to post.',
+    icon: 'tag',
+    title: 'Discounts & promos',
+    body: 'Percentage or fixed-amount codes with live windows — customers see them as “Today’s offers” and quote the code in chat.',
     span: 1,
   },
   {
@@ -132,9 +132,9 @@ export const PLANS: Plan[] = [
     features: [
       'Everything in Starter',
       'Unlimited products & shelves',
-      'Auto-posting drafts',
+      'Sales analytics & reports',
       'Themes & brand colours',
-      'SMS order nudges',
+      'Discount codes & promos',
     ],
   },
   {
@@ -189,8 +189,8 @@ export const FAQS: { q: string; a: string }[] = [
     a: 'Yes. Upload product photos and your logo, then pick from six colour themes and two layouts to match your brand.',
   },
   {
-    q: 'What do SMS features cost?',
-    a: 'Order nudges and reminders send over SMS and draw from your SMS credits — usage and spend show live on your dashboard, so there are no surprises.',
+    q: 'How do customers pay?',
+    a: 'Most shops confirm on WhatsApp and collect cash, mobile money or a bank transfer. Switching on Paystack adds card checkout on unpaid orders — the dashboard marks them paid automatically.',
   },
   {
     q: 'Can I cancel anytime?',
