@@ -100,7 +100,7 @@ export function MoneyToChaseCard() {
           {overview.topChases.map((chase) => {
             const chat = waMeLink(chase.customerPhone);
             return (
-              <div key={chase.orderId} className="flex items-center gap-3 py-3">
+              <div key={chase.orderId} className="flex flex-wrap items-center gap-3 py-3">
                 <Link
                   href={`/dashboard/customers/${chase.customerId}`}
                   className="group min-w-0 flex-1"

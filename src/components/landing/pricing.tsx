@@ -19,7 +19,7 @@ export function Pricing() {
       <div className="container-page section">
         <Reveal>
           <p className="text-eyebrow">Pricing</p>
-          <h2 className="mt-3 font-display text-h2">
+          <h2 className="mt-3 break-words text-balance font-display text-h2">
             Start free, <span className="text-primary">pay when it pays</span>
           </h2>
           <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">

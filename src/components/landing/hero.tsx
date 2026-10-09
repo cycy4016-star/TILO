@@ -18,6 +18,7 @@ const ENTRANCE = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-i
 export function Hero({ shop }: { shop: SampleShop }) {
   const reduceMotion = useReducedMotion();
   const [pastHero, setPastHero] = useState(false);
+  const [pastClosing, setPastClosing] = useState(false);
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -26,6 +27,21 @@ export function Hero({ shop }: { shop: SampleShop }) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [reduceMotion]);
+
+  // The sticky CTA must never sit on top of the closing band / footers — hide
+  // it once #start (or the page footer) scrolls into view.
+  useEffect(() => {
+    const target = document.getElementById('start') ?? document.querySelector('footer');
+    if (!target || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => setPastClosing(entries[0]?.isIntersecting ?? false),
+      { rootMargin: '0px 0px -10% 0px' },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  const showCta = pastHero && !pastClosing;
 
   return (
     <>
@@ -48,7 +64,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
           }}
         />
         <div className="container-page section relative">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
+          <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
             <div>
               <p
                 className={`${ENTRANCE} inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-caption text-muted-foreground`}
@@ -111,20 +127,21 @@ export function Hero({ shop }: { shop: SampleShop }) {
         </div>
       </section>
 
-      {/* Sticky mobile CTA: slides up once the hero is out of view. */}
+      {/* Sticky mobile CTA: slides up once the hero is out of view, and back
+          down before the closing band / footer so it never covers them. */}
       <div
-        aria-hidden={!pastHero}
+        aria-hidden={!showCta}
         className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:hidden"
         style={{
-          transform: pastHero && !reduceMotion ? 'translateY(0)' : 'translateY(120%)',
-          opacity: pastHero ? 1 : 0,
+          transform: showCta && !reduceMotion ? 'translateY(0)' : 'translateY(120%)',
+          opacity: showCta ? 1 : 0,
           transition: reduceMotion ? 'none' : 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
-          pointerEvents: pastHero ? 'auto' : 'none',
+          pointerEvents: showCta ? 'auto' : 'none',
         }}
       >
         <Button
           asChild
-          tabIndex={pastHero ? 0 : -1}
+          tabIndex={showCta ? 0 : -1}
           className="h-12 w-full rounded-xl font-semibold shadow-xl"
         >
           <Link href={LANDING.hero.primary.href}>Get started free</Link>

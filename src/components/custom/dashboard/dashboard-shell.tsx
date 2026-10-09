@@ -136,7 +136,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <DashboardNav />
         </aside>
 
-        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-4 lg:pt-0">
+        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-4 pb-24 lg:pt-0 lg:pb-6">
           {children}
         </section>
       </div>

@@ -111,7 +111,9 @@ export function Features() {
       <div className="container-page section">
         <Reveal>
           <p className="text-eyebrow">The toolkit</p>
-          <h2 className="mt-3 text-h2 font-display">Six tools that run the business</h2>
+          <h2 className="mt-3 break-words text-balance font-display text-h2">
+            Six tools that run the business
+          </h2>
         </Reveal>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, index) => {

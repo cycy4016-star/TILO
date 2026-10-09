@@ -8,11 +8,16 @@
 'use client';
 
 import { Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { QuickAccessPanel } from './assistive-menu';
 
 export function AssistiveTouch() {
+  const pathname = usePathname();
+  // Dashboard-only shortcut: on marketing, storefront and auth routes the orb
+  // would sit on top of the sticky CTAs and footers, so stay unmounted there.
+  const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
   const [open, setOpen] = React.useState(false);
 
   // Close on Escape.
@@ -24,6 +29,8 @@ export function AssistiveTouch() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open]);
+
+  if (!isDashboard) return null;
 
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1.25rem)] right-[calc(env(safe-area-inset-right)_+_1.25rem)] z-40">

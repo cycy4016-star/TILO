@@ -16,7 +16,7 @@ export function Faq() {
         <div className="mx-auto max-w-2xl">
           <Reveal>
             <p className="text-eyebrow">FAQ</p>
-            <h2 className="mt-3 font-display text-h2">Questions, answered</h2>
+            <h2 className="mt-3 break-words font-display text-h2">Questions, answered</h2>
           </Reveal>
           <Reveal delay={100}>
             <Accordion

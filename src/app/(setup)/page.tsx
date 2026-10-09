@@ -344,7 +344,7 @@ export default async function TiloHome() {
           <div className="container-page section">
             <Reveal>
               <p className="text-eyebrow">Showcase</p>
-              <h2 className="mt-3 max-w-2xl font-display text-h2">
+              <h2 className="mt-3 max-w-2xl break-words text-balance font-display text-h2">
                 See what stores <span className="text-primary">look like</span>
               </h2>
               <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">
@@ -365,7 +365,7 @@ export default async function TiloHome() {
           <div className="container-page section">
             <Reveal>
               <p className="text-eyebrow">Sample shops</p>
-              <h2 className="mt-3 max-w-2xl font-display text-h2">
+              <h2 className="mt-3 max-w-2xl break-words text-balance font-display text-h2">
                 Three trades, <span className="text-primary">one pattern</span>
               </h2>
               <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">

@@ -291,7 +291,7 @@ export function StoreCompareTable({ shops }: { shops: SampleShop[] }) {
       `}</style>
       <div className="compare-scroll overflow-x-auto rounded-2xl border border-border bg-card/80 shadow-xl backdrop-blur">
         <table
-          className={`compare-table w-full min-w-[640px] border-collapse text-left ${ready ? 'is-visible' : ''}`}
+          className={`compare-table w-full min-w-[560px] border-collapse text-left sm:min-w-[640px] ${ready ? 'is-visible' : ''}`}
         >
           <thead>
             <tr className="border-b border-border">
@@ -349,6 +349,9 @@ export function StoreCompareTable({ shops }: { shops: SampleShop[] }) {
           </tbody>
         </table>
       </div>
+      <p className="mt-2 text-center text-caption text-muted-foreground md:hidden">
+        Swipe sideways to compare the three shops
+      </p>
     </div>
   );
 }

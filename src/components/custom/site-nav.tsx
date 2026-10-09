@@ -373,7 +373,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-border bg-background text-muted-foreground">
-      <div className="container-page flex flex-wrap items-center justify-between gap-6 py-10 pb-24 sm:pb-8">
+      <div className="container-page flex flex-col gap-4 py-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:pb-8">
         <p className="font-display text-h4 font-semibold tracking-tight text-foreground">Tilo</p>
         <nav aria-label="Footer" className="flex flex-wrap items-center gap-1">
           {footer.map((item) => (

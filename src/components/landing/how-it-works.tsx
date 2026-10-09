@@ -52,7 +52,7 @@ export function HowItWorks() {
       <div className="container-page section">
         <Reveal>
           <p className="text-eyebrow">Three steps</p>
-          <h2 className="mt-3 max-w-2xl font-display text-h2">
+          <h2 className="mt-3 max-w-2xl break-words font-display text-h2">
             From an empty page to <span className="text-primary">taking orders</span>
           </h2>
         </Reveal>
