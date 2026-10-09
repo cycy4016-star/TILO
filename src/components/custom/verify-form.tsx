@@ -196,12 +196,12 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
         {pending ? 'Working…' : step === 'phone' ? 'Send the code' : 'Confirm my number'}
       </Button>
       {step === 'otp' ? (
-        <>
+        <div className="flex flex-col items-center gap-1">
           <button
             type="button"
             onClick={resend}
             disabled={pending || cooldown > 0}
-            className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
+            className="inline-flex min-h-[44px] items-center justify-center px-2 text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
           >
             {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
           </button>
@@ -215,11 +215,11 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
               setError(undefined);
               setStep('phone');
             }}
-            className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            className="inline-flex min-h-[44px] items-center justify-center px-2 text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             Use a different number
           </button>
-        </>
+        </div>
       ) : null}
       <p className="flex items-center justify-center gap-1 text-center text-small text-muted-foreground">
         <KeyRound aria-hidden className="size-3.5" /> Unlocks your whole workspace

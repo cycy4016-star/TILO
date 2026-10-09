@@ -135,7 +135,7 @@ export default async function StorePage({ params }: StorePageProps) {
             />
           </div>
         )}
-        <div className="relative p-8 sm:p-10">
+        <div className="relative p-5 sm:p-10">
           {store.logoUrl && (
             <img
               src={store.logoUrl}
@@ -160,7 +160,7 @@ export default async function StorePage({ params }: StorePageProps) {
             {pro ? 'in the catalogue' : 'on the shelf'}
           </p>
           <h1
-            className={`mt-4 ${
+            className={`mt-4 break-words ${
               pro
                 ? 'font-display text-h1 text-[var(--tl-50)]'
                 : 'leading-none sm:text-6xl font-display text-4xl font-black uppercase text-amber-50'
@@ -236,9 +236,9 @@ export default async function StorePage({ params }: StorePageProps) {
             storeName={store.name}
           />
           <h2
-            className={
+            className={`break-words ${
               pro ? 'font-display text-h3' : 'text-2xl font-bold font-display font-black uppercase'
-            }
+            }`}
           >
             Today&apos;s offers
           </h2>

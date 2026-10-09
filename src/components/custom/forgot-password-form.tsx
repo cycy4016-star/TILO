@@ -166,25 +166,27 @@ export function ForgotPasswordForm() {
         >
           {pending ? 'Saving…' : 'Set new password'}
         </Button>
-        <button
-          type="button"
-          onClick={() => void resendResetCode()}
-          disabled={pending || cooldown > 0}
-          className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
-        >
-          {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setStep('phone');
-            setError(undefined);
-            setNotice(undefined);
-          }}
-          className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          Use a different number
-        </button>
+        <div className="flex flex-col items-center gap-1">
+          <button
+            type="button"
+            onClick={() => void resendResetCode()}
+            disabled={pending || cooldown > 0}
+            className="inline-flex min-h-[44px] items-center justify-center px-2 text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
+          >
+            {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setStep('phone');
+              setError(undefined);
+              setNotice(undefined);
+            }}
+            className="inline-flex min-h-[44px] items-center justify-center px-2 text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Use a different number
+          </button>
+        </div>
       </form>
     );
   }

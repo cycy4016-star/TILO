@@ -206,37 +206,37 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
             <ArrowLeft aria-hidden className="size-4" /> Customers
           </Link>
         </Button>
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card p-7 sm:p-9">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-9">
           <span
             aria-hidden
-            className="pointer-events-none absolute -bottom-8 -right-4 font-display text-[9rem] font-semibold leading-none text-primary/10"
+            className="pointer-events-none absolute -bottom-8 -right-4 hidden font-display text-[9rem] font-semibold leading-none text-primary/10 min-[420px]:block"
           >
             {customer.name.charAt(0).toUpperCase()}
           </span>
           <p className="relative text-eyebrow">
             Customer · {customer.orderCount} order{customer.orderCount === 1 ? '' : 's'}
           </p>
-          <h1 className="relative mt-2 text-h1 font-display">{customer.name}</h1>
+          <h1 className="relative mt-2 break-words text-h1 font-display">{customer.name}</h1>
           {customer.company && (
             <p className="relative mt-2 font-medium text-muted-foreground">{customer.company}</p>
           )}
           <div className="relative mt-4 flex flex-wrap gap-2 text-small font-medium">
             {customer.email && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
-                <Mail aria-hidden className="size-3.5" />
-                <span className="break-all">{customer.email}</span>
+              <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
+                <Mail aria-hidden className="size-3.5 shrink-0" />
+                <span className="min-w-0 flex-1 break-all">{customer.email}</span>
               </span>
             )}
             {customer.phone && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
-                <Phone aria-hidden className="size-3.5" />
-                {customer.phone}
+              <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
+                <Phone aria-hidden className="size-3.5 shrink-0" />
+                <span className="truncate">{customer.phone}</span>
               </span>
             )}
             {customer.address && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
-                <MapPin aria-hidden className="size-3.5" />
-                {customer.address}
+              <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
+                <MapPin aria-hidden className="size-3.5 shrink-0" />
+                <span className="min-w-0 flex-1 break-words">{customer.address}</span>
               </span>
             )}
           </div>
@@ -313,7 +313,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                               size="sm"
                               disabled={updatingOrderId === order.id}
                               onClick={() => void collectPayment(order.id)}
-                              className="h-7 rounded-md text-caption font-medium"
+                              className="h-9 min-h-[36px] rounded-md px-3 text-caption font-medium"
                             >
                               Collect payment
                             </Button>
@@ -323,7 +323,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                               size="sm"
                               disabled={updatingOrderId === order.id}
                               onClick={() => void markPaid(order.id)}
-                              className="h-7 rounded-md text-caption font-medium"
+                              className="h-9 min-h-[36px] rounded-md px-3 text-caption font-medium"
                             >
                               Mark paid
                             </Button>

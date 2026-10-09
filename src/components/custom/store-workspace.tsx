@@ -531,7 +531,10 @@ function CategoryForm({
           <span id="category-icon-label" className="text-sm font-medium" aria-hidden>
             Icon <span className="font-normal text-muted-foreground">(optional)</span>
           </span>
-          <fieldset className="grid grid-cols-7 gap-1.5" aria-labelledby="category-icon-label">
+          <fieldset
+            className="grid grid-cols-4 gap-1.5 sm:grid-cols-7"
+            aria-labelledby="category-icon-label"
+          >
             <legend className="sr-only">Shelf icon</legend>
             {Object.entries(CATEGORY_ICONS).map(([key, Icon]) => (
               <Button

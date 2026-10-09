@@ -277,7 +277,7 @@ export function OnboardingWizard() {
         ))}
       </ol>
 
-      <div className="mt-6 rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-8">
         {step === 0 && (
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -446,13 +446,13 @@ export function OnboardingWizard() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <Button
             type="button"
             variant="ghost"
             disabled={step === 0 || saving}
             onClick={() => setStep((current) => Math.max(0, current - 1))}
-            className="h-11 rounded-md font-semibold"
+            className="h-11 w-full rounded-md font-semibold sm:w-auto"
           >
             <ArrowLeft aria-hidden className="size-4" /> Back
           </Button>
@@ -461,12 +461,16 @@ export function OnboardingWizard() {
               type="button"
               disabled={saving}
               onClick={() => void next()}
-              className="h-11 rounded-md px-6 font-semibold"
+              className="h-11 w-full rounded-md px-6 font-semibold sm:w-auto"
             >
               {saving ? 'Saving…' : 'Save & continue'} <ArrowRight aria-hidden className="size-4" />
             </Button>
           ) : (
-            <Button type="button" onClick={finish} className="h-11 rounded-md px-6 font-semibold">
+            <Button
+              type="button"
+              onClick={finish}
+              className="h-11 w-full rounded-md px-6 font-semibold sm:w-auto"
+            >
               Open your dashboard <ArrowRight aria-hidden className="size-4" />
             </Button>
           )}

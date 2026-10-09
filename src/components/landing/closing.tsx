@@ -16,7 +16,7 @@ export function Closing() {
         <Reveal>
           <div className="overflow-hidden rounded-3xl bg-foreground px-6 py-14 text-center text-background shadow-2xl sm:px-12">
             <p className="text-eyebrow text-primary">Your turn</p>
-            <h2 className="mx-auto mt-4 max-w-2xl text-balance font-display text-display">
+            <h2 className="mx-auto mt-4 max-w-2xl break-words text-balance font-display text-3xl leading-tight sm:text-display">
               Put your shop up this afternoon.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-body-lg text-background/70">

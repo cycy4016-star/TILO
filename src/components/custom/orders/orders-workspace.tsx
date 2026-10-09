@@ -107,10 +107,10 @@ export function OrdersWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-7 sm:p-9">
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-9">
         <p className="relative text-eyebrow">Order queue</p>
-        <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-h1 font-display">Orders</h1>
+        <div className="relative mt-2 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="min-w-0 flex-1 break-words text-h1 font-display">Orders</h1>
           <Button
             type="button"
             variant="outline"
@@ -199,9 +199,9 @@ export function OrdersWorkspace() {
           {orders.map((order) => {
             const paid = order.paidAt != null;
             return (
-              <li key={order.id} className="rounded-xl border border-border bg-card p-5 sm:p-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
+              <li key={order.id} className="rounded-xl border border-border bg-card p-4 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-caption font-semibold text-primary">
                         {order.orderNumber}
@@ -244,7 +244,7 @@ export function OrdersWorkspace() {
                   >
                     <SelectTrigger
                       aria-label="Order status"
-                      className="min-w-40 rounded-md border-border bg-background"
+                      className="w-full rounded-md border-border bg-background sm:w-40 sm:min-w-40"
                     >
                       <SelectValue />
                     </SelectTrigger>

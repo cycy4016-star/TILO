@@ -80,10 +80,10 @@ export function SignInForm() {
           >
             {googlePending ? 'Opening Google…' : 'Continue with Google'}
           </Button>
-          <div className="flex items-center gap-3 text-small text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or with your phone or email
-            <span className="h-px flex-1 bg-border" />
+          <div className="flex items-center gap-3 text-center text-small text-muted-foreground">
+            <span className="h-px min-w-8 flex-1 bg-border" />
+            <span className="shrink-0 whitespace-nowrap">or with your phone or email</span>
+            <span className="h-px min-w-8 flex-1 bg-border" />
           </div>
         </div>
       ) : null}

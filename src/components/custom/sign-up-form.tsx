@@ -225,7 +225,7 @@ export function SignUpForm() {
         type="button"
         onClick={() => void resend()}
         disabled={pending || cooldown > 0}
-        className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
+        className="inline-flex min-h-[44px] items-center justify-center px-2 text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
       >
         {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
       </button>
@@ -244,10 +244,10 @@ export function SignUpForm() {
           >
             {googlePending ? 'Opening Google…' : 'Continue with Google'}
           </Button>
-          <div className="flex items-center gap-3 text-small text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or build one with your phone
-            <span className="h-px flex-1 bg-border" />
+          <div className="flex items-center gap-3 text-center text-small text-muted-foreground">
+            <span className="h-px min-w-8 flex-1 bg-border" />
+            <span className="shrink-0 whitespace-nowrap">or build one with your phone</span>
+            <span className="h-px min-w-8 flex-1 bg-border" />
           </div>
         </div>
       ) : null}

@@ -99,10 +99,12 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
           </div>
         ) : (
           <div id="ranking-table" className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left">
+            <table className="w-full min-w-[640px] text-left sm:min-w-[720px]">
               <thead>
                 <tr className="border-b border-border bg-muted/60 text-caption font-medium uppercase tracking-widest text-muted-foreground">
-                  <th className="px-5 py-3">Item</th>
+                  <th className="sticky left-0 z-10 bg-muted px-5 py-3 shadow-[1px_0_0_0_var(--border)]">
+                    Item
+                  </th>
                   <th className="px-5 py-3">Sold</th>
                   <th className="px-5 py-3">Price now</th>
                   <th className="px-5 py-3">Cost</th>
@@ -117,8 +119,10 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
                     key={`${item.name}-${item.currentPricePesewas}`}
                     className="hover:bg-muted/50"
                   >
-                    <td className="px-5 py-3">
-                      <p className="text-small font-medium">{item.name}</p>
+                    <td className="sticky left-0 z-10 bg-card px-5 py-3 shadow-[1px_0_0_0_var(--border)]">
+                      <p className="max-w-[140px] truncate text-small font-medium sm:max-w-none">
+                        {item.name}
+                      </p>
                       <p className="mt-0.5 text-caption text-muted-foreground">
                         {item.active === false ? 'Hidden' : (item.kind ?? 'Custom')}
                       </p>

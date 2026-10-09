@@ -184,13 +184,13 @@ export function CustomerWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-7 sm:p-9">
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-9">
         <p className="relative text-eyebrow">Customer directory</p>
-        <div className="relative mt-2 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-h1 font-display">Customers</h1>
+        <div className="relative mt-2 flex flex-wrap items-start justify-between gap-4">
+          <h1 className="min-w-0 flex-1 text-h1 font-display break-words">Customers</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="h-11 rounded-md bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90">
+              <Button className="h-11 w-full rounded-md bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto">
                 <Plus aria-hidden className="size-4" />
                 Add customer
               </Button>
@@ -292,20 +292,22 @@ export function CustomerWorkspace() {
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-lg font-semibold text-primary">
                   {customer.name.charAt(0).toUpperCase()}
                 </span>
-                <span className="min-w-0 flex-1">
+                <span className="min-w-0 max-w-full flex-1">
                   <span className="block truncate font-medium text-foreground">
                     {customer.name}
                   </span>
-                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-caption font-medium text-muted-foreground">
-                    {customer.company && <span>{customer.company}</span>}
+                  <span className="mt-1 flex max-w-full flex-wrap gap-x-3 gap-y-1 text-caption font-medium text-muted-foreground">
+                    {customer.company && (
+                      <span className="max-w-full truncate">{customer.company}</span>
+                    )}
                     {customer.email && (
-                      <span className="inline-flex items-center gap-1">
-                        <Mail aria-hidden className="size-3" />
-                        {customer.email}
+                      <span className="inline-flex max-w-full items-center gap-1">
+                        <Mail aria-hidden className="size-3 shrink-0" />
+                        <span className="min-w-0 flex-1 truncate">{customer.email}</span>
                       </span>
                     )}
                     {customer.phone && (
-                      <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex shrink-0 items-center gap-1">
                         <Phone aria-hidden className="size-3" />
                         {customer.phone}
                       </span>

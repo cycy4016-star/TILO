@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 sm:p-10">
+      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-10">
         <div
           className="pointer-events-none absolute inset-0"
           aria-hidden
@@ -30,11 +30,14 @@ export default function DashboardPage() {
             <BarChart3 className="size-3.5" aria-hidden /> Analytics
           </span>
         </div>
-        <h1 className="relative mt-5 text-h1 font-display">Good to see you, {name}.</h1>
+        <h1 className="relative mt-5 break-words text-h1 font-display">Good to see you, {name}.</h1>
         <p className="relative mt-3 max-w-[46ch] text-body-lg text-muted-foreground">
           Money owed, what the catalogue is worth, and what actually earns — one screen.
         </p>
-        <Button asChild className="relative mt-6 h-11 rounded-md px-6 font-semibold">
+        <Button
+          asChild
+          className="relative mt-6 h-11 w-full rounded-md px-6 font-semibold sm:w-auto"
+        >
           <Link href="/dashboard/store">
             <Store aria-hidden className="size-4" /> Open the catalogue
             <ArrowUpRight aria-hidden />

@@ -453,7 +453,7 @@ export function StoreCatalog({
                 </Button>
               ) : (
                 <div
-                  className={`flex items-center gap-2 px-2 py-1.5 ${
+                  className={`flex flex-wrap items-center gap-2 px-2 py-1.5 ${
                     pro
                       ? 'rounded-md border border-border'
                       : 'rounded-full border-2 border-current/30'
@@ -481,7 +481,7 @@ export function StoreCatalog({
                     <Plus aria-hidden className="size-3.5" />
                   </Button>
                   <span
-                    className={`flex-1 text-right ${
+                    className={`hidden flex-1 text-right min-[360px]:block ${
                       pro ? 'text-eyebrow' : 'text-xs font-semibold uppercase tracking-wider'
                     }`}
                   >
@@ -501,7 +501,7 @@ export function StoreCatalog({
                   </button>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
                 {!soldOut && orderLink && (
                   <a
                     href={orderLink}
@@ -717,8 +717,8 @@ export function StoreCatalog({
       </div>
 
       {count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 sm:gap-3">
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">
                 {count} {count === 1 ? 'item' : 'items'} in your basket
@@ -806,7 +806,7 @@ export function StoreCatalog({
                 {lines.map((item) => (
                   <li
                     key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-border p-3"
+                    className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{item.name}</span>
@@ -839,7 +839,7 @@ export function StoreCatalog({
                         <Plus aria-hidden className="size-3.5" />
                       </Button>
                     </span>
-                    <span className="w-20 shrink-0 text-right font-mono text-sm font-bold">
+                    <span className="w-20 shrink-0 text-right font-mono text-sm font-bold max-[400px]:w-full max-[400px]:text-left">
                       {formatGhs(item.pricePesewas * (cart[item.id] ?? 0))}
                     </span>
                   </li>

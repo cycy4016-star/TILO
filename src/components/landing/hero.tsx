@@ -57,7 +57,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
                 {LANDING.hero.eyebrow}
               </p>
               <h1
-                className={`${ENTRANCE} mt-7 text-balance font-display text-display`}
+                className={`${ENTRANCE} mt-7 break-words text-balance font-display text-4xl leading-[1.08] sm:text-display`}
                 style={{ animationDelay: '90ms' }}
               >
                 {LANDING.hero.titleA}{' '}

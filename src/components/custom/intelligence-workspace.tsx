@@ -121,33 +121,45 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
             <Scale aria-hidden className="size-5 text-primary" /> Catalogue economics
           </h2>
           <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-small text-muted-foreground">What it sells for</span>
-              <span className="font-mono text-small font-semibold">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1 text-small text-muted-foreground">
+                What it sells for
+              </span>
+              <span className="shrink-0 text-right font-mono text-small font-semibold">
                 {formatGhs(data.catalogSellPesewas)}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-small text-muted-foreground">What it costs to hold</span>
-              <span className="font-mono text-small font-semibold">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1 text-small text-muted-foreground">
+                What it costs to hold
+              </span>
+              <span className="shrink-0 text-right font-mono text-small font-semibold">
                 {formatGhs(data.catalogCostPesewas)}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-small text-muted-foreground">Potential profit</span>
-              <span className="font-mono text-small font-semibold text-primary">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1 text-small text-muted-foreground">
+                Potential profit
+              </span>
+              <span className="shrink-0 text-right font-mono text-small font-semibold text-primary">
                 {formatGhs(data.catalogProfitPesewas)}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-small text-muted-foreground">Margin at retail</span>
-              <span className="font-mono text-small font-semibold">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1 text-small text-muted-foreground">
+                Margin at retail
+              </span>
+              <span className="shrink-0 text-right font-mono text-small font-semibold">
                 {data.catalogMarginPercent}%
               </span>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-small text-muted-foreground">Items missing a cost price</span>
-              <span className="font-mono text-small font-semibold">{data.itemsMissingCost}</span>
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1 text-small text-muted-foreground">
+                Items missing a cost price
+              </span>
+              <span className="shrink-0 text-right font-mono text-small font-semibold">
+                {data.itemsMissingCost}
+              </span>
             </div>
           </div>
           {data.itemsMissingCost > 0 && (

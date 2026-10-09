@@ -1,7 +1,7 @@
 // Tilo app code.
 'use client';
 
-import { Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -69,14 +69,14 @@ export function DashboardShell({ children }: DashboardShellProps) {
       className="flex h-dvh flex-col overflow-hidden bg-background text-foreground"
     >
       <header className="shrink-0 border-b border-border bg-background">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
-            <TiloMark className="size-9" iconClassName="size-5" />
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
+          <Link href="/dashboard" className="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none">
+            <TiloMark className="size-9 shrink-0" iconClassName="size-5" />
             <span className="truncate font-display text-base font-semibold tracking-tight text-foreground">
               Tilo
             </span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Popover open={assistiveOpen} onOpenChange={setAssistiveOpen}>
               <PopoverTrigger asChild>
                 <button
@@ -104,15 +104,31 @@ export function DashboardShell({ children }: DashboardShellProps) {
               size="sm"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="font-medium text-muted-foreground hover:text-foreground"
+              className="hidden min-[420px]:inline-flex font-medium text-muted-foreground hover:text-foreground"
             >
               {signingOut ? 'Signing out…' : 'Sign out'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              aria-label="Sign out"
+              className="size-9 shrink-0 text-muted-foreground hover:text-foreground min-[420px]:hidden"
+            >
+              <LogOut aria-hidden className="size-4" />
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 gap-8 px-4 py-6 sm:px-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-0 px-4 py-4 sm:px-6 sm:py-6 lg:flex-row lg:gap-8">
+        <nav
+          aria-label="Dashboard sections"
+          className="sticky top-0 z-10 -mx-4 shrink-0 border-b border-border bg-background/95 px-4 py-2 backdrop-blur lg:hidden"
+        >
+          <DashboardNav mobile />
+        </nav>
         <aside className="hidden w-56 shrink-0 lg:block">
           <p className="truncate px-3 pb-2 text-caption font-medium text-muted-foreground">
             {session.user.email ?? session.user.name ?? 'Account'}
@@ -120,7 +136,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <DashboardNav />
         </aside>
 
-        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</section>
+        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-4 lg:pt-0">
+          {children}
+        </section>
       </div>
     </main>
   );
