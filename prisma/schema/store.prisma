@@ -43,8 +43,8 @@ model Store {
   // whole platform surface for this workspace — dashboard shell and public
   // storefront — by seeding --brand-h/c/l in globals.css. Validated client-side
   // against ThemeKey; stored as a plain string so unknown keys degrade to the
-  // default gold seed rather than crashing the page.
-  theme        String            @default("gold")
+  // default gold seed rather than crashing the page. New shops start on ember.
+  theme        String            @default("ember")
   // Owner-chosen layout/appearance preset key (see src/lib/theme.ts). Picks the
   // storefront arrangement: "vibrant" is the loud yellow-black look, while
   // "professional" is the clean business layout. Stored as a plain string; the
@@ -100,6 +100,13 @@ model ProductCategory {
   name      String
   sortOrder Int         @default(0)
   active    Boolean     @default(true)
+  // Shelf icon key (lucide name, e.g. "Shirt"). Free-form, rendered only
+  // when it matches the allowlist in src/lib/category-icons.ts.
+  icon      String?
+  // Shelf cover photo, stored in Postgres like item photos.
+  // Served by /api/public/store/categories/[categoryId]/image.
+  cover     Bytes?
+  coverMime String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   store     Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -129,6 +136,9 @@ model StoreItem {
   compareAtPricePesewas Int?
   sortOrder             Int              @default(0)
   active                Boolean          @default(true)
+  // Stock on hand. Null = untracked (always orderable). Reaching 0 hides the
+  // order button on the storefront until restocked.
+  stock                 Int?
   // Item photo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/items/[itemId]/image.
   image                 Bytes?
@@ -159,6 +169,10 @@ model Promotion {
   value              Int
   // Minimum order subtotal to qualify (pesewas). Null = any order.
   minSubtotalPesewas Int?
+  // Targeting: item and category ids this promo applies to. Both empty =
+  // store-wide (the code, if any, is quoted in chat).
+  itemIds            String[]         @default([])
+  categoryIds        String[]         @default([])
   active             Boolean       @default(true)
   startsAt           DateTime?
   endsAt             DateTime?

@@ -12,6 +12,8 @@ export const CategoryCreate = z.object({
   name: z.string().trim().min(1, 'Give the category a name').max(40, 'Name is too long'),
   sortOrder: z.number().int().nonnegative().default(0),
   active: z.boolean().default(true),
+  // Shelf icon key (see src/lib/category-icons.ts allowlist). Null = no icon.
+  icon: z.string().trim().max(40).nullable().optional(),
 });
 
 // PATCH body: any subset of mutable fields. Built by hand (NOT
@@ -22,6 +24,7 @@ export const CategoryUpdate = z.object({
   name: z.string().trim().min(1, 'Give the category a name').max(40, 'Name is too long').optional(),
   sortOrder: z.number().int().nonnegative().optional(),
   active: z.boolean().optional(),
+  icon: z.string().trim().max(40).nullable().optional(),
 });
 
 export const CategoryRecord = z.object({
@@ -30,6 +33,10 @@ export const CategoryRecord = z.object({
   name: z.string(),
   sortOrder: z.number().int().nonnegative(),
   active: z.boolean(),
+  icon: z.string().nullable(),
+  // true when a cover photo exists (bytes live in the DB, served by
+  // /api/public/store/categories/[categoryId]/image).
+  hasCover: z.boolean(),
   // Live count of items pointing at it. The manager uses this to refuse a
   // delete with "move N products first" instead of silently orphaning them.
   itemCount: z.number().int().nonnegative(),
@@ -45,6 +52,8 @@ export const CategorySummary = z.object({
   id: z.string(),
   name: z.string(),
   sortOrder: z.number().int().nonnegative(),
+  icon: z.string().nullable(),
+  coverUrl: z.string().nullable(),
 });
 
 export type CategoryCreateInput = z.infer<typeof CategoryCreate>;

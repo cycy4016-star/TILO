@@ -42,6 +42,49 @@ export function isPromoLive(promo: PromoLike, now: Date = new Date()): boolean {
   return promotionState(promo, now) === 'live';
 }
 
+type TargetedPromo = {
+  name: string;
+  kind: 'PERCENT' | 'FIXED';
+  startsAt: string | null;
+  endsAt: string | null;
+  active?: boolean;
+  itemIds: string[];
+  categoryIds: string[];
+};
+
+/**
+ * Promos currently live for one catalogue item: store-wide promos plus any
+ * that name the item or its shelf. Timed-out and upcoming promos never match.
+ */
+export function promosForItem(
+  promos: TargetedPromo[],
+  item: { id: string; categoryId: string | null },
+  now: Date = new Date(),
+): TargetedPromo[] {
+  return promos.filter((promo) => {
+    if (promo.active === false) return false;
+    if (promo.startsAt && new Date(promo.startsAt) > now) return false;
+    if (promo.endsAt && new Date(promo.endsAt) < now) return false;
+    if (promo.itemIds.length === 0 && promo.categoryIds.length === 0) return true;
+    if (promo.itemIds.includes(item.id)) return true;
+    return item.categoryId != null && promo.categoryIds.includes(item.categoryId);
+  });
+}
+
+/** "2d 4h 12m 33s" until the ISO instant, or null once it passes. */
+export function countdownParts(targetIso: string, nowMs: number = Date.now()): string | null {
+  const diff = new Date(targetIso).getTime() - nowMs;
+  if (!Number.isFinite(diff) || diff <= 0) return null;
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const tail = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  return days > 0 ? `${days}d ${tail}` : tail;
+}
+
 /**
  * "Oct 5, 2026" from an ISO datetime — for the "Ends …" label.
  *

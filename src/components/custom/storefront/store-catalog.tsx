@@ -14,6 +14,7 @@ import {
   Percent,
   Plus,
   Search,
+  Share2,
   ShoppingCart,
   Trash2,
   Wrench,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ShareSheet } from '@/components/custom/share-sheet';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -33,11 +35,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { CATEGORY_ICONS } from '@/lib/category-icons';
 import { formatGhs } from '@/lib/contracts/order';
+import type { PromotionSummary } from '@/lib/contracts/promotion';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import type { StorePublic } from '@/lib/contracts/store';
 import { smsLink, waMessageLink } from '@/lib/phone';
-import { itemDiscountPercent } from '@/lib/promotions';
+import { itemDiscountPercent, promosForItem } from '@/lib/promotions';
+import { productShareMessage } from '@/lib/share';
 import { orderRequestSms } from '@/lib/sms-templates';
 import { basketOrderWhatsApp, itemOrderWhatsApp } from '@/lib/whatsapp-templates';
 
@@ -46,7 +51,12 @@ type CatalogItem = StorePublic['items'][number];
 // One shelf as the server hands it over. `label: null` is the uncategorised
 // bucket (or a shop with no categories at all) — those render without a heading
 // so a shop that never sets one up looks exactly as it did before.
-export type CatalogGroup = { label: string | null; items: CatalogItem[] };
+export type CatalogGroup = {
+  label: string | null;
+  icon: string | null;
+  coverUrl: string | null;
+  items: CatalogItem[];
+};
 
 const kindLabels: Record<'PRODUCT' | 'SERVICE', string> = {
   PRODUCT: 'Product',
@@ -82,12 +92,16 @@ export function StoreCatalog({
   contactPhone,
   pro,
   groups,
+  promotions,
+  storeUrl,
 }: {
   slug: string;
   storeName: string;
   contactPhone: string | null;
   pro: boolean;
   groups: CatalogGroup[];
+  promotions: PromotionSummary[];
+  storeUrl: string;
 }) {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
@@ -102,6 +116,7 @@ export function StoreCatalog({
   // whole catalogue, so narrowing the view never drops what's already in it.
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [shareItem, setShareItem] = useState<CatalogItem | null>(null);
 
   const lines = groups.flatMap((group) => group.items).filter((item) => (cart[item.id] ?? 0) > 0);
   const count = lines.reduce((sum, item) => sum + (cart[item.id] ?? 0), 0);
@@ -115,6 +130,8 @@ export function StoreCatalog({
     .filter((group) => activeCategory === null || group.label === activeCategory)
     .map((group) => ({
       label: group.label,
+      icon: group.icon,
+      coverUrl: group.coverUrl,
       items: group.items.filter((item) => matches(item, needle, group.label)),
     }))
     .filter((group) => group.items.length > 0);
@@ -230,6 +247,10 @@ export function StoreCatalog({
 
   function renderItem(item: CatalogItem, index: number) {
     const discount = itemDiscountPercent(item);
+    const promos = promosForItem(promotions, item);
+    const soldOut = item.stock != null && item.stock <= 0;
+    const lowStock = item.stock != null && item.stock > 0 && item.stock <= 5;
+    const maxQty = item.stock ?? 99;
     const qty = cart[item.id] ?? 0;
     const priceLabel =
       discount != null
@@ -261,7 +282,8 @@ export function StoreCatalog({
     return (
       <article
         key={item.id}
-        className={`flex flex-col ${
+        id={item.id}
+        className={`scroll-mt-24 flex flex-col ${
           pro
             ? // border-border rather than --tl-200: the warm cream hairline is
               // correct on a light card but reads as a selection outline once the
@@ -284,21 +306,36 @@ export function StoreCatalog({
               <Package aria-hidden className="size-5" />
             )}
           </span>
-          <span
-            className={`rounded-full px-3 py-1 ${
-              pro
-                ? 'text-eyebrow bg-primary/10 text-primary'
-                : 'text-[0.7rem] font-semibold uppercase tracking-wider bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
-            }`}
-          >
-            {kindLabels[item.kind]}
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`rounded-full px-3 py-1 ${
+                pro
+                  ? 'text-eyebrow bg-primary/10 text-primary'
+                  : 'text-[0.7rem] font-semibold uppercase tracking-wider bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
+              }`}
+            >
+              {kindLabels[item.kind]}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShareItem(item)}
+              aria-label={`Share ${item.name}`}
+              className={`grid size-9 shrink-0 place-items-center transition-colors ${
+                pro
+                  ? 'rounded-md text-muted-foreground hover:bg-muted hover:text-foreground'
+                  : 'rounded-full text-amber-950 hover:bg-amber-100 dark:text-amber-100 dark:hover:bg-stone-800'
+              }`}
+            >
+              <Share2 aria-hidden className="size-4" />
+            </button>
           </span>
         </div>
         {item.imageUrl && (
           <img
             src={item.imageUrl}
             alt={item.name}
-            className={`mt-4 aspect-[4/3] w-full object-cover ${
+            loading="lazy"
+            className={`mt-4 aspect-[4/3] w-full bg-muted object-cover ${
               pro
                 ? 'rounded-xl border border-border'
                 : 'rounded-2xl border-2 border-amber-100 dark:border-stone-800'
@@ -350,6 +387,41 @@ export function StoreCatalog({
                   {discount}% off
                 </span>
               )}
+              {promos.map((promo) => (
+                <span
+                  key={promo.name}
+                  className={`rounded-full px-2.5 py-0.5 ${
+                    pro
+                      ? 'text-eyebrow bg-primary/10 text-primary'
+                      : 'bg-emerald-600 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
+                  }`}
+                >
+                  {promo.name}
+                </span>
+              ))}
+              {soldOut ? (
+                <span
+                  className={`rounded-full px-2.5 py-0.5 ${
+                    pro
+                      ? 'text-eyebrow bg-muted text-muted-foreground'
+                      : 'bg-stone-500 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
+                  }`}
+                >
+                  Sold out
+                </span>
+              ) : (
+                lowStock && (
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 ${
+                      pro
+                        ? 'text-eyebrow bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                        : 'bg-amber-500 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
+                    }`}
+                  >
+                    Only {item.stock} left
+                  </span>
+                )
+              )}
             </span>
             {discount != null && (
               <span
@@ -363,92 +435,102 @@ export function StoreCatalog({
           </div>
         </div>
         <div className="mt-4 grid gap-2">
-          {qty === 0 ? (
-            <Button
-              type="button"
-              onClick={() => setQuantity(item.id, 1)}
-              className={`items-center gap-2 font-semibold ${
-                pro ? 'h-10 rounded-md px-4 text-small' : 'h-11 rounded-full'
-              }`}
-            >
-              <ShoppingCart aria-hidden className="size-4" /> Add to basket
-            </Button>
+          {soldOut ? (
+            <p className="rounded-md border border-dashed border-border px-4 py-3 text-center text-small text-muted-foreground">
+              Back soon — message the shop to reserve one.
+            </p>
           ) : (
-            <div
-              className={`flex items-center gap-2 px-2 py-1.5 ${
-                pro ? 'rounded-md border border-border' : 'rounded-full border-2 border-current/30'
-              }`}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label={`One fewer ${item.name}`}
-                onClick={() => setQuantity(item.id, qty - 1)}
-                className={`size-8 ${pro ? 'rounded-md' : 'rounded-full'}`}
-              >
-                <Minus aria-hidden className="size-3.5" />
-              </Button>
-              <span className="min-w-8 text-center font-mono text-lg font-semibold">{qty}</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label={`One more ${item.name}`}
-                onClick={() => setQuantity(item.id, Math.min(99, qty + 1))}
-                className={`size-8 ${pro ? 'rounded-md' : 'rounded-full'}`}
-              >
-                <Plus aria-hidden className="size-3.5" />
-              </Button>
-              <span
-                className={`flex-1 text-right ${
-                  pro ? 'text-eyebrow' : 'text-xs font-semibold uppercase tracking-wider'
-                }`}
-              >
-                in basket
-              </span>
-              <button
-                type="button"
-                aria-label={`Remove ${item.name} from the basket`}
-                onClick={() => setQuantity(item.id, 0)}
-                className={`grid size-8 place-items-center ${
-                  pro
-                    ? 'rounded-md text-destructive hover:bg-destructive/10'
-                    : 'rounded-full text-red-600 hover:bg-red-50'
-                }`}
-              >
-                <Trash2 aria-hidden className="size-4" />
-              </button>
-            </div>
+            <>
+              {qty === 0 ? (
+                <Button
+                  type="button"
+                  onClick={() => setQuantity(item.id, 1)}
+                  className={`items-center gap-2 font-semibold ${
+                    pro ? 'h-10 rounded-md px-4 text-small' : 'h-11 rounded-full'
+                  }`}
+                >
+                  <ShoppingCart aria-hidden className="size-4" /> Add to basket
+                </Button>
+              ) : (
+                <div
+                  className={`flex items-center gap-2 px-2 py-1.5 ${
+                    pro
+                      ? 'rounded-md border border-border'
+                      : 'rounded-full border-2 border-current/30'
+                  }`}
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={`One fewer ${item.name}`}
+                    onClick={() => setQuantity(item.id, qty - 1)}
+                    className={`size-8 ${pro ? 'rounded-md' : 'rounded-full'}`}
+                  >
+                    <Minus aria-hidden className="size-3.5" />
+                  </Button>
+                  <span className="min-w-8 text-center font-mono text-lg font-semibold">{qty}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={`One more ${item.name}`}
+                    onClick={() => setQuantity(item.id, Math.min(maxQty, qty + 1))}
+                    className={`size-8 ${pro ? 'rounded-md' : 'rounded-full'}`}
+                  >
+                    <Plus aria-hidden className="size-3.5" />
+                  </Button>
+                  <span
+                    className={`flex-1 text-right ${
+                      pro ? 'text-eyebrow' : 'text-xs font-semibold uppercase tracking-wider'
+                    }`}
+                  >
+                    in basket
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${item.name} from the basket`}
+                    onClick={() => setQuantity(item.id, 0)}
+                    className={`grid size-8 place-items-center ${
+                      pro
+                        ? 'rounded-md text-destructive hover:bg-destructive/10'
+                        : 'rounded-full text-red-600 hover:bg-red-50'
+                    }`}
+                  >
+                    <Trash2 aria-hidden className="size-4" />
+                  </button>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                {!soldOut && orderLink && (
+                  <a
+                    href={orderLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center justify-center gap-2 border border-emerald-700 bg-emerald-600 px-4 text-white transition-colors hover:bg-emerald-500 ${
+                      pro
+                        ? 'h-10 rounded-md text-small font-semibold'
+                        : 'h-11 rounded-full font-bold uppercase tracking-wide'
+                    }`}
+                  >
+                    <MessageCircle aria-hidden className="size-4" /> WhatsApp
+                  </a>
+                )}
+                {!soldOut && smsHref && (
+                  <a
+                    href={smsHref}
+                    className={`inline-flex items-center justify-center gap-2 px-4 transition-colors ${
+                      pro
+                        ? 'h-10 rounded-md text-small font-semibold border border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
+                        : 'h-11 rounded-full font-bold uppercase tracking-wide border-2 border-amber-950 font-black text-amber-950 hover:bg-amber-100 dark:text-amber-50'
+                    }`}
+                  >
+                    <MessageSquareText aria-hidden className="size-4" /> SMS
+                  </a>
+                )}
+              </div>
+            </>
           )}
-          <div className="grid grid-cols-2 gap-2">
-            {orderLink && (
-              <a
-                href={orderLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center justify-center gap-2 border border-emerald-700 bg-emerald-600 px-4 text-white transition-colors hover:bg-emerald-500 ${
-                  pro
-                    ? 'h-10 rounded-md text-small font-semibold'
-                    : 'h-11 rounded-full font-bold uppercase tracking-wide'
-                }`}
-              >
-                <MessageCircle aria-hidden className="size-4" /> WhatsApp
-              </a>
-            )}
-            {smsHref && (
-              <a
-                href={smsHref}
-                className={`inline-flex items-center justify-center gap-2 px-4 transition-colors ${
-                  pro
-                    ? 'h-10 rounded-md text-small font-semibold border border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
-                    : 'h-11 rounded-full font-bold uppercase tracking-wide border-2 border-amber-950 font-black text-amber-950 hover:bg-amber-100 dark:text-amber-50'
-                }`}
-              >
-                <MessageSquareText aria-hidden className="size-4" /> SMS
-              </a>
-            )}
-          </div>
         </div>
       </article>
     );
@@ -596,22 +678,41 @@ export function StoreCatalog({
             </Button>
           </div>
         ) : (
-          visibleGroups.map((group) => (
-            <section key={group.label ?? '__uncategorised'}>
-              {group.label && (
-                <h2
-                  className={
-                    pro ? 'text-h3 font-display' : 'text-2xl font-display font-black uppercase'
-                  }
-                >
-                  {group.label}
-                </h2>
-              )}
-              <div className={`grid gap-4 sm:grid-cols-2 ${group.label ? 'mt-3' : ''}`}>
-                {group.items.map((item, index) => renderItem(item, index))}
-              </div>
-            </section>
-          ))
+          visibleGroups.map((group) => {
+            const GroupIcon = group.icon ? (CATEGORY_ICONS[group.icon] ?? null) : null;
+            return (
+              <section key={group.label ?? '__uncategorised'}>
+                {group.label && (
+                  <div className="flex items-center gap-3">
+                    {group.coverUrl ? (
+                      <img
+                        src={group.coverUrl}
+                        alt=""
+                        loading="lazy"
+                        className="size-11 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-sm"
+                      />
+                    ) : (
+                      GroupIcon && (
+                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <GroupIcon aria-hidden className="size-5" />
+                        </span>
+                      )
+                    )}
+                    <h2
+                      className={
+                        pro ? 'text-h3 font-display' : 'text-2xl font-display font-black uppercase'
+                      }
+                    >
+                      {group.label}
+                    </h2>
+                  </div>
+                )}
+                <div className={`grid gap-4 sm:grid-cols-2 ${group.label ? 'mt-3' : ''}`}>
+                  {group.items.map((item, index) => renderItem(item, index))}
+                </div>
+              </section>
+            );
+          })
         )}
       </div>
 
@@ -798,6 +899,26 @@ export function StoreCatalog({
           )}
         </DialogContent>
       </Dialog>
+
+      {shareItem && (
+        <ShareSheet
+          open={shareItem !== null}
+          onOpenChange={(next) => {
+            if (!next) setShareItem(null);
+          }}
+          title={`Share “${shareItem.name}”`}
+          description="Send this product anywhere — WhatsApp carries the price and link."
+          message={productShareMessage({
+            storeName,
+            itemName: shareItem.name,
+            priceLabel: formatGhs(shareItem.pricePesewas),
+            itemUrl: `${storeUrl}#${shareItem.id}`,
+          })}
+          url={`${storeUrl}#${shareItem.id}`}
+          imageUrl={`/api/public/store/items/${shareItem.id}/share`}
+          imageName={`${shareItem.name}-share.png`}
+        />
+      )}
     </>
   );
 }

@@ -10,7 +10,12 @@ import { Label } from '@/components/ui/label';
 import { authClient, signIn } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
-import { friendlyOtpError, useSmsStatus } from '@/lib/sms-status-client';
+import {
+  friendlyOtpError,
+  OTP_EXPIRY_HINT,
+  useResendCooldown,
+  useSmsStatus,
+} from '@/lib/sms-status-client';
 
 // Phone-first sign-up: name + phone + password (email optional). Nothing is
 // created until the SMS code is proven — the custom /phone-number/sign-up
@@ -40,6 +45,8 @@ export function SignUpForm() {
   // returns rather than block on an unknown.
   const sms = useSmsStatus();
   const smsUnavailable = sms !== null && !sms.configured;
+  // Resend is real provider money, so it parks for a minute after each send.
+  const { cooldown, startCooldown } = useResendCooldown();
 
   async function handleGoogle() {
     setGooglePending(true);
@@ -136,7 +143,8 @@ export function SignUpForm() {
       return;
     }
     setStep('otp');
-    setNotice(`We sent a 6-digit code to ${normalized}.`);
+    startCooldown();
+    setNotice(`We sent a 6-digit code to ${normalized}. ${OTP_EXPIRY_HINT}`);
   }
 
   async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
@@ -159,18 +167,22 @@ export function SignUpForm() {
     });
     setPending(false);
     if (signUpError) {
-      setError(signUpError.message ?? 'That code did not work. Try again.');
+      setError(friendlyOtpError(signUpError.message));
       return;
     }
     window.location.assign('/dashboard');
   }
 
   async function resend() {
+    if (cooldown > 0) return;
     setError(undefined);
     setPending(true);
     const sent = await sendCode(e164);
     setPending(false);
-    if (sent) setNotice(`New code sent to ${e164}.`);
+    if (sent) {
+      startCooldown();
+      setNotice(`New code sent to ${e164}. ${OTP_EXPIRY_HINT}`);
+    }
   }
 
   return step === 'otp' ? (
@@ -212,10 +224,10 @@ export function SignUpForm() {
       <button
         type="button"
         onClick={() => void resend()}
-        disabled={pending}
-        className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        disabled={pending || cooldown > 0}
+        className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
       >
-        Resend the code
+        {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
       </button>
     </form>
   ) : (

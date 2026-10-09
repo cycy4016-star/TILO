@@ -14,18 +14,13 @@ export const LANDING = {
     reassurance: 'Free to start · No card needed · Live in minutes',
   },
   proof: {
-    line: 'Works wherever your customers find you',
-    // PLACEHOLDER NUMBERS — replace with real counts when available.
+    line: 'Free beta — every shop gets everything while we launch',
+    // Honest beta stats only: no shop/order counts until they are real.
     stats: [
-      { value: 120, suffix: '+', label: 'shops launched' },
-      { value: 3400, suffix: '+', label: 'orders placed', comma: true },
+      { value: 100, suffix: '%', label: 'free during beta' },
+      { value: 1, suffix: '', label: 'link for your whole shop' },
       { value: 2, suffix: ' min', label: 'to publish a product' },
-    ],
-    testimonial: {
-      quote:
-        'My customers stopped asking “how much?” — the link answers everything before they even message me.',
-      name: 'Ama Serwaa, Amara Beads (placeholder)',
-    },
+    ] as { value: number; suffix: string; label: string; comma?: boolean }[],
   },
 } as const;
 
@@ -61,7 +56,7 @@ export const FEATURES: Feature[] = [
   {
     icon: 'palette',
     title: 'Themes & brand colours',
-    body: 'Six colour themes and two layouts. Your shop looks like you, not like a template.',
+    body: 'Seven colour themes and two layouts. Your shop looks like you, not like a template.',
     span: 2,
   },
   {
@@ -72,8 +67,8 @@ export const FEATURES: Feature[] = [
   },
   {
     icon: 'qr',
-    title: 'Share & QR code',
-    body: 'Copy the link or print the code for your counter and packaging.',
+    title: 'Share anywhere',
+    body: 'Copy the link for bios, statuses, flyers and replies — plus WhatsApp, Facebook, X and Telegram sharing on every product.',
     span: 1,
   },
 ];
@@ -118,7 +113,12 @@ export const PLANS: Plan[] = [
     cta: 'Start free',
     href: '/signup',
     highlighted: false,
-    features: ['1 shop page', '20 products', 'WhatsApp ordering', 'Share link & QR'],
+    features: [
+      '1 shop page',
+      'Unlimited products in beta',
+      'WhatsApp ordering',
+      'Share link & social sharing',
+    ],
   },
   {
     id: 'shop',
@@ -146,7 +146,7 @@ export const PLANS: Plan[] = [
     cta: 'Talk to us',
     href: '/signup',
     highlighted: false,
-    features: ['Everything in Shop', 'Up to 3 staff seats', 'Sales analytics', 'Priority support'],
+    features: ['Everything in Shop', 'Sales analytics', 'Priority support'],
   },
 ];
 
@@ -174,7 +174,7 @@ export function billingPrice(plan: Plan, cycle: BillingCycle): BilledPrice {
 export const FAQS: { q: string; a: string }[] = [
   {
     q: 'Is it really free to start?',
-    a: 'Yes. The Starter plan is free forever — one shop page, 20 products and WhatsApp ordering. No card needed to sign up.',
+    a: 'Yes. Tilo is in free beta — every shop gets the whole toolkit free, and no card is needed to sign up. Paid plans arrive later; beta shops will keep a discount.',
   },
   {
     q: 'Do my customers need the app?',
@@ -186,7 +186,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Can I use my own photos and colours?',
-    a: 'Yes. Upload product photos and your logo, then pick from six colour themes and two layouts to match your brand.',
+    a: 'Yes. Upload product photos and your logo, then pick from seven colour themes and two layouts to match your brand.',
   },
   {
     q: 'How do customers pay?',
@@ -194,7 +194,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Can I cancel anytime?',
-    a: 'Yes. Plans are month-to-month (or yearly if you take the discount) and your shop page stays up on the free plan if you cancel.',
+    a: 'There is nothing to cancel yet — billing has not opened, so every shop is free. When paid plans arrive, they will be month-to-month and your page stays up on the free plan if you cancel.',
   },
 ];
 

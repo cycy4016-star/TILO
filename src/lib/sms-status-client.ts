@@ -60,6 +60,15 @@ export function friendlyOtpError(message?: string): string {
   if (lower.includes('not configured') || lower.includes('sms_send_failed')) {
     return 'Text-message verification is not switched on for this deployment yet. Please try again later.';
   }
+  if (lower.includes('too_many_attempts') || lower.includes('too many attempts')) {
+    return 'Too many wrong tries — that code is spent. Request a fresh one.';
+  }
+  if (lower.includes('invalid_otp') || lower.includes('invalid otp')) {
+    return "That code doesn't match — check the message and try again.";
+  }
+  if (lower.includes('otp_not_found') || lower.includes('otp not found')) {
+    return 'No code is waiting for that number. Request a new one.';
+  }
   if (lower.includes('timed out') || lower.includes('timeout') || lower.includes('abort')) {
     return 'The message service took too long to respond. Try again in a moment.';
   }
@@ -73,4 +82,30 @@ export function friendlyOtpError(message?: string): string {
     return 'That code has expired. Request a new one.';
   }
   return raw;
+}
+
+/** Codes live 5 minutes server-side (phone plugin `expiresIn: 300`). */
+export const OTP_EXPIRY_HINT = 'Codes expire after 5 minutes.';
+
+/**
+ * Resend cooldown: every tap spends a real provider SMS, so the resend button
+ * stays parked for a minute after each send. Returns the seconds left and a
+ * starter; safe to call from any auth form.
+ */
+export const RESEND_COOLDOWN_SECONDS = 60;
+
+export function useResendCooldown(initialSeconds = 0): {
+  cooldown: number;
+  startCooldown: () => void;
+} {
+  const [cooldown, setCooldown] = useState(initialSeconds);
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((left) => Math.max(0, left - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+  return {
+    cooldown,
+    startCooldown: () => setCooldown(RESEND_COOLDOWN_SECONDS),
+  };
 }

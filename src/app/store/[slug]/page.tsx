@@ -6,11 +6,18 @@ import { MessageCircle, Phone, Tag } from 'lucide-react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { LeadCaptureCard } from '@/components/custom/storefront/lead-capture-card';
+import {
+  CountdownText,
+  FlashStrip,
+  PromoShareButton,
+  StoreShareButton,
+} from '@/components/custom/storefront/promo-bits';
 import { type CatalogGroup, StoreCatalog } from '@/components/custom/storefront/store-catalog';
 import { StorePublic } from '@/lib/contracts/store';
 import { env } from '@/lib/env';
 import { waMeLink, waMessageLink } from '@/lib/phone';
 import { formatPromoDate, promoHeadline, promoTerms } from '@/lib/promotions';
+import { siteUrl } from '@/lib/site';
 
 type StorePageProps = { params: Promise<{ slug: string }> };
 
@@ -49,6 +56,8 @@ function buildGroups(
     .map((category) => ({
       id: category.id,
       label: category.name,
+      icon: category.icon,
+      coverUrl: category.coverUrl,
       items: [] as CatalogGroup['items'],
     }));
   const loose: CatalogGroup['items'] = [];
@@ -59,9 +68,19 @@ function buildGroups(
   }
   const groups: CatalogGroup[] = buckets
     .filter((bucket) => bucket.items.length > 0)
-    .map(({ label, items: groupItems }) => ({ label, items: groupItems }));
+    .map(({ label, icon, coverUrl, items: groupItems }) => ({
+      label,
+      icon,
+      coverUrl,
+      items: groupItems,
+    }));
   if (loose.length > 0) {
-    groups.push({ label: groups.length > 0 ? 'Everything else' : null, items: loose });
+    groups.push({
+      label: groups.length > 0 ? 'Everything else' : null,
+      icon: null,
+      coverUrl: null,
+      items: loose,
+    });
   }
   return groups;
 }
@@ -86,11 +105,11 @@ export default async function StorePage({ params }: StorePageProps) {
       className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-14"
     >
       <section
-        className={`relative ${pro ? 'rounded-3xl' : 'rounded-[2rem]'} bg-gradient-to-br ${
+        className={`relative overflow-hidden ${pro ? 'rounded-3xl' : 'rounded-[2rem]'} bg-gradient-to-br shadow-md ${
           pro
             ? 'from-[var(--tl-900)] via-[var(--tl-800)] to-[var(--tl-600)]'
             : 'from-amber-950 via-[#78350f] to-yellow-600'
-        } ${pro ? 'p-8 text-[var(--tl-50)] sm:p-10' : 'p-8 text-amber-50 sm:p-12'}`}
+        } ${pro ? 'text-[var(--tl-50)]' : 'text-amber-50'}`}
       >
         <div
           aria-hidden
@@ -101,20 +120,32 @@ export default async function StorePage({ params }: StorePageProps) {
               : 'radial-gradient(circle at 85% 20%, #facc15 0, transparent 35%), radial-gradient(circle at 10% 90%, #fcd34d 0, transparent 30%)',
           }}
         />
-        <div className="relative">
-          {store.bannerUrl && (
+        {store.bannerUrl && (
+          <div className="relative h-52 w-full overflow-hidden bg-black/20 sm:h-64">
             <img
               src={store.bannerUrl}
               alt=""
-              className="mb-4 h-36 w-full rounded-2xl object-cover sm:h-48"
+              className="absolute inset-0 h-full w-full object-cover"
             />
-          )}
+            <div
+              aria-hidden
+              className={`absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t ${
+                pro ? 'from-[var(--tl-900)]/70' : 'from-amber-950/70'
+              } to-transparent`}
+            />
+          </div>
+        )}
+        <div className="relative p-8 sm:p-10">
           {store.logoUrl && (
             <img
               src={store.logoUrl}
               alt=""
-              className={`mb-4 size-16 rounded-2xl object-contain p-1 ${
-                pro ? 'bg-white/10' : 'bg-amber-50/10'
+              className={`relative bg-white object-cover shadow-xl ring-4 ${
+                pro ? 'ring-white/90' : 'ring-amber-50/90'
+              } ${
+                store.bannerUrl
+                  ? '-mt-20 mb-4 size-20 sm:-mt-24 sm:size-24 rounded-2xl'
+                  : 'mb-4 size-16 rounded-2xl'
               }`}
             />
           )}
@@ -173,6 +204,13 @@ export default async function StorePage({ params }: StorePageProps) {
               <MessageCircle aria-hidden className="size-4" /> Chat with us
             </a>
           )}
+          <div className="mt-3">
+            <StoreShareButton
+              storeName={store.name}
+              tagline={store.tagline}
+              storeUrl={`${siteUrl}/store/${slug}`}
+            />
+          </div>
         </div>
       </section>
 
@@ -191,6 +229,12 @@ export default async function StorePage({ params }: StorePageProps) {
 
       {store.promotions.length > 0 && (
         <section className="mt-8">
+          <FlashStrip
+            pro={pro}
+            promo={store.promotions.find((promo) => promo.endsAt) ?? null}
+            storeUrl={`${siteUrl}/store/${slug}`}
+            storeName={store.name}
+          />
           <h2
             className={
               pro ? 'font-display text-h3' : 'text-2xl font-bold font-display font-black uppercase'
@@ -276,17 +320,35 @@ export default async function StorePage({ params }: StorePageProps) {
                         No code needed
                       </span>
                     )}
-                    {promo.endsAt && (
+                    {promo.endsAt && new Date(promo.endsAt).getTime() > Date.now() ? (
                       <span
-                        className={
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-semibold ${
                           pro
-                            ? 'text-caption text-muted-foreground'
-                            : 'text-xs font-medium text-stone-400'
-                        }
+                            ? 'bg-destructive/10 text-caption text-destructive'
+                            : 'bg-red-600 text-[0.65rem] uppercase tracking-wider text-white'
+                        }`}
                       >
-                        Ends {formatPromoDate(promo.endsAt)}
+                        <CountdownText endsAt={promo.endsAt} />
                       </span>
+                    ) : (
+                      promo.endsAt && (
+                        <span
+                          className={
+                            pro
+                              ? 'text-caption text-muted-foreground'
+                              : 'text-xs font-medium text-stone-400'
+                          }
+                        >
+                          Ends {formatPromoDate(promo.endsAt)}
+                        </span>
+                      )
                     )}
+                    <PromoShareButton
+                      storeName={store.name}
+                      promoName={promo.name}
+                      headline={promoHeadline(promo)}
+                      storeUrl={`${siteUrl}/store/${slug}`}
+                    />
                   </div>
                 </article>
               );
@@ -323,6 +385,8 @@ export default async function StorePage({ params }: StorePageProps) {
           contactPhone={store.contactPhone}
           pro={pro}
           groups={groups}
+          promotions={store.promotions}
+          storeUrl={`${siteUrl}/store/${slug}`}
         />
       )}
 

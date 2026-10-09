@@ -46,6 +46,7 @@ export type StoreItemRow = {
   sortOrder: number;
   active: boolean;
   image: Uint8Array | null;
+  stock: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -56,6 +57,8 @@ export type CategoryRow = {
   name: string;
   sortOrder: number;
   active: boolean;
+  icon: string | null;
+  cover: Uint8Array | null;
   // Prisma `_count: { select: { items: true } }` — how many products sit here.
   _count?: { items: number };
   createdAt: Date;
@@ -92,6 +95,8 @@ export type PromotionRow = {
   active: boolean;
   startsAt: Date | null;
   endsAt: Date | null;
+  itemIds: string[];
+  categoryIds: string[];
   image: Uint8Array | null;
   createdAt: Date;
   updatedAt: Date;
@@ -110,6 +115,7 @@ export function serializeStoreItem(item: StoreItemRow) {
     compareAtPricePesewas: item.compareAtPricePesewas,
     sortOrder: item.sortOrder,
     active: item.active,
+    stock: item.stock,
     hasImage: item.image != null,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
@@ -126,6 +132,8 @@ export function serializeCategory(category: CategoryRow) {
     name: category.name,
     sortOrder: category.sortOrder,
     active: category.active,
+    icon: category.icon,
+    hasCover: category.cover != null,
     itemCount: category._count?.items ?? 0,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
@@ -144,6 +152,8 @@ export function serializePromotion(promotion: PromotionRow) {
     active: promotion.active,
     startsAt: promotion.startsAt ? promotion.startsAt.toISOString() : null,
     endsAt: promotion.endsAt ? promotion.endsAt.toISOString() : null,
+    itemIds: promotion.itemIds,
+    categoryIds: promotion.categoryIds,
     hasImage: promotion.image != null,
     createdAt: promotion.createdAt.toISOString(),
     updatedAt: promotion.updatedAt.toISOString(),

@@ -8,7 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
 import { toE164 } from '@/lib/phone';
-import { friendlyOtpError, useSmsStatus } from '@/lib/sms-status-client';
+import {
+  friendlyOtpError,
+  OTP_EXPIRY_HINT,
+  useResendCooldown,
+  useSmsStatus,
+} from '@/lib/sms-status-client';
 
 type Step = 'phone' | 'reset';
 
@@ -28,6 +33,7 @@ export function ForgotPasswordForm() {
   // `null` = still probing or probe failed; only a definitive "off" blocks.
   const sms = useSmsStatus();
   const smsUnavailable = sms !== null && !sms.configured;
+  const { cooldown, startCooldown } = useResendCooldown();
 
   async function requestCode(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -52,7 +58,26 @@ export function ForgotPasswordForm() {
     }
     setE164(normalized);
     setStep('reset');
-    setNotice(`If ${normalized} is a Tilo account, we just texted it a reset code.`);
+    startCooldown();
+    setNotice(
+      `If ${normalized} is a Tilo account, we just texted it a reset code. ${OTP_EXPIRY_HINT}`,
+    );
+  }
+
+  async function resendResetCode() {
+    if (cooldown > 0) return;
+    setError(undefined);
+    setPending(true);
+    const { error: requestError } = await authClient.phoneNumber.requestPasswordReset({
+      phoneNumber: e164,
+    });
+    setPending(false);
+    if (requestError) {
+      setError(friendlyOtpError(requestError.message));
+      return;
+    }
+    startCooldown();
+    setNotice(`If ${e164} is a Tilo account, a fresh reset code is on its way. ${OTP_EXPIRY_HINT}`);
   }
 
   async function resetPassword(e: React.FormEvent<HTMLFormElement>) {
@@ -74,7 +99,7 @@ export function ForgotPasswordForm() {
     });
     setPending(false);
     if (resetError) {
-      setError(resetError.message ?? 'That code did not work. Try again.');
+      setError(friendlyOtpError(resetError.message));
       return;
     }
     window.location.assign('/login');
@@ -141,6 +166,14 @@ export function ForgotPasswordForm() {
         >
           {pending ? 'Saving…' : 'Set new password'}
         </Button>
+        <button
+          type="button"
+          onClick={() => void resendResetCode()}
+          disabled={pending || cooldown > 0}
+          className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
+        >
+          {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
+        </button>
         <button
           type="button"
           onClick={() => {

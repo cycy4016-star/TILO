@@ -4,7 +4,6 @@
 'use client';
 
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -21,7 +20,7 @@ import { apiFetch } from '@/lib/api-client';
 import { useSession } from '@/lib/auth-client';
 import { SocialAccountList } from '@/lib/contracts/social';
 import { StorePayload, type StorePayload as StoreRecord } from '@/lib/contracts/store';
-import { compressImageFile } from '@/lib/image';
+import { fitImageFile } from '@/lib/image';
 import { SOCIAL_PLATFORM_DEFS, type SocialPlatformDef } from '@/lib/social';
 import { uploadImageFile } from '@/lib/uploads';
 
@@ -187,13 +186,13 @@ export function OnboardingWizard() {
     try {
       let saved = store;
       if (logo.file) {
-        const compressed = await compressImageFile(logo.file);
+        const compressed = await fitImageFile(logo.file, 'logo');
         saved = await uploadImageFile('/api/store/logo', compressed, logo.file.name, StorePayload);
       } else if (logo.cleared && saved.hasLogo) {
         saved = await apiFetch('/api/store/logo', { method: 'DELETE', schema: StorePayload });
       }
       if (banner.file) {
-        const compressed = await compressImageFile(banner.file);
+        const compressed = await fitImageFile(banner.file, 'banner');
         saved = await uploadImageFile(
           '/api/store/banner',
           compressed,
@@ -204,7 +203,7 @@ export function OnboardingWizard() {
         saved = await apiFetch('/api/store/banner', { method: 'DELETE', schema: StorePayload });
       }
       if (avatar.file) {
-        const compressed = await compressImageFile(avatar.file);
+        const compressed = await fitImageFile(avatar.file, 'avatar', 0.85);
         const result = await uploadImageFile(
           '/api/profile/image',
           compressed,
@@ -368,7 +367,11 @@ export function OnboardingWizard() {
             <div className="grid gap-2">
               <Label>Store logo</Label>
               <ImagePicker
-                currentUrl={store?.hasLogo ? `/api/public/store/${store.slug}/logo` : null}
+                currentUrl={
+                  store?.hasLogo
+                    ? `/api/public/store/${store.slug}/logo?t=${Date.parse(store.updatedAt)}`
+                    : null
+                }
                 value={logo}
                 onChange={setLogo}
               />
@@ -376,7 +379,11 @@ export function OnboardingWizard() {
             <div className="grid gap-2">
               <Label>Store banner</Label>
               <ImagePicker
-                currentUrl={store?.hasBanner ? `/api/public/store/${store.slug}/banner` : null}
+                currentUrl={
+                  store?.hasBanner
+                    ? `/api/public/store/${store.slug}/banner?t=${Date.parse(store.updatedAt)}`
+                    : null
+                }
                 value={banner}
                 onChange={setBanner}
               />
@@ -402,11 +409,9 @@ export function OnboardingWizard() {
           <div className="grid gap-4">
             <div className="flex items-center gap-4 rounded-xl border border-border bg-muted/40 p-4">
               {store.hasLogo ? (
-                <Image
-                  src={`/api/public/store/${store.slug}/logo`}
+                <img
+                  src={`/api/public/store/${store.slug}/logo?t=${Date.parse(store.updatedAt)}`}
                   alt=""
-                  width={56}
-                  height={56}
                   className="size-14 shrink-0 rounded-xl object-cover"
                 />
               ) : (

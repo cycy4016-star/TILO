@@ -14,7 +14,6 @@ import { Hero } from '@/components/landing/hero';
 import { HowItWorks } from '@/components/landing/how-it-works';
 import { Pricing } from '@/components/landing/pricing';
 import { SocialProof } from '@/components/landing/social-proof';
-import { PLANS } from '@/lib/landing-content';
 import { siteDescription, siteName, siteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -291,7 +290,7 @@ export default async function TiloHome() {
   // CSP-safe JSON-LD: the per-request nonce keeps strict script-src happy.
   // The root layout already opts the tree into dynamic rendering for this.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
-  const paid = PLANS.find((plan) => plan.highlighted) ?? PLANS[1];
+  // Beta truth: every plan is free until billing opens, so the offer price is 0.
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -309,7 +308,7 @@ export default async function TiloHome() {
         offers: {
           '@type': 'Offer',
           priceCurrency: 'GHS',
-          price: paid ? String(paid.monthly) : '0',
+          price: '0',
           availability: 'https://schema.org/InStock',
         },
       },

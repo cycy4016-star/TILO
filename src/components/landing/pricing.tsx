@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Reveal } from '@/components/custom/sample-showcase';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { type BillingCycle, billingPrice, PLANS, yearlySavingsPct } from '@/lib/landing-content';
+import { type BillingCycle, billingPrice, PLANS } from '@/lib/landing-content';
 import { cn } from '@/lib/utils';
 
 export function Pricing() {
@@ -23,7 +23,8 @@ export function Pricing() {
             Start free, <span className="text-primary">pay when it pays</span>
           </h2>
           <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">
-            Placeholder prices while we launch — the whole section reads from one config file.
+            Beta pricing — everything below is free until billing opens. No card, no charge, no
+            surprise.
           </p>
         </Reveal>
 
@@ -44,7 +45,6 @@ export function Pricing() {
         <div className="mt-8 grid items-stretch gap-4 md:grid-cols-3">
           {PLANS.map((plan, index) => {
             const price = billingPrice(plan, cycle);
-            const savings = yearlySavingsPct(plan);
             return (
               <Reveal key={plan.id} delay={index * 90} className="h-full">
                 <article
@@ -74,7 +74,13 @@ export function Pricing() {
                     <span className="text-small text-muted-foreground">{price.per}</span>
                   </p>
                   <p className="mt-1 min-h-5 text-caption text-muted-foreground">
-                    {price.note ?? (yearly && savings ? `Save ${savings}% vs monthly` : '\u00A0')}
+                    {plan.monthly > 0 ? (
+                      <span className="font-semibold text-primary">
+                        Free during beta — billing opens soon
+                      </span>
+                    ) : (
+                      price.note
+                    )}
                   </p>
                   <ul className="mt-5 grid gap-2.5 text-small">
                     {plan.features.map((feature) => (

@@ -98,6 +98,8 @@ describe('promotion serialization contracts', () => {
     active: true,
     startsAt: '2026-09-20T00:00:00.000Z',
     endsAt: '2026-10-05T00:00:00.000Z',
+    itemIds: ['item-1'],
+    categoryIds: [],
     hasImage: false,
     createdAt: '2026-09-22T00:00:00.000Z',
     updatedAt: '2026-09-22T00:00:00.000Z',
@@ -116,6 +118,8 @@ describe('promotion serialization contracts', () => {
       minSubtotalPesewas: record.minSubtotalPesewas,
       startsAt: record.startsAt,
       endsAt: record.endsAt,
+      itemIds: [],
+      categoryIds: ['cat-1'],
       imageUrl: null,
     });
     expect(result.success).toBe(true);

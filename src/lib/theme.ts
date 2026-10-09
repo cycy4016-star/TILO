@@ -34,6 +34,13 @@ export type ThemePreset = {
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
+    key: 'ember',
+    label: 'Ember',
+    tagline: 'Blazing orange · loud, fun, always on sale',
+    accents: ['#ea580c', '#ffedd5'],
+    seed: { h: 45, c: 0.2, l: 0.53 },
+  },
+  {
     key: 'gold',
     label: 'Yellow',
     tagline: 'Vivid yellow · the Tilo signature',

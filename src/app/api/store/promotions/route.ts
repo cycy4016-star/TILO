@@ -55,6 +55,8 @@ export async function POST(request: Request) {
         active: parsed.data.active,
         startsAt: dateOnlyToDate(parsed.data.startsAt),
         endsAt: dateOnlyToDate(parsed.data.endsAt),
+        itemIds: parsed.data.itemIds,
+        categoryIds: parsed.data.categoryIds,
       },
     });
     return NextResponse.json(serializePromotion(promotion), { status: 201 });

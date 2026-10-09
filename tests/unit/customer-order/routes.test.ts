@@ -387,6 +387,7 @@ describe('store routes', () => {
     compareAtPricePesewas: null,
     sortOrder: 0,
     active: true,
+    stock: null,
     createdAt: new Date('2026-09-21T00:00:00.000Z'),
     updatedAt: new Date('2026-09-21T00:00:00.000Z'),
   };

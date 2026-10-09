@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { signOut, useSession } from '@/lib/auth-client';
 import { ProfileImageResult } from '@/lib/contracts/account';
-import { compressImageFile } from '@/lib/image';
+import { fitImageFile } from '@/lib/image';
 import { uploadImageFile } from '@/lib/uploads';
 
 export default function ProfilePage() {
@@ -26,7 +26,7 @@ export default function ProfilePage() {
     setSavingAvatar(true);
     try {
       if (avatar.file) {
-        const compressed = await compressImageFile(avatar.file, 512, 0.85);
+        const compressed = await fitImageFile(avatar.file, 'avatar', 0.85);
         await uploadImageFile(
           '/api/profile/image',
           compressed,

@@ -9,7 +9,7 @@ export const StoreItemKind = z.enum(['PRODUCT', 'SERVICE']);
 // SERVER-FACING keys only — this enum lives in the shared contract so both
 // the API and the client validate against the exact same allowlist. The
 // runtime value is also checked by ThemeKey.parse before it drives CSS.
-export const ThemeKey = z.enum(['gold', 'emerald', 'ocean', 'violet', 'rose', 'slate']);
+export const ThemeKey = z.enum(['gold', 'ember', 'emerald', 'ocean', 'violet', 'rose', 'slate']);
 export type ThemeKeyValue = z.infer<typeof ThemeKey>;
 
 // Layout/appearance presets (see src/lib/theme.ts for the descriptions).
@@ -63,6 +63,8 @@ export const StoreItemCreate = z.object({
   compareAtPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
   sortOrder: z.number().int().nonnegative().default(0),
   active: z.boolean().default(true),
+  // Stock on hand. Null/absent = untracked (always orderable).
+  stock: z.number().int().min(0).nullable().optional(),
 });
 
 // PATCH body: any subset of mutable item fields. Built by hand (NOT
@@ -80,6 +82,7 @@ export const StoreItemUpdate = z.object({
   compareAtPricePesewas: z.number().int().nonnegative().max(100_000_000).nullable().optional(),
   sortOrder: z.number().int().nonnegative().optional(),
   active: z.boolean().optional(),
+  stock: z.number().int().min(0).nullable().optional(),
 });
 
 export const StoreItemRecord = z.object({
@@ -96,6 +99,8 @@ export const StoreItemRecord = z.object({
   compareAtPricePesewas: z.number().int().nonnegative().nullable(),
   sortOrder: z.number().int().nonnegative(),
   active: z.boolean(),
+  // Stock on hand (null = untracked). The storefront hides the order button at 0.
+  stock: z.number().int().nonnegative().nullable(),
   // true when an uploaded photo exists (bytes live in the DB, served by
   // /api/public/store/items/[itemId]/image).
   hasImage: z.boolean(),
@@ -157,6 +162,7 @@ export const StorePublic = z.object({
       categoryId: z.string().nullable(),
       pricePesewas: z.number().int().nonnegative(),
       compareAtPricePesewas: z.number().int().nonnegative().nullable(),
+      stock: z.number().int().nonnegative().nullable(),
       imageUrl: z.string().nullable(),
     }),
   ),

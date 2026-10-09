@@ -39,6 +39,9 @@ export const PromotionCreate = z
     active: z.boolean().default(true),
     startsAt: dateOnly,
     endsAt: dateOnly,
+    // Targeting: item/category ids the promo applies to. Empty = store-wide.
+    itemIds: z.array(z.string().trim().min(1)).max(200).default([]),
+    categoryIds: z.array(z.string().trim().min(1)).max(100).default([]),
   })
   .refine((promo) => promo.kind !== 'PERCENT' || promo.value <= 100, {
     message: 'Percentages must be between 1 and 100',
@@ -68,6 +71,8 @@ export const PromotionUpdate = z
     active: z.boolean().optional(),
     startsAt: dateOnly.optional(),
     endsAt: dateOnly.optional(),
+    itemIds: z.array(z.string().trim().min(1)).max(200).optional(),
+    categoryIds: z.array(z.string().trim().min(1)).max(100).optional(),
   })
   .refine((promo) => promo.kind !== 'PERCENT' || promo.value === undefined || promo.value <= 100, {
     message: 'Percentages must be between 1 and 100',
@@ -89,6 +94,10 @@ export const PromotionRecord = z.object({
   active: z.boolean(),
   startsAt: z.string().datetime().nullable(),
   endsAt: z.string().datetime().nullable(),
+  // Target ids (empty = store-wide). The manager resolves these to names for
+  // display; the storefront matches them against each item.
+  itemIds: z.array(z.string()),
+  categoryIds: z.array(z.string()),
   // true when a banner image is uploaded (bytes live in the DB, served by
   // /api/public/store/promotions/[promoId]/image).
   hasImage: z.boolean(),
@@ -98,7 +107,8 @@ export const PromotionRecord = z.object({
 
 export const PromotionList = z.object({ items: z.array(PromotionRecord) });
 
-// Minimal public face of a promotion for the storefront: no ids or flags.
+// Minimal public face of a promotion for the storefront: no ids or flags,
+// but the target lists so each item can match its own promos.
 export const PromotionSummary = z.object({
   name: z.string(),
   code: z.string().nullable(),
@@ -107,6 +117,8 @@ export const PromotionSummary = z.object({
   minSubtotalPesewas: z.number().int().nullable(),
   startsAt: z.string().datetime().nullable(),
   endsAt: z.string().datetime().nullable(),
+  itemIds: z.array(z.string()),
+  categoryIds: z.array(z.string()),
   imageUrl: z.string().nullable(),
 });
 

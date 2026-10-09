@@ -261,6 +261,25 @@
   --tl-cta-border: #94a3b8;
   --tl-banner: #f8fafc;
 }
+[data-theme="ember"] {
+  --brand-h: 45;
+  --brand-c: 0.2;
+  --brand-l: 0.53;
+  --tl-950: #1c1006;
+  --tl-900: #33200d;
+  --tl-800: #4f3112;
+  --tl-700: #744a18;
+  --tl-600: #9c5f1a;
+  --tl-500: #c97a24;
+  --tl-400: #e09a4e;
+  --tl-300: #f0bc7f;
+  --tl-200: #f8dcc0;
+  --tl-100: #fcefe0;
+  --tl-50: #fffaf3;
+  --tl-cta: #b45f16;
+  --tl-cta-border: #e09a4e;
+  --tl-banner: #fffaf3;
+}
 /* === END tilo:brand_tokens === */
 
 /* FRAMEWORK-DERIVED — NOT agent-editable (outside the slot). The full ramp,

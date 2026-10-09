@@ -48,14 +48,14 @@ export function SocialProof() {
           ))}
         </div>
         <Reveal delay={120}>
-          <figure className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
-            <blockquote className="text-body text-foreground">
-              “{LANDING.proof.testimonial.quote}”
-            </blockquote>
-            <figcaption className="mt-3 text-caption text-muted-foreground">
-              {LANDING.proof.testimonial.name}
-            </figcaption>
-          </figure>
+          <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+            <p className="text-body font-medium text-foreground">
+              Beta shops get the whole toolkit free — shelves, themes, promos and analytics.
+            </p>
+            <p className="mt-2 text-small text-muted-foreground">
+              Bring your catalogue; paid plans arrive later, with a discount for beta shops.
+            </p>
+          </div>
         </Reveal>
       </div>
     </section>

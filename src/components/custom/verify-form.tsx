@@ -12,7 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
 import { toE164 } from '@/lib/phone';
-import { friendlyOtpError, useSmsStatus } from '@/lib/sms-status-client';
+import {
+  friendlyOtpError,
+  OTP_EXPIRY_HINT,
+  RESEND_COOLDOWN_SECONDS,
+  useResendCooldown,
+  useSmsStatus,
+} from '@/lib/sms-status-client';
 
 type Step = 'phone' | 'otp' | 'done';
 
@@ -30,12 +36,17 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [notice, setNotice] = useState<string | undefined>(
-    prefilled ? `We just texted a code to ${prefilled}.` : undefined,
+    prefilled ? `We just texted a code to ${prefilled}. ${OTP_EXPIRY_HINT}` : undefined,
   );
   // `null` = still probing (or probe failed). Only a definitive "off" blocks a
   // send — an unknown must not lock someone out of the rescue ramp.
   const sms = useSmsStatus();
   const smsUnavailable = sms !== null && !sms.configured;
+  const { cooldown, startCooldown } = useResendCooldown(
+    // Bounced here straight from sign-in: better-auth already texted a code for
+    // this number, so the resend button parks just like a fresh send.
+    prefilled ? RESEND_COOLDOWN_SECONDS : 0,
+  );
 
   async function handlePhone(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,7 +71,8 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
     }
     setE164(normalized);
     setStep('otp');
-    setNotice(`We sent a 6-digit code to ${normalized}.`);
+    startCooldown();
+    setNotice(`We sent a 6-digit code to ${normalized}. ${OTP_EXPIRY_HINT}`);
   }
 
   async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
@@ -83,13 +95,14 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
     });
     setPending(false);
     if (verifyError) {
-      setError(verifyError.message ?? 'That code did not work. Try again.');
+      setError(friendlyOtpError(verifyError.message));
       return;
     }
     setStep('done');
   }
 
   async function resend() {
+    if (cooldown > 0) return;
     setError(undefined);
     setPending(true);
     const { error: otpError } = await authClient.phoneNumber.sendOtp({ phoneNumber: e164 });
@@ -98,7 +111,8 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
       setError(friendlyOtpError(otpError.message));
       return;
     }
-    setNotice(`New code sent to ${e164}.`);
+    startCooldown();
+    setNotice(`New code sent to ${e164}. ${OTP_EXPIRY_HINT}`);
   }
 
   if (step === 'done') {
@@ -186,10 +200,10 @@ export function VerifyForm({ initialPhone }: { initialPhone?: string }) {
           <button
             type="button"
             onClick={resend}
-            disabled={pending}
-            className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            disabled={pending || cooldown > 0}
+            className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-60"
           >
-            Resend the code
+            {cooldown > 0 ? `Resend the code in ${cooldown}s` : 'Resend the code'}
           </button>
           <button
             type="button"

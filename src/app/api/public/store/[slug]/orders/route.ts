@@ -111,10 +111,43 @@ export async function POST(request: Request, context: RouteContext) {
       }
       return [{ item, quantity: line.quantity }];
     });
+    // Stocked items sell atomically: refuse the short line before anything is
+    // written, then decrement under a guarded update so two shoppers racing
+    // for the last unit cannot both take it.
+    for (const line of lines) {
+      if (line.item.stock != null && line.item.stock < line.quantity) {
+        return NextResponse.json(
+          {
+            error:
+              line.item.stock === 0
+                ? `${line.item.name} just sold out`
+                : `Only ${line.item.stock} of ${line.item.name} left`,
+          },
+          { status: 409 },
+        );
+      }
+    }
     const amountPesewas = lines.reduce(
       (total, line) => total + line.item.pricePesewas * line.quantity,
       0,
     );
+    const tracked = lines.filter((line) => line.item.stock != null);
+    if (tracked.length > 0) {
+      const decremented = await prisma.$transaction(
+        tracked.map((line) =>
+          prisma.storeItem.updateMany({
+            where: { id: line.item.id, stock: { gte: line.quantity } },
+            data: { stock: { decrement: line.quantity } },
+          }),
+        ),
+      );
+      if (decremented.some((result) => result.count === 0)) {
+        return NextResponse.json(
+          { error: 'Something just sold out — check the shelf and try again' },
+          { status: 409 },
+        );
+      }
+    }
     const summary = lines.map((line) => `${line.quantity}x ${line.item.name}`).join(', ');
     const order = await prisma.order.create({
       data: {

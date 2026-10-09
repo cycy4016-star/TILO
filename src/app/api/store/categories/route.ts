@@ -4,6 +4,7 @@
 import 'server-only';
 
 import { NextResponse } from 'next/server';
+import { isCategoryIcon } from '@/lib/category-icons';
 import { CategoryCreate, CategoryList } from '@/lib/contracts/category';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
@@ -48,6 +49,9 @@ export async function POST(request: Request) {
     }
     const parsed = CategoryCreate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
+    if (!isCategoryIcon(parsed.data.icon ?? null)) {
+      return NextResponse.json({ errors: { icon: 'Pick an icon from the list' } }, { status: 400 });
+    }
 
     // Two shelves may not share a name inside one store — the storefront groups
     // by label, so a duplicate would silently merge two headings.
@@ -68,6 +72,7 @@ export async function POST(request: Request) {
         name: parsed.data.name,
         sortOrder: parsed.data.sortOrder,
         active: parsed.data.active,
+        icon: parsed.data.icon ?? null,
       },
       ...includeWithCount,
     });

@@ -9,6 +9,7 @@ import 'server-only';
 import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
+import { isCategoryIcon } from '@/lib/category-icons';
 import { CategoryUpdate } from '@/lib/contracts/category';
 import { prisma } from '@/lib/db';
 import { requireOwnedCategory } from '@/lib/ownership';
@@ -27,6 +28,7 @@ function dataFromInput(input: z.output<typeof CategoryUpdate>): Prisma.ProductCa
   if ('name' in input) data.name = input.name;
   if ('sortOrder' in input) data.sortOrder = input.sortOrder;
   if ('active' in input) data.active = input.active;
+  if ('icon' in input) data.icon = input.icon ?? null;
   return data;
 }
 
@@ -45,6 +47,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     const parsed = CategoryUpdate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
+    if ('icon' in parsed.data && !isCategoryIcon(parsed.data.icon ?? null)) {
+      return NextResponse.json({ errors: { icon: 'Pick an icon from the list' } }, { status: 400 });
+    }
 
     if ('name' in parsed.data && parsed.data.name !== category.name) {
       const clash = await prisma.productCategory.findFirst({

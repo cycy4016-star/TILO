@@ -26,6 +26,8 @@ function dataFromInput(input: z.output<typeof PromotionUpdate>): Prisma.Promotio
   if ('active' in input) data.active = input.active;
   if ('startsAt' in input) data.startsAt = dateOnlyToDate(input.startsAt);
   if ('endsAt' in input) data.endsAt = dateOnlyToDate(input.endsAt);
+  if ('itemIds' in input) data.itemIds = input.itemIds ?? [];
+  if ('categoryIds' in input) data.categoryIds = input.categoryIds ?? [];
   return data;
 }
 

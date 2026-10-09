@@ -49,7 +49,9 @@ export const cspExtraSources: CspExtraSources = {
 };
 
 /** Package-level Next options (transpilePackages, experimental.optimizePackageImports, …). */
-export const userNextConfig: NextConfig = {};
+export const userNextConfig: NextConfig = {
+  allowedDevOrigins: ['127.0.0.1'],
+};
 
 export type ConfigPlugin = (config: NextConfig) => NextConfig;
 

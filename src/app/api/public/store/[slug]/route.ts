@@ -55,14 +55,22 @@ export async function GET(_request: Request, context: RouteContext) {
         description: store.description,
         promoBanner: store.promoBanner,
         contactPhone: store.contactPhone,
-        logoUrl: store.logo ? `/api/public/store/${store.slug}/logo` : null,
-        bannerUrl: store.banner ? `/api/public/store/${store.slug}/banner` : null,
+        logoUrl: store.logo
+          ? `/api/public/store/${store.slug}/logo?t=${store.updatedAt.getTime()}`
+          : null,
+        bannerUrl: store.banner
+          ? `/api/public/store/${store.slug}/banner?t=${store.updatedAt.getTime()}`
+          : null,
         theme: ThemeKey.parse(normalizeTheme(store.theme)),
         appearance: AppearanceKey.parse(normalizeAppearance(store.appearance)),
         categories: store.categories.map((category) => ({
           id: category.id,
           name: category.name,
           sortOrder: category.sortOrder,
+          icon: category.icon,
+          coverUrl: category.cover
+            ? `/api/public/store/categories/${category.id}/image?t=${category.updatedAt.getTime()}`
+            : null,
         })),
         items: store.items.map((item) => ({
           id: item.id,
@@ -72,7 +80,10 @@ export async function GET(_request: Request, context: RouteContext) {
           categoryId: item.categoryId,
           pricePesewas: item.pricePesewas,
           compareAtPricePesewas: item.compareAtPricePesewas,
-          imageUrl: item.image ? `/api/public/store/items/${item.id}/image` : null,
+          stock: item.stock,
+          imageUrl: item.image
+            ? `/api/public/store/items/${item.id}/image?t=${item.updatedAt.getTime()}`
+            : null,
         })),
         promotions: store.promotions.map((promotion) => ({
           name: promotion.name,
@@ -82,7 +93,11 @@ export async function GET(_request: Request, context: RouteContext) {
           minSubtotalPesewas: promotion.minSubtotalPesewas,
           startsAt: promotion.startsAt ? promotion.startsAt.toISOString() : null,
           endsAt: promotion.endsAt ? promotion.endsAt.toISOString() : null,
-          imageUrl: promotion.image ? `/api/public/store/promotions/${promotion.id}/image` : null,
+          itemIds: promotion.itemIds,
+          categoryIds: promotion.categoryIds,
+          imageUrl: promotion.image
+            ? `/api/public/store/promotions/${promotion.id}/image?t=${promotion.updatedAt.getTime()}`
+            : null,
         })),
       }),
     );

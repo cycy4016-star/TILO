@@ -12,6 +12,7 @@ import {
   Pencil,
   Percent,
   Plus,
+  Share2,
   Store as StoreIcon,
   Trash2,
   Wrench,
@@ -21,11 +22,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { CategoryWizard } from '@/components/custom/category-wizard';
 import {
   emptyImageSelection,
   ImagePicker,
   type ImageSelection,
 } from '@/components/custom/image-picker';
+import { ItemWizard } from '@/components/custom/item-wizard';
+import { PromoWizard } from '@/components/custom/promo-wizard';
+import { ShareSheet } from '@/components/custom/share-sheet';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -54,6 +59,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { CATEGORY_ICONS } from '@/lib/category-icons';
 import {
   CategoryCreate,
   type CategoryRecord,
@@ -79,8 +85,15 @@ import {
   type StoreUpsertInput,
 } from '@/lib/contracts/store';
 import { applyServerErrors } from '@/lib/forms';
-import { compressImageFile } from '@/lib/image';
+import { fitImageFile, SLOT_HINT } from '@/lib/image';
 import { formatPromoDate, promoHeadline, promoTerms, promotionState } from '@/lib/promotions';
+import { productShareMessage } from '@/lib/share';
+import {
+  APPEARANCE_PRESETS,
+  normalizeAppearance,
+  normalizeTheme,
+  THEME_PRESETS,
+} from '@/lib/theme';
 import { uploadImageFile } from '@/lib/uploads';
 
 function getErrorBody(error: unknown): unknown {
@@ -135,6 +148,8 @@ function StoreForm({
           description: initial.description ?? '',
           contactPhone: initial.contactPhone ?? '',
           active: initial.active,
+          theme: normalizeTheme(initial.theme),
+          appearance: normalizeAppearance(initial.appearance),
         }
       : {
           name: '',
@@ -144,12 +159,18 @@ function StoreForm({
           description: '',
           contactPhone: '',
           active: true,
+          theme: 'ember',
+          appearance: 'professional',
         },
   });
   const [logo, setLogo] = useState<ImageSelection>(emptyImageSelection);
-  const logoUrl = initial?.hasLogo ? `/api/public/store/${initial.slug}/logo` : null;
+  const logoUrl = initial?.hasLogo
+    ? `/api/public/store/${initial.slug}/logo?t=${Date.parse(initial.updatedAt)}`
+    : null;
   const [banner, setBanner] = useState<ImageSelection>(emptyImageSelection);
-  const bannerUrl = initial?.hasBanner ? `/api/public/store/${initial.slug}/banner` : null;
+  const bannerUrl = initial?.hasBanner
+    ? `/api/public/store/${initial.slug}/banner?t=${Date.parse(initial.updatedAt)}`
+    : null;
 
   async function onSubmit(values: StoreUpsertInput) {
     try {
@@ -165,13 +186,13 @@ function StoreForm({
         schema: StorePayload,
       });
       if (logo.file) {
-        const compressed = await compressImageFile(logo.file);
+        const compressed = await fitImageFile(logo.file, 'logo');
         saved = await uploadImageFile('/api/store/logo', compressed, logo.file.name, StorePayload);
       } else if (logo.cleared) {
         saved = await apiFetch('/api/store/logo', { method: 'DELETE', schema: StorePayload });
       }
       if (banner.file) {
-        const compressed = await compressImageFile(banner.file);
+        const compressed = await fitImageFile(banner.file, 'banner');
         saved = await uploadImageFile(
           '/api/store/banner',
           compressed,
@@ -266,7 +287,7 @@ function StoreForm({
             <ImagePicker currentUrl={logoUrl} value={logo} onChange={setLogo} />
           </div>
           <p className="text-xs text-muted-foreground">
-            A small logo for the header of your public page.
+            A small logo for the header of your public page. {SLOT_HINT.logo}
           </p>
         </FormItem>
         <FormItem>
@@ -275,7 +296,7 @@ function StoreForm({
             <ImagePicker currentUrl={bannerUrl} value={banner} onChange={setBanner} />
           </div>
           <p className="text-xs text-muted-foreground">
-            A wide banner across the top of your public page.
+            A wide banner across the top of your public page. {SLOT_HINT.banner}
           </p>
         </FormItem>
         <FormField
@@ -308,6 +329,83 @@ function StoreForm({
                   className="rounded-md"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="theme"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Shop colour</FormLabel>
+              <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <legend className="sr-only">Shop colour</legend>
+                {THEME_PRESETS.map((preset) => {
+                  const selected = field.value === preset.key;
+                  return (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => field.onChange(preset.key)}
+                      className={`flex items-center gap-2 rounded-md border border-border px-2.5 py-2 text-left transition-colors ${
+                        selected
+                          ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <span
+                        aria-hidden
+                        className="size-6 shrink-0 rounded-md border border-border"
+                        style={{ backgroundColor: preset.accents[0] }}
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate text-caption font-medium">
+                          {preset.label}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </fieldset>
+              <p className="text-xs text-muted-foreground">
+                Recolours your public page instantly. Same catalogue, your brand.
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="appearance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Page style</FormLabel>
+              <fieldset className="grid gap-2 sm:grid-cols-2">
+                <legend className="sr-only">Page style</legend>
+                {APPEARANCE_PRESETS.map((preset) => {
+                  const selected = field.value === preset.key;
+                  return (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => field.onChange(preset.key)}
+                      className={`rounded-md border border-border px-3 py-2.5 text-left transition-colors ${
+                        selected
+                          ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <span className="block text-caption font-medium">{preset.label}</span>
+                      <span className="block text-caption text-muted-foreground">
+                        {preset.tagline}
+                      </span>
+                    </button>
+                  );
+                })}
+              </fieldset>
               <FormMessage />
             </FormItem>
           )}
@@ -364,21 +462,42 @@ function CategoryForm({
       ? { name: initial.name, active: initial.active, sortOrder: initial.sortOrder }
       : { name: '', active: true },
   });
+  const [icon, setIcon] = useState<string | null>(initial?.icon ?? null);
+  const [cover, setCover] = useState<ImageSelection>(emptyImageSelection);
+  const coverUrl =
+    initial?.hasCover && !cover.cleared
+      ? `/api/public/store/categories/${initial.id}/image?t=${Date.parse(initial.updatedAt)}`
+      : null;
 
   async function onSubmit(values: SchemaInput) {
     try {
       const saved = initial
         ? await apiFetch(`/api/store/categories/${initial.id}`, {
             method: 'PATCH',
-            body: JSON.stringify(values),
+            body: JSON.stringify({ ...values, icon }),
             schema: CategorySchema,
           })
         : await apiFetch('/api/store/categories', {
             method: 'POST',
-            body: JSON.stringify(values),
+            body: JSON.stringify({ ...values, icon }),
             schema: CategorySchema,
           });
-      onSaved(saved);
+      let current = saved;
+      if (cover.file) {
+        const compressed = await fitImageFile(cover.file, 'cover');
+        current = await uploadImageFile(
+          `/api/store/categories/${saved.id}/cover`,
+          compressed,
+          cover.file.name,
+          CategorySchema,
+        );
+      } else if (cover.cleared && saved.hasCover) {
+        current = await apiFetch(`/api/store/categories/${saved.id}/cover`, {
+          method: 'DELETE',
+          schema: CategorySchema,
+        });
+      }
+      onSaved(current);
       toast.success(initial ? 'Category updated' : 'Category added');
     } catch (error) {
       const applied = applyServerErrors(getErrorBody(error), form.setError);
@@ -408,6 +527,34 @@ function CategoryForm({
             </FormItem>
           )}
         />
+        <div className="grid gap-2">
+          <span id="category-icon-label" className="text-sm font-medium" aria-hidden>
+            Icon <span className="font-normal text-muted-foreground">(optional)</span>
+          </span>
+          <fieldset className="grid grid-cols-7 gap-1.5" aria-labelledby="category-icon-label">
+            <legend className="sr-only">Shelf icon</legend>
+            {Object.entries(CATEGORY_ICONS).map(([key, Icon]) => (
+              <Button
+                key={key}
+                type="button"
+                variant={icon === key ? 'default' : 'outline'}
+                aria-pressed={icon === key}
+                aria-label={`${key} icon`}
+                onClick={() => setIcon((current) => (current === key ? null : current))}
+                className="size-10 rounded-md p-0"
+              >
+                <Icon aria-hidden className="size-4" />
+              </Button>
+            ))}
+          </fieldset>
+        </div>
+        <FormItem>
+          <Label>Cover photo</Label>
+          <div>
+            <ImagePicker currentUrl={coverUrl} value={cover} onChange={setCover} />
+          </div>
+          <p className="text-xs text-muted-foreground">Shown on the shelf card, when set.</p>
+        </FormItem>
         <FormField
           control={form.control}
           name="active"
@@ -470,11 +617,14 @@ function ItemForm({
   const [compareAt, setCompareAt] = useState(
     initial?.compareAtPricePesewas != null ? pesewasToCedis(initial.compareAtPricePesewas) : '',
   );
+  const [stock, setStock] = useState(initial?.stock != null ? String(initial.stock) : '');
   const [image, setImage] = useState<ImageSelection>(emptyImageSelection);
   // Held outside react-hook-form like the price fields: the shelf is optional
   // and Radix Select refuses "" as an item value, so it needs a sentinel.
   const [categoryId, setCategoryId] = useState<string>(initial?.categoryId ?? NO_CATEGORY);
-  const imageUrl = initial?.hasImage ? `/api/public/store/items/${initial.id}/image` : null;
+  const imageUrl = initial?.hasImage
+    ? `/api/public/store/items/${initial.id}/image?t=${Date.parse(initial.updatedAt)}`
+    : null;
 
   const schema = initial ? StoreItemUpdate : StoreItemCreate;
   type SchemaInput = z.input<typeof schema>;
@@ -517,6 +667,15 @@ function ItemForm({
       }
       costPricePesewas = parsed;
     }
+    const stockRaw = stock.trim();
+    let stockCount: number | null = null;
+    if (stockRaw) {
+      if (!/^\d+$/.test(stockRaw)) {
+        toast.error('Enter whole units on hand, or leave blank for untracked');
+        return;
+      }
+      stockCount = Number.parseInt(stockRaw, 10);
+    }
     const payload = {
       ...values,
       description: cleanOptional((values as { description?: string }).description),
@@ -524,6 +683,7 @@ function ItemForm({
       pricePesewas: amountPesewas,
       compareAtPricePesewas,
       costPricePesewas,
+      stock: stockCount,
     };
     try {
       let saved = initial
@@ -538,7 +698,7 @@ function ItemForm({
             schema: StoreItemSchema,
           });
       if (image.file) {
-        const compressed = await compressImageFile(image.file);
+        const compressed = await fitImageFile(image.file, 'item');
         saved = await uploadImageFile(
           `/api/store/items/${saved.id}/image`,
           compressed,
@@ -678,6 +838,22 @@ function ItemForm({
               with a % off badge. Leave blank to hide.
             </p>
           </FormItem>
+          <FormItem>
+            <Label>Stock on hand</Label>
+            <div>
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="20"
+                value={stock}
+                onChange={(event) => setStock(event.target.value)}
+                className="rounded-md"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Whole units. Blank means untracked; 0 hides the order button.
+            </p>
+          </FormItem>
         </div>
         <FormField
           control={form.control}
@@ -754,10 +930,14 @@ function PromoForm({
   initial,
   onSaved,
   onClose,
+  items = [],
+  categories = [],
 }: {
   initial: PromotionRecord | null;
   onSaved: (promo: PromotionRecord) => void;
   onClose: () => void;
+  items?: { id: string; name: string }[];
+  categories?: { id: string; name: string }[];
 }) {
   const [valueRaw, setValueRaw] = useState(
     initial
@@ -771,8 +951,12 @@ function PromoForm({
   );
   const [startsAt, setStartsAt] = useState(initial?.startsAt ? initial.startsAt.slice(0, 10) : '');
   const [endsAt, setEndsAt] = useState(initial?.endsAt ? initial.endsAt.slice(0, 10) : '');
+  const [itemIds, setItemIds] = useState<string[]>(initial?.itemIds ?? []);
+  const [categoryIds, setCategoryIds] = useState<string[]>(initial?.categoryIds ?? []);
   const [image, setImage] = useState<ImageSelection>(emptyImageSelection);
-  const imageUrl = initial?.hasImage ? `/api/public/store/promotions/${initial.id}/image` : null;
+  const imageUrl = initial?.hasImage
+    ? `/api/public/store/promotions/${initial.id}/image?t=${Date.parse(initial.updatedAt)}`
+    : null;
 
   const schema = initial ? PromotionUpdate : PromotionCreate;
   type SchemaInput = z.input<typeof schema>;
@@ -825,6 +1009,8 @@ function PromoForm({
       minSubtotalPesewas,
       startsAt: startsAt.trim() || null,
       endsAt: endsAt.trim() || null,
+      itemIds,
+      categoryIds,
     };
     try {
       let saved = initial
@@ -839,7 +1025,7 @@ function PromoForm({
             schema: PromotionRecord,
           });
       if (image.file) {
-        const compressed = await compressImageFile(image.file);
+        const compressed = await fitImageFile(image.file, 'promo');
         saved = await uploadImageFile(
           `/api/store/promotions/${saved.id}/image`,
           compressed,
@@ -959,6 +1145,54 @@ function PromoForm({
             Leave blank to let every order use the discount.
           </p>
         </FormItem>
+        <fieldset className="grid gap-2">
+          <legend className="text-sm font-medium">
+            Applies to{' '}
+            <span className="font-normal text-muted-foreground">(empty = whole store)</span>
+          </legend>
+          <div className="grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border p-2">
+            {categories.map((category) => (
+              <label
+                key={category.id}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 hover:bg-muted"
+              >
+                <input
+                  type="checkbox"
+                  checked={categoryIds.includes(category.id)}
+                  onChange={() =>
+                    setCategoryIds((current) =>
+                      current.includes(category.id)
+                        ? current.filter((id) => id !== category.id)
+                        : [...current, category.id],
+                    )
+                  }
+                  className="size-4 accent-primary"
+                />
+                <span className="text-small">Shelf: {category.name}</span>
+              </label>
+            ))}
+            {items.map((item) => (
+              <label
+                key={item.id}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 hover:bg-muted"
+              >
+                <input
+                  type="checkbox"
+                  checked={itemIds.includes(item.id)}
+                  onChange={() =>
+                    setItemIds((current) =>
+                      current.includes(item.id)
+                        ? current.filter((id) => id !== item.id)
+                        : [...current, item.id],
+                    )
+                  }
+                  className="size-4 accent-primary"
+                />
+                <span className="text-small">{item.name}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
           <FormItem>
             <Label>Starts</Label>
@@ -1049,11 +1283,24 @@ export function StoreWorkspace() {
     open: boolean;
     editing: PromotionRecord | null;
   }>({ open: false, editing: null });
+  const [itemWizardOpen, setItemWizardOpen] = useState(false);
+  const [categoryWizardOpen, setCategoryWizardOpen] = useState(false);
+  const [promoWizardOpen, setPromoWizardOpen] = useState(false);
+  const [shareItem, setShareItem] = useState<StoreItemRecord | null>(null);
   const [categoryDialog, setCategoryDialog] = useState<{
     open: boolean;
     editing: CategoryRecord | null;
   }>({ open: false, editing: null });
   const [copied, setCopied] = useState(false);
+
+  async function refreshStore() {
+    try {
+      setStore(await apiFetch('/api/store', { schema: StorePayload }));
+      setPromotions((await apiFetch('/api/store/promotions', { schema: PromotionList })).items);
+    } catch {
+      toast.error('Could not refresh the catalogue');
+    }
+  }
 
   // The catalogue renders grouped by shelf, so bucket the flat item list once
   // per store change rather than re-scanning it inside the JSX.
@@ -1258,7 +1505,7 @@ export function StoreWorkspace() {
         {item.hasImage ? (
           <span className="size-12 shrink-0 overflow-hidden rounded-lg">
             <img
-              src={`/api/public/store/items/${item.id}/image`}
+              src={`/api/public/store/items/${item.id}/image?t=${Date.parse(item.updatedAt)}`}
               alt=""
               className="size-full object-cover"
             />
@@ -1288,12 +1535,33 @@ export function StoreWorkspace() {
             <span className="font-mono text-sm font-semibold text-foreground">
               {formatGhs(item.pricePesewas)}
             </span>
+            {item.stock != null && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-caption font-medium ${
+                  item.stock === 0
+                    ? 'bg-destructive/10 text-destructive'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {item.stock === 0 ? 'Sold out' : `${item.stock} left`}
+              </span>
+            )}
           </p>
           {item.description && (
             <p className="mt-1 truncate text-xs text-muted-foreground">{item.description}</p>
           )}
         </div>
         <div className="flex shrink-0 gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Share ${item.name}`}
+            onClick={() => setShareItem(item)}
+            className="size-9 rounded-md"
+          >
+            <Share2 aria-hidden className="size-4" />
+          </Button>
           <Button
             type="button"
             variant="ghost"
@@ -1410,7 +1678,7 @@ export function StoreWorkspace() {
               type="button"
               variant="outline"
               className="h-11 font-semibold"
-              onClick={() => setCategoryDialog({ open: true, editing: null })}
+              onClick={() => setCategoryWizardOpen(true)}
             >
               <FolderPlus aria-hidden className="size-4" /> New category
             </Button>
@@ -1487,7 +1755,7 @@ export function StoreWorkspace() {
             <Button
               type="button"
               className="h-11 font-semibold"
-              onClick={() => setItemDialog({ open: true, editing: null })}
+              onClick={() => setItemWizardOpen(true)}
             >
               <Plus aria-hidden className="size-4" /> Add item
             </Button>
@@ -1559,7 +1827,7 @@ export function StoreWorkspace() {
             <Button
               type="button"
               className="h-11 font-semibold"
-              onClick={() => setPromoDialog({ open: true, editing: null })}
+              onClick={() => setPromoWizardOpen(true)}
             >
               <Plus aria-hidden className="size-4" /> New promo
             </Button>
@@ -1618,7 +1886,7 @@ export function StoreWorkspace() {
                     {promo.hasImage ? (
                       <span className="size-12 shrink-0 overflow-hidden rounded-lg">
                         <img
-                          src={`/api/public/store/promotions/${promo.id}/image`}
+                          src={`/api/public/store/promotions/${promo.id}/image?t=${Date.parse(promo.updatedAt)}`}
                           alt=""
                           className="size-full object-cover"
                         />
@@ -1697,20 +1965,58 @@ export function StoreWorkspace() {
         </section>
       )}
 
+      <ItemWizard
+        open={itemWizardOpen}
+        onOpenChange={setItemWizardOpen}
+        categories={store?.categories ?? []}
+        onSaved={() => void refreshStore()}
+      />
+
+      <CategoryWizard
+        open={categoryWizardOpen}
+        onOpenChange={setCategoryWizardOpen}
+        onSaved={() => void refreshStore()}
+      />
+
+      <PromoWizard
+        open={promoWizardOpen}
+        onOpenChange={setPromoWizardOpen}
+        onSaved={() => void refreshStore()}
+        items={(store?.items ?? []).map((item) => ({ id: item.id, name: item.name }))}
+        categories={(store?.categories ?? []).map((category) => ({
+          id: category.id,
+          name: category.name,
+        }))}
+      />
+
+      {shareItem && storefrontUrl && store && (
+        <ShareSheet
+          open={shareItem !== null}
+          onOpenChange={(next) => {
+            if (!next) setShareItem(null);
+          }}
+          title={`Share “${shareItem.name}”`}
+          description="Send this product anywhere — WhatsApp carries the price and link."
+          message={productShareMessage({
+            storeName: store.name,
+            itemName: shareItem.name,
+            priceLabel: formatGhs(shareItem.pricePesewas),
+            itemUrl: `${storefrontUrl}#${shareItem.id}`,
+          })}
+          url={`${storefrontUrl}#${shareItem.id}`}
+          imageUrl={`/api/public/store/items/${shareItem.id}/share`}
+          imageName={`${shareItem.name}-share.png`}
+        />
+      )}
+
       <Dialog
         open={itemDialog.open}
         onOpenChange={(open) => setItemDialog({ open, editing: null })}
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-h3">
-              {itemDialog.editing ? 'Edit the item' : 'Add a new item'}
-            </DialogTitle>
-            <DialogDescription>
-              {itemDialog.editing
-                ? 'Update the name, price or description.'
-                : 'Products and services both appear on your public page.'}
-            </DialogDescription>
+            <DialogTitle className="text-h3">Edit the item</DialogTitle>
+            <DialogDescription>Update the name, price or description.</DialogDescription>
           </DialogHeader>
           <ItemForm
             key={itemDialog.editing?.id ?? 'new'}
@@ -1741,13 +2047,9 @@ export function StoreWorkspace() {
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-h3">
-              {promoDialog.editing ? 'Edit the promo' : 'New promo'}
-            </DialogTitle>
+            <DialogTitle className="text-h3">Edit the promo</DialogTitle>
             <DialogDescription>
-              {promoDialog.editing
-                ? 'Tweak the offer — changes show on your page immediately.'
-                : 'A sale or discount code. Customers see it as a Today&apos;s offer.'}
+              Tweak the offer — changes show on your page immediately.
             </DialogDescription>
           </DialogHeader>
           <PromoForm
@@ -1755,6 +2057,11 @@ export function StoreWorkspace() {
             initial={promoDialog.editing}
             onSaved={savePromo}
             onClose={() => setPromoDialog({ open: false, editing: null })}
+            items={(store?.items ?? []).map((item) => ({ id: item.id, name: item.name }))}
+            categories={(store?.categories ?? []).map((category) => ({
+              id: category.id,
+              name: category.name,
+            }))}
           />
         </DialogContent>
       </Dialog>
@@ -1765,14 +2072,8 @@ export function StoreWorkspace() {
       >
         <DialogContent className="rounded-xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-h3">
-              {categoryDialog.editing ? 'Edit the category' : 'New category'}
-            </DialogTitle>
-            <DialogDescription>
-              {categoryDialog.editing
-                ? 'Rename the shelf or hide it from the public page.'
-                : 'A shelf heading shoppers can browse by — e.g. Beads or Wall art.'}
-            </DialogDescription>
+            <DialogTitle className="text-h3">Edit the category</DialogTitle>
+            <DialogDescription>Rename the shelf or hide it from the public page.</DialogDescription>
           </DialogHeader>
           <CategoryForm
             key={categoryDialog.editing?.id ?? 'new'}
