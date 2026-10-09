@@ -1,26 +1,16 @@
-// Colour theme + layout presets for the Tilo platform. Each theme preset is a
+// Colour theme for the Tilo platform. Each theme preset is a
 // set of seed values (--brand-h/c/l) injected into the CSS in globals.css under
 // a `[data-theme="key"]` selector — the derived brand ramp and every semantic
 // token recompute from those three numbers, so one pick recolours the whole
-// dashboard coherently. Appearance presets switch between the loud Tilo panels
-// (vibrant) and the clean business-ready default (professional); the default IS
-// professional, and the neutralization lives in custom-style.css, gated to skip
-// only [data-appearance="vibrant"]. The platform look is a per-user preference
-// (src/app/api/appearance) chosen from the header AppearancePicker — it is NOT
-// a store setting. The public storefront also uses these keys, but from the
-// store's own values (Store.theme / Store.appearance), untouched by the user's
-// personal platform preference.
+// dashboard coherently. The corporate default is Slate (neutral grey); shops
+// and users may still pick a brand colour from the picker, but every surface
+// ships slate-first. The storefront renders one unified corporate layout —
+// there is no alternate appearance anymore (see normalizeAppearance).
 //
 // This module is CLIENT-SAFE: the swatch previews and labels drive the picker
-// UI, and `normalizeTheme` / `normalizeAppearance` guard unknown persisted
-// values so a bad string in the DB degrades to the defaults instead of breaking
-// a page.
-import {
-  AppearanceKey,
-  type AppearanceKeyValue,
-  ThemeKey,
-  type ThemeKeyValue,
-} from '@/lib/contracts/store';
+// UI, and `normalizeTheme` guards unknown persisted values so a bad string in
+// the DB degrades to the default instead of breaking a page.
+import { type AppearanceKeyValue, ThemeKey, type ThemeKeyValue } from '@/lib/contracts/store';
 
 export type ThemePreset = {
   key: ThemeKeyValue;
@@ -34,60 +24,60 @@ export type ThemePreset = {
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
+    key: 'slate',
+    label: 'Slate',
+    tagline: 'Neutral grey · the corporate default',
+    accents: ['#475569', '#e2e8f0'],
+    seed: { h: 250, c: 0.02, l: 0.5 },
+  },
+  {
+    key: 'ocean',
+    label: 'Ocean',
+    tagline: 'Deep blue · trust and calm',
+    accents: ['#0e7490', '#cffafe'],
+    seed: { h: 205, c: 0.22, l: 0.5 },
+  },
+  {
+    key: 'emerald',
+    label: 'Emerald',
+    tagline: 'Fresh green · growth and clarity',
+    accents: ['#059669', '#d1fae5'],
+    seed: { h: 160, c: 0.2, l: 0.48 },
+  },
+  {
     key: 'ember',
     label: 'Ember',
-    tagline: 'Blazing orange · loud, fun, always on sale',
+    tagline: 'Warm orange · energetic',
     accents: ['#ea580c', '#ffedd5'],
     seed: { h: 45, c: 0.2, l: 0.53 },
   },
   {
     key: 'gold',
-    label: 'Yellow',
-    tagline: 'Vivid yellow · the Tilo signature',
+    label: 'Gold',
+    tagline: 'Signature yellow · the original Tilo brand',
     accents: ['#eab308', '#fef9c3'],
     seed: { h: 84, c: 0.19, l: 0.78 },
   },
   {
-    key: 'emerald',
-    label: 'Emerald',
-    tagline: 'Fresh green · growth & money',
-    accents: ['#059669', '#d1fae5'],
-    seed: { h: 160, c: 0.2, l: 0.48 },
-  },
-  {
-    key: 'ocean',
-    label: 'Ocean',
-    tagline: 'Deep blue · trust & calm',
-    accents: ['#0e7490', '#cffafe'],
-    seed: { h: 205, c: 0.22, l: 0.5 },
-  },
-  {
     key: 'violet',
     label: 'Violet',
-    tagline: 'Royal purple · premium',
+    tagline: 'Purple · distinctive',
     accents: ['#7c3aed', '#ede9fe'],
     seed: { h: 268, c: 0.2, l: 0.5 },
   },
   {
     key: 'rose',
     label: 'Rose',
-    tagline: 'Soft crimson · bold & warm',
+    tagline: 'Crimson · bold',
     accents: ['#e11d48', '#ffe4e6'],
     seed: { h: 352, c: 0.2, l: 0.55 },
   },
-  {
-    key: 'slate',
-    label: 'Slate',
-    tagline: 'Grey · understated & clean',
-    accents: ['#475569', '#e2e8f0'],
-    seed: { h: 250, c: 0.02, l: 0.5 },
-  },
 ];
 
-export const DEFAULT_THEME: ThemeKeyValue = 'gold';
+export const DEFAULT_THEME: ThemeKeyValue = 'slate';
 
 // Safely coerce any persisted value (string | null | undefined) into a valid
-// theme key. Mirrors the DB default so unknown values fall back to gold.
+// theme key. Mirrors the DB default so unknown values fall back to slate.
 export function normalizeTheme(value: string | null | undefined): ThemeKeyValue {
   const parsed = ThemeKey.safeParse(value);
   return parsed.success ? parsed.data : DEFAULT_THEME;
@@ -110,20 +100,16 @@ export const APPEARANCE_PRESETS: AppearancePreset[] = [
   {
     key: 'professional',
     label: 'Professional',
-    tagline: 'Clean straight cards · understated & business-ready',
-  },
-  {
-    key: 'vibrant',
-    label: 'Vibrant',
-    tagline: 'Loud yellow-black panels · the Tilo signature',
+    tagline: 'Clean cards · the corporate standard',
   },
 ];
 
 export const DEFAULT_APPEARANCE: AppearanceKeyValue = 'professional';
 
-// Safely coerce any persisted value into a valid appearance key. Mirrors the
-// DB default so unknown values fall back to professional.
-export function normalizeAppearance(value: string | null | undefined): AppearanceKeyValue {
-  const parsed = AppearanceKey.safeParse(value);
-  return parsed.success ? parsed.data : DEFAULT_APPEARANCE;
+// The storefront renders one unified corporate layout, so every persisted
+// appearance value normalizes to professional — including legacy "vibrant"
+// rows, which keep rendering instead of breaking. AppearanceKey still parses
+// "vibrant" so old writes validate; nothing reads it back as vibrant.
+export function normalizeAppearance(_value: string | null | undefined): AppearanceKeyValue {
+  return DEFAULT_APPEARANCE;
 }

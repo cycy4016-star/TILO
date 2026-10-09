@@ -243,7 +243,12 @@ where it lives, and what is deliberately not built yet.
 `src/lib/contracts/store.ts`, `src/lib/whatsapp-templates.ts`.
 
 - Manage a store: name, slug (URL-safe), tagline, description, contact phone,
-  active toggle, and a **logo** (capture or upload).
+  active toggle, a **logo** (capture or upload), and a shop colour (corporate
+  slate default, changeable in the catalogue manager).
+- **One unified corporate storefront.** Every shop renders the same clean
+  layout — there is no alternate appearance anymore (`normalizeAppearance`
+  coerces every stored value to `professional`, including legacy rows, so old
+  shops keep rendering instead of breaking).
 - **Shelves (`ProductCategory`)** group the catalogue: name, sort order, active
   toggle, and a live item count. A product picks a shelf
   (`StoreItem.categoryId`, nullable) or sits unshelved. Renaming onto a shelf
@@ -334,7 +339,7 @@ returns 404. See §1.
 | `PUT/DELETE` | `/api/store/banner` | user | attach/remove storefront banner |
 | `GET/PUT` | `/api/store/socials` | user | list/replace the shop's social accounts |
 | `PUT/DELETE` | `/api/profile/image` | user | set/clear profile avatar |
-| `GET/PUT` | `/api/appearance` | user | the signed-in user's own theme + layout preset (not the storefront's look — that is `Store.theme`/`Store.appearance` via `/api/store`) |
+| `GET/PUT` | `/api/appearance` | user | the signed-in user's own color theme for the dashboard (corporate slate default; the storefront renders one unified corporate layout regardless) |
 | `GET` | `/api/public/store/[slug]` | public | public storefront |
 | `POST` | `/api/public/store/[slug]/orders` | public + rate-limit | multi-line basket checkout (auto-adds customer) |
 | `POST` | `/api/public/store/[slug]/leads` | public + rate-limit | visitor capture with consent |

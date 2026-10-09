@@ -95,7 +95,10 @@ export default async function StorePage({ params }: StorePageProps) {
     `Hi ${store.name}! I saw your shop online and I'd like to ask about ordering.`,
   );
 
-  const pro = store.appearance === 'professional';
+  // One unified corporate storefront: appearance is always professional
+  // (normalizeAppearance coerces every stored value), so the loud branch
+  // below never renders — kept only as dead-safe markup until cleanup.
+  const pro = true;
   const groups = buildGroups(store.categories, store.items);
 
   return (

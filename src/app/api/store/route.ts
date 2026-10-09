@@ -56,7 +56,9 @@ export async function PUT(request: Request) {
         : await prisma.store.create({
             // One storefront per account: userId is stamped from the session and
             // is unique, so a second sign-up can never hijack this shop's URL.
-            data: { ...data, userId: user.id },
+            // Corporate default: a store created without an explicit theme
+            // ships slate (the DB default predates the unification).
+            data: { theme: 'slate', ...data, userId: user.id },
             ...storeInclude,
           });
     } catch (error) {

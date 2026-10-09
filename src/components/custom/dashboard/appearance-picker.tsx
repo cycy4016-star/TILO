@@ -1,38 +1,34 @@
-// The dashboard's platform look picker — the swatch button in the header (next
-// to the notification bell). One tap opens the theme + appearance presets; the
+// The dashboard's platform color picker — the swatch button in the header
+// (next to the notification bell). One tap opens the color themes; the
 // selection is applied to <html> instantly and persisted per-user via
-// /api/appearance, so each account owns the whole dashboard's look. The public
-// storefront keeps its own per-store appearance (unaffected here).
+// /api/appearance, so each account owns the dashboard's look. The corporate
+// default is Slate. The public storefront renders one unified corporate
+// layout regardless (unaffected here).
 'use client';
 
-import { Check, Palette } from 'lucide-react';
+import { Palette } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { apiFetch } from '@/lib/api-client';
 import { AppearancePreferencePayload } from '@/lib/contracts/appearance';
-import type { AppearanceKeyValue, ThemeKeyValue } from '@/lib/contracts/store';
+import type { ThemeKeyValue } from '@/lib/contracts/store';
 import {
-  APPEARANCE_PRESETS,
-  DEFAULT_APPEARANCE,
   DEFAULT_THEME,
   getThemePreset,
-  normalizeAppearance,
   normalizeTheme,
   THEME_PRESETS,
   type ThemePreset,
 } from '@/lib/theme';
 
-function applyToHtml(theme: ThemeKeyValue, appearance: AppearanceKeyValue) {
-  const html = document.documentElement;
-  html.dataset.theme = theme;
-  html.dataset.appearance = appearance;
+function applyThemeToHtml(theme: ThemeKeyValue) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.appearance = 'professional';
 }
 
 export function AppearancePicker() {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeKeyValue>(DEFAULT_THEME);
-  const [appearance, setAppearance] = useState<AppearanceKeyValue>(DEFAULT_APPEARANCE);
   const [saving, setSaving] = useState(false);
 
   // Load the saved preference once on mount and reflect it on <html>, so the
@@ -44,10 +40,9 @@ export function AppearancePicker() {
         const saved = await apiFetch('/api/appearance', { schema: AppearancePreferencePayload });
         if (cancelled) return;
         setTheme(normalizeTheme(saved.theme));
-        setAppearance(normalizeAppearance(saved.appearance));
-        applyToHtml(saved.theme, saved.appearance);
+        applyThemeToHtml(normalizeTheme(saved.theme));
       } catch {
-        // Auth-gated; if it fails, defaults (gold + vibrant) already apply.
+        // Auth-gated; if it fails, the slate default already applies.
       }
     }
     void load();
@@ -58,25 +53,19 @@ export function AppearancePicker() {
 
   // Optimistically apply the pick in the browser right away, then persist.
   const save = useCallback(
-    async (next: Partial<{ theme: ThemeKeyValue; appearance: AppearanceKeyValue }>) => {
-      const draft = {
-        theme: next.theme ?? theme,
-        appearance: next.appearance ?? appearance,
-      };
-      applyToHtml(draft.theme, draft.appearance);
-      if (next.theme) setTheme(next.theme);
-      if (next.appearance) setAppearance(next.appearance);
+    async (nextTheme: ThemeKeyValue) => {
+      applyThemeToHtml(nextTheme);
+      setTheme(nextTheme);
       if (saving) return;
       setSaving(true);
       try {
         const saved = await apiFetch('/api/appearance', {
           method: 'PUT',
-          body: JSON.stringify(next),
+          body: JSON.stringify({ theme: nextTheme }),
           schema: AppearancePreferencePayload,
         });
-        applyToHtml(saved.theme, saved.appearance);
-        setTheme(saved.theme);
-        setAppearance(saved.appearance);
+        applyThemeToHtml(normalizeTheme(saved.theme));
+        setTheme(normalizeTheme(saved.theme));
       } catch {
         // Persist failed — keep the optimistic pick applied; the next successful
         // load reconciles with the server.
@@ -84,7 +73,7 @@ export function AppearancePicker() {
         setSaving(false);
       }
     },
-    [appearance, saving, theme],
+    [saving],
   );
 
   const activePreset = getThemePreset(theme);
@@ -122,7 +111,7 @@ export function AppearancePicker() {
                 type="button"
                 aria-pressed={selected}
                 disabled={saving}
-                onClick={() => void save({ theme: preset.key })}
+                onClick={() => void save(preset.key)}
                 className={`flex items-center gap-2.5 rounded-md border border-border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
                   selected
                     ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
@@ -141,37 +130,6 @@ export function AppearancePicker() {
                     style={{ backgroundColor: preset.accents[1] }}
                   />
                 </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-caption font-medium">{preset.label}</span>
-                  <span className="block truncate text-caption text-muted-foreground">
-                    {preset.tagline}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="px-1 pb-1 pt-3 text-eyebrow">Layout &amp; appearance</div>
-        <div className="grid gap-2">
-          {APPEARANCE_PRESETS.map((preset) => {
-            const selected = appearance === preset.key;
-            return (
-              <button
-                key={preset.key}
-                type="button"
-                aria-pressed={selected}
-                disabled={saving}
-                onClick={() => void save({ appearance: preset.key })}
-                className={`relative flex items-center gap-2.5 rounded-md border border-border px-3 py-2.5 text-left transition-colors disabled:opacity-60 ${
-                  selected
-                    ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                {selected && (
-                  <Check aria-hidden className="absolute right-2 top-2 size-3.5 text-primary" />
-                )}
                 <span className="min-w-0">
                   <span className="block truncate text-caption font-medium">{preset.label}</span>
                   <span className="block truncate text-caption text-muted-foreground">

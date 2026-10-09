@@ -88,12 +88,7 @@ import { applyServerErrors } from '@/lib/forms';
 import { fitImageFile, SLOT_HINT } from '@/lib/image';
 import { formatPromoDate, promoHeadline, promoTerms, promotionState } from '@/lib/promotions';
 import { productShareMessage } from '@/lib/share';
-import {
-  APPEARANCE_PRESETS,
-  normalizeAppearance,
-  normalizeTheme,
-  THEME_PRESETS,
-} from '@/lib/theme';
+import { normalizeTheme, THEME_PRESETS } from '@/lib/theme';
 import { uploadImageFile } from '@/lib/uploads';
 
 function getErrorBody(error: unknown): unknown {
@@ -149,7 +144,7 @@ function StoreForm({
           contactPhone: initial.contactPhone ?? '',
           active: initial.active,
           theme: normalizeTheme(initial.theme),
-          appearance: normalizeAppearance(initial.appearance),
+          appearance: 'professional' as const,
         }
       : {
           name: '',
@@ -159,8 +154,8 @@ function StoreForm({
           description: '',
           contactPhone: '',
           active: true,
-          theme: 'ember',
-          appearance: 'professional',
+          theme: 'slate',
+          appearance: 'professional' as const,
         },
   });
   const [logo, setLogo] = useState<ImageSelection>(emptyImageSelection);
@@ -372,40 +367,6 @@ function StoreForm({
               <p className="text-xs text-muted-foreground">
                 Recolours your public page instantly. Same catalogue, your brand.
               </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="appearance"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Page style</FormLabel>
-              <fieldset className="grid gap-2 sm:grid-cols-2">
-                <legend className="sr-only">Page style</legend>
-                {APPEARANCE_PRESETS.map((preset) => {
-                  const selected = field.value === preset.key;
-                  return (
-                    <button
-                      key={preset.key}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => field.onChange(preset.key)}
-                      className={`rounded-md border border-border px-3 py-2.5 text-left transition-colors ${
-                        selected
-                          ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
-                          : 'hover:bg-muted'
-                      }`}
-                    >
-                      <span className="block text-caption font-medium">{preset.label}</span>
-                      <span className="block text-caption text-muted-foreground">
-                        {preset.tagline}
-                      </span>
-                    </button>
-                  );
-                })}
-              </fieldset>
               <FormMessage />
             </FormItem>
           )}

@@ -47,7 +47,9 @@ Rules:
 
 ## 2. Colour
 
-Gold is an **accent**, not a fill.
+The platform ships **neutral corporate**: slate-first surfaces, one restrained
+accent, quiet backgrounds. The gold/ember ramps still exist as user picks in
+the platform look picker, but no default surface may depend on them.
 
 - ✅ `text-primary` for **one** key phrase per section, eyebrows, links, focus.
 - ✅ `bg-primary text-primary-foreground` for the single primary CTA in a view.
@@ -58,7 +60,8 @@ Gold is an **accent**, not a fill.
 - **Remove hard-coded `dark:` literals** (`dark:bg-stone-950`, `dark:border-stone-800`,
   `dark:bg-stone-900`). They bypass the token system and break every `[data-theme]`
   preset. Use `bg-background`, `border-border`, `bg-card`, `text-muted-foreground`.
-- Outside the storefront's `vibrant` branch, **no `amber-*` literals**.
+- **No `amber-*` literals anywhere.** The loud storefront branch is retired —
+  every surface is corporate now.
 
 ## 3. Radius & elevation
 
@@ -103,10 +106,11 @@ Rules:
   light sweeps, and multi-stop radial-gradient backgrounds behind heroes. At most
   **one** restrained radial accent, and only if it earns its place.
 
-## 6. Poster-era markup (remove on sight)
+## 6. Retired poster-era markup (remove on sight, everywhere)
 
-These belong exclusively to `[data-appearance="vibrant"]` and must not appear in
-the default (`professional`) surfaces:
+The loud storefront branch is retired — none of this may appear on any
+surface anymore (it survives only as dead branches behind the always-true
+`pro` flag until cleanup, and must not be reintroduced):
 
 - `shadow-[3px_3px_0_0_…]`, `shadow-[4px…]`, `shadow-[5px…]`, `shadow-[6px…]`, `shadow-[8px…]`
 - `rotate-[0.5deg]`, `-rotate-[0.5deg]`, `rotate-1`, `rotate-2`, `rotate-3`, `rotate-6`
