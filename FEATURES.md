@@ -33,7 +33,9 @@ where it lives, and what is deliberately not built yet.
   - The `userId` columns are internal routing and are never returned to the
     client (the response contracts in `src/lib/contracts/` don't declare them).
 - **Cross-shop reads are deliberate and few:** `/dashboard/admin` +
-  `/api/admin/users` (the operator's account monitor, `admin` role only).
+  `/api/admin/*` (the operator's ops center: overview totals, per-shop table
+  with user dossiers, platform product buy rates, the order/SMS/payment/signup
+  event search, and the account monitor — `admin` role only).
   Everything else is owner-scoped.
 - The app is designed to run on Vercel or Render with a managed PostgreSQL
   database. `render.yaml` provisions both automatically.
@@ -344,6 +346,11 @@ returns 404. See §1.
 | `GET` | `/api/payments/verify` | user | verify + settle a transaction |
 | `POST` | `/api/payments/webhook` | signature | Paystack webhook (source of truth) |
 | `GET` | `/api/admin/users` | admin | platform account monitor (cross-shop, read-only) |
+| `GET` | `/api/admin/overview` | admin | ops totals: shops/orders/GMV/SMS/payments + 14-day signup/order series |
+| `GET` | `/api/admin/shops?q=` | admin | per-shop rows: owner, catalogue/order counts, GMV, last order |
+| `GET` | `/api/admin/shops/[userId]` | admin | one account's dossier: profile, counts, top items, recent orders/customers/SMS |
+| `GET` | `/api/admin/products` | admin | platform buy rates (units/day), revenue, margin, stock alerts |
+| `GET` | `/api/admin/events?q=&kind=` | admin | merged order/SMS/payment/signup search stream |
 
 ---
 

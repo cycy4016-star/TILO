@@ -1,14 +1,14 @@
-// Tilo Admin monitor page: every account and their sign-in pulse. Platform-admin
-// only: requireAdmin() now checks the role, so a signed-in shop owner who guesses
-// this URL is redirected to their dashboard. This is the ONE page in the app that
-// reads across shops.
+// Tilo Admin ops center: platform-wide monitor — every shop, product, order
+// and event. Platform-admin only: requireAdmin() now checks the role, so a
+// signed-in shop owner who guesses this URL is redirected to their dashboard.
+// This is the ONE page in the app that reads across shops.
 import type { Metadata } from 'next';
 import { AdminMonitor } from '@/components/custom/admin-monitor';
 import { requireAdmin } from '@/lib/require-admin';
 
 export const metadata: Metadata = {
   title: 'Admin',
-  description: 'Every Tilo account and their sign-in activity.',
+  description: 'Platform monitor: every shop, product, order and event.',
 };
 
 export default async function AdminPage() {
