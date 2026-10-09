@@ -77,7 +77,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
                 style={{ animationDelay: '90ms' }}
               >
                 {LANDING.hero.titleA}{' '}
-                <span className="bg-gradient-to-r from-primary to-[#92600a] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-muted-foreground bg-clip-text text-transparent">
                   {LANDING.hero.titleAccent}
                 </span>
               </h1>

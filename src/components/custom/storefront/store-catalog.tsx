@@ -90,7 +90,6 @@ export function StoreCatalog({
   slug,
   storeName,
   contactPhone,
-  pro,
   groups,
   promotions,
   storeUrl,
@@ -98,7 +97,6 @@ export function StoreCatalog({
   slug: string;
   storeName: string;
   contactPhone: string | null;
-  pro: boolean;
   groups: CatalogGroup[];
   promotions: PromotionSummary[];
   storeUrl: string;
@@ -245,7 +243,7 @@ export function StoreCatalog({
     return 'Nothing matches those filters.';
   }
 
-  function renderItem(item: CatalogItem, index: number) {
+  function renderItem(item: CatalogItem) {
     const discount = itemDiscountPercent(item);
     const promos = promosForItem(promotions, item);
     const soldOut = item.stock != null && item.stock <= 0;
@@ -283,23 +281,10 @@ export function StoreCatalog({
       <article
         key={item.id}
         id={item.id}
-        className={`scroll-mt-24 flex flex-col ${
-          pro
-            ? // border-border rather than --tl-200: the warm cream hairline is
-              // correct on a light card but reads as a selection outline once the
-              // card goes dark.
-              'rounded-2xl border border-border bg-card p-6'
-            : `border-2 bg-white dark:bg-stone-900 rounded-[1.75rem] border-amber-950 p-6 shadow-[5px_5px_0_0_#451a03] ${
-                index % 2 === 1 ? 'rotate-[0.5deg]' : '-rotate-[0.5deg]'
-              }`
-        }`}
+        className="flex scroll-mt-24 flex-col rounded-2xl border border-border bg-card p-6"
       >
         <div className="flex items-start justify-between gap-3">
-          <span
-            className={`flex size-12 items-center justify-center rounded-2xl text-white ${
-              pro ? 'bg-[var(--tl-700)]' : 'bg-gradient-to-br from-amber-500 to-amber-400'
-            }`}
-          >
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-[var(--tl-700)] text-white">
             {item.kind === 'SERVICE' ? (
               <Wrench aria-hidden className="size-5" />
             ) : (
@@ -307,24 +292,14 @@ export function StoreCatalog({
             )}
           </span>
           <span className="flex items-center gap-1.5">
-            <span
-              className={`rounded-full px-3 py-1 ${
-                pro
-                  ? 'text-eyebrow bg-primary/10 text-primary'
-                  : 'text-[0.7rem] font-semibold uppercase tracking-wider bg-amber-100 font-black text-amber-800 dark:bg-stone-800 dark:text-amber-300'
-              }`}
-            >
+            <span className="text-eyebrow rounded-full bg-primary/10 px-3 py-1 text-primary">
               {kindLabels[item.kind]}
             </span>
             <button
               type="button"
               onClick={() => setShareItem(item)}
               aria-label={`Share ${item.name}`}
-              className={`grid size-9 shrink-0 place-items-center transition-colors ${
-                pro
-                  ? 'rounded-md text-muted-foreground hover:bg-muted hover:text-foreground'
-                  : 'rounded-full text-amber-950 hover:bg-amber-100 dark:text-amber-100 dark:hover:bg-stone-800'
-              }`}
+              className="grid size-9 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Share2 aria-hidden className="size-4" />
             </button>
@@ -335,54 +310,23 @@ export function StoreCatalog({
             src={item.imageUrl}
             alt={item.name}
             loading="lazy"
-            className={`mt-4 aspect-[4/3] w-full bg-muted object-cover ${
-              pro
-                ? 'rounded-xl border border-border'
-                : 'rounded-2xl border-2 border-amber-100 dark:border-stone-800'
-            }`}
+            className="mt-4 aspect-[4/3] w-full rounded-xl border border-border bg-muted object-cover"
           />
         )}
-        <h2
-          className={`mt-4 ${
-            pro
-              ? 'text-h4 font-display'
-              : 'font-display text-xl font-black uppercase tracking-tight'
-          }`}
-        >
-          {item.name}
-        </h2>
+        <h2 className="text-h4 mt-4 font-display">{item.name}</h2>
         {item.description && (
-          <p
-            className={`mt-1 flex-1 text-sm leading-relaxed ${
-              pro ? 'text-muted-foreground' : 'font-medium text-stone-600 dark:text-stone-300'
-            }`}
-          >
+          <p className="mt-1 flex-1 text-sm leading-relaxed text-muted-foreground">
             {item.description}
           </p>
         )}
         <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
           <div className="grid gap-0.5">
             <span className="flex flex-wrap items-center gap-2">
-              <span
-                className={
-                  pro
-                    ? // Price is content, not chrome: use the semantic foreground
-                      // token so it stays legible when the page is in dark mode
-                      // (the --tl-900 ramp value is a near-black by design).
-                      'font-mono text-base font-semibold text-foreground'
-                    : 'font-mono text-xl font-black text-amber-950 dark:text-amber-50'
-                }
-              >
+              <span className="font-mono text-base font-semibold text-foreground">
                 {formatGhs(item.pricePesewas)}
               </span>
               {discount != null && (
-                <span
-                  className={`rounded-full px-2.5 py-0.5 ${
-                    pro
-                      ? 'text-eyebrow bg-destructive/10 text-destructive'
-                      : 'bg-red-600 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
-                  }`}
-                >
+                <span className="text-eyebrow rounded-full bg-destructive/10 px-2.5 py-0.5 text-destructive">
                   <Percent aria-hidden className="mr-0.5 inline size-3" />
                   {discount}% off
                 </span>
@@ -390,45 +334,25 @@ export function StoreCatalog({
               {promos.map((promo) => (
                 <span
                   key={promo.name}
-                  className={`rounded-full px-2.5 py-0.5 ${
-                    pro
-                      ? 'text-eyebrow bg-primary/10 text-primary'
-                      : 'bg-emerald-600 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
-                  }`}
+                  className="text-eyebrow rounded-full bg-primary/10 px-2.5 py-0.5 text-primary"
                 >
                   {promo.name}
                 </span>
               ))}
               {soldOut ? (
-                <span
-                  className={`rounded-full px-2.5 py-0.5 ${
-                    pro
-                      ? 'text-eyebrow bg-muted text-muted-foreground'
-                      : 'bg-stone-500 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
-                  }`}
-                >
+                <span className="text-eyebrow rounded-full bg-muted px-2.5 py-0.5 text-muted-foreground">
                   Sold out
                 </span>
               ) : (
                 lowStock && (
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 ${
-                      pro
-                        ? 'text-eyebrow bg-amber-500/15 text-amber-700 dark:text-amber-400'
-                        : 'bg-amber-500 text-[0.65rem] font-semibold uppercase tracking-wider text-white'
-                    }`}
-                  >
+                  <span className="text-eyebrow rounded-full bg-primary/10 px-2.5 py-0.5 text-primary">
                     Only {item.stock} left
                   </span>
                 )
               )}
             </span>
             {discount != null && (
-              <span
-                className={`text-sm line-through ${
-                  pro ? 'text-muted-foreground' : 'font-medium text-stone-400'
-                }`}
-              >
+              <span className="text-sm text-muted-foreground line-through">
                 {formatGhs(item.compareAtPricePesewas ?? 0)}
               </span>
             )}
@@ -445,27 +369,19 @@ export function StoreCatalog({
                 <Button
                   type="button"
                   onClick={() => setQuantity(item.id, 1)}
-                  className={`items-center gap-2 font-semibold ${
-                    pro ? 'h-10 rounded-md px-4 text-small' : 'h-11 rounded-full'
-                  }`}
+                  className="h-10 items-center gap-2 rounded-md px-4 text-small font-semibold"
                 >
                   <ShoppingCart aria-hidden className="size-4" /> Add to basket
                 </Button>
               ) : (
-                <div
-                  className={`flex flex-wrap items-center gap-2 px-2 py-1.5 ${
-                    pro
-                      ? 'rounded-md border border-border'
-                      : 'rounded-full border-2 border-current/30'
-                  }`}
-                >
+                <div className="flex flex-wrap items-center gap-2 rounded-md border border-border px-2 py-1.5">
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     aria-label={`One fewer ${item.name}`}
                     onClick={() => setQuantity(item.id, qty - 1)}
-                    className={`size-8 ${pro ? 'rounded-md' : 'rounded-full'}`}
+                    className="size-8 rounded-md"
                   >
                     <Minus aria-hidden className="size-3.5" />
                   </Button>
@@ -476,26 +392,18 @@ export function StoreCatalog({
                     size="icon"
                     aria-label={`One more ${item.name}`}
                     onClick={() => setQuantity(item.id, Math.min(maxQty, qty + 1))}
-                    className={`size-8 ${pro ? 'rounded-md' : 'rounded-full'}`}
+                    className="size-8 rounded-md"
                   >
                     <Plus aria-hidden className="size-3.5" />
                   </Button>
-                  <span
-                    className={`hidden flex-1 text-right min-[360px]:block ${
-                      pro ? 'text-eyebrow' : 'text-xs font-semibold uppercase tracking-wider'
-                    }`}
-                  >
+                  <span className="text-eyebrow hidden flex-1 text-right min-[360px]:block">
                     in basket
                   </span>
                   <button
                     type="button"
                     aria-label={`Remove ${item.name} from the basket`}
                     onClick={() => setQuantity(item.id, 0)}
-                    className={`grid size-8 place-items-center ${
-                      pro
-                        ? 'rounded-md text-destructive hover:bg-destructive/10'
-                        : 'rounded-full text-red-600 hover:bg-red-50'
-                    }`}
+                    className="grid size-8 place-items-center rounded-md text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 aria-hidden className="size-4" />
                   </button>
@@ -507,11 +415,7 @@ export function StoreCatalog({
                     href={orderLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center justify-center gap-2 border border-emerald-700 bg-emerald-600 px-4 text-white transition-colors hover:bg-emerald-500 ${
-                      pro
-                        ? 'h-10 rounded-md text-small font-semibold'
-                        : 'h-11 rounded-full font-bold uppercase tracking-wide'
-                    }`}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-emerald-700 bg-emerald-600 px-4 text-small font-semibold text-white transition-colors hover:bg-emerald-500"
                   >
                     <MessageCircle aria-hidden className="size-4" /> WhatsApp
                   </a>
@@ -519,11 +423,7 @@ export function StoreCatalog({
                 {!soldOut && smsHref && (
                   <a
                     href={smsHref}
-                    className={`inline-flex items-center justify-center gap-2 px-4 transition-colors ${
-                      pro
-                        ? 'h-10 rounded-md text-small font-semibold border border-[var(--tl-700)] text-[var(--tl-800)] hover:bg-[var(--tl-100)]'
-                        : 'h-11 rounded-full font-bold uppercase tracking-wide border-2 border-amber-950 font-black text-amber-950 hover:bg-amber-100 dark:text-amber-50'
-                    }`}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--tl-700)] px-4 text-small font-semibold text-[var(--tl-800)] transition-colors hover:bg-[var(--tl-100)]"
                   >
                     <MessageSquareText aria-hidden className="size-4" /> SMS
                   </a>
@@ -551,20 +451,14 @@ export function StoreCatalog({
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name or category"
               aria-label="Search the catalogue"
-              className={`h-11 pl-9 pr-10 ${
-                pro ? 'rounded-lg' : 'rounded-full border-2 border-amber-950 dark:border-amber-700'
-              }`}
+              className="h-11 rounded-lg pl-9 pr-10"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
                 aria-label="Clear search"
-                className={`absolute right-2 top-1/2 grid size-7 -translate-y-1/2 place-items-center transition-colors ${
-                  pro
-                    ? 'rounded-md text-muted-foreground hover:bg-muted hover:text-foreground'
-                    : 'rounded-full text-amber-950 hover:bg-amber-100 dark:text-amber-100 dark:hover:bg-stone-800'
-                }`}
+                className="absolute right-2 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X aria-hidden className="size-4" />
               </button>
@@ -584,18 +478,10 @@ export function StoreCatalog({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setActiveCategory(label)}
-                    className={`transition-colors ${
-                      pro
-                        ? `rounded-full border px-3.5 py-1.5 text-small font-medium ${
-                            active
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
-                          }`
-                        : `rounded-full border-2 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide ${
-                            active
-                              ? 'border-amber-950 bg-amber-950 text-amber-50 dark:border-amber-400 dark:bg-amber-400 dark:text-amber-950'
-                              : 'border-amber-950 text-amber-950 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-100 dark:hover:bg-stone-800'
-                          }`
+                    className={`rounded-full border px-3.5 py-1.5 text-small font-medium transition-colors ${
+                      active
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
                     }`}
                   >
                     {label ?? 'All items'}
@@ -607,23 +493,13 @@ export function StoreCatalog({
 
           {filtering && (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p
-                className={
-                  pro
-                    ? 'text-eyebrow text-muted-foreground'
-                    : 'text-xs font-semibold uppercase tracking-wider text-stone-500'
-                }
-              >
+              <p className="text-eyebrow text-muted-foreground">
                 {visibleCount} of {totalCount} {totalCount === 1 ? 'item' : 'items'}
               </p>
               <button
                 type="button"
                 onClick={clearFilters}
-                className={`underline underline-offset-4 transition-colors ${
-                  pro
-                    ? 'text-small font-medium text-primary hover:text-primary/80'
-                    : 'text-xs font-bold uppercase tracking-wide text-amber-950 hover:text-amber-700 dark:text-amber-200'
-                }`}
+                className="text-small font-medium text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
               >
                 Clear filters
               </button>
@@ -632,47 +508,17 @@ export function StoreCatalog({
         </div>
 
         {visibleGroups.length === 0 ? (
-          <div
-            className={`px-5 py-14 text-center ${
-              pro
-                ? 'rounded-2xl border border-border bg-card'
-                : 'rounded-[1.75rem] border-2 border-dashed border-amber-400'
-            }`}
-          >
-            <span
-              className={`mx-auto flex size-11 items-center justify-center ${
-                pro
-                  ? 'rounded-xl bg-muted text-muted-foreground'
-                  : 'rounded-full bg-amber-100 text-amber-800'
-              }`}
-            >
+          <div className="rounded-2xl border border-border bg-card px-5 py-14 text-center">
+            <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <Search aria-hidden className="size-5" />
             </span>
-            <p
-              className={`mt-4 ${
-                pro
-                  ? 'text-h4 font-display text-foreground'
-                  : 'font-display text-xl font-black uppercase'
-              }`}
-            >
-              No matches
-            </p>
-            <p
-              className={`mt-1 text-sm ${
-                pro ? 'text-muted-foreground' : 'font-medium text-stone-600 dark:text-stone-300'
-              }`}
-            >
-              {emptyCopy()}
-            </p>
+            <p className="mt-4 text-h4 font-display text-foreground">No matches</p>
+            <p className="mt-1 text-sm text-muted-foreground">{emptyCopy()}</p>
             <Button
               type="button"
               variant="outline"
               onClick={clearFilters}
-              className={`mt-5 font-semibold ${
-                pro
-                  ? 'h-10 rounded-md px-4 text-small'
-                  : 'h-11 rounded-full border-2 border-amber-950 text-xs font-bold uppercase text-amber-950 dark:border-amber-700 dark:text-amber-100'
-              }`}
+              className="mt-5 h-10 rounded-md px-4 text-small font-semibold"
             >
               Clear search &amp; filters
             </Button>
@@ -698,17 +544,11 @@ export function StoreCatalog({
                         </span>
                       )
                     )}
-                    <h2
-                      className={
-                        pro ? 'text-h3 font-display' : 'text-2xl font-display font-black uppercase'
-                      }
-                    >
-                      {group.label}
-                    </h2>
+                    <h2 className="text-h3 font-display">{group.label}</h2>
                   </div>
                 )}
                 <div className={`grid gap-4 sm:grid-cols-2 ${group.label ? 'mt-3' : ''}`}>
-                  {group.items.map((item, index) => renderItem(item, index))}
+                  {group.items.map((item) => renderItem(item))}
                 </div>
               </section>
             );
@@ -728,9 +568,7 @@ export function StoreCatalog({
             <Button
               type="button"
               onClick={checkout}
-              className={`shrink-0 items-center gap-2 font-semibold ${
-                pro ? 'h-10 rounded-md px-4 text-small' : 'h-12 rounded-full px-6'
-              }`}
+              className="h-10 shrink-0 items-center gap-2 rounded-md px-4 text-small font-semibold"
             >
               <ShoppingCart aria-hidden className="size-4" /> Checkout
             </Button>
@@ -821,7 +659,7 @@ export function StoreCatalog({
                         size="icon"
                         aria-label={`One fewer ${item.name}`}
                         onClick={() => setQuantity(item.id, (cart[item.id] ?? 1) - 1)}
-                        className="size-8 rounded-full"
+                        className="size-8 rounded-md"
                       >
                         <Minus aria-hidden className="size-3.5" />
                       </Button>
@@ -834,7 +672,7 @@ export function StoreCatalog({
                         size="icon"
                         aria-label={`One more ${item.name}`}
                         onClick={() => setQuantity(item.id, Math.min(99, (cart[item.id] ?? 1) + 1))}
-                        className="size-8 rounded-full"
+                        className="size-8 rounded-md"
                       >
                         <Plus aria-hidden className="size-3.5" />
                       </Button>

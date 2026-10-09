@@ -55,7 +55,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
       });
       onCreated(created);
       form.reset();
-      toast.success('Pinned to the wall!');
+      toast.success('Customer added');
     } catch (error) {
       const applied = applyServerErrors(getErrorBody(error), form.setError);
       if (!applied) toast.error('Could not add them — try again');
@@ -144,7 +144,7 @@ function CustomerForm({ onCreated }: { onCreated: (customer: CustomerRecord) => 
           disabled={form.formState.isSubmitting}
           className="h-11 w-full rounded-md bg-primary font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
         >
-          {form.formState.isSubmitting ? 'Pinning…' : 'Pin them up'}
+          {form.formState.isSubmitting ? 'Saving…' : 'Add customer'}
         </Button>
       </form>
     </Form>

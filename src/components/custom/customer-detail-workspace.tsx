@@ -73,7 +73,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
       .catch((requestError: unknown) => {
         if (cancelled) return;
         if (isNotFound(requestError)) setNotFound(true);
-        else setError('The story tore. Try again.');
+        else setError('Could not load this customer. Try again.');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -103,7 +103,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
       );
       toast.success('Order moved to the new status');
     } catch {
-      toast.error('Stuck — could not move it');
+      toast.error('Could not update the order');
     } finally {
       setUpdatingOrderId(null);
     }

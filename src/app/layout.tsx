@@ -41,7 +41,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
-    <html lang={locale.lang} dir={locale.dir} className={fontVariables} suppressHydrationWarning>
+    // Corporate default: the whole tree ships slate-first. The dashboard
+    // AppearancePicker overwrites this with the user's saved theme on mount,
+    // and the storefront sets its own per-store theme on its <main>.
+    <html
+      lang={locale.lang}
+      dir={locale.dir}
+      data-theme="slate"
+      className={fontVariables}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-background font-body text-foreground antialiased">
         <HeadContent nonce={nonce} />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem nonce={nonce}>

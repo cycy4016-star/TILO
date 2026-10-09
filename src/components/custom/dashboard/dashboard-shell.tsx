@@ -97,7 +97,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <AppearancePicker />
             <NotificationBell />
             <span className="hidden rounded-full border border-border px-2.5 py-1 text-caption font-medium text-muted-foreground sm:block">
-              Boss
+              Owner
             </span>
             <Button
               variant="ghost"

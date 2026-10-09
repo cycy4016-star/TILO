@@ -28,12 +28,10 @@ export function CountdownText({ endsAt, prefix = 'Ends in' }: { endsAt: string; 
 
 /** Flash-sale strip: the first timed live promo, with a live countdown. */
 export function FlashStrip({
-  pro,
   promo,
   storeUrl,
   storeName,
 }: {
-  pro: boolean;
   promo: {
     name: string;
     code: string | null;
@@ -46,19 +44,9 @@ export function FlashStrip({
 }) {
   if (!promo || !promo.endsAt) return null;
   return (
-    <div
-      className={`mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3.5 ${
-        pro
-          ? 'border border-destructive/30 bg-destructive/[0.06]'
-          : 'border-2 border-red-600 bg-red-50 dark:bg-red-950'
-      }`}
-    >
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/[0.06] px-5 py-3.5">
       <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-        <span
-          className={`rounded-full px-2.5 py-1 font-bold uppercase tracking-wider text-white ${
-            pro ? 'bg-destructive text-caption' : 'bg-red-600 text-xs'
-          }`}
-        >
+        <span className="rounded-full bg-destructive px-2.5 py-1 text-caption font-bold uppercase tracking-wider text-white">
           Flash sale
         </span>
         <span className="truncate text-small font-semibold">

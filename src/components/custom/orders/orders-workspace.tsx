@@ -74,7 +74,7 @@ export function OrdersWorkspace() {
       });
       setOrders(result.items);
     } catch {
-      setError('The stove blinked. Try again.');
+      setError('Could not load orders. Try again.');
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export function OrdersWorkspace() {
       );
       toast.success(`Moved to “${statusLabels[parsedStatus.data]}”`);
     } catch {
-      toast.error('Stuck — could not move it');
+      toast.error('Could not update the order');
     } finally {
       setUpdatingId(null);
     }
