@@ -1,6 +1,7 @@
-// Post-signup onboarding wizard: store info → socials → visuals → review.
-// Each step saves through the same owner APIs the manager uses, so leaving
-// mid-way never loses progress — the dashboard gate re-checks on entry.
+// Post-signup onboarding wizard: store info → socials (optional) → visuals →
+// review. Each step saves through the same owner APIs the manager uses, so
+// leaving mid-way never loses progress — the dashboard gate re-checks on entry.
+// Socials can be skipped entirely and filled in later from Settings.
 'use client';
 
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -151,10 +152,9 @@ export function OnboardingWizard() {
         handle: row.handle.trim(),
         url: row.url.trim() ? row.url.trim() : null,
       }));
-    if (filled.length === 0) {
-      toast.error('Add at least one social so customers can find you');
-      return false;
-    }
+    // Socials are optional: an untouched step just advances. Anything the owner
+    // did type is still saved, so partial work is never thrown away.
+    if (filled.length === 0) return true;
     setSaving(true);
     try {
       await apiFetch('/api/store/socials', {
@@ -243,6 +243,7 @@ export function OnboardingWizard() {
   }
 
   const firstName = session?.user?.name?.split(' ')[0] ?? 'Chief';
+  const connectedSocials = socials.filter((row) => row.handle.trim()).length;
 
   return (
     <div className="mx-auto w-full max-w-2xl">
@@ -334,8 +335,18 @@ export function OnboardingWizard() {
 
         {step === 1 && (
           <div className="grid gap-4">
-            <p className="text-small text-muted-foreground">
-              Where else customers find you — at least one, so no shop is unreachable.
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-small text-muted-foreground">
+                Where else customers find you. Add as many as you like — or none.
+              </p>
+              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-caption font-semibold text-muted-foreground">
+                Optional
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              You can connect or change these anytime in{' '}
+              <span className="font-semibold text-foreground">Settings</span> — skipping won&apos;t
+              hold up your page.
             </p>
             {SOCIAL_PLATFORM_DEFS.map((entry: SocialPlatformDef) => (
               <div key={entry.value} className="grid gap-2 rounded-xl border border-border p-4">
@@ -428,15 +439,32 @@ export function OnboardingWizard() {
             </div>
             <ul className="grid gap-2 text-small">
               {[
-                ['Store info', true],
-                [`${socials.filter((row) => row.handle.trim()).length} socials connected`, true],
-                [store.hasLogo || store.hasBanner ? 'Logo & banner ready' : 'Visuals ready', true],
-              ].map(([label]) => (
-                <li key={label as string} className="flex items-center gap-2">
-                  <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Check aria-hidden className="size-3.5" />
+                { label: 'Store info', done: true },
+                {
+                  label:
+                    connectedSocials > 0
+                      ? `${connectedSocials} ${connectedSocials === 1 ? 'social' : 'socials'} connected`
+                      : 'Socials skipped — add them in Settings',
+                  done: connectedSocials > 0,
+                },
+                {
+                  label: store.hasLogo || store.hasBanner ? 'Logo & banner ready' : 'Visuals ready',
+                  done: true,
+                },
+              ].map((entry) => (
+                <li key={entry.label} className="flex items-center gap-2">
+                  <span
+                    className={`flex size-6 items-center justify-center rounded-full ${
+                      entry.done ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {entry.done ? (
+                      <Check aria-hidden className="size-3.5" />
+                    ) : (
+                      <span aria-hidden className="size-1.5 rounded-full bg-current" />
+                    )}
                   </span>
-                  {label as string}
+                  <span className={entry.done ? '' : 'text-muted-foreground'}>{entry.label}</span>
                 </li>
               ))}
             </ul>
@@ -456,6 +484,17 @@ export function OnboardingWizard() {
           >
             <ArrowLeft aria-hidden className="size-4" /> Back
           </Button>
+          {step === 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving}
+              onClick={() => setStep(2)}
+              className="h-11 w-full rounded-md font-semibold sm:w-auto"
+            >
+              Skip for now
+            </Button>
+          )}
           {step < 3 ? (
             <Button
               type="button"

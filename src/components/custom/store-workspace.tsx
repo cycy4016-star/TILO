@@ -1576,9 +1576,13 @@ export function StoreWorkspace() {
             <StoreIcon aria-hidden className="size-5 text-primary" /> Store details
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Name, socials, logo and banner live in{' '}
+            Name, logo and banner live in{' '}
             <Link href="/welcome" className="font-semibold text-primary hover:underline">
               store setup
+            </Link>
+            ; social links live in{' '}
+            <Link href="/dashboard/settings" className="font-semibold text-primary hover:underline">
+              Settings
             </Link>
             .
           </p>

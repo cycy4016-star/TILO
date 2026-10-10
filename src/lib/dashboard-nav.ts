@@ -6,6 +6,7 @@ import {
   FireExtinguisher,
   LayoutDashboard,
   type LucideIcon,
+  Settings,
   ShieldCheck,
   Store,
   Users,
@@ -28,6 +29,9 @@ const allNavItems: DashboardNavItem[] = [
   { href: '/dashboard/store', label: 'Catalogue', icon: Store },
   { href: '/dashboard/orders', label: 'Orders', icon: FireExtinguisher },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
+  // Socials are optional at onboarding, so Settings is where a skipped step
+  // gets filled in later — it lives in the nav, not buried in the manager.
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   { href: '/dashboard/admin', label: 'Admin', icon: ShieldCheck, adminOnly: true },
 ];
 

@@ -42,11 +42,13 @@ describe('onboarding gate', () => {
     expect(status.complete).toBe(false);
   });
 
-  it('needs at least one social', async () => {
+  it('does not require a social — that step is skippable', async () => {
     db.prisma.store.findUnique.mockResolvedValue(row({ socials: [] }));
     const status = await getOnboardingStatus('user-1');
     expect(status.hasSocials).toBe(false);
-    expect(status.complete).toBe(false);
+    // Socials are optional: a shop with none is still live and orderable, so
+    // skipping the step must not bounce the account back into setup.
+    expect(status.complete).toBe(true);
   });
 
   it('needs a logo or a banner', async () => {
