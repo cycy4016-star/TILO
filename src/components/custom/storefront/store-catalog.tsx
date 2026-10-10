@@ -281,156 +281,164 @@ export function StoreCatalog({
       <article
         key={item.id}
         id={item.id}
-        className="flex scroll-mt-24 flex-col rounded-2xl border border-border bg-card p-6"
+        className="lift group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm"
       >
-        <div className="flex items-start justify-between gap-3">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-[var(--tl-700)] text-white">
-            {item.kind === 'SERVICE' ? (
-              <Wrench aria-hidden className="size-5" />
-            ) : (
-              <Package aria-hidden className="size-5" />
-            )}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="text-eyebrow rounded-full bg-primary/10 px-3 py-1 text-primary">
-              {kindLabels[item.kind]}
+        {/* Image-forward: the photo (or a themed monogram panel) is the card.
+            Badges float on it so the media stays edge-to-edge. */}
+        <div className="relative overflow-hidden rounded-xl bg-muted">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              loading="lazy"
+              className="aspect-[4/3] w-full object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105"
+            />
+          ) : (
+            <span className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-br from-[var(--tl-700)] to-[var(--tl-900)] text-white/70">
+              {item.kind === 'SERVICE' ? (
+                <Wrench aria-hidden className="size-10" />
+              ) : (
+                <Package aria-hidden className="size-10" />
+              )}
             </span>
-            <button
-              type="button"
-              onClick={() => setShareItem(item)}
-              aria-label={`Share ${item.name}`}
-              className="grid size-9 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Share2 aria-hidden className="size-4" />
-            </button>
-          </span>
-        </div>
-        {item.imageUrl && (
-          <img
-            src={item.imageUrl}
-            alt={item.name}
-            loading="lazy"
-            className="mt-4 aspect-[4/3] w-full rounded-xl border border-border bg-muted object-cover"
-          />
-        )}
-        <h2 className="text-h4 mt-4 font-display">{item.name}</h2>
-        {item.description && (
-          <p className="mt-1 flex-1 text-sm leading-relaxed text-muted-foreground">
-            {item.description}
-          </p>
-        )}
-        <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
-          <div className="grid gap-0.5">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-base font-semibold text-foreground">
-                {formatGhs(item.pricePesewas)}
-              </span>
+          )}
+          {(discount != null || promos.length > 0) && (
+            <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
               {discount != null && (
-                <span className="text-eyebrow rounded-full bg-destructive/10 px-2.5 py-0.5 text-destructive">
-                  <Percent aria-hidden className="mr-0.5 inline size-3" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-2.5 py-1 text-caption font-bold text-white shadow-sm">
+                  <Percent aria-hidden className="size-3" />
                   {discount}% off
                 </span>
               )}
               {promos.map((promo) => (
                 <span
                   key={promo.name}
-                  className="text-eyebrow rounded-full bg-primary/10 px-2.5 py-0.5 text-primary"
+                  className="rounded-full bg-[var(--tl-950)]/70 px-2.5 py-1 text-caption font-semibold text-white backdrop-blur"
                 >
                   {promo.name}
                 </span>
               ))}
-              {soldOut ? (
-                <span className="text-eyebrow rounded-full bg-muted px-2.5 py-0.5 text-muted-foreground">
-                  Sold out
-                </span>
-              ) : (
-                lowStock && (
-                  <span className="text-eyebrow rounded-full bg-primary/10 px-2.5 py-0.5 text-primary">
-                    Only {item.stock} left
-                  </span>
-                )
-              )}
-            </span>
-            {discount != null && (
-              <span className="text-sm text-muted-foreground line-through">
-                {formatGhs(item.compareAtPricePesewas ?? 0)}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setShareItem(item)}
+            aria-label={`Share ${item.name}`}
+            className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+          >
+            <Share2 aria-hidden className="size-3.5" />
+          </button>
+        </div>
+
+        <div className="flex flex-1 flex-col p-3">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="text-eyebrow">{kindLabels[item.kind]}</span>
+            {soldOut ? (
+              <span className="text-eyebrow rounded-full bg-muted px-2.5 py-0.5 text-muted-foreground">
+                Sold out
               </span>
+            ) : (
+              lowStock && (
+                <span className="text-eyebrow rounded-full bg-destructive/10 px-2.5 py-0.5 text-destructive">
+                  Only {item.stock} left
+                </span>
+              )
+            )}
+          </span>
+          <h2 className="mt-1.5 break-words font-display text-h4">{item.name}</h2>
+          {item.description && (
+            <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">
+              {item.description}
+            </p>
+          )}
+          <div className="mt-4">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="font-display text-h4 text-foreground">
+                {formatGhs(item.pricePesewas)}
+              </span>
+              {discount != null && (
+                <span className="text-small text-muted-foreground line-through">
+                  {formatGhs(item.compareAtPricePesewas ?? 0)}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="mt-4 grid gap-2">
+            {soldOut ? (
+              <p className="rounded-md border border-dashed border-border px-4 py-3 text-center text-small text-muted-foreground">
+                Back soon — message the shop to reserve one.
+              </p>
+            ) : (
+              <>
+                {qty === 0 ? (
+                  <Button
+                    type="button"
+                    onClick={() => setQuantity(item.id, 1)}
+                    className="h-11 w-full items-center gap-2 rounded-xl px-4 font-semibold shadow-sm transition-transform active:scale-[0.98]"
+                  >
+                    <ShoppingCart aria-hidden className="size-4" /> Add to basket
+                  </Button>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/5 px-2 py-1.5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`One fewer ${item.name}`}
+                      onClick={() => setQuantity(item.id, qty - 1)}
+                      className="size-8 rounded-md"
+                    >
+                      <Minus aria-hidden className="size-3.5" />
+                    </Button>
+                    <span className="min-w-8 text-center font-mono text-lg font-semibold">
+                      {qty}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`One more ${item.name}`}
+                      onClick={() => setQuantity(item.id, Math.min(maxQty, qty + 1))}
+                      className="size-8 rounded-md"
+                    >
+                      <Plus aria-hidden className="size-3.5" />
+                    </Button>
+                    <span className="text-eyebrow hidden flex-1 text-right min-[360px]:block">
+                      in basket
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${item.name} from the basket`}
+                      onClick={() => setQuantity(item.id, 0)}
+                      className="grid size-8 place-items-center rounded-md text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 aria-hidden className="size-4" />
+                    </button>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
+                  {!soldOut && orderLink && (
+                    <a
+                      href={orderLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-small font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500"
+                    >
+                      <MessageCircle aria-hidden className="size-4" /> WhatsApp
+                    </a>
+                  )}
+                  {!soldOut && smsHref && (
+                    <a
+                      href={smsHref}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[var(--tl-700)] px-4 text-small font-semibold text-[var(--tl-800)] transition-colors hover:bg-[var(--tl-100)]"
+                    >
+                      <MessageSquareText aria-hidden className="size-4" /> SMS
+                    </a>
+                  )}
+                </div>
+              </>
             )}
           </div>
-        </div>
-        <div className="mt-4 grid gap-2">
-          {soldOut ? (
-            <p className="rounded-md border border-dashed border-border px-4 py-3 text-center text-small text-muted-foreground">
-              Back soon — message the shop to reserve one.
-            </p>
-          ) : (
-            <>
-              {qty === 0 ? (
-                <Button
-                  type="button"
-                  onClick={() => setQuantity(item.id, 1)}
-                  className="h-10 items-center gap-2 rounded-md px-4 text-small font-semibold"
-                >
-                  <ShoppingCart aria-hidden className="size-4" /> Add to basket
-                </Button>
-              ) : (
-                <div className="flex flex-wrap items-center gap-2 rounded-md border border-border px-2 py-1.5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={`One fewer ${item.name}`}
-                    onClick={() => setQuantity(item.id, qty - 1)}
-                    className="size-8 rounded-md"
-                  >
-                    <Minus aria-hidden className="size-3.5" />
-                  </Button>
-                  <span className="min-w-8 text-center font-mono text-lg font-semibold">{qty}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={`One more ${item.name}`}
-                    onClick={() => setQuantity(item.id, Math.min(maxQty, qty + 1))}
-                    className="size-8 rounded-md"
-                  >
-                    <Plus aria-hidden className="size-3.5" />
-                  </Button>
-                  <span className="text-eyebrow hidden flex-1 text-right min-[360px]:block">
-                    in basket
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Remove ${item.name} from the basket`}
-                    onClick={() => setQuantity(item.id, 0)}
-                    className="grid size-8 place-items-center rounded-md text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 aria-hidden className="size-4" />
-                  </button>
-                </div>
-              )}
-              <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
-                {!soldOut && orderLink && (
-                  <a
-                    href={orderLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-emerald-700 bg-emerald-600 px-4 text-small font-semibold text-white transition-colors hover:bg-emerald-500"
-                  >
-                    <MessageCircle aria-hidden className="size-4" /> WhatsApp
-                  </a>
-                )}
-                {!soldOut && smsHref && (
-                  <a
-                    href={smsHref}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--tl-700)] px-4 text-small font-semibold text-[var(--tl-800)] transition-colors hover:bg-[var(--tl-100)]"
-                  >
-                    <MessageSquareText aria-hidden className="size-4" /> SMS
-                  </a>
-                )}
-              </div>
-            </>
-          )}
         </div>
       </article>
     );
@@ -438,27 +446,27 @@ export function StoreCatalog({
 
   return (
     <>
-      <div className={`grid gap-8 ${count > 0 ? 'pb-24' : ''}`}>
+      <div className={`grid gap-10 ${count > 0 ? 'pb-28' : ''}`}>
         <div className="grid gap-3">
           <div className="relative">
             <Search
               aria-hidden
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
             <Input
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name or category"
+              placeholder="Search the catalogue"
               aria-label="Search the catalogue"
-              className="h-11 rounded-lg pl-9 pr-10"
+              className="h-12 rounded-xl pl-10 pr-10 shadow-sm"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
                 aria-label="Clear search"
-                className="absolute right-2 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="absolute right-2.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X aria-hidden className="size-4" />
               </button>
@@ -478,9 +486,9 @@ export function StoreCatalog({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setActiveCategory(label)}
-                    className={`rounded-full border px-3.5 py-1.5 text-small font-medium transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-small font-semibold transition-all ${
                       active
-                        ? 'border-primary bg-primary text-primary-foreground'
+                        ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                         : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
                     }`}
                   >
@@ -508,11 +516,11 @@ export function StoreCatalog({
         </div>
 
         {visibleGroups.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card px-5 py-14 text-center">
-            <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-card px-5 py-16 text-center">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <Search aria-hidden className="size-5" />
             </span>
-            <p className="mt-4 text-h4 font-display text-foreground">No matches</p>
+            <p className="mt-4 break-words font-display text-h3 tracking-tight">No matches</p>
             <p className="mt-1 text-sm text-muted-foreground">{emptyCopy()}</p>
             <Button
               type="button"
@@ -529,25 +537,34 @@ export function StoreCatalog({
             return (
               <section key={group.label ?? '__uncategorised'}>
                 {group.label && (
-                  <div className="flex items-center gap-3">
-                    {group.coverUrl ? (
-                      <img
-                        src={group.coverUrl}
-                        alt=""
-                        loading="lazy"
-                        className="size-11 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-sm"
-                      />
-                    ) : (
-                      GroupIcon && (
-                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <GroupIcon aria-hidden className="size-5" />
-                        </span>
-                      )
-                    )}
-                    <h2 className="text-h3 font-display">{group.label}</h2>
+                  <div className="flex items-end justify-between gap-4 border-b border-border pb-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      {group.coverUrl ? (
+                        <img
+                          src={group.coverUrl}
+                          alt=""
+                          loading="lazy"
+                          className="size-12 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-sm"
+                        />
+                      ) : (
+                        GroupIcon && (
+                          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <GroupIcon aria-hidden className="size-5" />
+                          </span>
+                        )
+                      )}
+                      <h2 className="break-words font-display text-h2 tracking-tight">
+                        {group.label}
+                      </h2>
+                    </div>
+                    <span className="shrink-0 text-caption font-semibold text-muted-foreground">
+                      {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
+                    </span>
                   </div>
                 )}
-                <div className={`grid gap-4 sm:grid-cols-2 ${group.label ? 'mt-3' : ''}`}>
+                <div
+                  className={`grid gap-5 sm:grid-cols-2 lg:grid-cols-3 ${group.label ? 'mt-5' : ''}`}
+                >
                   {group.items.map((item) => renderItem(item))}
                 </div>
               </section>
@@ -557,18 +574,25 @@ export function StoreCatalog({
       </div>
 
       {count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 sm:gap-3">
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">
-                {count} {count === 1 ? 'item' : 'items'} in your basket
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          {/* Floating basket pill: the one always-on control, so it floats over
+              the page instead of welding itself to the bottom edge. */}
+          <div className="pointer-events-auto mx-auto flex w-full max-w-6xl items-center justify-between gap-3 rounded-2xl border border-border bg-card/95 p-2.5 pl-4 shadow-2xl backdrop-blur">
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 font-display text-h4 text-primary">
+                {count}
               </span>
-              <span className="block font-mono text-lg font-bold">{formatGhs(total)}</span>
+              <span className="min-w-0">
+                <span className="block truncate text-caption font-semibold text-muted-foreground">
+                  {count === 1 ? 'item' : 'items'} in your basket
+                </span>
+                <span className="block font-display text-h4">{formatGhs(total)}</span>
+              </span>
             </span>
             <Button
               type="button"
               onClick={checkout}
-              className="h-10 shrink-0 items-center gap-2 rounded-md px-4 text-small font-semibold"
+              className="h-11 shrink-0 items-center gap-2 rounded-xl px-5 font-semibold shadow-sm transition-transform active:scale-[0.98]"
             >
               <ShoppingCart aria-hidden className="size-4" /> Checkout
             </Button>
@@ -579,7 +603,7 @@ export function StoreCatalog({
       <Dialog open={open} onOpenChange={(value) => (value ? setOpen(true) : close())}>
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Your basket</DialogTitle>
+            <DialogTitle className="font-display text-h3 tracking-tight">Your basket</DialogTitle>
             <DialogDescription>
               {contactPhone
                 ? `Add your details, then send the order to ${storeName} on WhatsApp.`

@@ -103,19 +103,19 @@ export default async function StorePage({ params }: StorePageProps) {
     <main
       data-theme={store.theme}
       data-appearance={store.appearance}
-      className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-14"
+      className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-12"
     >
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--tl-900)] via-[var(--tl-800)] to-[var(--tl-600)] text-[var(--tl-50)] shadow-md">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 85% 20%, rgb(250 204 21 / 0.3) 0, transparent 45%)',
-          }}
-        />
+      {/* Hero: deep tonal gradient with two soft blooms behind the content, so
+          the shop's identity lands before a single product does. All colours
+          come from the active theme's --tl ramp, so every preset re-skins this
+          block without a single theme-specific class. */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--tl-950)] via-[var(--tl-900)] to-[var(--tl-700)] text-[var(--tl-50)] shadow-xl ring-1 ring-[var(--tl-950)]/40">
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-20 -top-24 size-64 rounded-full bg-[var(--tl-400)]/25 blur-3xl sm:size-96" />
+          <div className="absolute -bottom-32 -left-16 size-72 rounded-full bg-[var(--tl-500)]/20 blur-3xl sm:size-[28rem]" />
+        </div>
         {store.bannerUrl && (
-          <div className="relative h-52 w-full overflow-hidden bg-black/20 sm:h-64">
+          <div className="relative h-56 w-full overflow-hidden bg-black/25 sm:h-72">
             <img
               src={store.bannerUrl}
               alt=""
@@ -123,49 +123,50 @@ export default async function StorePage({ params }: StorePageProps) {
             />
             <div
               aria-hidden
-              className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--tl-900)]/70 to-transparent"
+              className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--tl-950)] via-[var(--tl-950)]/50 to-transparent"
             />
           </div>
         )}
-        <div className="relative p-5 sm:p-10">
+        <div className="relative p-6 sm:p-12">
           {store.logoUrl && (
             <img
               src={store.logoUrl}
               alt=""
-              className={`relative bg-white object-cover shadow-xl ring-4 ring-white/90 ${
+              className={`relative object-cover shadow-2xl ring-1 ring-white/30 ${
                 store.bannerUrl
-                  ? '-mt-20 mb-4 size-20 sm:-mt-24 sm:size-24 rounded-2xl'
-                  : 'mb-4 size-16 rounded-2xl'
+                  ? '-mt-24 mb-5 size-24 sm:-mt-28 sm:size-28 rounded-3xl'
+                  : 'mb-5 size-20 rounded-3xl'
               }`}
             />
           )}
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tl-100)] px-3 py-1 text-caption font-medium text-[var(--tl-900)]">
-            {store.items.length} {store.items.length === 1 ? 'item' : 'items'} in the catalogue
+          <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-caption font-semibold text-[var(--tl-100)] ring-1 ring-white/15 backdrop-blur">
+            <span aria-hidden className="size-1.5 rounded-full bg-emerald-400" />
+            {store.items.length} {store.items.length === 1 ? 'item' : 'items'} · open for orders
           </p>
-          <h1 className="mt-4 break-words font-display text-h1 text-[var(--tl-50)]">
+          <h1 className="mt-5 break-words font-display text-h1 tracking-tight text-[var(--tl-50)] lg:text-display">
             {store.name}
           </h1>
           {store.tagline && (
-            <p className="mt-3 max-w-xl text-body-lg text-[var(--tl-200)]">{store.tagline}</p>
+            <p className="mt-4 max-w-2xl text-body-lg text-[var(--tl-200)]">{store.tagline}</p>
           )}
           {store.description && (
-            <p className="mt-2 max-w-xl text-small text-[var(--tl-100)]">{store.description}</p>
+            <p className="mt-2 max-w-2xl text-small text-[var(--tl-100)]/90">{store.description}</p>
           )}
-          {/* Deliberate exception to the gold-accent rule: WhatsApp actions
-              keep the platform's own green, because "this opens a chat" is a
-              stronger signal than brand consistency. See store-catalog's
-              per-item WhatsApp button for the matching treatment. */}
-          {chat && (
-            <a
-              href={chat}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex h-11 items-center gap-2 rounded-md bg-emerald-600 px-6 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500"
-            >
-              <MessageCircle aria-hidden className="size-4" /> Chat with us
-            </a>
-          )}
-          <div className="mt-3">
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            {/* Deliberate exception to the gold-accent rule: WhatsApp actions
+                keep the platform's own green, because "this opens a chat" is a
+                stronger signal than brand consistency. See store-catalog's
+                per-item WhatsApp button for the matching treatment. */}
+            {chat && (
+              <a
+                href={chat}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 items-center gap-2 rounded-xl bg-emerald-500 px-7 text-body font-semibold text-white shadow-lg shadow-emerald-900/30 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/30"
+              >
+                <MessageCircle aria-hidden className="size-4.5" /> Chat with us
+              </a>
+            )}
             <StoreShareButton
               storeName={store.name}
               tagline={store.tagline}
@@ -176,8 +177,8 @@ export default async function StorePage({ params }: StorePageProps) {
       </section>
 
       {store.promoBanner && (
-        <section className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/60 px-4 py-3 text-center text-small font-medium text-muted-foreground">
-          <Tag aria-hidden className="size-4 shrink-0" />
+        <section className="mt-6 flex items-center justify-center gap-2 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3.5 text-center text-small font-semibold text-foreground">
+          <Tag aria-hidden className="size-4 shrink-0 text-primary" />
           <span>{store.promoBanner}</span>
         </section>
       )}
@@ -189,23 +190,26 @@ export default async function StorePage({ params }: StorePageProps) {
             storeUrl={`${siteUrl}/store/${slug}`}
             storeName={store.name}
           />
-          <h2 className="break-words font-display text-h3">Today&apos;s offers</h2>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <p className="text-eyebrow">Limited time</p>
+          <h2 className="mt-2 break-words font-display text-h2 tracking-tight">
+            Today&apos;s offers
+          </h2>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {store.promotions.map((promo) => {
               const terms = promoTerms(promo);
               return (
                 <article
                   key={`${promo.name}-${promo.code ?? 'any'}`}
-                  className="flex flex-col rounded-2xl border border-border bg-card p-5"
+                  className="lift flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm"
                 >
                   {promo.imageUrl && (
                     <img
                       src={promo.imageUrl}
                       alt=""
-                      className="mb-3 aspect-[16/9] w-full rounded-2xl border border-border object-cover"
+                      className="mb-4 aspect-[16/9] w-full rounded-xl border border-border object-cover"
                     />
                   )}
-                  <p className="text-h4 font-mono text-primary">{promoHeadline(promo)}</p>
+                  <p className="font-display text-h4 text-primary">{promoHeadline(promo)}</p>
                   <p className="mt-1 text-body font-semibold">{promo.name}</p>
                   {terms.length > 0 && (
                     <p className="mt-1 text-caption text-muted-foreground">{terms.join(' · ')}</p>

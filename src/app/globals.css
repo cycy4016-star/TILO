@@ -137,8 +137,10 @@
   --radius: 0.625rem; /* corner roundness — cascades to every primitive */
 
   /* Set by next/font on <html> (src/lib/fonts.ts). The stacks after the comma
-     are the fallback when the webfont hasn't landed yet. */
-  --font-display: var(--font-inter-tight, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
+     are the fallback when the webfont hasn't landed yet. Display is Bricolage
+     Grotesque — a characterful variable grotesque that makes headlines read as
+     designed type; body is Inter, which stays invisible at UI sizes. */
+  --font-display: var(--font-display-face, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   --font-body: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
 
   /* Interface chrome ramp consumed by the storefront + dashboard via
