@@ -47,7 +47,13 @@ export async function GET(_request: Request, context: RouteContext) {
       >
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {logoSrc ? (
-            <img src={logoSrc} alt="" width={72} height={72} style={{ borderRadius: 18 }} />
+            <img
+              src={logoSrc}
+              alt=""
+              width={72}
+              height={72}
+              style={{ borderRadius: 18, objectFit: 'cover' }}
+            />
           ) : null}
           <div style={{ display: 'flex', flexDirection: 'column', marginLeft: logoSrc ? 24 : 0 }}>
             <div style={{ display: 'flex', fontSize: 36, fontWeight: 700 }}>{item.store.name}</div>

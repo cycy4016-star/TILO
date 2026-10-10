@@ -55,6 +55,7 @@ export async function compressImageFile(file: File, maxDim = 1280, quality = 0.8
     canvas.height = Math.max(1, Math.round(bitmap.height * scale));
     const ctx = canvas.getContext('2d');
     if (!ctx) return file;
+    smoothScale(ctx);
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     closeBitmap(bitmap);
 
@@ -95,12 +96,13 @@ export const SLOT_SIZE: Record<ImageSlot, { width: number; height: number }> = {
 
 /** One-line "what fits best" hint for picker helper text. */
 export const SLOT_HINT: Record<ImageSlot, string> = {
-  banner: 'Best: a wide landscape photo — any photo works, we auto-fit it to 1600×640.',
-  logo: 'Best: a square logo or clear product shot — auto-fitted to a square.',
-  item: 'Best: a landscape product photo — auto-fitted to 4:3.',
-  promo: 'Best: a wide sale graphic — auto-fitted to 16:9.',
-  cover: 'Best: a square shelf photo — auto-fitted to a square.',
-  avatar: 'Best: a square headshot — auto-fitted to a square.',
+  banner:
+    'Best: a wide landscape photo — any photo works, we shrink or enlarge it to fit 1600×640, never stretched.',
+  logo: 'Best: a square logo or clear product shot — we shrink or enlarge it to fit a square, never stretched.',
+  item: 'Best: a landscape product photo — we shrink or enlarge it to fit 4:3, never stretched.',
+  promo: 'Best: a wide sale graphic — we shrink or enlarge it to fit 16:9, never stretched.',
+  cover: 'Best: a square shelf photo — we shrink or enlarge it to fit a square, never stretched.',
+  avatar: 'Best: a square headshot — we shrink or enlarge it to fit a square, never stretched.',
 };
 
 /**
@@ -123,12 +125,37 @@ export function coverCropRect(
 }
 
 /**
- * Crop-to-slot + downscale + re-encode, like compressImageFile but with the
- * framing decided up front. Never upscales: a photo smaller than the slot
- * keeps its own pixels, just re-framed. Falls back to the original file when
- * the browser cannot decode it.
+ * Output size for an already-cropped photo: scale to the slot in either
+ * direction. Big photos are shrunk, small photos are enlarged, and because
+ * one factor drives both axes the shape never changes — nothing is ever
+ * stretched to fit. Returns the scale too (>1 means we enlarged), so callers
+ * can spend more encoder quality on an upscale. Pure math — unit-tested in
+ * tests/unit/image-fit.test.ts.
+ */
+export function fitOutputSize(
+  cropW: number,
+  cropH: number,
+  targetW: number,
+  targetH: number,
+): { width: number; height: number; scale: number } {
+  const scale = Math.max(targetW / cropW, targetH / cropH);
+  return {
+    width: Math.max(1, Math.round(cropW * scale)),
+    height: Math.max(1, Math.round(cropH * scale)),
+    scale,
+  };
+}
+
+/**
+ * Crop-to-slot + fit + re-encode, like compressImageFile but with the framing
+ * decided up front. The crop keeps the source's aspect ratio, then the result
+ * is shrunk or enlarged to the slot's pixel size — a small photo is scaled up
+ * to the frame it will be shown in, so the browser never stretches a few
+ * hundred pixels across a card. Falls back to the original file when the
+ * browser cannot decode it.
  *
- * @param quality 0..1 encoder quality (default 0.82 — good balance).
+ * @param quality 0..1 encoder quality (default 0.82 — good balance). An
+ *   enlargement spends up to +0.1 more, because smoothing already lost detail.
  */
 export async function fitImageFile(file: File, slot: ImageSlot, quality = 0.82): Promise<Blob> {
   if (!ALLOWED_TYPES.has(file.type.toLowerCase())) return file;
@@ -144,37 +171,58 @@ export async function fitImageFile(file: File, slot: ImageSlot, quality = 0.82):
     // Cover-crop: largest centered rect at the slot's aspect ratio.
     const crop = coverCropRect(srcW, srcH, spec.width, spec.height);
     const { x: cropX, y: cropY, w: cropW, h: cropH } = crop;
-    // Downscale to the slot, never upscale.
-    const scale = Math.min(1, spec.width / cropW);
-    const outW = Math.max(1, Math.round(cropW * scale));
-    const outH = Math.max(1, Math.round(cropH * scale));
-    const alreadyFits =
-      scale === 1 &&
+    // Shrink or enlarge to the slot — one factor for both axes, so the
+    // shape is preserved and the stored bytes always match the frame.
+    const out = fitOutputSize(cropW, cropH, spec.width, spec.height);
+    const enlarging = out.scale > 1;
+    const untouched =
+      !enlarging &&
+      out.scale === 1 &&
       cropW === srcW &&
       cropH === srcH &&
       (file.type === 'image/webp' || file.size <= 400 * 1024);
-    if (alreadyFits) {
+    if (untouched) {
       closeBitmap(bitmap);
       return file;
     }
     const canvas = document.createElement('canvas');
-    canvas.width = outW;
-    canvas.height = outH;
+    canvas.width = out.width;
+    canvas.height = out.height;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       closeBitmap(bitmap);
       return file;
     }
-    ctx.drawImage(bitmap, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+    smoothScale(ctx);
+    ctx.drawImage(bitmap, cropX, cropY, cropW, cropH, 0, 0, out.width, out.height);
     closeBitmap(bitmap);
-    const webp = await encodeCanvas(canvas, 'image/webp', quality);
+    const encodeQuality = enlarging ? Math.min(0.95, quality + 0.1) : quality;
+    const webp = await encodeCanvas(canvas, 'image/webp', encodeQuality);
+    const jpeg = await encodeCanvas(canvas, 'image/jpeg', encodeQuality);
+    if (enlarging) {
+      // The whole point of an enlargement is the pixels, so take the better
+      // encode even when it costs a few more bytes than the original — the
+      // output is bounded by the slot's pixel count, far under the server cap.
+      if (webp && webp.size > 0) return webp;
+      if (jpeg && jpeg.size > 0) return jpeg;
+      return file;
+    }
     if (webp && webp.size > 0 && webp.size < file.size) return webp;
-    const jpeg = await encodeCanvas(canvas, 'image/jpeg', quality);
     if (jpeg && jpeg.size > 0 && jpeg.size < file.size) return jpeg;
     return file;
   } catch {
     return file;
   }
+}
+
+/**
+ * Ask the canvas for its best resampling. Browsers downscale through a
+ * mip chain by default and this picks the expensive filter — the difference
+ * between a crisp resize and a mushy one on a 4× enlargement.
+ */
+function smoothScale(ctx: CanvasRenderingContext2D): void {
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 }
 
 /** Decode with EXIF orientation applied; falls back to a plain <img>. */ async function decodeOriented(
@@ -242,6 +290,7 @@ export async function makeBlurPlaceholder(file: File): Promise<string | null> {
     canvas.height = Math.max(1, Math.round(bitmap.height * scale));
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
+    smoothScale(ctx);
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     closeBitmap(bitmap);
     const blob = await encodeCanvas(canvas, 'image/webp', 0.5);

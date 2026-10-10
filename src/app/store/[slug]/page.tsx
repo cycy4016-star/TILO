@@ -119,6 +119,8 @@ export default async function StorePage({ params }: StorePageProps) {
             <img
               src={store.bannerUrl}
               alt=""
+              decoding="async"
+              fetchPriority="high"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div
@@ -132,6 +134,7 @@ export default async function StorePage({ params }: StorePageProps) {
             <img
               src={store.logoUrl}
               alt=""
+              decoding="async"
               className={`relative object-cover shadow-2xl ring-1 ring-white/30 ${
                 store.bannerUrl
                   ? '-mt-24 mb-5 size-24 sm:-mt-28 sm:size-28 rounded-3xl'
@@ -206,6 +209,8 @@ export default async function StorePage({ params }: StorePageProps) {
                     <img
                       src={promo.imageUrl}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       className="mb-4 aspect-[16/9] w-full rounded-xl border border-border object-cover"
                     />
                   )}

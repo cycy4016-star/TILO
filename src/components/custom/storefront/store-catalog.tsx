@@ -291,6 +291,7 @@ export function StoreCatalog({
               src={item.imageUrl}
               alt={item.name}
               loading="lazy"
+              decoding="async"
               className="aspect-[4/3] w-full object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105"
             />
           ) : (
@@ -544,6 +545,7 @@ export function StoreCatalog({
                           src={group.coverUrl}
                           alt=""
                           loading="lazy"
+                          decoding="async"
                           className="size-12 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-sm"
                         />
                       ) : (
