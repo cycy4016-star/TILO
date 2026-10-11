@@ -39,7 +39,8 @@
         "src/app/(setup)/page.tsx",
         "src/app/(dashboard)/dashboard/admin/page.tsx",
         "src/lib/**",
-        "src/modules/**/server/**"
+        "src/modules/**/server/**",
+        "src/proxy.ts"
       ],
       "linter": { "rules": { "style": { "noRestrictedImports": "off" } } }
     },

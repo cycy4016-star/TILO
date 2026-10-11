@@ -21,6 +21,9 @@ async function fetchStore(slug: string) {
   return StorePublic.parse(await res.json());
 }
 
+// Metadata resolves before the response body streams (the <head> needs it), but
+// a notFound() here still inherits the 200 that loading.tsx already sent — the
+// real hard 404 comes from the existence check in src/proxy.ts.
 export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
   const { slug } = await params;
   const store = await fetchStore(slug);
