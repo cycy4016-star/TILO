@@ -6,7 +6,7 @@ builder = "NIXPACKS"
 buildCommand = "npm run build"
 
 [deploy]
-startCommand = "npx prisma migrate deploy && next start -p $PORT"
+startCommand = "node scripts/boot-migrate.mjs && next start -p $PORT"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
