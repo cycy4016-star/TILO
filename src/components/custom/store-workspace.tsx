@@ -232,7 +232,7 @@ function StoreForm({
                   <Input placeholder="amas-boutique" {...field} className="rounded-md" />
                 </FormControl>
                 <FormMessage />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   Your page lives at /store/<span className="font-mono">{field.value || '…'}</span>
                 </p>
               </FormItem>
@@ -270,7 +270,7 @@ function StoreForm({
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Shown as a headline at the top of your page. Leave blank to hide.
               </p>
             </FormItem>
@@ -281,7 +281,7 @@ function StoreForm({
           <div>
             <ImagePicker currentUrl={logoUrl} value={logo} onChange={setLogo} />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-caption text-muted-foreground">
             A small logo for the header of your public page. {SLOT_HINT.logo}
           </p>
         </FormItem>
@@ -290,7 +290,7 @@ function StoreForm({
           <div>
             <ImagePicker currentUrl={bannerUrl} value={banner} onChange={setBanner} />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-caption text-muted-foreground">
             A wide banner across the top of your public page. {SLOT_HINT.banner}
           </p>
         </FormItem>
@@ -304,7 +304,7 @@ function StoreForm({
                 <Input placeholder="024 000 0000" {...field} className="rounded-md" />
               </FormControl>
               <FormMessage />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Every &quot;order&quot; button opens a chat with this number.
               </p>
             </FormItem>
@@ -364,7 +364,7 @@ function StoreForm({
                   );
                 })}
               </fieldset>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Recolours your public page instantly. Same catalogue, your brand.
               </p>
               <FormMessage />
@@ -378,7 +378,9 @@ function StoreForm({
             <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Storefront open</FormLabel>
-                <p className="text-xs text-muted-foreground">Switch off to take the page down.</p>
+                <p className="text-caption text-muted-foreground">
+                  Switch off to take the page down.
+                </p>
               </div>
               <FormControl>
                 <Switch
@@ -1518,7 +1520,7 @@ export function StoreWorkspace() {
             )}
           </p>
           {item.description && (
-            <p className="mt-1 truncate text-xs text-muted-foreground">{item.description}</p>
+            <p className="mt-1 truncate text-caption text-muted-foreground">{item.description}</p>
           )}
         </div>
         <div className="flex shrink-0 gap-1.5">
@@ -1558,13 +1560,13 @@ export function StoreWorkspace() {
   }
 
   return (
-    <div className="grid gap-6">
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+      <section className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-8">
         <p className="text-eyebrow">The storefront</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-h2 font-display">{store ? store.name : 'Your shop window'}</h1>
-            <p className="mt-2 max-w-lg text-sm text-muted-foreground">
+            <p className="mt-2 max-w-lg text-small text-muted-foreground">
               {store
                 ? 'Customers see this page — browse it, then order items straight to your WhatsApp.'
                 : 'Give yourself a public page: name it, add your items and prices, share the link.'}
@@ -1573,15 +1575,15 @@ export function StoreWorkspace() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
         <section
           id="store-details"
-          className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
+          className="min-w-0 scroll-mt-24 rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
         >
           <h2 className="flex items-center gap-2 text-h3 font-display">
             <StoreIcon aria-hidden className="size-5 text-primary" /> Store details
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-small text-muted-foreground">
             Name, logo and banner live in{' '}
             <Link href="/welcome" className="font-semibold text-primary hover:underline">
               store setup
@@ -1597,18 +1599,18 @@ export function StoreWorkspace() {
           </div>
         </section>
 
-        <div className="grid content-start gap-6">
+        <div className="grid min-w-0 content-start gap-6 lg:sticky lg:top-4 lg:self-start">
           {store ? (
-            <section className="rounded-xl border border-border bg-muted/40 p-6">
+            <section className="rounded-xl border border-border bg-muted/40 p-6 shadow-xs">
               <h2 className="flex items-center gap-2 text-h4 font-display">
                 <ExternalLink aria-hidden className="size-5 text-primary" /> Share this page
               </h2>
               {storefrontUrl && (
-                <p className="mt-3 break-all rounded-lg bg-card px-3 py-2 font-mono text-xs text-muted-foreground">
+                <p className="mt-3 break-all rounded-lg bg-card px-3 py-2 font-mono text-caption text-muted-foreground">
                   {storefrontUrl}
                 </p>
               )}
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className="mt-2 text-caption text-muted-foreground">
                 Put it in your bio, on flyers, anywhere customers look.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -1629,7 +1631,7 @@ export function StoreWorkspace() {
               </div>
             </section>
           ) : (
-            <section className="rounded-xl border border-border bg-muted/40 p-6 text-small text-muted-foreground">
+            <section className="rounded-xl border border-border bg-muted/40 p-6 text-small text-muted-foreground shadow-xs">
               <p className="text-h4 font-display text-foreground">Not live yet</p>
               <p className="mt-1">
                 Save the store details first — you&apos;ll get a shareable link here.
@@ -1640,11 +1642,14 @@ export function StoreWorkspace() {
       </div>
 
       {store && (
-        <section id="categories" className="rounded-xl border border-border bg-card p-6 sm:p-7">
+        <section
+          id="categories"
+          className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
+        >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-h3 font-display">Categories</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-small text-muted-foreground">
                 The shelves your products sit on — shoppers browse your page by these.
               </p>
             </div>
@@ -1681,7 +1686,7 @@ export function StoreWorkspace() {
                         </span>
                       )}
                     </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    <p className="mt-0.5 text-caption text-muted-foreground">
                       {category.itemCount} {category.itemCount === 1 ? 'product' : 'products'}
                     </p>
                   </div>
@@ -1718,11 +1723,14 @@ export function StoreWorkspace() {
       )}
 
       {store && (
-        <section id="the-shelf" className="rounded-xl border border-border bg-card p-6 sm:p-7">
+        <section
+          id="the-shelf"
+          className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
+        >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-h3 font-display">Catalogue</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-small text-muted-foreground">
                 Everything people can order — products and services together.
               </p>
             </div>
@@ -1788,12 +1796,12 @@ export function StoreWorkspace() {
       {store && (
         <section
           id="sales-and-promos"
-          className="rounded-xl border border-border bg-card p-6 sm:p-7"
+          className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-h3 font-display">Sales &amp; promos</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-small text-muted-foreground">
                 Discounts and codes — customers see them as &quot;Today&apos;s offers&quot; on your
                 page.
               </p>

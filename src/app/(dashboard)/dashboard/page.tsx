@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-10">
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-xs sm:p-10">
         <div
           className="pointer-events-none absolute inset-0"
           aria-hidden

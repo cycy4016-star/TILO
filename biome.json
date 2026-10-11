@@ -3,7 +3,7 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!.next", "!node_modules", "!dist"]
+    "includes": ["**", "!.next", "!node_modules", "!dist", "!_*.js"]
   },
   "linter": {
     "enabled": true,
@@ -52,6 +52,9 @@
         "src/components/custom/crop-dialog.tsx",
         "src/app/api/public/store/items/*/share/route.tsx",
         "src/components/custom/storefront/store-catalog.tsx",
+        "src/components/custom/storefront/store-header.tsx",
+        "src/components/custom/storefront/storefront.tsx",
+        "src/components/custom/storefront/checkout-dialog.tsx",
         "src/app/(auth)/profile/page.tsx",
         "src/app/store/*/page.tsx"
       ],

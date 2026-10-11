@@ -11,11 +11,24 @@ import { promoShareMessage, shopShareMessage } from '@/lib/share';
 
 /** "Ends in 2d 04:12:33", ticking every second. Static "Ended" past the line. */
 export function CountdownText({ endsAt, prefix = 'Ends in' }: { endsAt: string; prefix?: string }) {
-  const [now, setNow] = useState(() => Date.now());
+  // `now` stays null until the client mounts: a live countdown cannot be
+  // server-rendered (the server's second differs from the browser's, which
+  // makes React hydration fail), so the server and the first client render
+  // both paint a stable placeholder, then the effect starts the clock.
+  const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
+    setNow(Date.now());
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+  if (now === null) {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <Timer aria-hidden className="size-3.5" />
+        {prefix} …
+      </span>
+    );
+  }
   const remaining = countdownParts(endsAt, now);
   if (!remaining) return <span>Ended</span>;
   return (

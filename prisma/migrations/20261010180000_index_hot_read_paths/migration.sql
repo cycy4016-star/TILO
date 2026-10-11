@@ -18,5 +18,5 @@ CREATE INDEX "Order_createdAt_idx" ON "Order"("createdAt");
 
 -- better-auth: Session.userId and Account.userId were unindexed foreign keys,
 -- so listing or cascading an account scanned both tables.
-CREATE INDEX "Session_userId_idx" ON "Session"("userId");
-CREATE INDEX "Account_userId_idx" ON "Account"("userId");
+CREATE INDEX "Session_userId_idx" ON "session"("userId");
+CREATE INDEX "Account_userId_idx" ON "account"("userId");

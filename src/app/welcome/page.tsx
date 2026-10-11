@@ -10,7 +10,7 @@ export default async function WelcomePage() {
   const user = await getSessionUser();
   if (!user) redirect('/login');
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-14">
+    <main className="container-page py-10 sm:py-14">
       <OnboardingWizard />
     </main>
   );

@@ -210,3 +210,71 @@ Verified prerequisites against the installed better-auth `dist` before writing c
 - `.env.local` holds live test secrets (BMS key, DB URL) — rotate before public use; it is git-ignored and never committed.
 - Free-credit BMS accounts must keep `BMS_SMS_TYPE=bulk` in `.env.local`; paid-wallet accounts can leave the default `otp`.
 - Rate limiting on the new endpoints: 10/min/IP per path (inherited from the phone plugin). Wrong codes consume the 3-attempt budget then hard-delete the OTP record.
+
+---
+
+## 11. Oct 11 2026 — UI polish pass (Phases 0–6)
+
+### What
+
+Full storefront + dashboard visual polish across six phases, following
+`DESIGN-SYSTEM.md` (type scale tokens, `rounded-xl` cards / `rounded-md`
+buttons, token colours only, `shadow-xs..2xl`).
+
+**Phase 0 — baseline gates.** `npm run typecheck` (0 errors), `npm run lint`
+(biome clean, 276 files), `npm test` (231/231 across 29 files), `npm run build`
+(25 routes, success). Demo shop seeded via `_seed.js` (Phone Hub Accra,
+4 categories, 9 items, promo, 2 customers, 3 orders). Before-screenshots
+captured to `_shots/`.
+
+**Phase 1 — storefront chrome.** Marketing nav hidden on storefront; sticky
+store header; hero section; trust strip; theme fix.
+
+**Phase 2 — catalogue grid.** Category rail; Jumia-style product cards;
+quick-view sheet; header search.
+
+**Phase 3 — basket + checkout.** Sticky basket bar; checkout dialog; receipt
+view; loading states.
+
+**Phase 4 — dashboard catalogue manager** (`store-workspace.tsx`). Added
+`shadow-xs` to all workspace cards (parity with storefront). Share card made
+sticky on `lg` (`lg:sticky lg:top-4 lg:self-start`). Raw `text-xs`/`text-sm`
+helper copy → `text-caption`/`text-small` tokens throughout. Dashboard home
+hero `rounded-2xl` → `rounded-xl`; loading skeleton radii normalised.
+
+**Phase 5 — onboarding wizard** (`onboarding-wizard.tsx`, `welcome/page.tsx`).
+Card `rounded-2xl` → `rounded-xl` + `shadow-xs`. Step-indicator active label
+gets `font-semibold text-foreground`; completed connectors get `bg-primary/40`.
+Bare-text loading state replaced with an animated skeleton shell matching the
+wizard's layout. Welcome page switched to `.container-page` padding.
+
+**Phase 6 — final gates, screenshots, overflow fix.** All gates green
+(typecheck 0 errors, lint clean, 231/231 tests, build success). After-screenshots
+captured with tall viewports (the dashboard shell's `h-dvh` + inner scroller
+means `fullPage` clips — fixed by using `height: 3200` for dashboard routes).
+Discovered and fixed a **mobile horizontal-overflow bug**: the store-workspace's
+outer `grid gap-6` single-column track was sized to `auto` (min-content = 439px)
+and overflowed its 358px container, masked by `overflow-x: clip` on `<html>`.
+Fixed by constraining the track with `grid-cols-[minmax(0,1fr)]` and adding
+`min-w-0` to the two-column band and its children.
+
+### Files changed
+
+| File | Change |
+|---|---|
+| `src/components/custom/store-workspace.tsx` | shadow-xs, sticky share rail, min-w-0 overflow fix, text-caption/small tokens |
+| `src/components/custom/onboarding-wizard.tsx` | rounded-xl card, step-indicator polish, skeleton loading, text-caption tokens |
+| `src/app/welcome/page.tsx` | `.container-page` padding |
+| `src/app/(dashboard)/dashboard/page.tsx` | rounded-2xl → rounded-xl, shadow-xs |
+| `src/app/(dashboard)/dashboard/loading.tsx` | skeleton radii → rounded-xl |
+| `.gitignore` | added `/_shots/` and `/_*.js` |
+| `SESSION_SUMMARY.md` | this section |
+
+### Gate results (Oct 11)
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` | 0 errors |
+| `npm run lint` (biome) | clean, 276 files |
+| `npm test` | 231/231 pass, 29 files |
+| `npm run build` | success, 25 routes |

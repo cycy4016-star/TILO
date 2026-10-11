@@ -93,6 +93,13 @@ function isDashboardPath(pathname: string) {
   return pathname === '/dashboard' || pathname.startsWith('/dashboard/');
 }
 
+// The storefront ships its own chrome (a sticky shop masthead + shop footer),
+// so the marketing bar and footer step aside on /store paths like they do on
+// /dashboard — a visitor should feel like they're inside the shop, not Tilo.
+function isStorePath(pathname: string) {
+  return pathname === '/store' || pathname.startsWith('/store/');
+}
+
 // Top-bar link typography: quiet by default, `text-foreground` when current so
 // the active item reads as chosen rather than hovered. `size` stays at the
 // default h-9 — `size="sm"` would add `text-xs`, which the compiler emits after
@@ -117,7 +124,7 @@ export function SiteNav() {
   const [open, setOpen] = React.useState(false);
 
   const pathname = usePathname();
-  if (isDashboardPath(pathname)) return null;
+  if (isDashboardPath(pathname) || isStorePath(pathname)) return null;
 
   // Exact match for the root; segment-boundary match for everything else so
   // '/blog' highlights on '/blog/post' but '/' never matches every route.
@@ -366,7 +373,7 @@ export function SiteNav() {
 export function SiteFooter() {
   const isAuthenticated = useIsAuthenticated();
   const pathname = usePathname();
-  if (isDashboardPath(pathname)) return null;
+  if (isDashboardPath(pathname) || isStorePath(pathname)) return null;
 
   const footer = visibleItems('footer', isAuthenticated);
   if (footer.length === 0) return null;

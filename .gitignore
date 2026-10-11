@@ -19,6 +19,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+*.log
 
 # Env files: never commit .env*
 # Block every .env* variant (.env, .env.local, .env.production, .env.staging, …)
@@ -42,6 +43,10 @@ cron-secret.txt
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Scratch dev tooling and screenshots
+/_shots/
+/_*.js
 
 # TypeScript
 *.tsbuildinfo

@@ -236,8 +236,27 @@ export function OnboardingWizard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-64 items-center justify-center text-caption font-medium text-muted-foreground">
-        Getting your shop ready…
+      <div className="mx-auto w-full max-w-2xl animate-pulse" aria-busy="true">
+        <div className="h-3 w-32 rounded bg-muted" />
+        <div className="mt-3 h-9 w-72 rounded bg-muted" />
+        <div className="mt-2 h-4 w-56 rounded bg-muted" />
+        <div className="mt-6 flex items-center gap-2">
+          {STEPS.map((label) => (
+            <div key={label} className="flex flex-1 items-center gap-2">
+              <div className="size-8 shrink-0 rounded-full bg-muted" />
+              <div className="h-px flex-1 bg-muted" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 rounded-xl border border-border bg-card p-5 shadow-xs sm:p-8">
+          <div className="grid gap-4">
+            <div className="h-4 w-24 rounded bg-muted" />
+            <div className="h-11 rounded-md bg-muted" />
+            <div className="h-4 w-24 rounded bg-muted" />
+            <div className="h-11 rounded-md bg-muted" />
+            <div className="h-11 w-40 rounded-md bg-muted" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -269,16 +288,25 @@ export function OnboardingWizard() {
               {index < step ? <Check aria-hidden className="size-4" /> : index + 1}
             </span>
             <span
-              className={`hidden text-caption font-medium sm:block ${index === step ? '' : 'text-muted-foreground'}`}
+              className={`hidden text-caption sm:block ${
+                index === step
+                  ? 'font-semibold text-foreground'
+                  : 'font-medium text-muted-foreground'
+              }`}
             >
               {label}
             </span>
-            {index < STEPS.length - 1 && <span aria-hidden className="h-px flex-1 bg-border" />}
+            {index < STEPS.length - 1 && (
+              <span
+                aria-hidden
+                className={`h-px flex-1 ${index < step ? 'bg-primary/40' : 'bg-border'}`}
+              />
+            )}
           </li>
         ))}
       </ol>
 
-      <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-8">
+      <div className="mt-6 rounded-xl border border-border bg-card p-5 shadow-xs sm:p-8">
         {step === 0 && (
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -301,7 +329,7 @@ export function OnboardingWizard() {
                   placeholder="amas-boutique"
                   className="h-11 rounded-md font-mono"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   Your page lives at /store/
                   <span className="font-mono">{slug.trim() || '…'}</span>
                 </p>
@@ -326,7 +354,7 @@ export function OnboardingWizard() {
                 placeholder="024 000 0000"
                 className="h-11 rounded-md"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Every “order” button opens a chat with this number.
               </p>
             </div>
@@ -343,15 +371,15 @@ export function OnboardingWizard() {
                 Optional
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-caption text-muted-foreground">
               You can connect or change these anytime in{' '}
               <span className="font-semibold text-foreground">Settings</span> — skipping won&apos;t
               hold up your page.
             </p>
             {SOCIAL_PLATFORM_DEFS.map((entry: SocialPlatformDef) => (
               <div key={entry.value} className="grid gap-2 rounded-xl border border-border p-4">
-                <p className="text-sm font-semibold">{entry.label}</p>
-                <p className="text-xs text-muted-foreground">{entry.hint}</p>
+                <p className="text-caption font-semibold">{entry.label}</p>
+                <p className="text-caption text-muted-foreground">{entry.hint}</p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Input
                     value={socials.find((row) => row.platform === entry.value)?.handle ?? ''}
@@ -398,7 +426,7 @@ export function OnboardingWizard() {
                 value={banner}
                 onChange={setBanner}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 A wide photo across the top of your public page — your shopfront, your best shelf,
                 your team.
               </p>
@@ -411,7 +439,9 @@ export function OnboardingWizard() {
                 onChange={setAvatar}
                 shape="circle"
               />
-              <p className="text-xs text-muted-foreground">Optional — customers never see it.</p>
+              <p className="text-caption text-muted-foreground">
+                Optional — customers never see it.
+              </p>
             </div>
           </div>
         )}
