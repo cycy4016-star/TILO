@@ -68,7 +68,7 @@
     "@types/node": "22.13.0",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
-    "@vitejs/plugin-react": "4.4.0",
+    "@vitejs/plugin-react": "4.7.0",
     "jsdom": "26.0.0",
     "tailwindcss": "4.3.0",
     "typescript": "5.5.4",
