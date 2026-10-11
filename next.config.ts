@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: '/assets/**', search: '' },
       { pathname: '/samples/**', search: '' },
+      // Storefront photos live in Postgres behind these routes. `search` is
+      // omitted on purpose: the app appends ?t=<updatedAt> to bust caches when
+      // an owner swaps a photo, so the query string is not fixed.
+      { pathname: '/api/public/store/**' },
     ],
     dangerouslyAllowLocalIP: false,
     qualities: [75],

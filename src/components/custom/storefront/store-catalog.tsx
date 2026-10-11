@@ -21,6 +21,7 @@ import {
   Trash2,
   Wrench,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 import { ShareSheet } from '@/components/custom/share-sheet';
 import { Button } from '@/components/ui/button';
@@ -76,14 +77,14 @@ function CardMedia({ item }: { item: CatalogItem }) {
       )}
     >
       {item.imageUrl ? (
-        <img
+        <Image
           src={item.imageUrl}
           alt={item.name}
-          loading="lazy"
-          decoding="async"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           onLoad={() => setLoaded(true)}
           className={cn(
-            'h-full w-full object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105',
+            'object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105',
             !loaded && 'opacity-0',
           )}
         />
@@ -335,11 +336,12 @@ export function StoreCatalog({
                           <Search className="size-3.5" />
                         </span>
                       ) : group?.coverUrl ? (
-                        <img
+                        <Image
                           src={group.coverUrl}
                           alt=""
-                          loading="lazy"
-                          decoding="async"
+                          width={400}
+                          height={400}
+                          sizes="28px"
                           className="size-7 shrink-0 rounded-full bg-muted object-cover"
                         />
                       ) : GroupIcon ? (
@@ -420,11 +422,12 @@ export function StoreCatalog({
                   <div className="mb-4 flex items-end justify-between gap-4 border-b border-border pb-3">
                     <div className="flex min-w-0 items-center gap-3">
                       {group.coverUrl ? (
-                        <img
+                        <Image
                           src={group.coverUrl}
                           alt=""
-                          loading="lazy"
-                          decoding="async"
+                          width={400}
+                          height={400}
+                          sizes="44px"
                           className="size-11 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-xs"
                         />
                       ) : (
@@ -562,10 +565,12 @@ function QuickViewBody({
     <div className="grid gap-4">
       <div className="overflow-hidden rounded-xl border border-border bg-muted">
         {item.imageUrl ? (
-          <img
+          <Image
             src={item.imageUrl}
             alt={item.name}
-            decoding="async"
+            width={1200}
+            height={900}
+            sizes="(max-width: 768px) 100vw, 640px"
             className="aspect-[4/3] w-full object-cover"
           />
         ) : (

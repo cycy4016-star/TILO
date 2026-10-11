@@ -6,6 +6,7 @@
 'use client';
 
 import { Search, ShoppingCart, X } from 'lucide-react';
+import Image from 'next/image';
 
 export function StoreHeader({
   storeName,
@@ -55,10 +56,12 @@ export function StoreHeader({
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:h-16">
         <a href="#top" className="flex min-w-0 items-center gap-2.5">
           {logoUrl ? (
-            <img
+            <Image
               src={logoUrl}
               alt=""
-              decoding="async"
+              width={64}
+              height={64}
+              sizes="(max-width: 640px) 32px, 36px"
               className="size-8 shrink-0 rounded-lg object-cover ring-1 ring-white/25 sm:size-9"
             />
           ) : (

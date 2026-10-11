@@ -4,6 +4,7 @@
 'use client';
 
 import { Check, Loader2, MessageCircle, Minus, Package, Plus } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -226,11 +227,12 @@ export function CheckoutDialog({
                   className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3"
                 >
                   {item.imageUrl ? (
-                    <img
+                    <Image
                       src={item.imageUrl}
                       alt=""
-                      loading="lazy"
-                      decoding="async"
+                      width={64}
+                      height={64}
+                      sizes="48px"
                       className="size-12 shrink-0 rounded-lg border border-border bg-muted object-cover"
                     />
                   ) : (

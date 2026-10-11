@@ -8,6 +8,7 @@
 'use client';
 
 import { ChevronDown, MessageCircle, Tag } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 import { BasketBar } from '@/components/custom/storefront/basket-bar';
 import { CheckoutDialog } from '@/components/custom/storefront/checkout-dialog';
@@ -99,12 +100,13 @@ export function Storefront({
           </div>
           {store.bannerUrl && (
             <div className="relative h-44 w-full overflow-hidden bg-black/25 sm:h-60">
-              <img
+              <Image
                 src={store.bannerUrl}
                 alt=""
-                decoding="async"
-                fetchPriority="high"
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 72rem) 100vw, 1152px"
+                className="object-cover"
               />
               <div
                 aria-hidden
@@ -114,10 +116,12 @@ export function Storefront({
           )}
           <div className="relative p-6 sm:p-10">
             {store.logoUrl && (
-              <img
+              <Image
                 src={store.logoUrl}
                 alt=""
-                decoding="async"
+                width={512}
+                height={512}
+                sizes="(max-width: 640px) 80px, 96px"
                 className={`relative object-cover shadow-xl ring-1 ring-white/25 ${
                   store.bannerUrl
                     ? '-mt-20 mb-4 size-20 sm:-mt-24 sm:size-24 rounded-2xl'
@@ -201,11 +205,12 @@ export function Storefront({
                     className="lift flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xs"
                   >
                     {promo.imageUrl && (
-                      <img
+                      <Image
                         src={promo.imageUrl}
                         alt=""
-                        loading="lazy"
-                        decoding="async"
+                        width={1200}
+                        height={675}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="aspect-[16/9] w-full border-b border-border object-cover"
                       />
                     )}
