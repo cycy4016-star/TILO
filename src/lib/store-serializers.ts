@@ -1,6 +1,12 @@
 // Shared server-side serializers for the store API. Single source of truth so
 // every route emits the same StorePayload/StoreItemRecord shape (including the
-// hasLogo/hasImage flags that mirror whether image bytes exist in the DB).
+// hasLogo/hasImage flags that mirror whether an image is attached).
+//
+// Presence is read from the companion `*Mime` column — always written together
+// with the bytes — so no list query ever selects the `bytea` image columns.
+// Before this, /api/store and the public storefront loaded every photo in the
+// shop into Node just to test `!= null`, which made every page view O(total
+// photo bytes) in Postgres transfer alone.
 import 'server-only';
 
 import { Prisma } from '@prisma/client';
@@ -9,11 +15,6 @@ import { PromotionRecord } from '@/lib/contracts/promotion';
 import { AppearanceKey, StoreItemRecord, StorePayload, ThemeKey } from '@/lib/contracts/store';
 import { normalizeAppearance, normalizeTheme } from '@/lib/theme';
 
-// Canonical include every route must use when returning a StorePayload:
-// without `categories` (and its item count) serializeStore() cannot parse the
-// row. Built with Prisma.validator so spreading it into a find/create/update
-// call still selects the right overload — a plain `satisfies` const would
-// collapse those calls to the no-include signature.
 const ITEM_ORDER: Prisma.StoreItemOrderByWithRelationInput[] = [
   { sortOrder: 'asc' },
   { name: 'asc' },
@@ -24,13 +25,89 @@ const CATEGORY_ORDER: Prisma.ProductCategoryOrderByWithRelationInput[] = [
   { name: 'asc' },
 ];
 
-export const storeInclude = Prisma.validator<Prisma.StoreDefaultArgs>()({
-  include: {
-    items: { orderBy: ITEM_ORDER },
-    categories: { orderBy: CATEGORY_ORDER, include: { _count: { select: { items: true } } } },
-  },
-});
+// Every scalar the contracts read, minus the bytea columns.
+export const ITEM_SELECT = {
+  id: true,
+  storeId: true,
+  categoryId: true,
+  kind: true,
+  name: true,
+  description: true,
+  pricePesewas: true,
+  costPricePesewas: true,
+  compareAtPricePesewas: true,
+  sortOrder: true,
+  active: true,
+  imageMime: true,
+  stock: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.StoreItemSelect;
 
+export const CATEGORY_SELECT = {
+  id: true,
+  storeId: true,
+  name: true,
+  sortOrder: true,
+  active: true,
+  icon: true,
+  coverMime: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.ProductCategorySelect;
+
+// serializeCategory() reads itemCount from Prisma's `_count`, so every route
+// that returns a category uses this variant.
+export const CATEGORY_SELECT_WITH_COUNT = {
+  ...CATEGORY_SELECT,
+  _count: { select: { items: true } },
+} satisfies Prisma.ProductCategorySelect;
+
+export const PROMOTION_SELECT = {
+  id: true,
+  storeId: true,
+  name: true,
+  code: true,
+  kind: true,
+  value: true,
+  minSubtotalPesewas: true,
+  active: true,
+  startsAt: true,
+  endsAt: true,
+  itemIds: true,
+  categoryIds: true,
+  imageMime: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.PromotionSelect;
+
+export const STORE_SELECT = {
+  id: true,
+  name: true,
+  slug: true,
+  tagline: true,
+  description: true,
+  promoBanner: true,
+  contactPhone: true,
+  active: true,
+  theme: true,
+  appearance: true,
+  logoMime: true,
+  bannerMime: true,
+  createdAt: true,
+  updatedAt: true,
+  items: { orderBy: ITEM_ORDER, select: ITEM_SELECT },
+  categories: { orderBy: CATEGORY_ORDER, select: CATEGORY_SELECT_WITH_COUNT },
+} satisfies Prisma.StoreSelect;
+
+// Canonical args every route must use when returning a StorePayload: without
+// `categories` (and its item count) serializeStore() cannot parse the row.
+// Built with Prisma.validator so spreading it into a find/create/update call
+// still selects the right overload.
+export const storeSelect = Prisma.validator<Prisma.StoreDefaultArgs>()({ select: STORE_SELECT });
+
+// Row shapes: exactly what the selects above return — scalars + the *Mime
+// presence flag, never the bytea columns.
 export type StoreItemRow = {
   id: string;
   storeId: string;
@@ -45,7 +122,7 @@ export type StoreItemRow = {
   compareAtPricePesewas: number | null;
   sortOrder: number;
   active: boolean;
-  image: Uint8Array | null;
+  imageMime: string | null;
   stock: number | null;
   createdAt: Date;
   updatedAt: Date;
@@ -58,7 +135,7 @@ export type CategoryRow = {
   sortOrder: number;
   active: boolean;
   icon: string | null;
-  cover: Uint8Array | null;
+  coverMime: string | null;
   // Prisma `_count: { select: { items: true } }` — how many products sit here.
   _count?: { items: number };
   createdAt: Date;
@@ -76,8 +153,8 @@ export type StoreRow = {
   active: boolean;
   theme: string;
   appearance: string;
-  logo: Uint8Array | null;
-  banner: Uint8Array | null;
+  logoMime: string | null;
+  bannerMime: string | null;
   createdAt: Date;
   updatedAt: Date;
   categories: CategoryRow[];
@@ -97,7 +174,7 @@ export type PromotionRow = {
   endsAt: Date | null;
   itemIds: string[];
   categoryIds: string[];
-  image: Uint8Array | null;
+  imageMime: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -116,7 +193,7 @@ export function serializeStoreItem(item: StoreItemRow) {
     sortOrder: item.sortOrder,
     active: item.active,
     stock: item.stock,
-    hasImage: item.image != null,
+    hasImage: item.imageMime != null,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   });
@@ -133,7 +210,7 @@ export function serializeCategory(category: CategoryRow) {
     sortOrder: category.sortOrder,
     active: category.active,
     icon: category.icon,
-    hasCover: category.cover != null,
+    hasCover: category.coverMime != null,
     itemCount: category._count?.items ?? 0,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
@@ -154,7 +231,7 @@ export function serializePromotion(promotion: PromotionRow) {
     endsAt: promotion.endsAt ? promotion.endsAt.toISOString() : null,
     itemIds: promotion.itemIds,
     categoryIds: promotion.categoryIds,
-    hasImage: promotion.image != null,
+    hasImage: promotion.imageMime != null,
     createdAt: promotion.createdAt.toISOString(),
     updatedAt: promotion.updatedAt.toISOString(),
   });
@@ -174,8 +251,8 @@ export function serializeStore(store: StoreRow) {
     active: store.active,
     theme,
     appearance,
-    hasLogo: store.logo != null,
-    hasBanner: store.banner != null,
+    hasLogo: store.logoMime != null,
+    hasBanner: store.bannerMime != null,
     createdAt: store.createdAt.toISOString(),
     updatedAt: store.updatedAt.toISOString(),
     categories: store.categories.map(serializeCategory),

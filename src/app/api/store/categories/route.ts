@@ -8,13 +8,13 @@ import { isCategoryIcon } from '@/lib/category-icons';
 import { CategoryCreate, CategoryList } from '@/lib/contracts/category';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeCategory } from '@/lib/store-serializers';
+import { CATEGORY_SELECT_WITH_COUNT, serializeCategory } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
 // Matches the item ordering so the manager's shelf list and the catalogue it
 // groups agree on where a new heading lands.
-const includeWithCount = { include: { _count: { select: { items: true } } } } as const;
+const selectWithCount = { select: CATEGORY_SELECT_WITH_COUNT } as const;
 
 export async function GET(request: Request) {
   try {
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const categories = await prisma.productCategory.findMany({
       where: { storeId: store.id },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      ...includeWithCount,
+      ...selectWithCount,
     });
     return NextResponse.json(CategoryList.parse({ items: categories.map(serializeCategory) }));
   } catch (error) {
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
         active: parsed.data.active,
         icon: parsed.data.icon ?? null,
       },
-      ...includeWithCount,
+      ...selectWithCount,
     });
     return NextResponse.json(serializeCategory(category), { status: 201 });
   } catch (error) {

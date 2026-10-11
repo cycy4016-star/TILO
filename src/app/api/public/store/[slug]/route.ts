@@ -18,10 +18,32 @@ export async function GET(_request: Request, context: RouteContext) {
     const now = new Date();
     const store = await prisma.store.findFirst({
       where: { slug, active: true },
-      include: {
+      // Scalars + the *Mime presence flags only. Pulling the bytea columns here
+      // used to load every photo in the shop into Node just to build URL
+      // strings — the single biggest cost on every storefront view.
+      select: {
+        name: true,
+        slug: true,
+        tagline: true,
+        description: true,
+        promoBanner: true,
+        contactPhone: true,
+        theme: true,
+        appearance: true,
+        updatedAt: true,
+        logoMime: true,
+        bannerMime: true,
         categories: {
           where: { active: true },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+          select: {
+            id: true,
+            name: true,
+            sortOrder: true,
+            icon: true,
+            updatedAt: true,
+            coverMime: true,
+          },
         },
         items: {
           // Live products only. An item also drops out when its shelf is
@@ -32,6 +54,18 @@ export async function GET(_request: Request, context: RouteContext) {
             OR: [{ categoryId: null }, { category: { active: true } }],
           },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+          select: {
+            id: true,
+            kind: true,
+            name: true,
+            description: true,
+            categoryId: true,
+            pricePesewas: true,
+            compareAtPricePesewas: true,
+            stock: true,
+            updatedAt: true,
+            imageMime: true,
+          },
         },
         promotions: {
           where: {
@@ -42,6 +76,20 @@ export async function GET(_request: Request, context: RouteContext) {
             ],
           },
           orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            kind: true,
+            value: true,
+            minSubtotalPesewas: true,
+            startsAt: true,
+            endsAt: true,
+            itemIds: true,
+            categoryIds: true,
+            updatedAt: true,
+            imageMime: true,
+          },
         },
       },
     });
@@ -55,12 +103,14 @@ export async function GET(_request: Request, context: RouteContext) {
         description: store.description,
         promoBanner: store.promoBanner,
         contactPhone: store.contactPhone,
-        logoUrl: store.logo
-          ? `/api/public/store/${store.slug}/logo?t=${store.updatedAt.getTime()}`
-          : null,
-        bannerUrl: store.banner
-          ? `/api/public/store/${store.slug}/banner?t=${store.updatedAt.getTime()}`
-          : null,
+        logoUrl:
+          store.logoMime != null
+            ? `/api/public/store/${store.slug}/logo?t=${store.updatedAt.getTime()}`
+            : null,
+        bannerUrl:
+          store.bannerMime != null
+            ? `/api/public/store/${store.slug}/banner?t=${store.updatedAt.getTime()}`
+            : null,
         theme: ThemeKey.parse(normalizeTheme(store.theme)),
         appearance: AppearanceKey.parse(normalizeAppearance(store.appearance)),
         categories: store.categories.map((category) => ({
@@ -68,9 +118,10 @@ export async function GET(_request: Request, context: RouteContext) {
           name: category.name,
           sortOrder: category.sortOrder,
           icon: category.icon,
-          coverUrl: category.cover
-            ? `/api/public/store/categories/${category.id}/image?t=${category.updatedAt.getTime()}`
-            : null,
+          coverUrl:
+            category.coverMime != null
+              ? `/api/public/store/categories/${category.id}/image?t=${category.updatedAt.getTime()}`
+              : null,
         })),
         items: store.items.map((item) => ({
           id: item.id,
@@ -81,9 +132,10 @@ export async function GET(_request: Request, context: RouteContext) {
           pricePesewas: item.pricePesewas,
           compareAtPricePesewas: item.compareAtPricePesewas,
           stock: item.stock,
-          imageUrl: item.image
-            ? `/api/public/store/items/${item.id}/image?t=${item.updatedAt.getTime()}`
-            : null,
+          imageUrl:
+            item.imageMime != null
+              ? `/api/public/store/items/${item.id}/image?t=${item.updatedAt.getTime()}`
+              : null,
         })),
         promotions: store.promotions.map((promotion) => ({
           name: promotion.name,
@@ -95,9 +147,10 @@ export async function GET(_request: Request, context: RouteContext) {
           endsAt: promotion.endsAt ? promotion.endsAt.toISOString() : null,
           itemIds: promotion.itemIds,
           categoryIds: promotion.categoryIds,
-          imageUrl: promotion.image
-            ? `/api/public/store/promotions/${promotion.id}/image?t=${promotion.updatedAt.getTime()}`
-            : null,
+          imageUrl:
+            promotion.imageMime != null
+              ? `/api/public/store/promotions/${promotion.id}/image?t=${promotion.updatedAt.getTime()}`
+              : null,
         })),
       }),
     );

@@ -7,11 +7,11 @@ import { NextResponse } from 'next/server';
 import { StoreUpsert } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStore, storeInclude } from '@/lib/store-serializers';
+import { serializeStore, storeSelect } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
-type StoreWithItems = Prisma.StoreGetPayload<typeof storeInclude>;
+type StoreWithItems = Prisma.StoreGetPayload<typeof storeSelect>;
 
 export async function GET(request: Request) {
   try {
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     // findFirst, which would hand the caller whichever shop happened to be first.
     const store = await prisma.store.findUnique({
       where: { userId: user.id },
-      ...storeInclude,
+      ...storeSelect,
     });
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
 
@@ -51,7 +51,7 @@ export async function PUT(request: Request) {
         ? await prisma.store.update({
             where: { id: existing.id },
             data,
-            ...storeInclude,
+            ...storeSelect,
           })
         : await prisma.store.create({
             // One storefront per account: userId is stamped from the session and
@@ -59,7 +59,7 @@ export async function PUT(request: Request) {
             // Corporate default: a store created without an explicit theme
             // ships slate (the DB default predates the unification).
             data: { theme: 'slate', ...data, userId: user.id },
-            ...storeInclude,
+            ...storeSelect,
           });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

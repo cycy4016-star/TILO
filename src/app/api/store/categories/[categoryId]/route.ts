@@ -14,13 +14,13 @@ import { CategoryUpdate } from '@/lib/contracts/category';
 import { prisma } from '@/lib/db';
 import { requireOwnedCategory } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeCategory } from '@/lib/store-serializers';
+import { CATEGORY_SELECT_WITH_COUNT, serializeCategory } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ categoryId: string }> };
 
-const includeWithCount = { include: { _count: { select: { items: true } } } } as const;
+const selectWithCount = { select: CATEGORY_SELECT_WITH_COUNT } as const;
 
 // Build a Prisma data object that only touches keys the client actually sent.
 function dataFromInput(input: z.output<typeof CategoryUpdate>): Prisma.ProductCategoryUpdateInput {
@@ -67,7 +67,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const updated = await prisma.productCategory.update({
       where: { id: categoryId },
       data: dataFromInput(parsed.data),
-      ...includeWithCount,
+      ...selectWithCount,
     });
     return NextResponse.json(serializeCategory(updated));
   } catch (error) {

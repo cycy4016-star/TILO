@@ -15,8 +15,9 @@ function row(overrides: Record<string, unknown> = {}) {
     name: 'Test Shop',
     slug: 'test-shop',
     contactPhone: '024 000 0000',
-    logo: null,
-    banner: new Uint8Array([1]),
+    // The status check reads the *Mime presence flags, never the bytea blobs.
+    logoMime: null,
+    bannerMime: 'image/webp',
     socials: [{ id: 'social-1' }],
     ...overrides,
   };
@@ -52,7 +53,7 @@ describe('onboarding gate', () => {
   });
 
   it('needs a logo or a banner', async () => {
-    db.prisma.store.findUnique.mockResolvedValue(row({ logo: null, banner: null }));
+    db.prisma.store.findUnique.mockResolvedValue(row({ logoMime: null, bannerMime: null }));
     const status = await getOnboardingStatus('user-1');
     expect(status.hasVisual).toBe(false);
     expect(status.complete).toBe(false);

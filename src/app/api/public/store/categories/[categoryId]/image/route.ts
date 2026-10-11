@@ -4,12 +4,13 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { imageCacheHeaders, notModified } from '@/lib/image-response';
 
 export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ categoryId: string }> };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   try {
     const { categoryId } = await context.params;
     const category = await prisma.productCategory.findFirst({
@@ -19,10 +20,12 @@ export async function GET(_request: Request, context: RouteContext) {
     if (!category || !category.cover) {
       return NextResponse.json({ error: 'Cover not found' }, { status: 404 });
     }
+    const fresh = notModified(request, category.updatedAt);
+    if (fresh) return fresh;
     return new Response(category.cover, {
       headers: {
         'content-type': category.coverMime ?? 'image/jpeg',
-        'cache-control': 'public, max-age=86400',
+        ...imageCacheHeaders(category.updatedAt),
       },
     });
   } catch (error) {

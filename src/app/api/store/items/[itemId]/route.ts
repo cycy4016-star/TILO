@@ -6,7 +6,7 @@ import { StoreItemUpdate } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireOwnCategoryId, requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStoreItem } from '@/lib/store-serializers';
+import { ITEM_SELECT, serializeStoreItem } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +31,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     // A PATCH may move the product to another shelf — that shelf must also be
     // this shop's, or the write would link across tenants.
     await requireOwnCategoryId(item.storeId, parsed.data.categoryId);
-    const updated = await prisma.storeItem.update({ where: { id: itemId }, data: parsed.data });
+    const updated = await prisma.storeItem.update({
+      where: { id: itemId },
+      data: parsed.data,
+      select: ITEM_SELECT,
+    });
     return NextResponse.json(serializeStoreItem(updated));
   } catch (error) {
     if (error instanceof Response) return error;

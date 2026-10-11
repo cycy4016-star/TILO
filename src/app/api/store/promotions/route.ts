@@ -7,7 +7,7 @@ import { PromotionCreate, PromotionList } from '@/lib/contracts/promotion';
 import { prisma } from '@/lib/db';
 import { dateOnlyToDate } from '@/lib/promotions';
 import { requireAuth } from '@/lib/require-auth';
-import { serializePromotion } from '@/lib/store-serializers';
+import { PROMOTION_SELECT, serializePromotion } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     const promotions = await prisma.promotion.findMany({
       where: { storeId: store.id },
       orderBy: [{ active: 'desc' }, { createdAt: 'desc' }],
+      select: PROMOTION_SELECT,
     });
     return NextResponse.json(PromotionList.parse({ items: promotions.map(serializePromotion) }));
   } catch (error) {
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
         itemIds: parsed.data.itemIds,
         categoryIds: parsed.data.categoryIds,
       },
+      select: PROMOTION_SELECT,
     });
     return NextResponse.json(serializePromotion(promotion), { status: 201 });
   } catch (error) {

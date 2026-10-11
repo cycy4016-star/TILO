@@ -9,7 +9,7 @@ import { prisma } from '@/lib/db';
 import { requireOwnedStoreChild } from '@/lib/ownership';
 import { dateOnlyToDate } from '@/lib/promotions';
 import { requireAuth } from '@/lib/require-auth';
-import { serializePromotion } from '@/lib/store-serializers';
+import { PROMOTION_SELECT, serializePromotion } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,6 +50,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const promotion = await prisma.promotion.update({
       where: { id: promoId },
       data: dataFromInput(parsed.data),
+      select: PROMOTION_SELECT,
     });
     return NextResponse.json(serializePromotion(promotion));
   } catch (error) {

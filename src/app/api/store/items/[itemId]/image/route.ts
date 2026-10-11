@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
 import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStoreItem } from '@/lib/store-serializers';
+import { ITEM_SELECT, serializeStoreItem } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +33,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const item = await prisma.storeItem.update({
       where: { id: itemId },
       data: { image: image.bytes, imageMime: image.mime },
+      select: ITEM_SELECT,
     });
     return NextResponse.json(serializeStoreItem(item));
   } catch (error) {
@@ -50,6 +51,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     const item = await prisma.storeItem.update({
       where: { id: itemId },
       data: { image: null, imageMime: null },
+      select: ITEM_SELECT,
     });
     return NextResponse.json(serializeStoreItem(item));
   } catch (error) {

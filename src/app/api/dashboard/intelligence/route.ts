@@ -31,12 +31,9 @@ export async function GET(request: Request) {
 
     const monthStart = startOfMonth();
     // Tenancy: the balance sheet is built from the caller's own store and
-    // orders only. The catalog is reached through their Store row so a shop can
-    // never be measured against a rival's stock.
-    const store = await prisma.store.findUnique({
-      where: { userId: user.id },
-      select: { id: true },
-    });
+    // orders only. The catalog is reached through the Store.userId relation, so
+    // one round trip serves both tenancy and the listing — no separate
+    // store-id lookup sitting in front of the parallel batch.
     const [outstanding, moneyIn, catalog, lines] = await Promise.all([
       prisma.order.aggregate({
         where: { ...OUTSTANDING_WHERE, userId: user.id },
@@ -49,7 +46,7 @@ export async function GET(request: Request) {
         _count: true,
       }),
       prisma.storeItem.findMany({
-        where: { storeId: store?.id ?? '', active: true },
+        where: { store: { userId: user.id }, active: true },
         select: { id: true, name: true, pricePesewas: true, costPricePesewas: true },
       }),
       prisma.orderLineItem.findMany({

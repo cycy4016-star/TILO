@@ -67,6 +67,9 @@ model Order {
   @@index([status])
   @@index([orderNumber])
   @@index([paidAt])
+  // Global time ranges (admin overview's "orders this month") filter on bare
+  // createdAt — the per-user variants above cannot serve those.
+  @@index([createdAt])
 }
 
 // A productized line on an order. The name, unit price and unit cost are

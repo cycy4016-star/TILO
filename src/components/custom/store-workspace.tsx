@@ -1259,8 +1259,14 @@ export function StoreWorkspace() {
 
   async function refreshStore() {
     try {
-      setStore(await apiFetch('/api/store', { schema: StorePayload }));
-      setPromotions((await apiFetch('/api/store/promotions', { schema: PromotionList })).items);
+      // Both reads hit the same catalogue from different routes; running them
+      // together halves the wait after every edit.
+      const [nextStore, promotions] = await Promise.all([
+        apiFetch('/api/store', { schema: StorePayload }),
+        apiFetch('/api/store/promotions', { schema: PromotionList }),
+      ]);
+      setStore(nextStore);
+      setPromotions(promotions.items);
     } catch {
       toast.error('Could not refresh the catalogue');
     }

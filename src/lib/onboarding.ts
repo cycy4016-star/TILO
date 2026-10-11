@@ -19,12 +19,15 @@ export type OnboardingStatus = {
 export async function getOnboardingStatus(userId: string): Promise<OnboardingStatus> {
   const store = await prisma.store.findUnique({
     where: { userId },
+    // The mime columns are written together with the bytes, so they answer
+    // "is there a visual?" without dragging the bytea blobs through Postgres
+    // on every dashboard navigation.
     select: {
       name: true,
       slug: true,
       contactPhone: true,
-      logo: true,
-      banner: true,
+      logoMime: true,
+      bannerMime: true,
       socials: { select: { id: true } },
     },
   });
@@ -32,7 +35,7 @@ export async function getOnboardingStatus(userId: string): Promise<OnboardingSta
   const digits = (store?.contactPhone ?? '').replace(/\D/g, '');
   const hasPhone = digits.length >= 9;
   const hasSocials = (store?.socials.length ?? 0) > 0;
-  const hasVisual = Boolean(store && (store.logo != null || store.banner != null));
+  const hasVisual = Boolean(store && (store.logoMime != null || store.bannerMime != null));
   // Socials stay in the status payload (Settings and the wizard read them) but
   // are intentionally absent from `complete` — a shop with no socials yet is
   // still live and orderable, so it must not bounce back into setup.

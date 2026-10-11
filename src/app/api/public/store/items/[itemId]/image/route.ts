@@ -5,23 +5,26 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { imageCacheHeaders, notModified } from '@/lib/image-response';
 
 export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ itemId: string }> };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   try {
     const { itemId } = await context.params;
     const item = await prisma.storeItem.findUnique({
       where: { id: itemId },
-      select: { image: true, imageMime: true },
+      select: { image: true, imageMime: true, updatedAt: true },
     });
     if (!item?.image) return NextResponse.json({ error: 'Image not found' }, { status: 404 });
+    const fresh = notModified(request, item.updatedAt);
+    if (fresh) return fresh;
     return new Response(item.image, {
       headers: {
         'content-type': item.imageMime ?? 'image/jpeg',
-        'cache-control': 'public, max-age=86400',
+        ...imageCacheHeaders(item.updatedAt),
       },
     });
   } catch (error) {

@@ -82,6 +82,15 @@ export async function POST(request: Request, context: RouteContext) {
         // Hiding a shelf hides its products everywhere, ordering included.
         OR: [{ categoryId: null }, { category: { active: true } }],
       },
+      // Price, cost, stock and name are all the order path reads — the photo
+      // bytes stay in Postgres.
+      select: {
+        id: true,
+        name: true,
+        pricePesewas: true,
+        costPricePesewas: true,
+        stock: true,
+      },
     });
     const byId = new Map(found.map((row) => [row.id, row]));
     if (requested.some((id) => !byId.has(id))) {

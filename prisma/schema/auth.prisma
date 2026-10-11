@@ -59,6 +59,9 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
+  // better-auth looks sessions up by user on sign-out / list; the FK had no
+  // index of its own, so every cascade delete scanned the table.
+  @@index([userId])
   @@map("session")
 }
 
@@ -78,6 +81,7 @@ model Account {
   createdAt             DateTime
   updatedAt             DateTime
 
+  @@index([userId])
   @@map("account")
 }
 

@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStore, storeInclude } from '@/lib/store-serializers';
+import { serializeStore, storeSelect } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +30,7 @@ export async function PUT(request: Request) {
     const updated = await prisma.store.update({
       where: { id: store.id },
       data: { logo: image.bytes, logoMime: image.mime },
-      ...storeInclude,
+      ...storeSelect,
     });
     return NextResponse.json(serializeStore(updated));
   } catch (error) {
@@ -49,7 +49,7 @@ export async function DELETE(request: Request) {
     const updated = await prisma.store.update({
       where: { id: store.id },
       data: { logo: null, logoMime: null },
-      ...storeInclude,
+      ...storeSelect,
     });
     return NextResponse.json(serializeStore(updated));
   } catch (error) {

@@ -153,6 +153,13 @@ export async function POST(request: Request) {
       parsed.data.lines?.length && store
         ? await prisma.storeItem.findMany({
             where: { id: { in: parsed.data.lines.map((l) => l.storeItemId) }, storeId: store.id },
+            // Snapshot fields only — never the photo bytes.
+            select: {
+              id: true,
+              name: true,
+              pricePesewas: true,
+              costPricePesewas: true,
+            },
           })
         : [];
     const itemById = new Map(items.map((i) => [i.id, i]));

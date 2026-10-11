@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
 import { requireOwnedCategory } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeCategory } from '@/lib/store-serializers';
+import { CATEGORY_SELECT_WITH_COUNT, serializeCategory } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +33,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const category = await prisma.productCategory.update({
       where: { id: categoryId },
       data: { cover: image.bytes, coverMime: image.mime },
-      include: { _count: { select: { items: true } } },
+      select: CATEGORY_SELECT_WITH_COUNT,
     });
     return NextResponse.json(serializeCategory(category));
   } catch (error) {
@@ -51,7 +51,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     const category = await prisma.productCategory.update({
       where: { id: categoryId },
       data: { cover: null, coverMime: null },
-      include: { _count: { select: { items: true } } },
+      select: CATEGORY_SELECT_WITH_COUNT,
     });
     return NextResponse.json(serializeCategory(category));
   } catch (error) {

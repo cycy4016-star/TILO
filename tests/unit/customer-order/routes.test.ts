@@ -522,6 +522,7 @@ describe('store routes', () => {
     // Reached THROUGH the owner's store, so a guessed cuid can't be resolved.
     expect(db.prisma.storeItem.findFirst).toHaveBeenCalledWith({
       where: { id: 'item-1', store: { userId: 'staff-1' } },
+      select: { id: true, storeId: true, categoryId: true, name: true },
     });
     expect(db.prisma.storeItem.delete).not.toHaveBeenCalled();
   });

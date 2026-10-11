@@ -65,11 +65,19 @@ export async function requireOwnedStoreChild<T extends 'item' | 'promotion'>(
   id: string,
 ) {
   if (model === 'item') {
-    const row = await prisma.storeItem.findFirst({ where: { id, store: { userId } } });
+    // Select only the ownership keys callers actually read — never the item's
+    // photo bytes, which a tenancy check has no business loading.
+    const row = await prisma.storeItem.findFirst({
+      where: { id, store: { userId } },
+      select: { id: true, storeId: true, categoryId: true, name: true },
+    });
     if (!row) throw Response.json({ error: 'Item not found' }, { status: 404 });
     return row;
   }
-  const row = await prisma.promotion.findFirst({ where: { id, store: { userId } } });
+  const row = await prisma.promotion.findFirst({
+    where: { id, store: { userId } },
+    select: { id: true, storeId: true },
+  });
   if (!row) throw Response.json({ error: 'Promo not found' }, { status: 404 });
   return row;
 }
@@ -82,7 +90,10 @@ export async function requireOwnedStoreChild<T extends 'item' | 'promotion'>(
  * concrete row type (no union), so callers can read `name` / `storeId` freely.
  */
 export async function requireOwnedCategory(userId: string, id: string) {
-  const row = await prisma.productCategory.findFirst({ where: { id, store: { userId } } });
+  const row = await prisma.productCategory.findFirst({
+    where: { id, store: { userId } },
+    select: { id: true, storeId: true, name: true },
+  });
   if (!row) throw Response.json({ error: 'Category not found' }, { status: 404 });
   return row;
 }

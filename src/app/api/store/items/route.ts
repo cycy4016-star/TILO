@@ -7,7 +7,7 @@ import { StoreItemCreate, StoreItemList } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireOwnCategoryId } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
-import { serializeStoreItem } from '@/lib/store-serializers';
+import { ITEM_SELECT, serializeStoreItem } from '@/lib/store-serializers';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +25,7 @@ export async function GET(request: Request) {
     const items = await prisma.storeItem.findMany({
       where: { storeId: store.id },
       orderBy: ITEM_ORDER,
+      select: ITEM_SELECT,
     });
     return NextResponse.json(StoreItemList.parse({ items: items.map(serializeStoreItem) }));
   } catch (error) {
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
 
     const item = await prisma.storeItem.create({
       data: { ...parsed.data, storeId: store.id },
+      select: ITEM_SELECT,
     });
     return NextResponse.json(serializeStoreItem(item), { status: 201 });
   } catch (error) {
