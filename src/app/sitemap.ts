@@ -7,6 +7,15 @@ import { navItems } from '@/lib/nav';
 import { seoRoutes } from '@/lib/seo-routes';
 import { siteUrl } from '@/lib/site';
 
+// sitemap.ts is a special Route Handler that Next BAKES AT BUILD TIME by
+// default — and Railway's build sandbox cannot reach the Postgres private
+// network (the same P1001 that forced migrations to boot). Without this flag
+// seoRoutes()' shop query fails at build, its [] fallback gets frozen into the
+// artifact, and the sitemap ships with zero storefronts no matter how many
+// exist. Opting into per-request rendering means the shop list is read from the
+// live database on every crawl. Same flag every DB-backed route here uses.
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const seen = new Set<string>(['/']);
   const entries: MetadataRoute.Sitemap = [
