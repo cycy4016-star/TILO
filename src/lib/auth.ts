@@ -279,6 +279,19 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   trustedOrigins,
+  // Client IP for rate limiting. Railway's edge OVERWRITES X-Real-IP with the
+  // visitor's address (single value, not spoofable through the public edge),
+  // while X-Forwarded-For can carry a multi-hop chain — which better-auth's
+  // single-value check rejects, collapsing every visitor into one shared
+  // per-path bucket (the "could not determine a client IP" warning). Walk the
+  // headers in order: x-real-ip where the edge sets it, x-forwarded-for as the
+  // fallback for hosts that only provide that. Local dev resolves to
+  // 127.0.0.1 regardless (isDevelopment fallback in better-auth's getIp).
+  advanced: {
+    ipAddress: {
+      ipAddressHeaders: ['x-real-ip', 'x-forwarded-for'],
+    },
+  },
   // Better Auth's verification callback can write the pre-verification user to
   // its cookie cache. Always read authorization state from the session store.
   session: {
