@@ -3,8 +3,8 @@
 // Railway's build sandbox has no private-network route to the database
 // (tilo-db.railway.internal is only resolvable between running services), so a
 // migrate-during-build fails with P1001 even when the deploy itself is fine.
-// Migrations are authoritative at BOOT — `prestart` and railway.toml's
-// startCommand run the real `prisma migrate deploy` when the DB is reachable.
+// Migrations are authoritative at BOOT — `prestart` runs the real
+// `prisma migrate deploy` when the DB is reachable.
 //
 // This wrapper keeps build-time migrate useful where the DB IS reachable
 // (Render, local runs) but soft-skips ONLY unreachable-database failures.
