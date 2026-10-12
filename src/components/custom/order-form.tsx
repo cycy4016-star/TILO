@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import {
@@ -94,18 +95,22 @@ export function OrderForm({
             </FormItem>
           )}
         />
-        <FormItem>
-          <FormLabel className="text-small font-medium">Amount owed (cedis)</FormLabel>
-          <FormControl>
-            <Input
-              type="text"
-              inputMode="decimal"
-              placeholder="45.50 — optional, powers payment reminders"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-            />
-          </FormControl>
-        </FormItem>
+        {/* Uncontrolled local state, not a react-hook-form field: FormLabel and
+            FormControl both read a FormField context and throw without one, so
+            this row pairs a plain label with an explicit htmlFor/id. */}
+        <div className="space-y-2">
+          <Label htmlFor="amount-owed" className="text-small font-medium">
+            Amount owed (cedis)
+          </Label>
+          <Input
+            id="amount-owed"
+            type="text"
+            inputMode="decimal"
+            placeholder="45.50 — optional, powers payment reminders"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+          />
+        </div>
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}

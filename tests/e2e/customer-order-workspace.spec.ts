@@ -27,9 +27,20 @@ test('staff can create a Ghanaian SME customer, link an order, and update status
   await page.getByLabel('Email', { exact: true }).fill(fixture.email);
   await page.getByLabel('Phone', { exact: true }).fill(fixture.phone);
   await page.getByLabel('Where to find them').fill(fixture.address);
-  await page.getByRole('button', { name: /pin them up/i }).click();
+  // The trigger above and this submit both read "Add customer", so scope the
+  // click to the open dialog or strict mode sees two matches.
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /^add customer$/i })
+    .click();
 
-  await page.getByRole('link', { name: fixture.name }).click();
+  // The row and its WhatsApp shortcut share the customer name, so key on the
+  // detail-route href instead of the accessible name.
+  await page
+    .locator('a[href*="/dashboard/customers/"]')
+    .filter({ hasText: fixture.name })
+    .first()
+    .click();
   await expect(page.getByRole('heading', { name: fixture.name })).toBeVisible();
   await page.getByLabel('Order label or description').fill(fixture.order.description);
   await page.getByRole('button', { name: /create order/i }).click();
