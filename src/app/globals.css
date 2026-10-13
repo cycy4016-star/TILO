@@ -126,14 +126,15 @@
    --brand-h ALONE recolors the entire site. Keep values in range. */
 :root {
   --brand-h: 84; /* brand hue, 0–360 (oklch yellow — the Tilo colour) */
-  /* Chroma 0.16 (was 0.19) and lightness 0.74 (was 0.78): the old seed read as
-     highlighter yellow. The dialled-back seed keeps the hue at 84 (gold is the
-     Tilo signature) but lands on a warmer, deeper amber that survives being a
-     button fill with dark text on it. */
-  --brand-c: 0.16; /* brand chroma (saturation), 0–0.3 */
-  --brand-l: 0.74; /* lightness of the brand-500 step */
+  /* Chroma 0.21 / lightness 0.58 — a deep, saturated gold rather than the pale
+     amber the template shipped. The old 0.16/0.74 seed washed the whole
+     interface out: white cards on near-white, invisible borders, mid-grey
+     text and a soft amber accent, all derived from these same three numbers.
+     Hue stays 84 — gold is the Tilo signature; only its confidence changed. */
+  --brand-c: 0.21; /* brand chroma (saturation), 0–0.3 */
+  --brand-l: 0.58; /* lightness of the brand-500 step */
   /* 10px: buttons sit at 8px, cards at 14px — the crisp modern scale, replacing
-     the poster-round 1.1rem the template shipped with. */
+      the poster-round 1.1rem the template shipped with. */
   --radius: 0.625rem; /* corner roundness — cascades to every primitive */
 
   /* Set by next/font on <html> (src/lib/fonts.ts). The stacks after the comma
@@ -299,7 +300,12 @@
   --brand-800: oklch(calc(var(--brand-l) - 0.24) calc(var(--brand-c) * 0.75) var(--brand-h));
   --brand-900: oklch(calc(var(--brand-l) - 0.32) calc(var(--brand-c) * 0.55) var(--brand-h));
 
-  --background: oklch(0.985 0.022 var(--brand-h));
+  /* Surfaces. These three lines sit outside the seed slot because no dial can
+     reach them: the original formulas pinned --border to chroma 0.008 and
+     --background to 0.985, which produced near-white cards on near-white
+     ground with a hairline nobody could see. The tint is what makes a card
+     read as raised, and the hairline is what makes a card read as a card. */
+  --background: oklch(0.972 0.014 var(--brand-h));
   --foreground: oklch(0.18 0.01 var(--brand-h));
   --card: oklch(1 0.002 var(--brand-h));
   --card-foreground: var(--foreground);
@@ -307,15 +313,15 @@
   --popover-foreground: var(--foreground);
   --primary: var(--brand-600);
   --primary-foreground: oklch(0.99 0.01 var(--brand-h));
-  --secondary: oklch(0.96 0.006 var(--brand-h));
+  --secondary: oklch(0.955 0.008 var(--brand-h));
   --secondary-foreground: oklch(0.25 0.02 var(--brand-h));
-  --muted: oklch(0.96 0.006 var(--brand-h));
-  --muted-foreground: oklch(0.5 0.02 var(--brand-h));
-  --accent: oklch(0.96 0.006 var(--brand-h));
+  --muted: oklch(0.955 0.008 var(--brand-h));
+  --muted-foreground: oklch(0.44 0.025 var(--brand-h));
+  --accent: oklch(0.955 0.008 var(--brand-h));
   --accent-foreground: oklch(0.25 0.02 var(--brand-h));
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.008 var(--brand-h));
-  --input: oklch(0.9 0.008 var(--brand-h));
+  --border: oklch(0.875 0.022 var(--brand-h));
+  --input: oklch(0.875 0.022 var(--brand-h));
   --ring: var(--brand-500);
 
   --elevation-1: oklch(0.2 0.03 var(--brand-h) / 0.06);
