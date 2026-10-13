@@ -15,8 +15,12 @@ Two faces, loaded by `src/lib/fonts.ts`:
 
 | Role | Font | CSS |
 | --- | --- | --- |
-| Display — headings, wordmark | **Inter Tight** | `font-display` |
+| Display — headings, wordmark | **Bricolage Grotesque** | `font-display` |
 | Body — UI, running text | **Inter** | `font-body` (default on `<body>`) |
+
+Both are self-hosted by `next/font` at build time, so they are CSP-safe and
+there is no layout shift on load. `h1`–`h6` already default to the display
+face via the base rule in `custom-style.css`; `CardTitle` does too.
 
 **Use the type scale.** One class carries size + line-height + weight + tracking,
 so never compose `text-4xl font-bold leading-tight tracking-tight` by hand:
@@ -119,7 +123,26 @@ surface anymore (it survives only as dead branches behind the always-true
 - `border-amber-950`, `border-amber-700`
 - `font-black`, `text-outline-cream`, `animate-marquee`
 
-## 7. Hard constraints
+## 7. Primitives (`src/components/ui/`)
+
+shadcn base (new-york style) plus four refinements that carry most of the
+"this looks funded" weight. Reach for these before hand-rolling markup:
+
+| Primitive | Notes |
+| --- | --- |
+| `Button` | Every variant has hover **and** an active press (`motion-safe:active:scale-[0.98]`), a 2px focus ring with offset, and `shadow-xs`. Sizes: `sm` `default` `lg` `xl` `icon`. **`xl` is for marketing CTAs only** — an oversized button inside a dense toolbar reads as a bug. |
+| `Badge` | Adds `success` / `warning` / `info` / `neutral` status variants and a `dot` prop. Order, incident and feedback states all use these — do not invent a fifth colour recipe. |
+| `Card` | `rounded-xl border shadow-sm`. `CardTitle` is set in `font-display`. |
+| `EmptyState` | Icon + title + one line + the action that fills the void. Use it for **every** zero row — a bare "No results" is the fastest way to look unfinished. |
+| `Stat` | Metric tile: label, value, optional delta. `delta.tone` is chosen by the caller — "up" is not universally good. |
+
+Rules:
+- Status colours use the **raw palette** (emerald/amber/sky), not the derived
+  `--brand` ramp: success reads green whatever shop theme is active. Tints at
+  ~12% opacity so a column of chips stays quiet.
+- Never build a one-off empty state, metric tile or status chip inline.
+
+## 8. Hard constraints
 
 - **Do not edit** `src/app/globals.css` or `src/app/custom-style.css` — the
   foundation is set. If you think a token is wrong, say so in your report instead.

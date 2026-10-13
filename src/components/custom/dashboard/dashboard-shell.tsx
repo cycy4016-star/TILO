@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { signOut, useSession } from '@/lib/auth-client';
@@ -44,9 +45,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
   if (isPending) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-background px-5">
-        <p className="animate-pulse text-caption uppercase tracking-widest text-muted-foreground">
-          Loading…
-        </p>
+        <div className="flex flex-col items-center gap-3">
+          <TiloMark className="size-10" iconClassName="size-5" />
+          <p className="text-small text-muted-foreground">Loading…</p>
+        </div>
       </main>
     );
   }
@@ -56,9 +58,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
     // not a stable screen.
     return (
       <main className="flex min-h-dvh items-center justify-center bg-background px-5">
-        <p className="text-caption uppercase tracking-widest text-muted-foreground">
-          Signing you in…
-        </p>
+        <div className="flex flex-col items-center gap-3">
+          <TiloMark className="size-10" iconClassName="size-5" />
+          <p className="text-small text-muted-foreground">Signing you in…</p>
+        </div>
       </main>
     );
   }
@@ -96,9 +99,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </Popover>
             <AppearancePicker />
             <NotificationBell />
-            <span className="hidden rounded-full border border-border px-2.5 py-1 text-caption font-medium text-muted-foreground sm:block">
+            {/* The role chip is a status, so it wears the status primitive
+                rather than a one-off bordered pill. */}
+            <Badge variant="neutral" className="hidden sm:inline-flex">
               Owner
-            </span>
+            </Badge>
             <Button
               variant="ghost"
               size="sm"
@@ -130,10 +135,15 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <DashboardNav mobile />
         </nav>
         <aside className="hidden w-56 shrink-0 lg:block">
-          <p className="truncate px-3 pb-2 text-caption font-medium text-muted-foreground">
+          {/* Sidebar header: the account line is a label, and it needs to
+              separate from the nav below it — a hairline does that without
+              adding a card. */}
+          <p className="truncate border-b border-border px-3 pb-3 text-caption font-medium text-muted-foreground">
             {session.user.email ?? session.user.name ?? 'Account'}
           </p>
-          <DashboardNav />
+          <div className="pt-3">
+            <DashboardNav />
+          </div>
         </aside>
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-4 pb-24 lg:pt-0 lg:pb-6">

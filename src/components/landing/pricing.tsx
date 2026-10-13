@@ -96,7 +96,8 @@ export function Pricing() {
                   <Button
                     asChild
                     variant={plan.highlighted ? 'default' : 'outline'}
-                    className="mt-6 h-11 w-full rounded-md font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20"
+                    size="lg"
+                    className="mt-6 w-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20"
                   >
                     <Link href={plan.href}>{plan.cta}</Link>
                   </Button>

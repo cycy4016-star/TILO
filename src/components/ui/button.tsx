@@ -4,16 +4,26 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+// Precision pass. Three things separate a funded-product button from a
+// template one, and all three are missing from stock shadcn:
+//   1. A real FOCUS ring — 2px with an offset, so keyboard users can actually
+//      see where they are. A 1px hairline ring is invisible on a brand fill.
+//   2. A PRESSED state — the button compresses under the cursor. Without it
+//      the control feels like a picture of a button.
+//   3. Consistent ELEVATION — every fill carries shadow-xs, so buttons sit on
+//      the page instead of being painted onto it.
+// `transition` (not `transition-colors`) is deliberate: it is the property
+// list that includes transform, which the active scale needs.
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 motion-safe:active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
+        default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90',
         outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
+          'border border-border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
+        secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
       },
@@ -21,6 +31,9 @@ const buttonVariants = cva(
         default: 'h-9 px-4 py-2',
         sm: 'h-8 rounded-md px-3 text-xs',
         lg: 'h-10 rounded-md px-8',
+        // Marketing CTAs only. Dashboard controls stay at the default height —
+        // an oversized button inside a dense toolbar reads as a bug.
+        xl: 'h-12 rounded-lg px-8 text-base',
         icon: 'h-9 w-9',
       },
     },

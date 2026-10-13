@@ -14,9 +14,12 @@ export function Closing() {
     <section id="start" aria-label="Get started" className="scroll-mt-20 bg-background">
       <div className="container-page section">
         <Reveal>
-          <div className="overflow-hidden rounded-3xl bg-foreground px-6 py-14 text-center text-background shadow-2xl sm:px-12">
-            <p className="text-eyebrow text-primary">Your turn</p>
-            <h2 className="mx-auto mt-4 max-w-2xl break-words text-balance font-display text-3xl leading-tight sm:text-display">
+          <div className="overflow-hidden rounded-2xl bg-foreground px-6 py-14 text-center text-background shadow-2xl sm:px-12">
+            {/* Inverted band: the eyebrow token is brand-600, which does not
+                invert with the surface and goes muddy on near-black. Keep the
+                label treatment, swap the colour for one that holds contrast. */}
+            <p className="text-eyebrow text-background/70">Your turn</p>
+            <h2 className="mx-auto mt-4 max-w-2xl break-words text-balance font-display text-h2 sm:text-display">
               Put your shop up this afternoon.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-body-lg text-background/70">
@@ -26,7 +29,8 @@ export function Closing() {
             <div className="mt-8 flex justify-center">
               <Button
                 asChild
-                className="h-12 rounded-md px-8 font-semibold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+                size="xl"
+                className="font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
               >
                 <Link href={LANDING.hero.primary.href}>
                   {LANDING.hero.primary.label} <ArrowRight aria-hidden />

@@ -1,4 +1,5 @@
 // Tilo sign-up shell.
+import Link from 'next/link';
 import { SignUpForm } from '@/components/custom/sign-up-form';
 import { TiloMark } from '@/components/custom/tilo-mark';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +11,9 @@ export default function SignupPage() {
         <CardHeader className="space-y-2 pb-2 text-center">
           <TiloMark className="mx-auto size-12 rounded-xl shadow-brand" iconClassName="size-6" />
           <p className="text-eyebrow">New here</p>
-          <CardTitle className="font-display text-h1">Create your account</CardTitle>
+          {/* Card title, not page title — login uses text-h2, and the two
+              screens are structurally identical, so they share a scale step. */}
+          <CardTitle className="text-h2">Create your account</CardTitle>
           <CardDescription className="mt-2 text-small text-muted-foreground">
             Free to start — set up in minutes
           </CardDescription>
@@ -19,12 +22,12 @@ export default function SignupPage() {
           <SignUpForm />
           <p className="mt-6 text-center text-small text-muted-foreground">
             Already have an account?{' '}
-            <a
+            <Link
               href="/login"
               className="font-medium text-primary underline-offset-2 hover:underline"
             >
               Sign in
-            </a>
+            </Link>
           </p>
         </CardContent>
       </Card>

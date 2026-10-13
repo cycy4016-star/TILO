@@ -176,6 +176,31 @@ a.bg-primary {
 }
 
 /* ============================================================
+   Keyboard focus on the public shop
+   ------------------------------------------------------------
+   The base rule in globals.css swaps the UA outline for
+   `outline-ring/50` — a 1px hairline that is invisible against a
+   shop's themed surface. The storefront shipped with no
+   focus-visible styling at all across its eight components, so
+   every product card, quantity stepper, basket button and
+   checkout field lost its keyboard affordance entirely.
+
+   Two details matter:
+   - Scoped to [data-platform="store"], not global, so the
+     workspace keeps its own per-primitive ring treatment.
+   - Set with `outline`, not box-shadow. This file is imported
+     AFTER tailwindcss, so an unlayered rule here outranks the
+     utilities; a box-shadow would clobber each component's own
+     shadow while focused, whereas `outline` draws alongside it.
+   --ring and --background derive from the shop's own data-theme,
+   so the ring recolours with the store, not with Tilo.
+   ============================================================ */
+[data-platform="store"] :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ============================================================
    Reduced motion — never animate movement for those who opt out
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {

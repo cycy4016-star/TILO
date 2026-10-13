@@ -18,7 +18,12 @@ export function SocialProof() {
     <section aria-label="Social proof" className="border-y border-border bg-muted/40">
       <div className="container-page section">
         <Reveal>
-          <p className="text-center text-eyebrow">{LANDING.proof.line}</p>
+          {/* This is a sentence, not a label. `.text-eyebrow` uppercases and
+              tracks at 0.08em, which is right for "The toolkit" and wrong for
+              a full clause — set it as a lead line instead. */}
+          <p className="mx-auto max-w-[46ch] text-balance text-center text-body-lg text-muted-foreground">
+            {LANDING.proof.line}
+          </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             {PLATFORMS.map(({ label, Icon }) => (
               <li
@@ -41,9 +46,7 @@ export function SocialProof() {
                   comma={'comma' in stat && stat.comma}
                 />
               </p>
-              <p className="mt-1 text-caption uppercase tracking-widest text-muted-foreground">
-                {stat.label}
-              </p>
+              <p className="mt-1 text-eyebrow">{stat.label}</p>
             </Reveal>
           ))}
         </div>

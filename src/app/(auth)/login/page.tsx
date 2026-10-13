@@ -1,4 +1,5 @@
 // Tilo sign-in shell.
+import Link from 'next/link';
 import { SignInForm } from '@/components/custom/sign-in-form';
 import { TiloMark } from '@/components/custom/tilo-mark';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,12 +20,12 @@ export default function LoginPage() {
           <SignInForm />
           <p className="mt-6 text-center text-small text-muted-foreground">
             New around here?{' '}
-            <a
+            <Link
               href="/signup"
               className="font-medium text-primary underline-offset-2 hover:underline"
             >
               Create an account
-            </a>
+            </Link>
           </p>
         </CardContent>
       </Card>

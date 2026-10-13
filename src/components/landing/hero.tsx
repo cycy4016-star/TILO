@@ -73,13 +73,14 @@ export function Hero({ shop }: { shop: SampleShop }) {
                 {LANDING.hero.eyebrow}
               </p>
               <h1
-                className={`${ENTRANCE} mt-7 break-words text-balance font-display text-4xl leading-[1.08] sm:text-display`}
+                className={`${ENTRANCE} mt-7 break-words text-balance font-display text-h2 sm:text-display`}
                 style={{ animationDelay: '90ms' }}
               >
                 {LANDING.hero.titleA}{' '}
-                <span className="bg-gradient-to-r from-primary to-muted-foreground bg-clip-text text-transparent">
-                  {LANDING.hero.titleAccent}
-                </span>
+                {/* One key phrase in the accent, flat. A gradient that fades
+                    into muted-foreground greys the headline out — the accent
+                    has to hold contrast at every point of the string. */}
+                <span className="text-primary">{LANDING.hero.titleAccent}</span>
               </h1>
               <p
                 className={`${ENTRANCE} mt-6 max-w-[52ch] text-body-lg text-muted-foreground`}
@@ -93,7 +94,8 @@ export function Hero({ shop }: { shop: SampleShop }) {
               >
                 <Button
                   asChild
-                  className="h-11 w-full rounded-md px-7 font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 sm:w-auto"
+                  size="xl"
+                  className="w-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 sm:w-auto"
                 >
                   <Link href={LANDING.hero.primary.href}>
                     {LANDING.hero.primary.label} <ArrowRight aria-hidden />
@@ -102,7 +104,8 @@ export function Hero({ shop }: { shop: SampleShop }) {
                 <Button
                   asChild
                   variant="outline"
-                  className="h-11 w-full rounded-md border-border bg-background px-7 font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted sm:w-auto"
+                  size="xl"
+                  className="w-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted sm:w-auto"
                 >
                   <Link href={LANDING.hero.secondary.href}>{LANDING.hero.secondary.label}</Link>
                 </Button>
@@ -141,8 +144,9 @@ export function Hero({ shop }: { shop: SampleShop }) {
       >
         <Button
           asChild
+          size="xl"
           tabIndex={showCta ? 0 : -1}
-          className="h-12 w-full rounded-xl font-semibold shadow-xl"
+          className="w-full font-semibold shadow-lg"
         >
           <Link href={LANDING.hero.primary.href}>Get started free</Link>
         </Button>

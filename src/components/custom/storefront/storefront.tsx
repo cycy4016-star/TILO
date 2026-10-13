@@ -72,6 +72,10 @@ export function Storefront({
   return (
     <main
       id="top"
+      // Mirrors the dashboard's data-platform="app": a stable hook CSS can
+      // scope to. The public shop is themed per-store (data-theme below), so
+      // platform-specific rules must not leak into the workspace or vice versa.
+      data-platform="store"
       data-theme={store.theme}
       data-appearance={store.appearance}
       className="min-h-screen bg-background text-foreground"
