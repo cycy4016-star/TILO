@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { signOut, useSession } from '@/lib/auth-client';
+import { signOut, useIsAdmin, useSession } from '@/lib/auth-client';
 import { QuickAccessPanel } from '../assistive-menu';
 import { NotificationBell } from '../notification-bell';
 import { TiloMark } from '../tilo-mark';
@@ -22,6 +22,8 @@ export interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const { data: session, isPending } = useSession();
+  // Resolved only after isPending clears, so the chip is never stale.
+  const isAdmin = useIsAdmin();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [assistiveOpen, setAssistiveOpen] = useState(false);
@@ -100,9 +102,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <AppearancePicker />
             <NotificationBell />
             {/* The role chip is a status, so it wears the status primitive
-                rather than a one-off bordered pill. */}
+                rather than a one-off bordered pill. An operator owns no shop,
+                so "Owner" would be a lie for them. */}
             <Badge variant="neutral" className="hidden sm:inline-flex">
-              Owner
+              {isAdmin ? 'Operator' : 'Owner'}
             </Badge>
             <Button
               variant="ghost"
