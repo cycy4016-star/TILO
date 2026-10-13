@@ -10,6 +10,7 @@ import { requireOwnedStoreChild } from '@/lib/ownership';
 import { dateOnlyToDate } from '@/lib/promotions';
 import { requireAuth } from '@/lib/require-auth';
 import { PROMOTION_SELECT, serializePromotion } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,8 +55,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
     return NextResponse.json(serializePromotion(promotion));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -67,8 +67,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     await prisma.promotion.delete({ where: { id: promoId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

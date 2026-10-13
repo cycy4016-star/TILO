@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db';
 import { requireOwnCategoryId } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { ITEM_SELECT, serializeStoreItem } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,8 +30,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(StoreItemList.parse({ items: items.map(serializeStoreItem) }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -59,8 +59,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(serializeStoreItem(item), { status: 201 });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

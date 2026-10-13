@@ -1,12 +1,14 @@
 // Platform event search: the operator's Splunk-style feed. Merges the newest
-// order, SMS-ledger, payment and signup rows into one timestamped stream and
-// filters it by free text (`?q=`) and source (`?kind=`). Admin-only.
+// order, SMS-ledger, payment, signup, incident and feedback rows into one
+// timestamped stream and filters it by free text (`?q=`) and source
+// (`?kind=`). Admin-only.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { type OpsEvent, OpsEventKind, OpsEvents } from '@/lib/contracts/admin';
 import { prisma } from '@/lib/db';
 import { requireAdminUser } from '@/lib/require-admin-api';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +22,7 @@ export async function GET(request: Request) {
     const kindParam = params.get('kind')?.trim() ?? '';
     const kind = OpsEventKind.safeParse(kindParam).success ? kindParam : '';
 
-    const [orders, smsRows, payments, users] = await Promise.all([
+    const [orders, smsRows, payments, users, incidents, feedback] = await Promise.all([
       prisma.order.findMany({
         orderBy: { createdAt: 'desc' },
         take: 25,
@@ -72,6 +74,35 @@ export async function GET(request: Request) {
         take: 10,
         select: { id: true, name: true, phoneNumber: true, createdAt: true },
       }),
+      prisma.appLog.findMany({
+        orderBy: { lastSeenAt: 'desc' },
+        take: 15,
+        select: {
+          id: true,
+          summary: true,
+          message: true,
+          route: true,
+          method: true,
+          source: true,
+          count: true,
+          resolvedAt: true,
+          lastSeenAt: true,
+        },
+      }),
+      prisma.feedback.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 15,
+        select: {
+          id: true,
+          kind: true,
+          status: true,
+          message: true,
+          email: true,
+          createdAt: true,
+          store: { select: { name: true } },
+          customer: { select: { name: true } },
+        },
+      }),
     ]);
 
     const events: OpsEvent[] = [
@@ -121,6 +152,34 @@ export async function GET(request: Request) {
           ok: null,
         }),
       ),
+      ...incidents.map((incident): OpsEvent => {
+        const headline = incident.summary || incident.message;
+        const stats = `${incident.source === 'CLIENT' ? 'browser' : 'server'} · fired ×${incident.count}${
+          incident.resolvedAt ? ' · marked resolved' : ' · open'
+        }`;
+        return {
+          id: `error:${incident.id}`,
+          ts: incident.lastSeenAt.toISOString(),
+          kind: 'error',
+          shop: null,
+          summary: headline,
+          // The human message rides in the detail so it is both visible under
+          // the headline and reachable by the free-text search below.
+          detail: headline === incident.message ? stats : `${incident.message} · ${stats}`,
+          ok: Boolean(incident.resolvedAt),
+        };
+      }),
+      ...feedback.map(
+        (report): OpsEvent => ({
+          id: `feedback:${report.id}`,
+          ts: report.createdAt.toISOString(),
+          kind: 'feedback',
+          shop: report.store?.name ?? null,
+          summary: `${report.kind.toLowerCase()}: ${report.message}`,
+          detail: report.customer?.name ?? report.email ?? null,
+          ok: report.status === 'RESOLVED' ? true : report.status === 'NEW' ? false : null,
+        }),
+      ),
     ];
 
     const filtered = events
@@ -136,7 +195,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(OpsEvents.parse({ events: filtered, total: filtered.length }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

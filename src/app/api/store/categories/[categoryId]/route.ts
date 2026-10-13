@@ -15,6 +15,7 @@ import { prisma } from '@/lib/db';
 import { requireOwnedCategory } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { CATEGORY_SELECT_WITH_COUNT, serializeCategory } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,8 +72,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
     return NextResponse.json(serializeCategory(updated));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -96,8 +96,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     await prisma.productCategory.delete({ where: { id: categoryId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

@@ -41,6 +41,9 @@ model User {
   orders          Order[]
   store           Store?
   notifications   Notification[]
+  // Feedback filed against this shop (null-owner rows are platform-level and
+  // never appear here — they only surface in the admin panel).
+  feedback        Feedback[]
 
   @@unique([email])
   @@map("user")

@@ -11,14 +11,16 @@ const gate = vi.hoisted(() => ({ requireAdminUser: vi.fn() }));
 const db = vi.hoisted(() => ({
   prisma: {
     user: { count: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
-    store: { count: vi.fn() },
-    storeItem: { count: vi.fn(), aggregate: vi.fn() },
+    store: { count: vi.fn(), findMany: vi.fn() },
+    storeItem: { count: vi.fn(), aggregate: vi.fn(), findMany: vi.fn() },
     storeCategory: { count: vi.fn() },
-    customer: { count: vi.fn(), findMany: vi.fn() },
+    customer: { count: vi.fn(), findMany: vi.fn(), aggregate: vi.fn() },
     order: { count: vi.fn(), aggregate: vi.fn(), groupBy: vi.fn(), findMany: vi.fn() },
     orderLineItem: { findMany: vi.fn() },
     smsUsage: { count: vi.fn(), aggregate: vi.fn(), findMany: vi.fn() },
     paymentTransaction: { count: vi.fn(), findMany: vi.fn() },
+    appLog: { count: vi.fn(), aggregate: vi.fn(), findMany: vi.fn() },
+    feedback: { count: vi.fn(), findMany: vi.fn() },
   },
 }));
 
@@ -28,12 +30,22 @@ vi.mock('@/lib/db', () => db);
 beforeEach(() => {
   vi.clearAllMocks();
   gate.requireAdminUser.mockResolvedValue({ id: 'admin-1', role: 'admin' });
+  // The overview and events routes grew three new ledgers; give them empty
+  // defaults so every pre-existing test keeps its original shape.
+  db.prisma.storeItem.findMany.mockResolvedValue([]);
+  db.prisma.customer.findMany.mockResolvedValue([]);
+  db.prisma.customer.aggregate.mockResolvedValue({ _sum: { inquiryCount: 0 } });
+  db.prisma.appLog.count.mockResolvedValue(0);
+  db.prisma.appLog.aggregate.mockResolvedValue({ _sum: { count: 0 } });
+  db.prisma.appLog.findMany.mockResolvedValue([]);
+  db.prisma.feedback.count.mockResolvedValue(0);
+  db.prisma.feedback.findMany.mockResolvedValue([]);
 });
 
 describe('ops contracts', () => {
   it('parses a full overview payload and rejects negative totals', async () => {
     const { AdminOverview } = await import('@/lib/contracts/admin');
-    const day = { day: '2026-10-01', signups: 2, orders: 3 };
+    const day = { day: '2026-10-01', signups: 2, orders: 3, items: 1, inquiries: 4, errors: 0 };
     expect(
       AdminOverview.safeParse({
         users: 1,
@@ -54,6 +66,14 @@ describe('ops contracts', () => {
         paymentsPending: 0,
         paymentsSuccess: 0,
         paymentsFailed: 0,
+        itemsAddedMonth: 0,
+        leads: 0,
+        leadsMonth: 0,
+        inquiries: 0,
+        errorsOpen: 0,
+        errorOccurrences: 0,
+        feedbackTotal: 0,
+        feedbackNew: 0,
         daily: [day],
       }).success,
     ).toBe(true);
@@ -77,9 +97,34 @@ describe('ops contracts', () => {
         paymentsPending: 0,
         paymentsSuccess: 0,
         paymentsFailed: 0,
+        itemsAddedMonth: 0,
+        leads: 0,
+        leadsMonth: 0,
+        inquiries: 0,
+        errorsOpen: 0,
+        errorOccurrences: 0,
+        feedbackTotal: 0,
+        feedbackNew: 0,
         daily: [],
       }).success,
     ).toBe(false);
+  });
+
+  it('rejects a day bucket missing the growth series', async () => {
+    const { AdminOverviewDay } = await import('@/lib/contracts/admin');
+    expect(AdminOverviewDay.safeParse({ day: '2026-10-01', signups: 1, orders: 1 }).success).toBe(
+      false,
+    );
+    expect(
+      AdminOverviewDay.safeParse({
+        day: '2026-10-01',
+        signups: 1,
+        orders: 1,
+        items: 0,
+        inquiries: 0,
+        errors: 0,
+      }).success,
+    ).toBe(true);
   });
 
   it('rejects an unknown event kind', async () => {
@@ -103,8 +148,11 @@ describe('admin overview route', () => {
   it('returns live totals plus a 14-day series', async () => {
     db.prisma.user.count.mockResolvedValue(4);
     db.prisma.store.count.mockResolvedValue(3);
-    db.prisma.storeItem.count.mockResolvedValue(10);
-    db.prisma.customer.count.mockResolvedValue(6);
+    db.prisma.storeItem.count.mockResolvedValueOnce(10).mockResolvedValueOnce(4);
+    db.prisma.customer.count
+      .mockResolvedValueOnce(6)
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(1);
     db.prisma.order.count.mockResolvedValue(9);
     db.prisma.order.aggregate
       .mockResolvedValueOnce({ _sum: { amountPesewas: 50000 } })
@@ -115,6 +163,10 @@ describe('admin overview route', () => {
     db.prisma.order.groupBy.mockResolvedValue([{ status: 'PENDING', _count: 2 }]);
     db.prisma.user.findMany.mockResolvedValue([{ createdAt: new Date() }]);
     db.prisma.order.findMany.mockResolvedValue([{ createdAt: new Date() }]);
+    db.prisma.customer.aggregate.mockResolvedValue({ _sum: { inquiryCount: 5 } });
+    db.prisma.appLog.count.mockResolvedValue(3);
+    db.prisma.appLog.aggregate.mockResolvedValue({ _sum: { count: 41 } });
+    db.prisma.feedback.count.mockResolvedValueOnce(7).mockResolvedValueOnce(4);
 
     const { GET } = await import('@/app/api/admin/overview/route');
     const response = await GET(new Request('http://test/api/admin/overview'));
@@ -125,6 +177,24 @@ describe('admin overview route', () => {
     expect(body.paidPesewas).toBe(20000);
     expect(body.ordersByStatus).toEqual({ PENDING: 2 });
     expect(body.daily).toHaveLength(14);
+    // The growth/health series rides along on every bucket now.
+    expect(body.daily[0]).toEqual({
+      day: expect.any(String),
+      signups: 0,
+      orders: 0,
+      items: 0,
+      inquiries: 0,
+      errors: 0,
+    });
+    expect(body.items).toBe(10);
+    expect(body.itemsAddedMonth).toBe(4);
+    expect(body.leads).toBe(2);
+    expect(body.leadsMonth).toBe(1);
+    expect(body.inquiries).toBe(5);
+    expect(body.errorsOpen).toBe(3);
+    expect(body.errorOccurrences).toBe(41);
+    expect(body.feedbackTotal).toBe(7);
+    expect(body.feedbackNew).toBe(4);
   });
 });
 
@@ -244,6 +314,31 @@ describe('admin events route', () => {
     ]);
     db.prisma.paymentTransaction.findMany.mockResolvedValue([]);
     db.prisma.user.findMany.mockResolvedValue([]);
+    db.prisma.appLog.findMany.mockResolvedValue([
+      {
+        id: 'log-1',
+        summary: 'POST /api/orders · 500',
+        message: 'Connection pool exhausted',
+        route: '/api/orders',
+        method: 'POST',
+        source: 'SERVER',
+        count: 42,
+        resolvedAt: null,
+        lastSeenAt: new Date('2026-10-03T10:00:00.000Z'),
+      },
+    ]);
+    db.prisma.feedback.findMany.mockResolvedValue([
+      {
+        id: 'fb-1',
+        kind: 'BUG',
+        status: 'NEW',
+        message: 'The basket resets when I go back',
+        email: null,
+        createdAt: new Date('2026-10-04T10:00:00.000Z'),
+        store: { name: 'Shop A' },
+        customer: null,
+      },
+    ]);
 
     const { GET } = await import('@/app/api/admin/events/route');
     const failures = await GET(new Request('http://test/api/admin/events?q=402&kind=sms'));
@@ -254,6 +349,25 @@ describe('admin events route', () => {
 
     const orders = await GET(new Request('http://test/api/admin/events?kind=order'));
     expect((await orders.json()).events.map((e: { kind: string }) => e.kind)).toEqual(['order']);
+
+    // The incident and feedback ledgers feed the same stream.
+    const errors = await GET(new Request('http://test/api/admin/events?kind=error'));
+    const errorBody = await errors.json();
+    expect(errorBody.events).toHaveLength(1);
+    expect(errorBody.events[0]).toMatchObject({
+      kind: 'error',
+      summary: 'POST /api/orders · 500',
+      ok: false,
+    });
+
+    const reports = await GET(new Request('http://test/api/admin/events?kind=feedback'));
+    const feedbackBody = await reports.json();
+    expect(feedbackBody.events).toHaveLength(1);
+    expect(feedbackBody.events[0]).toMatchObject({ kind: 'feedback', shop: 'Shop A', ok: false });
+
+    const searched = await GET(new Request('http://test/api/admin/events?q=connection'));
+    const searchedBody = await searched.json();
+    expect(searchedBody.events.map((e: { kind: string }) => e.kind)).toEqual(['error']);
   });
 });
 

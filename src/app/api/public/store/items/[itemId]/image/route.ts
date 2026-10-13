@@ -6,6 +6,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,6 @@ export async function GET(request: Request, context: RouteContext) {
       },
     });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

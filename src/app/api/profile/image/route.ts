@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { readImageUpload } from '@/lib/image-upload';
 import { requireAuth } from '@/lib/require-auth';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +27,7 @@ export async function PUT(request: Request) {
     await prisma.user.update({ where: { id: user.id }, data: { image: dataUrl } });
     return NextResponse.json({ image: dataUrl });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -37,7 +37,6 @@ export async function DELETE(request: Request) {
     await prisma.user.update({ where: { id: user.id }, data: { image: null } });
     return NextResponse.json({ image: null });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

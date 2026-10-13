@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { SocialAccountBatch, SocialAccountList, SocialAccountRecord } from '@/lib/contracts/social';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,8 +47,7 @@ export async function GET(request: Request) {
       .sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform));
     return NextResponse.json(SocialAccountList.parse({ items }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -99,8 +99,7 @@ export async function PUT(request: Request) {
       .sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform));
     return NextResponse.json(SocialAccountList.parse({ items }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

@@ -32,6 +32,14 @@ export const AdminOverviewDay = z.object({
   day: z.string(),
   signups: z.number().int().nonnegative(),
   orders: z.number().int().nonnegative(),
+  // Items first listed on the catalogue that day.
+  items: z.number().int().nonnegative(),
+  // Lead-form captures (Customer.source = LEAD) that day — the inquiry rate.
+  inquiries: z.number().int().nonnegative(),
+  // Incidents whose FIRST sighting fell that day. AppLog rows fold repeats, so
+  // this is "new bugs per day", not "failures per day" — occurrences live in
+  // AdminOverview.errorOccurrences.
+  errors: z.number().int().nonnegative(),
 });
 
 export const AdminOverview = z.object({
@@ -53,6 +61,22 @@ export const AdminOverview = z.object({
   paymentsPending: z.number().int().nonnegative(),
   paymentsSuccess: z.number().int().nonnegative(),
   paymentsFailed: z.number().int().nonnegative(),
+  // ── catalogue growth ──
+  itemsAddedMonth: z.number().int().nonnegative(),
+  // ── inquiry tracking ──
+  // Distinct people who ever used the storefront lead form.
+  leads: z.number().int().nonnegative(),
+  leadsMonth: z.number().int().nonnegative(),
+  // Every lead-form submission, repeats included (sum of Customer.inquiryCount).
+  inquiries: z.number().int().nonnegative(),
+  // ── error ledger ──
+  // Incidents still marked unresolved.
+  errorsOpen: z.number().int().nonnegative(),
+  // Total times any failure fired, repeats folded away.
+  errorOccurrences: z.number().int().nonnegative(),
+  // ── feedback ──
+  feedbackTotal: z.number().int().nonnegative(),
+  feedbackNew: z.number().int().nonnegative(),
   // Oldest-first, one entry per day for the trailing 14 days.
   daily: z.array(AdminOverviewDay),
 });
@@ -87,9 +111,17 @@ export type AdminShopRow = z.infer<typeof AdminShopRow>;
 export type AdminShops = z.infer<typeof AdminShops>;
 
 // One normalized event for the operator's search feed. Sources are the live
-// order, SMS-ledger, payment and signup rows — the closest thing the app has
-// to a Splunk event stream.
-export const OpsEventKind = z.enum(['order', 'sms', 'payment', 'signup', 'store']);
+// order, SMS-ledger, payment, signup, incident and feedback rows — the closest
+// thing the app has to a Splunk event stream.
+export const OpsEventKind = z.enum([
+  'order',
+  'sms',
+  'payment',
+  'signup',
+  'store',
+  'error',
+  'feedback',
+]);
 
 export const OpsEvent = z.object({
   id: z.string(),
@@ -203,3 +235,90 @@ export const AdminProducts = z.object({
 
 export type AdminProductRow = z.infer<typeof AdminProductRow>;
 export type AdminProducts = z.infer<typeof AdminProducts>;
+
+// ── error ledger ────────────────────────────────────────────────────────────
+// One row per GROUPED incident (see prisma/schema/telemetry.prisma). This is
+// the operator's answer to "I don't want to read error codes": a message a
+// human wrote, a repeat count, and the last time it fired.
+export const AdminLogLevel = z.enum(['ERROR', 'WARN', 'INFO']);
+export const AdminLogSource = z.enum(['SERVER', 'CLIENT']);
+
+export const AdminLogRow = z.object({
+  id: z.string(),
+  // Stable grouping key — two rows never share one.
+  fingerprint: z.string(),
+  level: AdminLogLevel,
+  source: AdminLogSource,
+  message: z.string(),
+  summary: z.string().nullable(),
+  route: z.string().nullable(),
+  method: z.string().nullable(),
+  status: z.number().int().nullable(),
+  digest: z.string().nullable(),
+  stack: z.string().nullable(),
+  userId: z.string().nullable(),
+  url: z.string().nullable(),
+  count: z.number().int().nonnegative(),
+  resolved: z.boolean(),
+  firstSeenAt: z.string().datetime(),
+  lastSeenAt: z.string().datetime(),
+});
+
+export const AdminLogs = z.object({
+  items: z.array(AdminLogRow),
+  total: z.number().int().nonnegative(),
+  // Incidents still unresolved.
+  open: z.number().int().nonnegative(),
+  // Total occurrences across every listed incident.
+  occurrences: z.number().int().nonnegative(),
+});
+
+export const AdminLogQuery = z.object({
+  q: z.string().trim().max(80).optional(),
+  source: z.enum(['SERVER', 'CLIENT']).optional(),
+  status: z.enum(['open', 'resolved']).optional(),
+});
+
+export type AdminLogLevel = z.infer<typeof AdminLogLevel>;
+export type AdminLogSource = z.infer<typeof AdminLogSource>;
+export type AdminLogRow = z.infer<typeof AdminLogRow>;
+export type AdminLogs = z.infer<typeof AdminLogs>;
+export type AdminLogQuery = z.infer<typeof AdminLogQuery>;
+
+// ── feedback ────────────────────────────────────────────────────────────────
+// What users said in words, triaged from NEW → SEEN → RESOLVED.
+export const AdminFeedbackKind = z.enum(['BUG', 'COMPLAINT', 'PRAISE', 'SUGGESTION', 'OTHER']);
+export const AdminFeedbackStatus = z.enum(['NEW', 'SEEN', 'RESOLVED']);
+
+export const AdminFeedbackRow = z.object({
+  id: z.string(),
+  kind: AdminFeedbackKind,
+  status: AdminFeedbackStatus,
+  rating: z.number().int().nullable(),
+  message: z.string(),
+  page: z.string().nullable(),
+  email: z.string().nullable(),
+  // Shop it was filed against; null means the platform itself.
+  shop: z.string().nullable(),
+  // Who wrote it, when known — a storefront shopper is anonymous.
+  reporter: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+export const AdminFeedbackList = z.object({
+  items: z.array(AdminFeedbackRow),
+  total: z.number().int().nonnegative(),
+  newCount: z.number().int().nonnegative(),
+});
+
+export const AdminFeedbackQuery = z.object({
+  q: z.string().trim().max(80).optional(),
+  status: AdminFeedbackStatus.optional(),
+  kind: AdminFeedbackKind.optional(),
+});
+
+export type AdminFeedbackKind = z.infer<typeof AdminFeedbackKind>;
+export type AdminFeedbackStatus = z.infer<typeof AdminFeedbackStatus>;
+export type AdminFeedbackRow = z.infer<typeof AdminFeedbackRow>;
+export type AdminFeedbackList = z.infer<typeof AdminFeedbackList>;
+export type AdminFeedbackQuery = z.infer<typeof AdminFeedbackQuery>;

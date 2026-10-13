@@ -37,4 +37,5 @@ export const navItems: NavItem[] = [
   { label: 'Workspace', href: '/dashboard', group: 'secondary', requiresAuth: true, order: 1 },
   { label: 'Privacy', href: '/privacy', group: 'footer', order: 0 },
   { label: 'Terms', href: '/terms', group: 'footer', order: 1 },
+  { label: 'Feedback', href: '/feedback', group: 'footer', order: 2 },
 ];

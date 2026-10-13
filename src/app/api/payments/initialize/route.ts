@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db';
 import { env } from '@/lib/env';
 import { initializeTransaction, isPaystackConfigured } from '@/lib/paystack';
 import { requireAuth } from '@/lib/require-auth';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,7 +84,6 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

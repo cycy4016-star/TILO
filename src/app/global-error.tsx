@@ -1,14 +1,28 @@
 // root error boundary; REPLACES the layout, so it renders its own
-// <html>/<body> with inline styles (theme/providers unavailable). Restyle or delete.
+// <html>/<body> with inline styles (theme/providers unavailable).
+// Also the last reporting point: if the root layout itself blew up, this is
+// where the operator finds out.
 
 'use client';
 
+import { useEffect } from 'react';
+import { reportClientError } from '@/lib/telemetry-client';
+
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    reportClientError({
+      message: error.message || 'Root layout failed',
+      stack: error.stack,
+      digest: error.digest,
+    });
+  }, [error]);
+
   return (
     <html lang="en">
       <body

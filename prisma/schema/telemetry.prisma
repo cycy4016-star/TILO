@@ -1,0 +1,55 @@
+// Platform telemetry ledger: every unhandled failure in Tilo lands here so the
+// operator never has to read a raw stack trace in a terminal. Rows are GROUPED
+// by `fingerprint` (route + normalised message + top stack frame) and folded —
+// the same bug firing 400 times is one row with `count = 400`, not 400 rows.
+//
+// This is the data behind the admin Health panel at /dashboard/admin. It is
+// written fire-and-forget (never blocks a response, never throws into a
+// request) from src/lib/telemetry.ts.
+// Datasource + generator live in _base.prisma.
+
+enum LogLevel {
+  ERROR
+  WARN
+  INFO
+}
+
+// Where the failure was captured. SERVER = the Next server caught it in a
+// route handler or server component; CLIENT = the browser reported it.
+enum AppLogSource {
+  SERVER
+  CLIENT
+}
+
+model AppLog {
+  id          String       @id @default(cuid())
+  // Stable grouping key so the same bug folds onto one row.
+  fingerprint String
+  level       LogLevel     @default(ERROR)
+  source      AppLogSource @default(SERVER)
+  // The raw message — kept short (truncated on write).
+  message     String
+  // One-line operator summary: "POST /api/orders · 500".
+  summary     String?
+  route       String?
+  method      String?
+  status      Int?
+  // React's error digest, used to correlate a rendered error with server logs.
+  digest      String?
+  stack       String?
+  // Account that hit it, when known. Plain string on purpose: a deleted or
+  // bogus user id must never block the write or cascade anything.
+  userId      String?
+  url         String?
+  // Occurrences folded into this row since firstSeenAt.
+  count       Int          @default(1)
+  resolvedAt  DateTime?
+  firstSeenAt DateTime     @default(now())
+  lastSeenAt  DateTime     @default(now()) @updatedAt
+
+  @@unique([fingerprint])
+  @@index([lastSeenAt])
+  @@index([resolvedAt, lastSeenAt])
+  @@index([level, lastSeenAt])
+  @@index([source, lastSeenAt])
+}

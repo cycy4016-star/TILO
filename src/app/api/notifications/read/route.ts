@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { NotificationReadResult } from '@/lib/contracts/notification';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(NotificationReadResult.parse({ unreadCount: 0 }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

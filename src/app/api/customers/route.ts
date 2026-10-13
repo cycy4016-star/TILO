@@ -10,6 +10,7 @@ import {
 } from '@/lib/contracts/customer';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,8 +80,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(CustomerList.parse({ items: customers.map(serializeCustomer) }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -98,13 +98,14 @@ export async function POST(request: Request) {
 
     const customer = await prisma.customer.create({
       // userId is stamped from the session, never from the request body, so a
-      // client cannot create a row inside another shop.
-      data: { ...parsed.data, userId: user.id },
+      // client cannot create a row inside another shop. `source` is fixed to
+      // OWNER here for the same reason: a hand-entered contact must never be
+      // able to claim it arrived through the storefront.
+      data: { ...parsed.data, userId: user.id, source: 'OWNER' },
       include: { _count: { select: { orders: true } } },
     });
     return NextResponse.json(serializeCustomer(customer), { status: 201 });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

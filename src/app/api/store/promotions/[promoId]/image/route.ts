@@ -9,6 +9,7 @@ import { readImageUpload } from '@/lib/image-upload';
 import { requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { PROMOTION_SELECT, serializePromotion } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,8 +38,7 @@ export async function PUT(request: Request, context: RouteContext) {
     });
     return NextResponse.json(serializePromotion(updated));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -55,7 +55,6 @@ export async function DELETE(request: Request, context: RouteContext) {
     });
     return NextResponse.json(serializePromotion(updated));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

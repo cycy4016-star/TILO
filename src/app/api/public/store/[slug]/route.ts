@@ -6,13 +6,14 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { AppearanceKey, StorePublic, ThemeKey } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
+import { routeErrorResponse } from '@/lib/telemetry';
 import { normalizeAppearance, normalizeTheme } from '@/lib/theme';
 
 export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ slug: string }> };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   try {
     const { slug } = await context.params;
     const now = new Date();
@@ -155,7 +156,6 @@ export async function GET(_request: Request, context: RouteContext) {
       }),
     );
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

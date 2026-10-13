@@ -9,6 +9,7 @@ import { prisma } from '@/lib/db';
 import { notify } from '@/lib/notify';
 import { allow, ipOf } from '@/lib/rate-limit';
 import { findOrCreateCustomer } from '@/lib/storefront';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,9 @@ export async function POST(request: Request, context: RouteContext) {
       name: parsed.data.name,
       phone: parsed.data.phone,
       town: parsed.data.town,
+      note: parsed.data.note,
+      // An enquiry, not a purchase — this is what the inquiry rate counts.
+      source: 'LEAD',
     });
 
     await notify({
@@ -83,7 +87,6 @@ export async function POST(request: Request, context: RouteContext) {
       { status: 201 },
     );
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

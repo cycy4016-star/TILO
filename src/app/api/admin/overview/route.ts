@@ -1,12 +1,14 @@
-// Platform ops overview: cross-shop totals, status mix, SMS + payment health
-// and a trailing-14-day signup/order series. Admin-only: this is the one
-// surface that deliberately reads across every shop.
+// Platform ops overview: cross-shop totals, status mix, SMS + payment health,
+// catalogue growth, the inquiry rate and the error-ledger health — plus a
+// trailing-14-day series for each of them. Admin-only: this is the one surface
+// that deliberately reads across every shop.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { AdminOverview } from '@/lib/contracts/admin';
 import { prisma } from '@/lib/db';
 import { requireAdminUser } from '@/lib/require-admin-api';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +50,17 @@ export async function GET(request: Request) {
       statusMix,
       recentUsers,
       recentOrders,
+      itemsAddedMonth,
+      leads,
+      leadsMonth,
+      inquiryTotal,
+      errorsOpen,
+      errorOccurrences,
+      feedbackTotal,
+      feedbackNew,
+      recentItems,
+      recentLeads,
+      recentIncidents,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.store.count(),
@@ -84,21 +97,58 @@ export async function GET(request: Request) {
         where: { createdAt: { gte: seriesStart } },
         select: { createdAt: true },
       }),
+      prisma.storeItem.count({ where: { createdAt: { gte: monthStart } } }),
+      // "Leads" are people, "inquiries" are submissions — a returning visitor
+      // who fills the card twice is one lead and two inquiries.
+      prisma.customer.count({ where: { source: 'LEAD' } }),
+      prisma.customer.count({ where: { source: 'LEAD', createdAt: { gte: monthStart } } }),
+      prisma.customer.aggregate({ _sum: { inquiryCount: true } }),
+      prisma.appLog.count({ where: { resolvedAt: null } }),
+      prisma.appLog.aggregate({ _sum: { count: true } }),
+      prisma.feedback.count(),
+      prisma.feedback.count({ where: { status: 'NEW' } }),
+      prisma.storeItem.findMany({
+        where: { createdAt: { gte: seriesStart } },
+        select: { createdAt: true },
+      }),
+      prisma.customer.findMany({
+        where: { source: 'LEAD', createdAt: { gte: seriesStart } },
+        select: { createdAt: true },
+      }),
+      // Incidents are folded, so the series plots first sightings: new bugs per
+      // day. Repeat occurrences are what errorOccurrences counts.
+      prisma.appLog.findMany({
+        where: { firstSeenAt: { gte: seriesStart } },
+        select: { firstSeenAt: true },
+      }),
     ]);
 
     const daily = Array.from({ length: SERIES_DAYS }, (_, index) => {
       const day = new Date(seriesStart.getTime() + index * DAY_MS);
       const key = day.toISOString().slice(0, 10);
-      return { day: key, signups: 0, orders: 0 };
+      return { day: key, signups: 0, orders: 0, items: 0, inquiries: 0, errors: 0 };
     });
     const byDay = new Map(daily.map((entry) => [entry.day, entry]));
+    const bucketFor = (at: Date) => byDay.get(at.toISOString().slice(0, 10));
     for (const user of recentUsers) {
-      const bucket = byDay.get(user.createdAt.toISOString().slice(0, 10));
+      const bucket = bucketFor(user.createdAt);
       if (bucket) bucket.signups += 1;
     }
     for (const order of recentOrders) {
-      const bucket = byDay.get(order.createdAt.toISOString().slice(0, 10));
+      const bucket = bucketFor(order.createdAt);
       if (bucket) bucket.orders += 1;
+    }
+    for (const item of recentItems) {
+      const bucket = bucketFor(item.createdAt);
+      if (bucket) bucket.items += 1;
+    }
+    for (const lead of recentLeads) {
+      const bucket = bucketFor(lead.createdAt);
+      if (bucket) bucket.inquiries += 1;
+    }
+    for (const incident of recentIncidents) {
+      const bucket = bucketFor(incident.firstSeenAt);
+      if (bucket) bucket.errors += 1;
     }
 
     return NextResponse.json(
@@ -121,11 +171,18 @@ export async function GET(request: Request) {
         paymentsPending: payPending,
         paymentsSuccess: paySuccess,
         paymentsFailed: payFailed,
+        itemsAddedMonth,
+        leads,
+        leadsMonth,
+        inquiries: inquiryTotal._sum.inquiryCount ?? 0,
+        errorsOpen,
+        errorOccurrences: errorOccurrences._sum.count ?? 0,
+        feedbackTotal,
+        feedbackNew,
         daily,
       }),
     );
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

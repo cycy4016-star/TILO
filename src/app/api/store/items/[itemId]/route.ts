@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db';
 import { requireOwnCategoryId, requireOwnedStoreChild } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { ITEM_SELECT, serializeStoreItem } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,8 +39,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
     return NextResponse.json(serializeStoreItem(updated));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -51,8 +51,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     await prisma.storeItem.delete({ where: { id: itemId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

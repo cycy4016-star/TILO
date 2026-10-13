@@ -65,6 +65,8 @@ model Store {
   promotions   Promotion[]
   categories   ProductCategory[]
   socials      SocialAccount[]
+  // Shoppers' feedback filed from this storefront.
+  feedback     Feedback[]
 
   // Admin overview counts active shops; slug is already @unique, so no extra
   // index is needed for the storefront lookup.

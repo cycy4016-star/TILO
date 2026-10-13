@@ -9,6 +9,7 @@ import { CategoryCreate, CategoryList } from '@/lib/contracts/category';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
 import { CATEGORY_SELECT_WITH_COUNT, serializeCategory } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,8 +30,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(CategoryList.parse({ items: categories.map(serializeCategory) }));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -78,8 +78,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(serializeCategory(category), { status: 201 });
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

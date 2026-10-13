@@ -12,6 +12,7 @@ import {
 } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,8 +121,7 @@ export async function GET(request: Request) {
       }),
     );
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 

@@ -46,3 +46,53 @@ describe('instrumentation register()', () => {
     expect(errorSpy).toHaveBeenCalled();
   });
 });
+
+describe('instrumentation onRequestError()', () => {
+  function mockLedger(captureError: ReturnType<typeof vi.fn>) {
+    vi.doMock('@/lib/telemetry', () => ({
+      captureError,
+      errorMessageOf: (error: unknown) => (error as Error).message,
+      errorStackOf: () => null,
+      errorDigestOf: () => null,
+      routeOf: (pathname: string) => pathname,
+    }));
+  }
+
+  it('files an escaped server failure, minus its query string, into the ledger', async () => {
+    process.env.NEXT_RUNTIME = 'nodejs';
+    const captureError = vi.fn();
+    mockLedger(captureError);
+
+    const { onRequestError } = await import('@/instrumentation');
+    await onRequestError(
+      new Error('boom'),
+      { path: '/api/orders?page=2', method: 'GET', headers: {} },
+      {} as never,
+    );
+
+    expect(captureError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'boom',
+        route: '/api/orders',
+        method: 'GET',
+        status: 500,
+        source: 'SERVER',
+      }),
+    );
+  });
+
+  it('stays silent on the edge runtime, where Prisma cannot run', async () => {
+    process.env.NEXT_RUNTIME = 'edge';
+    const captureError = vi.fn();
+    mockLedger(captureError);
+
+    const { onRequestError } = await import('@/instrumentation');
+    await onRequestError(
+      new Error('boom'),
+      { path: '/x', method: 'GET', headers: {} },
+      {} as never,
+    );
+
+    expect(captureError).not.toHaveBeenCalled();
+  });
+});

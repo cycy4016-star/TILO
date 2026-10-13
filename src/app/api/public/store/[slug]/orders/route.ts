@@ -11,6 +11,7 @@ import { prisma } from '@/lib/db';
 import { notify } from '@/lib/notify';
 import { allow, ipOf } from '@/lib/rate-limit';
 import { buildOrderNumber, findOrCreateCustomer } from '@/lib/storefront';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,6 +106,8 @@ export async function POST(request: Request, context: RouteContext) {
       userId: store.userId,
       name: parsed.data.customerName,
       phone: parsed.data.phone,
+      // Checkout is a purchase, not an enquiry — it never bumps inquiryCount.
+      source: 'ORDER',
     });
 
     const note = parsed.data.note?.trim();
@@ -207,7 +210,6 @@ export async function POST(request: Request, context: RouteContext) {
       { status: 201 },
     );
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }

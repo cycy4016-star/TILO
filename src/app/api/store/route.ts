@@ -8,6 +8,7 @@ import { StoreUpsert } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStore, storeSelect } from '@/lib/store-serializers';
+import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +27,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(serializeStore(store));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
@@ -72,8 +72,7 @@ export async function PUT(request: Request) {
     }
     return NextResponse.json(serializeStore(store));
   } catch (error) {
-    if (error instanceof Response) return error;
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return routeErrorResponse(error, request);
   }
 }
 
