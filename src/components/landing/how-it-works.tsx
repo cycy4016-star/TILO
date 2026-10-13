@@ -1,7 +1,6 @@
-// How-it-works: three steps beside a vertical line that draws itself with
-// scroll. Progress derives from the section's position relative to the
-// viewport centre; only scaleY (transform) animates, and reduced motion pins
-// the line at full height.
+// How-it-works: scroll-driven progress rail. Stronger rhythm, clearer step
+// headings. Copy unchanged.
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -56,11 +55,11 @@ export function HowItWorks() {
             From an empty page to <span className="text-primary">taking orders</span>
           </h2>
         </Reveal>
-        <div className="relative mt-10 grid gap-10 pl-10 md:grid-cols-3 md:gap-6 md:pl-0 md:pt-10">
-          {/* Rail: drawn by scroll on desktop (horizontal), full-height on mobile. */}
+        <div className="relative mt-9 grid gap-10 pl-10 md:grid-cols-3 md:gap-8 md:pl-0 md:pt-10">
+          {/* Rail. */}
           <div
             aria-hidden
-            className="absolute bottom-2 left-[19px] top-2 w-0.5 rounded-full bg-border md:bottom-auto md:left-0 md:right-0 md:top-[19px] md:h-0.5 md:w-auto"
+            className="absolute bottom-2 left-[19px] top-2 w-px rounded-full bg-border md:bottom-auto md:left-0 md:right-0 md:top-[19px] md:h-px md:w-auto"
           >
             <div
               className="size-full origin-top rounded-full bg-primary md:hidden"
@@ -76,12 +75,12 @@ export function HowItWorks() {
               <div className="relative">
                 <span
                   aria-hidden
-                  className="absolute -left-10 top-0 flex size-10 items-center justify-center rounded-full border border-primary/40 bg-card font-display text-small font-semibold text-primary md:-top-10 md:left-0"
+                  className="absolute -left-10 top-0 flex size-9 items-center justify-center rounded-full border border-primary/40 bg-card font-display text-small font-semibold text-primary shadow-xs md:-top-10 md:left-0"
                 >
                   {index + 1}
                 </span>
                 <h3 className="font-display text-h4">{step.title}</h3>
-                <p className="mt-2 max-w-[52ch] text-small text-muted-foreground">{step.body}</p>
+                <p className="mt-1.5 max-w-[52ch] text-small text-muted-foreground">{step.body}</p>
               </div>
             </Reveal>
           ))}

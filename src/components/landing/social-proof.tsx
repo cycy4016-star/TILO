@@ -1,5 +1,5 @@
 // Social proof strip: platform presence, animated counters and one editable
-// testimonial. Server-rendered; only the numbers are a client island.
+// testimonial. Server-rendered; only the numbers are a client island. Tighter spacing.
 import { Facebook, Instagram, MessageCircle, Music2, Twitter } from 'lucide-react';
 import { Reveal } from '@/components/custom/sample-showcase';
 import { CountUp } from '@/components/landing/motion';
@@ -18,13 +18,10 @@ export function SocialProof() {
     <section aria-label="Social proof" className="border-y border-border bg-muted/40">
       <div className="container-page section">
         <Reveal>
-          {/* This is a sentence, not a label. `.text-eyebrow` uppercases and
-              tracks at 0.08em, which is right for "The toolkit" and wrong for
-              a full clause — set it as a lead line instead. */}
           <p className="mx-auto max-w-[46ch] text-balance text-center text-body-lg text-muted-foreground">
             {LANDING.proof.line}
           </p>
-          <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-8 gap-y-2.5">
             {PLATFORMS.map(({ label, Icon }) => (
               <li
                 key={label}
@@ -36,7 +33,7 @@ export function SocialProof() {
             ))}
           </ul>
         </Reveal>
-        <div className="mx-auto mt-10 grid max-w-3xl gap-6 text-center sm:grid-cols-3">
+        <div className="mx-auto mt-9 grid max-w-3xl gap-6 text-center sm:grid-cols-3">
           {LANDING.proof.stats.map((stat, index) => (
             <Reveal key={stat.label} delay={index * 90}>
               <p className="font-display text-h2">
@@ -51,11 +48,11 @@ export function SocialProof() {
           ))}
         </div>
         <Reveal delay={120}>
-          <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto mt-9 max-w-xl rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
             <p className="text-body font-medium text-foreground">
               Beta shops get the whole toolkit free — shelves, themes, promos and analytics.
             </p>
-            <p className="mt-2 text-small text-muted-foreground">
+            <p className="mt-1.5 text-small text-muted-foreground">
               Bring your catalogue; paid plans arrive later, with a discount for beta shops.
             </p>
           </div>

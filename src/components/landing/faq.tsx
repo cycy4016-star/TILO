@@ -1,5 +1,5 @@
-// FAQ: accessible Radix accordion (keyboard-friendly, smooth height animation
-// built into the ui primitive) fed by FAQS in landing-content.ts.
+// FAQ: accessible accordion. Cleaner rhythm, tighter card. Copy untouched.
+
 import { Reveal } from '@/components/custom/sample-showcase';
 import {
   Accordion,
@@ -22,7 +22,7 @@ export function Faq() {
             <Accordion
               type="single"
               collapsible
-              className="mt-8 rounded-2xl border border-border bg-card px-6 shadow-sm"
+              className="mt-7 rounded-2xl border border-border bg-card px-5 py-1 shadow-sm sm:px-6"
             >
               {FAQS.map((faq) => (
                 <AccordionItem key={faq.q} value={faq.q}>

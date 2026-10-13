@@ -1,5 +1,4 @@
-// Pricing: monthly/yearly toggle with an animated price swap, driven entirely
-// by PLANS in landing-content.ts (placeholder cedi amounts — edit there).
+// Pricing: monthly/yearly toggle. Clearer tier hierarchy, stronger CTA rhythm.
 'use client';
 
 import Link from 'next/link';
@@ -22,14 +21,14 @@ export function Pricing() {
           <h2 className="mt-3 break-words text-balance font-display text-h2">
             Start free, <span className="text-primary">pay when it pays</span>
           </h2>
-          <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">
+          <p className="mt-4 max-w-[60ch] text-body-lg text-muted-foreground">
             Beta pricing — everything below is free until billing opens. No card, no charge, no
             surprise.
           </p>
         </Reveal>
 
         <Reveal delay={80}>
-          <div className="mt-8 flex min-h-11 items-center justify-center gap-3">
+          <div className="mt-6 flex min-h-11 items-center justify-center gap-3">
             <span className={cn('text-small font-medium', !yearly && 'font-semibold')}>
               Monthly
             </span>
@@ -42,7 +41,7 @@ export function Pricing() {
           </div>
         </Reveal>
 
-        <div className="mt-8 grid items-stretch gap-4 md:grid-cols-3">
+        <div className="mt-7 grid items-stretch gap-4 md:grid-cols-3">
           {PLANS.map((plan, index) => {
             const price = billingPrice(plan, cycle);
             return (
@@ -58,13 +57,13 @@ export function Pricing() {
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="font-display text-h4">{plan.name}</h3>
                     {plan.highlighted && (
-                      <span className="rounded-full bg-primary px-2.5 py-1 text-caption font-semibold text-primary-foreground">
+                      <span className="rounded-full bg-primary px-2.5 py-1 text-caption font-semibold text-primary-foreground shadow-xs">
                         Recommended
                       </span>
                     )}
                   </div>
                   <p className="mt-1 text-small text-muted-foreground">{plan.tagline}</p>
-                  <p className="mt-5 flex min-h-14 items-baseline gap-1">
+                  <p className="mt-4 flex min-h-12 items-baseline gap-1">
                     <span
                       key={cycle}
                       className="font-display text-h2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
@@ -82,7 +81,7 @@ export function Pricing() {
                       price.note
                     )}
                   </p>
-                  <ul className="mt-5 grid gap-2.5 text-small">
+                  <ul className="mt-4 grid gap-2.5 text-small">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-2">
                         <span
@@ -97,7 +96,7 @@ export function Pricing() {
                     asChild
                     variant={plan.highlighted ? 'default' : 'outline'}
                     size="lg"
-                    className="mt-6 w-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20"
+                    className="mt-5 w-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20"
                   >
                     <Link href={plan.href}>{plan.cta}</Link>
                   </Button>

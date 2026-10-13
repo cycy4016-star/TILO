@@ -1,7 +1,6 @@
-// Features bento: six cards on a 3-column grid with mixed spans, each with a
-// small pure-CSS animated visual. Server-rendered; motion is transform/opacity
-// micro-loops (pulse/ping) that vanish under prefers-reduced-motion via the
-// motion-safe variant.
+// Features: server-rendered, motion-safe visuals. Clean grid with better
+// rhythm, consistent card elevation and tighter vertical spacing. Copy unchanged.
+
 import { Boxes, Link2, type LucideIcon, MessageCircle, Palette, QrCode, Tag } from 'lucide-react';
 import { Reveal } from '@/components/custom/sample-showcase';
 import { FEATURES, type FeatureIcon } from '@/lib/landing-content';
@@ -36,12 +35,12 @@ function Visual({ icon }: { icon: FeatureIcon }) {
         {BARS.slice(0, 4).map((bar) => (
           <span
             key={bar.id}
-            className="w-10 rounded-md bg-primary/15"
+            className="w-9 rounded-md bg-primary/15"
             style={{ height: `${bar.height}px` }}
           />
         ))}
         <span
-          className="w-10 rounded-md bg-primary"
+          className="w-9 rounded-md bg-primary"
           style={{ height: `${BARS[4]?.height ?? 88}px` }}
         />
       </div>
@@ -51,7 +50,7 @@ function Visual({ icon }: { icon: FeatureIcon }) {
     return (
       <div
         aria-hidden
-        className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 font-mono text-caption text-muted-foreground"
+        className="inline-flex items-center gap-2 rounded-full border border-border bg-background/90 px-4 py-1.5 font-mono text-caption text-muted-foreground shadow-xs"
       >
         <Link2 className="size-3.5 text-primary" />
         tilo.app/store/you
@@ -76,7 +75,10 @@ function Visual({ icon }: { icon: FeatureIcon }) {
       <div aria-hidden className="flex items-center gap-2">
         {['bg-primary', 'bg-emerald-500', 'bg-sky-500', 'bg-violet-500', 'bg-rose-500'].map(
           (swatch) => (
-            <span key={swatch} className={cn('size-7 rounded-full border border-border', swatch)} />
+            <span
+              key={swatch}
+              className={cn('size-7 rounded-full border border-border/70 shadow-xs', swatch)}
+            />
           ),
         )}
       </div>
@@ -86,7 +88,7 @@ function Visual({ icon }: { icon: FeatureIcon }) {
     return (
       <div
         aria-hidden
-        className="max-w-xs rounded-2xl rounded-bl-md border border-border bg-background px-4 py-2.5 text-small"
+        className="max-w-xs rounded-2xl rounded-bl-md border border-border bg-background/95 px-4 py-2.5 text-small shadow-xs"
       >
         2 items · GH₵ 205.00 — send as WhatsApp message?
         <span className="ml-2 inline-flex size-2 rounded-full bg-primary motion-safe:animate-ping" />
@@ -115,7 +117,7 @@ export function Features() {
             Six tools that run the business
           </h2>
         </Reveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, index) => {
             const Icon = FEATURE_ICON_MAP[feature.icon];
             return (
@@ -130,7 +132,7 @@ export function Features() {
                   </span>
                   <h3 className="mt-4 font-display text-h4">{feature.title}</h3>
                   <p className="mt-2 text-small text-muted-foreground">{feature.body}</p>
-                  <div className="mt-auto pt-5">
+                  <div className="mt-auto pt-6">
                     <Visual icon={feature.icon} />
                   </div>
                 </article>

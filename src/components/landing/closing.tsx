@@ -1,6 +1,4 @@
-// Closing: final gradient CTA band (keeps id="start" for existing nav/menu
-// anchors) followed by a rich footer with link columns and socials. The slim
-// global SiteFooter still renders below with privacy/terms.
+// Closing: final CTA band and footer. Slightly tighter spacing, cleaner band.
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Reveal } from '@/components/custom/sample-showcase';
@@ -14,19 +12,16 @@ export function Closing() {
     <section id="start" aria-label="Get started" className="scroll-mt-20 bg-background">
       <div className="container-page section">
         <Reveal>
-          <div className="overflow-hidden rounded-2xl bg-foreground px-6 py-14 text-center text-background shadow-2xl sm:px-12">
-            {/* Inverted band: the eyebrow token is brand-600, which does not
-                invert with the surface and goes muddy on near-black. Keep the
-                label treatment, swap the colour for one that holds contrast. */}
+          <div className="overflow-hidden rounded-2xl bg-foreground px-6 py-12 text-center text-background shadow-2xl sm:px-10 sm:py-14">
             <p className="text-eyebrow text-background/70">Your turn</p>
-            <h2 className="mx-auto mt-4 max-w-2xl break-words text-balance font-display text-h2 sm:text-display">
+            <h2 className="mx-auto mt-3 max-w-2xl break-words text-balance font-display text-h2 sm:text-display">
               Put your shop up this afternoon.
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-body-lg text-background/70">
+            <p className="mx-auto mt-4 max-w-xl text-body-lg text-background/70">
               Add your products, share one link, and take orders that arrive already priced,
               itemised and totalled.
             </p>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-7 flex justify-center">
               <Button
                 asChild
                 size="xl"
@@ -37,7 +32,7 @@ export function Closing() {
                 </Link>
               </Button>
             </div>
-            <p className="mt-6 text-caption text-background/60">No card needed.</p>
+            <p className="mt-5 text-caption text-background/60">No card needed.</p>
           </div>
         </Reveal>
       </div>
@@ -61,7 +56,7 @@ export function LandingFooter() {
             <p className="mt-3 max-w-xs text-small text-muted-foreground">
               A shareable shop page for your products — made for growing African businesses.
             </p>
-            <ul className="mt-5 flex flex-wrap gap-2">
+            <ul className="mt-4 flex flex-wrap gap-2">
               {SOCIALS.map((social) => (
                 <li key={social.label}>
                   <a
@@ -69,7 +64,7 @@ export function LandingFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`${siteName} on ${social.label}`}
-                    className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border bg-card px-3 text-caption font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    className="flex min-h-10 min-w-10 items-center justify-center rounded-full border border-border bg-card px-3 text-caption font-medium text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {social.label}
                   </a>
@@ -82,12 +77,12 @@ export function LandingFooter() {
               <p className="text-caption font-semibold uppercase tracking-widest text-muted-foreground">
                 {column.heading}
               </p>
-              <ul className="mt-4 grid gap-1">
+              <ul className="mt-3 grid gap-1">
                 {column.links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="inline-flex min-h-11 items-center rounded-md text-small text-muted-foreground transition-colors hover:text-foreground"
+                      className="inline-flex min-h-9 items-center rounded-md text-small text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {link.label}
                     </Link>
@@ -97,7 +92,7 @@ export function LandingFooter() {
             </nav>
           ))}
         </div>
-        <p className="mt-10 border-t border-border pt-6 text-caption text-muted-foreground">
+        <p className="mt-9 border-t border-border pt-6 text-caption text-muted-foreground">
           © {new Date().getFullYear()} {siteName}. All rights reserved.
         </p>
       </div>
