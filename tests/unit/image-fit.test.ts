@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coverCropRect, fitOutputSize, SLOT_SIZE } from '@/lib/image';
+import { coverCropRect, fitContainRect, fitOutputSize, SLOT_SIZE } from '@/lib/image';
 
 describe('coverCropRect', () => {
   it('keeps a matching aspect untouched (1600x640 photo into banner)', () => {
@@ -38,6 +38,54 @@ describe('coverCropRect', () => {
     expect(SLOT_SIZE.item.width / SLOT_SIZE.item.height).toBeCloseTo(4 / 3, 5);
     expect(SLOT_SIZE.promo.width / SLOT_SIZE.promo.height).toBeCloseTo(16 / 9, 5);
     expect(SLOT_SIZE.logo.width).toBe(SLOT_SIZE.logo.height);
+  });
+});
+
+describe('fitContainRect', () => {
+  it('leaves a matching square untouched and centred in the logo slot', () => {
+    expect(fitContainRect(512, 512, SLOT_SIZE.logo.width, SLOT_SIZE.logo.height)).toEqual({
+      x: 0,
+      y: 0,
+      w: 512,
+      h: 512,
+      scale: 1,
+    });
+  });
+
+  it('fits a wide logo by its width, letterboxing top and bottom', () => {
+    const rect = fitContainRect(1200, 800, SLOT_SIZE.logo.width, SLOT_SIZE.logo.height);
+    expect(rect.w).toBe(512);
+    expect(rect.h).toBe(341);
+    expect(rect.x).toBe(0);
+    expect(rect.y).toBe(86);
+  });
+
+  it('enlarges a small logo uniformly so it fills one axis', () => {
+    const rect = fitContainRect(100, 50, SLOT_SIZE.logo.width, SLOT_SIZE.logo.height);
+    expect(rect.scale).toBeCloseTo(5.12, 5);
+    expect(rect.w).toBe(512);
+    expect(rect.h).toBe(256);
+    expect(rect.y).toBe(128);
+  });
+
+  it('never overflows the slot in either axis', () => {
+    const cases: [number, number][] = [
+      [1600, 100],
+      [100, 1600],
+      [333, 777],
+    ];
+    for (const [w, h] of cases) {
+      const rect = fitContainRect(w, h, SLOT_SIZE.logo.width, SLOT_SIZE.logo.height);
+      expect(rect.w).toBeLessThanOrEqual(SLOT_SIZE.logo.width);
+      expect(rect.h).toBeLessThanOrEqual(SLOT_SIZE.logo.height);
+      expect(rect.x).toBeGreaterThanOrEqual(0);
+      expect(rect.y).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('keeps the source shape: the fitted rect shares the source aspect', () => {
+    const rect = fitContainRect(900, 300, SLOT_SIZE.logo.width, SLOT_SIZE.logo.height);
+    expect(rect.w / rect.h).toBeCloseTo(3, 1);
   });
 });
 

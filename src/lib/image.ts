@@ -79,6 +79,17 @@ export async function compressImageFile(file: File, maxDim = 1280, quality = 0.8
  */
 export type ImageSlot = 'item' | 'logo' | 'avatar' | 'promo' | 'banner' | 'cover';
 
+/**
+ * How an upload is fitted to its slot:
+ * - `cover` (default) — fill the whole frame, center-cropping the overflow.
+ *   Used for photos/banners where an edge-to-edge fill matters more than the
+ *   exact framing.
+ * - `contain` — scale the whole image to fit inside the frame (letterboxed,
+ *   transparent margins), so nothing is ever cropped. Used for logos, where
+ *   the merchant's exact artwork must survive.
+ */
+export type FitMode = 'cover' | 'contain';
+
 export const SLOT_SIZE: Record<ImageSlot, { width: number; height: number }> = {
   // Full-bleed cover on a max-w-5xl page (~1024px) at ~1.5x for retina.
   banner: { width: 1600, height: 640 },
@@ -98,12 +109,31 @@ export const SLOT_SIZE: Record<ImageSlot, { width: number; height: number }> = {
 export const SLOT_HINT: Record<ImageSlot, string> = {
   banner:
     'Best: a wide landscape photo — any photo works, we shrink or enlarge it to fit 1600×640, never stretched.',
-  logo: 'Best: a square logo or clear product shot — we shrink or enlarge it to fit a square, never stretched.',
+  logo: 'Any shape works — we scale the whole logo to fit the square, never stretched and never cropped.',
   item: 'Best: a landscape product photo — we shrink or enlarge it to fit 4:3, never stretched.',
   promo: 'Best: a wide sale graphic — we shrink or enlarge it to fit 16:9, never stretched.',
   cover: 'Best: a square shelf photo — we shrink or enlarge it to fit a square, never stretched.',
   avatar: 'Best: a square headshot — we shrink or enlarge it to fit a square, never stretched.',
 };
+
+/**
+ * Placement rect for a "contain" fit: the whole source is scaled — down or up
+ * by a single factor — until it fits inside the slot, then centred. The result
+ * is never larger than the slot in either axis (letterboxed), so a wide logo
+ * keeps its shape and nothing is cropped. Pure math — unit-tested in
+ * tests/unit/image-fit.test.ts.
+ */
+export function fitContainRect(
+  srcW: number,
+  srcH: number,
+  targetW: number,
+  targetH: number,
+): { x: number; y: number; w: number; h: number; scale: number } {
+  const scale = Math.min(targetW / srcW, targetH / srcH);
+  const w = Math.round(srcW * scale);
+  const h = Math.round(srcH * scale);
+  return { x: Math.round((targetW - w) / 2), y: Math.round((targetH - h) / 2), w, h, scale };
+}
 
 /**
  * Largest centered source rect at the target aspect ratio (cover behavior).
@@ -157,7 +187,12 @@ export function fitOutputSize(
  * @param quality 0..1 encoder quality (default 0.82 — good balance). An
  *   enlargement spends up to +0.1 more, because smoothing already lost detail.
  */
-export async function fitImageFile(file: File, slot: ImageSlot, quality = 0.82): Promise<Blob> {
+export async function fitImageFile(
+  file: File,
+  slot: ImageSlot,
+  quality = 0.82,
+  mode: FitMode = 'cover',
+): Promise<Blob> {
   if (!ALLOWED_TYPES.has(file.type.toLowerCase())) return file;
   const spec = SLOT_SIZE[slot];
   try {
@@ -168,6 +203,33 @@ export async function fitImageFile(file: File, slot: ImageSlot, quality = 0.82):
       closeBitmap(bitmap);
       return file;
     }
+
+    // Contain: fit the whole image inside the frame, centred on a transparent
+    // canvas — nothing is cropped, so a wide logo keeps every pixel.
+    if (mode === 'contain') {
+      const rect = fitContainRect(srcW, srcH, spec.width, spec.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = spec.width;
+      canvas.height = spec.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        closeBitmap(bitmap);
+        return file;
+      }
+      smoothScale(ctx);
+      ctx.drawImage(bitmap, 0, 0, srcW, srcH, rect.x, rect.y, rect.w, rect.h);
+      closeBitmap(bitmap);
+      const encodeQuality = rect.scale > 1 ? Math.min(0.95, quality + 0.1) : quality;
+      // Alpha-capable formats first so transparent logos stay transparent.
+      const webp = await encodeCanvas(canvas, 'image/webp', encodeQuality);
+      if (webp && webp.size > 0 && (rect.scale > 1 || webp.size < file.size)) return webp;
+      const png = await encodeCanvas(canvas, 'image/png', encodeQuality);
+      if (png && png.size > 0 && png.size < file.size) return png;
+      const jpeg = await encodeCanvas(canvas, 'image/jpeg', encodeQuality);
+      if (jpeg && jpeg.size > 0 && jpeg.size < file.size) return jpeg;
+      return file;
+    }
+
     // Cover-crop: largest centered rect at the slot's aspect ratio.
     const crop = coverCropRect(srcW, srcH, spec.width, spec.height);
     const { x: cropX, y: cropY, w: cropW, h: cropH } = crop;

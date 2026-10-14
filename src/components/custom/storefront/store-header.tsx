@@ -62,7 +62,7 @@ export function StoreHeader({
               width={64}
               height={64}
               sizes="(max-width: 640px) 32px, 36px"
-              className="size-8 shrink-0 rounded-lg object-cover ring-1 ring-white/25 sm:size-9"
+              className="size-8 shrink-0 rounded-lg bg-white object-contain p-0.5 ring-1 ring-white/25 sm:size-9"
             />
           ) : (
             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--tl-cta)] font-display text-small font-bold text-white ring-1 ring-white/15 sm:size-9">

@@ -181,7 +181,7 @@ function StoreForm({
         schema: StorePayload,
       });
       if (logo.file) {
-        const compressed = await fitImageFile(logo.file, 'logo');
+        const compressed = await fitImageFile(logo.file, 'logo', 0.82, 'contain');
         saved = await uploadImageFile('/api/store/logo', compressed, logo.file.name, StorePayload);
       } else if (logo.cleared) {
         saved = await apiFetch('/api/store/logo', { method: 'DELETE', schema: StorePayload });
@@ -279,7 +279,7 @@ function StoreForm({
         <FormItem>
           <Label>Logo</Label>
           <div>
-            <ImagePicker currentUrl={logoUrl} value={logo} onChange={setLogo} />
+            <ImagePicker currentUrl={logoUrl} value={logo} onChange={setLogo} fit="contain" />
           </div>
           <p className="text-caption text-muted-foreground">
             A small logo for the header of your public page. {SLOT_HINT.logo}

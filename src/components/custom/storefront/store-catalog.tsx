@@ -3,12 +3,15 @@
 // A client island so one basket can span every card on the page — the server
 // page hands over already-grouped shelves (label = category name, null =
 // uncategorised) and the storefront shell owns the search/basket state that
-// this grid renders against. Marketplace styling: dense 2→4-up cards, square
+// this grid renders against. Marketplace styling: roomy 2→3-up cards, square
 // photos, price-first type, one-tap add — with quick-view, WhatsApp and SMS
-// tucked behind the sheet so the card stays clean.
+// tucked behind the sheet so the card stays clean. A photo can be tapped
+// straight into a fullscreen lightbox (grid "View" pill or the quick-view
+// photo) so the whole, uncropped image is one tap away.
 'use client';
 
 import {
+  Maximize2,
   MessageCircle,
   MessageSquareText,
   Minus,
@@ -24,6 +27,7 @@ import {
 import Image from 'next/image';
 import { useState } from 'react';
 import { ShareSheet } from '@/components/custom/share-sheet';
+import { ImageLightbox } from '@/components/custom/storefront/image-lightbox';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CATEGORY_ICONS } from '@/lib/category-icons';
@@ -81,7 +85,7 @@ function CardMedia({ item }: { item: CatalogItem }) {
           src={item.imageUrl}
           alt={item.name}
           fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          sizes="(max-width: 767px) 50vw, 33vw"
           onLoad={() => setLoaded(true)}
           className={cn(
             'object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105',
@@ -131,6 +135,7 @@ export function StoreCatalog({
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [shareItem, setShareItem] = useState<CatalogItem | null>(null);
   const [quickView, setQuickView] = useState<CatalogItem | null>(null);
+  const [lightbox, setLightbox] = useState<CatalogItem | null>(null);
 
   const categoryLabels = groups
     .map((group) => group.label)
@@ -214,6 +219,17 @@ export function StoreCatalog({
           >
             <Share2 aria-hidden className="size-3.5" />
           </button>
+          {item.imageUrl && (
+            <button
+              type="button"
+              onClick={() => setLightbox(item)}
+              aria-label={`View full image of ${item.name}`}
+              className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors hover:bg-black/65"
+            >
+              <Maximize2 aria-hidden className="size-3.5" />
+              View
+            </button>
+          )}
         </div>
 
         <div className="flex flex-1 flex-col p-3">
@@ -446,7 +462,7 @@ export function StoreCatalog({
                     </span>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                   {group.items.map((item) => renderItem(item))}
                 </div>
               </section>
@@ -484,6 +500,10 @@ export function StoreCatalog({
                 setShareItem(quickView);
                 setQuickView(null);
               }}
+              onImageClick={() => {
+                setLightbox(quickView);
+                setQuickView(null);
+              }}
             />
           </SheetContent>
         )}
@@ -508,6 +528,15 @@ export function StoreCatalog({
           imageName={`${shareItem.name}-share.png`}
         />
       )}
+
+      <ImageLightbox
+        open={lightbox !== null}
+        onOpenChange={(open) => {
+          if (!open) setLightbox(null);
+        }}
+        src={lightbox?.imageUrl ?? null}
+        alt={lightbox?.name ?? ''}
+      />
     </>
   );
 }
@@ -520,6 +549,7 @@ function QuickViewBody({
   qty,
   onQuantityChange,
   onShare,
+  onImageClick,
 }: {
   item: CatalogItem;
   storeName: string;
@@ -528,6 +558,7 @@ function QuickViewBody({
   qty: number;
   onQuantityChange: (itemId: string, quantity: number) => void;
   onShare: () => void;
+  onImageClick: () => void;
 }) {
   const discount = itemDiscountPercent(item);
   const promos = promosForItem(promotions, item);
@@ -563,8 +594,13 @@ function QuickViewBody({
 
   return (
     <div className="grid gap-4">
-      <div className="overflow-hidden rounded-xl border border-border bg-muted">
-        {item.imageUrl ? (
+      {item.imageUrl ? (
+        <button
+          type="button"
+          onClick={onImageClick}
+          aria-label={`View full image of ${item.name}`}
+          className="group/photo relative block overflow-hidden rounded-xl border border-border bg-muted"
+        >
           <Image
             src={item.imageUrl}
             alt={item.name}
@@ -573,7 +609,13 @@ function QuickViewBody({
             sizes="(max-width: 768px) 100vw, 640px"
             className="aspect-[4/3] w-full object-cover"
           />
-        ) : (
+          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors group-hover/photo:bg-black/65">
+            <Maximize2 aria-hidden className="size-3.5" />
+            View
+          </span>
+        </button>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-border bg-muted">
           <span className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-br from-[var(--tl-700)] to-[var(--tl-900)] text-white/70">
             {item.kind === 'SERVICE' ? (
               <Wrench aria-hidden className="size-10" />
@@ -581,8 +623,8 @@ function QuickViewBody({
               <Package aria-hidden className="size-10" />
             )}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       <div>
         <div className="flex flex-wrap items-center gap-1.5">

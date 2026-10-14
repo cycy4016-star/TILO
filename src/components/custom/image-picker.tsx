@@ -7,6 +7,7 @@
 import { Camera, Image as ImageIcon, ImagePlus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export type ImageSelection = {
   // A newly chosen file (already client-compressed by the caller if desired).
@@ -22,12 +23,16 @@ export function ImagePicker({
   value,
   onChange,
   shape = 'square',
+  fit = 'cover',
 }: {
   /** URL of the image currently on the server, or null when none exists. */
   currentUrl: string | null;
   value: ImageSelection;
   onChange: (next: ImageSelection) => void;
   shape?: 'square' | 'circle';
+  /** How the preview frames the photo: `cover` fills and crops, `contain`
+   *  shows the whole image (used for logos, which are never cropped). */
+  fit?: 'cover' | 'contain';
 }) {
   const captureRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -65,9 +70,13 @@ export function ImagePicker({
 
   return (
     <div className="flex items-center gap-4">
-      <div className={previewClass}>
+      <div className={cn(previewClass, fit === 'contain' && 'bg-muted')}>
         {shownUrl ? (
-          <img src={shownUrl} alt="" className="size-full object-cover" />
+          <img
+            src={shownUrl}
+            alt=""
+            className={cn('size-full', fit === 'contain' ? 'object-contain' : 'object-cover')}
+          />
         ) : (
           <div className="flex size-full items-center justify-center bg-muted text-muted-foreground">
             <ImageIcon aria-hidden className="size-8" />

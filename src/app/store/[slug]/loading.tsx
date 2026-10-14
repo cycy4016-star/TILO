@@ -31,9 +31,9 @@ export default function StoreLoading() {
           ))}
         </div>
         {/* Cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((key) => (
-            <div key={key} className="h-64 rounded-xl bg-muted" />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          {['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'].map((key) => (
+            <div key={key} className="h-72 rounded-xl bg-muted" />
           ))}
         </div>
       </div>

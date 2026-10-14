@@ -186,7 +186,7 @@ export function OnboardingWizard() {
     try {
       let saved = store;
       if (logo.file) {
-        const compressed = await fitImageFile(logo.file, 'logo');
+        const compressed = await fitImageFile(logo.file, 'logo', 0.82, 'contain');
         saved = await uploadImageFile('/api/store/logo', compressed, logo.file.name, StorePayload);
       } else if (logo.cleared && saved.hasLogo) {
         saved = await apiFetch('/api/store/logo', { method: 'DELETE', schema: StorePayload });
@@ -413,6 +413,7 @@ export function OnboardingWizard() {
                 }
                 value={logo}
                 onChange={setLogo}
+                fit="contain"
               />
             </div>
             <div className="grid gap-2">
@@ -453,7 +454,7 @@ export function OnboardingWizard() {
                 <img
                   src={`/api/public/store/${store.slug}/logo?t=${Date.parse(store.updatedAt)}`}
                   alt=""
-                  className="size-14 shrink-0 rounded-xl object-cover"
+                  className="size-14 shrink-0 rounded-xl bg-white object-contain p-1 ring-1 ring-black/5"
                 />
               ) : (
                 <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-display text-h3 text-primary">

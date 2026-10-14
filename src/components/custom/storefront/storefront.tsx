@@ -103,18 +103,18 @@ export function Storefront({
             <div className="absolute -bottom-32 -left-16 size-72 rounded-full bg-[var(--tl-500)]/15 blur-3xl sm:size-[28rem]" />
           </div>
           {store.bannerUrl && (
-            <div className="relative h-44 w-full overflow-hidden bg-black/25 sm:h-60">
+            <div className="relative aspect-[2/1] w-full overflow-hidden bg-[var(--tl-950)] sm:aspect-[3/1]">
               <Image
                 src={store.bannerUrl}
                 alt=""
                 fill
                 priority
-                sizes="(max-width: 72rem) 100vw, 1152px"
-                className="object-cover"
+                sizes="(max-width: 640px) 100vw, 1152px"
+                className="object-cover object-center"
               />
               <div
                 aria-hidden
-                className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--tl-950)] via-[var(--tl-950)]/50 to-transparent"
+                className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--tl-950)] via-[var(--tl-950)]/45 to-transparent sm:h-28"
               />
             </div>
           )}
@@ -126,7 +126,7 @@ export function Storefront({
                 width={512}
                 height={512}
                 sizes="(max-width: 640px) 80px, 96px"
-                className={`relative object-cover shadow-xl ring-1 ring-white/25 ${
+                className={`relative bg-white object-contain p-1.5 shadow-xl ring-1 ring-black/5 ${
                   store.bannerUrl
                     ? '-mt-20 mb-4 size-20 sm:-mt-24 sm:size-24 rounded-2xl'
                     : 'mb-4 size-16 rounded-2xl'
