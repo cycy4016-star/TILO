@@ -56,11 +56,11 @@ type TargetedPromo = {
  * Promos currently live for one catalogue item: store-wide promos plus any
  * that name the item or its shelf. Timed-out and upcoming promos never match.
  */
-export function promosForItem(
-  promos: TargetedPromo[],
+export function promosForItem<T extends TargetedPromo>(
+  promos: T[],
   item: { id: string; categoryId: string | null },
   now: Date = new Date(),
-): TargetedPromo[] {
+): T[] {
   return promos.filter((promo) => {
     if (promo.active === false) return false;
     if (promo.startsAt && new Date(promo.startsAt) > now) return false;

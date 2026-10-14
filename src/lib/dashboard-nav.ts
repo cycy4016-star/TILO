@@ -11,6 +11,7 @@ import {
   FireExtinguisher,
   LayoutDashboard,
   type LucideIcon,
+  Megaphone,
   Settings,
   ShieldCheck,
   Store,
@@ -26,6 +27,7 @@ export type DashboardNavItem = {
 const merchantNavItems: DashboardNavItem[] = [
   { href: '/dashboard', label: 'Analytics', icon: LayoutDashboard },
   { href: '/dashboard/store', label: 'Catalogue', icon: Store },
+  { href: '/dashboard/ads', label: 'Ads', icon: Megaphone },
   { href: '/dashboard/orders', label: 'Orders', icon: FireExtinguisher },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
   // Socials are optional at onboarding, so Settings is where a skipped step

@@ -29,6 +29,13 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
   price pairs, active toggles, and a grouped catalogue list. The shelf id rides
   on `StoreItem.categoryId`; deleting a non-empty shelf is refused with a `409`
   so nothing is orphaned silently.
+- **Ad Studio at `/dashboard/ads`** (`src/components/custom/ad-studio.tsx`): a
+  fresh ready-to-post ad for every live listing, derived daily from the
+  catalogue — headline, caption, hashtags and a `next/og` image in
+  square/story/wide — posted with one tap to WhatsApp, Facebook, Instagram,
+  TikTok, X or Telegram. A **multi-product ad** bundles several listings into
+  one image, and **Post all at once** sends any subset as a campaign. Nothing is
+  stored and no scheduler runs; the feed rotates on the UTC day key.
 - **Multi-tenant by account:** every sign-up gets its own shop. Customers,
   orders, catalogue, storefront, notifications, and payment
   transactions all carry the owning account's `userId`, and every
@@ -190,9 +197,10 @@ prisma/
 src/
   app/(setup)/page.tsx      Marketing home at /
   app/(auth)/               Login / signup / profile
-  app/(dashboard)/dashboard Analytics hub, catalogue, orders, customers, admin
+  app/(dashboard)/dashboard Analytics hub, catalogue, ads, orders, customers, admin
   app/store/[slug]/         Public storefront (no session)
   app/api/store/**          Shelf + product CRUD for the owner
+  app/api/ads               Today's generated ad feed for the shop
   app/api/public/store/**   Read-only payload + basket checkout
   app/api/customers         Customer list/create/detail
   app/api/orders            Order list/create/status update

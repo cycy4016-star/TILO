@@ -324,6 +324,7 @@ returns 404. See §1.
 | `GET` | `/api/dashboard/overview` | user | money/order metrics |
 | `GET` | `/api/dashboard/intelligence` | user | balance sheet: cost vs sell, realized order-line margins |
 | `GET` | `/api/dashboard/products` | user | per-item sales volume, revenue, cost, margin |
+| `GET` | `/api/ads` | user | today's generated ad feed (one draft per live listing) |
 | `GET` | `/api/notifications` | user | live activity feed + unread count |
 | `POST` | `/api/notifications/read` | user | mark all notifications read |
 | `GET/PUT` | `/api/store` | user | read/upsert the store (payload includes shelves) |
@@ -344,6 +345,7 @@ returns 404. See §1.
 | `POST` | `/api/public/store/[slug]/orders` | public + rate-limit | multi-line basket checkout (auto-adds customer) |
 | `POST` | `/api/public/store/[slug]/leads` | public + rate-limit | visitor capture with consent |
 | `GET` | `/api/public/store/items/[itemId]/image` | public | item photo bytes |
+| `GET` | `/api/public/store/items/[itemId]/ad` | public | generated ad artwork (square/story/wide) |
 | `GET` | `/api/public/store/promotions/[promoId]/image` | public | promotion photo bytes |
 | `GET` | `/api/public/store/[slug]/logo` | public | store logo bytes |
 | `GET` | `/api/public/store/[slug]/banner` | public | storefront banner bytes |
@@ -468,7 +470,9 @@ provider error instead of a silent drop).
   teammate seats, invites, or per-shop roles yet; one account = one shop.
 - **WhatsApp Business API** — contact links use `wa.me`; no Cloud API sending.
 - **Social publishing** — socials are contact info only; the app never posts to
-  TikTok/Instagram/Facebook on your behalf.
+  TikTok/Instagram/Facebook on your behalf. Ad Studio (§21) generates ad copy and
+  artwork and hands them to each network's own composer, but there is still no
+  API auto-publish.
 - **Billing / subscription paywall** — Paystack is for collecting order
   payments only; the app itself is not metered or gated.
 - **Email templates / transactional volume** — email is a single reset-link
@@ -496,3 +500,44 @@ provider error instead of a silent drop).
   `/api/profile/image`), review with a live summary.
 - **Done means:** store has a name, link word and dialable phone (≥ 9 digits),
   at least one social, and a logo or banner.
+
+## 21. Ad Studio (daily generated ads)
+
+**Location:** `src/app/(dashboard)/dashboard/ads/page.tsx`,
+`src/components/custom/ad-studio.tsx`, `src/components/custom/ad-post-sheet.tsx`,
+`src/components/custom/ad-bulk-post-sheet.tsx`, `src/components/custom/ad-carousel.tsx`,
+`src/lib/ads.ts`, `src/lib/contracts/ads.ts`, `src/app/api/ads/route.ts`,
+`src/app/api/public/store/items/[itemId]/ad/route.tsx`,
+`src/app/api/public/store/[slug]/carousel/route.tsx`.
+
+- **A fresh set of ads every day, derived not stored.** `GET /api/ads` turns the
+  owner's live listings into one ready-to-post ad each: a headline, a dynamic
+  caption (price, auto-discount, live-promo terms, low-stock nudge, CTA, deep
+  link, hashtags) and a generated image. Nothing is persisted — the feed is a
+  pure function of (catalogue, UTC day), so "every 24 hours" needs no scheduler:
+  the angle and caption rotate when the day key flips and stay stable within a
+  day (`src/lib/ads.ts → buildDailyAds`).
+- **Ad artwork** is rendered on demand by
+  `/api/public/store/items/[itemId]/ad?format=square|story|wide` with `next/og`:
+  the listing's own photo, the shop logo/name and brand colour, the price with a
+  sale badge and a call to action. The three formats cover feed, story/status and
+  link card.
+- **One-tap posting.** The Ad Studio grid previews each draft; **Post** opens the
+  channel picker — WhatsApp, Facebook, Instagram, TikTok, X, Telegram
+  (`src/lib/ads.ts → adPostPlan`). Networks with a web composer (WhatsApp, X,
+  Telegram, Facebook) open pre-filled with the caption and link; image-first
+  networks with no web poster (Instagram, TikTok) save the image and copy the
+  caption for the app. Save-image and copy-caption are always available.
+- **Multi-product ad.** `/api/public/store/[slug]/carousel?ids=a,b,c&format=…`
+  composes several listings into one brand-coloured image (a 2×2 grid, a 2×3
+  story, or a 3-across wide card — `CAROUSEL_MAX`), with a shop-wide CTA. The Ad
+  Studio shows it beside the grid, and its caption (a numbered list with deep
+  links and deduped hashtags) comes from `buildCampaignCaption`.
+- **Post everything at once.** Every posting action is optional: post a single ad
+  from its card, or open **Post all at once** to pick any subset of the day's ads
+  and send them together — compose channels open once with the combined campaign
+  caption, image-first channels save every selected image and copy that caption.
+- **No true auto-publish.** Tilo never posts to a network on the owner's behalf
+  (see §19) — it generates the asset and hands it to each network's own
+  composer. Captions are template-based today; LLM-written copy and video ads are
+  a deliberate later layer.

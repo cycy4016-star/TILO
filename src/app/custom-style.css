@@ -96,6 +96,23 @@ p {
   animation: tilo-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+/* Autoplay progress bar for the Ad Studio slideshow. The element is keyed by
+   the current ad, so a new slide restarts the fill; the duration matches
+   AUTOPLAY_MS in ad-slideshow.tsx. */
+@keyframes tilo-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-tilo-progress {
+  transform-origin: left;
+  animation: tilo-progress 4.5s linear forwards;
+}
+
 /* Gentle floating bob for the dashboard hero accents. */
 @keyframes tilo-float {
   0%,
@@ -207,6 +224,7 @@ a.bg-primary {
   .animate-tilo-ping,
   .animate-tilo-float,
   .animate-tilo-sheen,
+  .animate-tilo-progress,
   .lift,
   button.bg-primary,
   a.bg-primary {
