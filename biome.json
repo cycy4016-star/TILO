@@ -32,6 +32,10 @@
   },
   "overrides": [
     {
+      "includes": ["scripts/**"],
+      "linter": { "rules": { "style": { "noRestrictedImports": "off" } } }
+    },
+    {
       "includes": [
         "src/app/**/route.ts",
         "src/app/**/route.tsx",

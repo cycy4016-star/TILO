@@ -339,8 +339,11 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                       onValueChange={(value) => void updateStatus(order.id, value)}
                       disabled={updatingOrderId === order.id}
                     >
-                      <SelectTrigger className="mt-3 w-full rounded-md sm:mt-0 sm:w-40">
-                        <SelectValue aria-label="Order status" />
+                      <SelectTrigger
+                        aria-label="Order status"
+                        className="mt-3 w-full rounded-md sm:mt-0 sm:w-40"
+                      >
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {OrderStatus.options.map((status) => (
