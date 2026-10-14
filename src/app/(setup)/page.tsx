@@ -290,7 +290,8 @@ export default async function TiloHome() {
   // CSP-safe JSON-LD: the per-request nonce keeps strict script-src happy.
   // The root layout already opts the tree into dynamic rendering for this.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
-  // Beta truth: every plan is free until billing opens, so the offer price is 0.
+  // Free-trial truth: the offer price is 0 because the first 14 days are free
+  // (see src/lib/trial.ts) — paid plans begin after the trial.
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [

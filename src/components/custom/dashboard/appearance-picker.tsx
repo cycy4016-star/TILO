@@ -1,9 +1,9 @@
 // The dashboard's platform color picker — the swatch button in the header
 // (next to the notification bell). One tap opens the color themes; the
 // selection is applied to <html> instantly and persisted per-user via
-// /api/appearance, so each account owns the dashboard's look. The corporate
-// default is Slate. The public storefront renders one unified corporate
-// layout regardless (unaffected here).
+// /api/appearance, so each account owns the dashboard's look. The platform
+// default is a bright marketplace orange. The public storefront renders one
+// unified corporate layout regardless (unaffected here).
 'use client';
 
 import { Palette } from 'lucide-react';

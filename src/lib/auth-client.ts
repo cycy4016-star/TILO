@@ -22,6 +22,9 @@ export const authClient = createAuthClient({
       user: {
         inviteCode: { type: 'string' },
         phoneNumber: { type: 'string' },
+        // Server-set free-trial end date, surfaced read-only on the session so
+        // the dashboard can show the days-left banner.
+        trialEndsAt: { type: 'date' },
       },
     }),
   ],

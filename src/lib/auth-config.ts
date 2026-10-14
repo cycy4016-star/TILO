@@ -18,6 +18,9 @@ export const authConfig: BetterAuthOptions = {
   user: {
     additionalFields: {
       inviteCode: { type: 'string', required: false, input: true, defaultValue: '' },
+      // Free-trial end date. Server-set only (input: false) — the user.create
+      // before-hook in src/lib/auth.ts stamps it; clients can never move it.
+      trialEndsAt: { type: 'date', required: false, input: false },
     },
   },
   emailAndPassword: {

@@ -15,7 +15,7 @@ export default function SignupPage() {
               screens are structurally identical, so they share a scale step. */}
           <CardTitle className="text-h2">Create your account</CardTitle>
           <CardDescription className="mt-2 text-small text-muted-foreground">
-            Free to start — set up in minutes
+            14 days free — no card, set up in minutes
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">

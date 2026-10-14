@@ -169,6 +169,30 @@
 /* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)
    recomputes the whole derived brand ramp + every semantic token, so one
    attribute recolors the workspace and storefront coherently. */
+/* Orange — Tilo's own bright golden-orange default for WhatsApp sellers. A
+   sunny, high-energy amber (yellower than a plain orange, warmer than the old
+   yellow) with a vivid commerce ramp for the storefront, so the whole platform
+   reads bright, warm and young instead of the desaturated corporate slate it
+   shipped with. */
+[data-theme="orange"] {
+  --brand-h: 70;
+  --brand-c: 0.19;
+  --brand-l: 0.72;
+  --tl-950: #78350f;
+  --tl-900: #92400e;
+  --tl-800: #b45309;
+  --tl-700: #d97706;
+  --tl-600: #f59e0b;
+  --tl-500: #f5a623;
+  --tl-400: #fbbf24;
+  --tl-300: #fcd34d;
+  --tl-200: #fde68a;
+  --tl-100: #fef3c7;
+  --tl-50: #fffbeb;
+  --tl-cta: #f59e0b;
+  --tl-cta-border: #fbbf24;
+  --tl-banner: #fffbeb;
+}
 [data-theme="emerald"] {
   --brand-h: 160;
   --brand-c: 0.2;
@@ -330,11 +354,13 @@
   --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
 }
 
-/* TILO's yellow is bright, so its buttons carry near-black text instead of the
-   default white (yellow + white washes out). Applied to the yellow/gold theme
-   only — every other theme keeps white on its darker primary. */
+/* TILO's yellow-gold is bright, so its buttons carry near-black text instead of
+   the default white (a bright warm fill + white washes out). Applied to the
+   gold and golden-orange themes only — every other theme keeps white on its
+   darker primary. */
 :root:not([data-theme]),
-[data-theme="gold"] {
+[data-theme="gold"],
+[data-theme="orange"] {
   --primary-foreground: oklch(0.24 0.04 70);
 }
 

@@ -148,7 +148,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
           tabIndex={showCta ? 0 : -1}
           className="w-full font-semibold shadow-lg"
         >
-          <Link href={LANDING.hero.primary.href}>Get started free</Link>
+          <Link href={LANDING.hero.primary.href}>{LANDING.hero.primary.label}</Link>
         </Button>
       </div>
     </>

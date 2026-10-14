@@ -9,7 +9,16 @@ export const StoreItemKind = z.enum(['PRODUCT', 'SERVICE']);
 // SERVER-FACING keys only — this enum lives in the shared contract so both
 // the API and the client validate against the exact same allowlist. The
 // runtime value is also checked by ThemeKey.parse before it drives CSS.
-export const ThemeKey = z.enum(['gold', 'ember', 'emerald', 'ocean', 'violet', 'rose', 'slate']);
+export const ThemeKey = z.enum([
+  'orange',
+  'gold',
+  'ember',
+  'emerald',
+  'ocean',
+  'violet',
+  'rose',
+  'slate',
+]);
 export type ThemeKeyValue = z.infer<typeof ThemeKey>;
 
 // Layout/appearance presets (see src/lib/theme.ts for the descriptions).

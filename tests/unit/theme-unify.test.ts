@@ -1,5 +1,5 @@
-// Corporate unification tests: the platform defaults to neutral slate and
-// every stored appearance normalizes to the single corporate layout,
+// Corporate unification tests: the platform defaults to a bright marketplace
+// orange and every stored appearance normalizes to the single corporate layout,
 // including legacy "vibrant" rows.
 import { describe, expect, it } from 'vitest';
 import {
@@ -12,14 +12,14 @@ import {
 } from '@/lib/theme';
 
 describe('corporate theme defaults', () => {
-  it('ships slate as the neutral default', () => {
-    expect(DEFAULT_THEME).toBe('slate');
-    expect(getThemePreset(undefined).key).toBe('slate');
-    expect(normalizeTheme('nope')).toBe('slate');
+  it('ships orange as the bright default', () => {
+    expect(DEFAULT_THEME).toBe('orange');
+    expect(getThemePreset(undefined).key).toBe('orange');
+    expect(normalizeTheme('nope')).toBe('orange');
     expect(normalizeTheme('ocean')).toBe('ocean');
   });
 
-  it('lists slate first in the picker', () => {
+  it('lists orange first in the picker', () => {
     expect(APPEARANCE_PRESETS.length).toBeGreaterThan(0);
   });
 });

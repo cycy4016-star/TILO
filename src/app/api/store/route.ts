@@ -58,7 +58,7 @@ export async function PUT(request: Request) {
             // is unique, so a second sign-up can never hijack this shop's URL.
             // Corporate default: a store created without an explicit theme
             // ships slate (the DB default predates the unification).
-            data: { theme: 'slate', ...data, userId: user.id },
+            data: { theme: 'orange', ...data, userId: user.id },
             ...storeSelect,
           });
     } catch (error) {

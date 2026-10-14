@@ -19,11 +19,11 @@ export function Pricing() {
         <Reveal>
           <p className="text-eyebrow">Pricing</p>
           <h2 className="mt-3 break-words text-balance font-display text-h2">
-            Start free, <span className="text-primary">pay when it pays</span>
+            Start free for 14 days, <span className="text-primary">pay when it pays</span>
           </h2>
           <p className="mt-4 max-w-[60ch] text-body-lg text-muted-foreground">
-            Beta pricing — everything below is free until billing opens. No card, no charge, no
-            surprise.
+            Every new shop gets the full toolkit free for 14 days — no card, no charge. When the
+            trial ends, pick the plan that fits. Your shop and data always stay safe.
           </p>
         </Reveal>
 
@@ -75,7 +75,7 @@ export function Pricing() {
                   <p className="mt-1 min-h-5 text-caption text-muted-foreground">
                     {plan.monthly > 0 ? (
                       <span className="font-semibold text-primary">
-                        Free during beta — billing opens soon
+                        14 days free, then GH₵ {plan.monthly.toLocaleString('en-GH')}/mo
                       </span>
                     ) : (
                       price.note

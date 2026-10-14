@@ -50,10 +50,10 @@ export function SocialProof() {
         <Reveal delay={120}>
           <div className="mx-auto mt-9 max-w-xl rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
             <p className="text-body font-medium text-foreground">
-              Beta shops get the whole toolkit free — shelves, themes, promos and analytics.
+              Every new shop gets 14 days free — shelves, themes, promos and analytics.
             </p>
             <p className="mt-1.5 text-small text-muted-foreground">
-              Bring your catalogue; paid plans arrive later, with a discount for beta shops.
+              No card to start. Pick a plan only when the trial ends.
             </p>
           </div>
         </Reveal>

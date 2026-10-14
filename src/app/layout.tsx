@@ -41,19 +41,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
-    // Corporate default: the whole tree ships slate-first. The dashboard
-    // AppearancePicker overwrites this with the user's saved theme on mount,
-    // and the storefront sets its own per-store theme on its <main>.
+    // Bright default: the whole tree ships orange-first (a saturated
+    // marketplace orange for WhatsApp sellers). The dashboard AppearancePicker
+    // overwrites this with the user's saved theme on mount, and the storefront
+    // sets its own per-store theme on its <main>.
     <html
       lang={locale.lang}
       dir={locale.dir}
-      data-theme="slate"
+      data-theme="orange"
       className={fontVariables}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background font-body text-foreground antialiased">
         <HeadContent nonce={nonce} />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem nonce={nonce}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} nonce={nonce}>
           <AppProviders>
             <SiteNav />
             {children}

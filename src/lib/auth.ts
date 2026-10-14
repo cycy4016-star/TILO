@@ -12,6 +12,7 @@ import { prisma } from '@/lib/db';
 import { env } from '@/lib/env';
 import { toE164 } from '@/lib/phone';
 import { sendSms } from '@/lib/sms';
+import { trialEndsAtFrom } from '@/lib/trial';
 
 // Compose the app's hooks — don't overwrite them. `role` is a PLATFORM role:
 // sign-ups default to "user" and only the account matching ADMIN_PHONE /
@@ -347,6 +348,10 @@ export const auth = betterAuth({
               // `userId` ownership columns; this only marks the operator who
               // may read the cross-account admin monitor.
               role: resolveRole(phone, base.email),
+              // Free trial: 14 days of the full toolkit from account creation.
+              // Kept if a value already arrived (e.g. a pre-seeded backfill),
+              // so this only stamps genuinely new accounts.
+              trialEndsAt: base.trialEndsAt ?? trialEndsAtFrom(new Date()),
             },
           };
         },

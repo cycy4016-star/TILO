@@ -3,21 +3,23 @@
 //
 // PRICES ARE PLACEHOLDERS: the cedi amounts below are stand-ins. Change them
 // here and the pricing section, toggle math and tests follow automatically.
+import { TRIAL_DAYS } from '@/lib/trial';
+
 export const LANDING = {
   hero: {
     eyebrow: 'For boutiques, food vendors, makers & more',
     titleA: 'Turn your bio link into a shop',
     titleAccent: 'that sells for you.',
     sub: 'Shelves, photos and prices on one page — customers fill a basket themselves, and orders land in your dashboard, confirmed on WhatsApp.',
-    primary: { label: 'Create your store free', href: '/signup' },
+    primary: { label: 'Start your free trial', href: '/signup' },
     secondary: { label: 'See live examples', href: '#showcase' },
-    reassurance: 'Free to start · No card needed · Live in minutes',
+    reassurance: `${TRIAL_DAYS} days free · No card needed · Live in minutes`,
   },
   proof: {
-    line: 'Free beta — every shop gets everything while we launch',
-    // Honest beta stats only: no shop/order counts until they are real.
+    line: `${TRIAL_DAYS} days free — the whole toolkit, no card needed`,
+    // Honest stats only: no shop/order counts until they are real.
     stats: [
-      { value: 100, suffix: '%', label: 'free during beta' },
+      { value: TRIAL_DAYS, suffix: ' days', label: 'free, then a small monthly plan' },
       { value: 1, suffix: '', label: 'link for your whole shop' },
       { value: 2, suffix: ' min', label: 'to publish a product' },
     ] as { value: number; suffix: string; label: string; comma?: boolean }[],
@@ -94,7 +96,7 @@ export type Plan = {
   id: string;
   name: string;
   tagline: string;
-  /** Cedi amounts. PLACEHOLDER — edit freely. 0/0 means free forever. */
+  /** Cedi amounts. PLACEHOLDER — edit freely. 0/0 means the free-trial entry plan. */
   monthly: number;
   yearly: number;
   cta: string;
@@ -105,19 +107,19 @@ export type Plan = {
 
 export const PLANS: Plan[] = [
   {
-    id: 'starter',
-    name: 'Starter',
-    tagline: 'Taste the whole shop, free.',
+    id: 'trial',
+    name: 'Free trial',
+    tagline: 'The whole shop, free for 14 days.',
     monthly: 0,
     yearly: 0,
-    cta: 'Start free',
+    cta: 'Start free trial',
     href: '/signup',
     highlighted: false,
     features: [
-      '1 shop page',
-      'Unlimited products in beta',
-      'WhatsApp ordering',
-      'Share link & social sharing',
+      'Everything, unlocked for 14 days',
+      'Unlimited products & shelves',
+      'WhatsApp ordering & share link',
+      'No card needed to start',
     ],
   },
   {
@@ -130,7 +132,7 @@ export const PLANS: Plan[] = [
     href: '/signup',
     highlighted: true,
     features: [
-      'Everything in Starter',
+      'Everything in the trial',
       'Unlimited products & shelves',
       'Sales analytics & reports',
       'Themes & brand colours',
@@ -160,7 +162,7 @@ export type BilledPrice = { amount: number; per: string; note: string | null };
 
 export function billingPrice(plan: Plan, cycle: BillingCycle): BilledPrice {
   if (plan.monthly <= 0 && plan.yearly <= 0)
-    return { amount: 0, per: 'forever', note: 'Free forever' };
+    return { amount: 0, per: `for ${TRIAL_DAYS} days`, note: 'No card needed' };
   if (cycle === 'monthly') return { amount: plan.monthly, per: '/mo', note: null };
   const perMonth = plan.yearly / 12;
   const whole = perMonth % 1 === 0;
@@ -174,7 +176,11 @@ export function billingPrice(plan: Plan, cycle: BillingCycle): BilledPrice {
 export const FAQS: { q: string; a: string }[] = [
   {
     q: 'Is it really free to start?',
-    a: 'Yes. Tilo is in free beta — every shop gets the whole toolkit free, and no card is needed to sign up. Paid plans arrive later; beta shops will keep a discount.',
+    a: `Yes. Every new shop gets the full toolkit free for ${TRIAL_DAYS} days — no card, no charge. When the trial ends you pick a plan to keep selling; your shop and its data stay safe either way.`,
+  },
+  {
+    q: 'What happens when my free trial ends?',
+    a: `After ${TRIAL_DAYS} days the free trial ends and a paid plan keeps your shop live and orderable. We never charge anything automatically — you choose and pay for a plan yourself, and nothing is lost if you pause.`,
   },
   {
     q: 'Do my customers need the app?',
@@ -186,7 +192,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Can I use my own photos and colours?',
-    a: 'Yes. Upload product photos and your logo, then pick from seven colour themes and two layouts to match your brand.',
+    a: 'Yes. Upload product photos and your logo, then pick from the colour themes to match your brand.',
   },
   {
     q: 'How do customers pay?',
@@ -194,7 +200,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Can I cancel anytime?',
-    a: 'There is nothing to cancel yet — billing has not opened, so every shop is free. When paid plans arrive, they will be month-to-month and your page stays up on the free plan if you cancel.',
+    a: 'Yes. Plans are month-to-month, and you can stop whenever you like — there is no lock-in. Cancel and your page stays up; a plan simply keeps it orderable.',
   },
 ];
 

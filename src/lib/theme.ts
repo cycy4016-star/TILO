@@ -2,10 +2,10 @@
 // set of seed values (--brand-h/c/l) injected into the CSS in globals.css under
 // a `[data-theme="key"]` selector — the derived brand ramp and every semantic
 // token recompute from those three numbers, so one pick recolours the whole
-// dashboard coherently. The corporate default is Slate (neutral grey); shops
-// and users may still pick a brand colour from the picker, but every surface
-// ships slate-first. The storefront renders one unified corporate layout —
-// there is no alternate appearance anymore (see normalizeAppearance).
+// dashboard coherently. The default is a bright golden-orange ("Sunrise"); shops
+// and users may still pick a different brand colour from the picker. The
+// storefront renders one unified corporate layout — there is no alternate
+// appearance anymore (see normalizeAppearance).
 //
 // This module is CLIENT-SAFE: the swatch previews and labels drive the picker
 // UI, and `normalizeTheme` guards unknown persisted values so a bad string in
@@ -24,9 +24,16 @@ export type ThemePreset = {
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
+    key: 'orange',
+    label: 'Sunrise',
+    tagline: 'Bright golden-orange · the Tilo default',
+    accents: ['#f59e0b', '#fef3c7'],
+    seed: { h: 70, c: 0.19, l: 0.72 },
+  },
+  {
     key: 'slate',
     label: 'Slate',
-    tagline: 'Neutral grey · the corporate default',
+    tagline: 'Neutral grey · quiet and corporate',
     accents: ['#475569', '#e2e8f0'],
     seed: { h: 250, c: 0.02, l: 0.5 },
   },
@@ -74,7 +81,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
 ];
 
-export const DEFAULT_THEME: ThemeKeyValue = 'slate';
+export const DEFAULT_THEME: ThemeKeyValue = 'orange';
 
 // Safely coerce any persisted value (string | null | undefined) into a valid
 // theme key. Mirrors the DB default so unknown values fall back to slate.

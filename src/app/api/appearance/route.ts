@@ -22,9 +22,9 @@ export async function GET(request: Request) {
     const pref = await prisma.appearancePreference.findUnique({
       where: { userId: user.id },
     });
-    // No preference yet → the corporate defaults (slate + professional).
+    // No preference yet → the platform defaults (orange + professional).
     return NextResponse.json({
-      theme: pref?.theme ?? 'slate',
+      theme: pref?.theme ?? 'orange',
       appearance: pref?.appearance ?? 'professional',
     });
   } catch (error) {
@@ -55,7 +55,7 @@ export async function PUT(request: Request) {
       where: { userId: user.id },
       create: {
         userId: user.id,
-        theme: parsed.data.theme ?? 'slate',
+        theme: parsed.data.theme ?? 'orange',
         appearance: parsed.data.appearance ?? 'professional',
       },
       update: {

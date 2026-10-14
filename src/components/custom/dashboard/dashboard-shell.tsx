@@ -15,6 +15,7 @@ import { NotificationBell } from '../notification-bell';
 import { TiloMark } from '../tilo-mark';
 import { AppearancePicker } from './appearance-picker';
 import { DashboardNav } from './dashboard-nav';
+import { TrialBanner } from './trial-banner';
 
 export interface DashboardShellProps {
   children: ReactNode;
@@ -129,6 +130,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </div>
         </div>
       </header>
+
+      {/* Trial countdown — owners only. An operator owns no shop, so there is
+          no trial to count down. */}
+      {!isAdmin && <TrialBanner />}
 
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-0 px-4 py-4 sm:px-6 sm:py-6 lg:flex-row lg:gap-8">
         <nav
