@@ -1,0 +1,21 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check production /health
+        env:
+          URL: https://tilo-production-81c6.up.railway.app/health
+        run: |
+          set -euo pipefail
+          echo "Checking ${URL}"
+          body="$(curl -fsS -m 30 --retry 2 "${URL}")"
+          echo "${body}"
+          echo "${body}" | grep -q '"db":true'
