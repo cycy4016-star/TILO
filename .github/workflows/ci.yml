@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, unit tests, build
+    runs-on: ubuntu-latest
+    env:
+      SKIP_ENV_VALIDATION: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tilo
+          POSTGRES_PASSWORD: tilo
+          POSTGRES_DB: tilo_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://tilo:tilo@localhost:5432/tilo_e2e
+      BETTER_AUTH_SECRET: ci-e2e-secret-ci-e2e-secret-ci-e2e-secret
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      SMS_PROVIDER: none
+      E2E_BASE_URL: http://localhost:3000
+      E2E_OWNER_EMAIL: e2e-owner@tilo.local
+      E2E_OWNER_PASSWORD: tilo-e2e-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - run: npm run seed:e2e
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start the app
+        run: nohup npm run start > "$RUNNER_TEMP/next.log" 2>&1 &
+      - name: Wait for the app
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -sf http://localhost:3000/login > /dev/null; then
+              echo "app is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "app did not start in time"
+          cat "$RUNNER_TEMP/next.log"
+          exit 1
+      - run: npm run test:e2e
+      - name: App logs (on failure)
+        if: failure()
+        run: cat "$RUNNER_TEMP/next.log"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
