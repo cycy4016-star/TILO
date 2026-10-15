@@ -63,6 +63,8 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx prisma migrate deploy
+      - name: Integration tests (Postgres)
+        run: npm run test:postgres
       - run: npm run seed:e2e
       - run: npm run build
       - run: npx playwright install --with-deps chromium

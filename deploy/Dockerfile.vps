@@ -2,7 +2,7 @@
 # Build + run: docker build -t tilo . && docker run -p 3000:3000 --env-file .env.prod tilo
 # .env.prod must set DATABASE_URL (pooler URL with ?connection_limit=5),
 # BETTER_AUTH_SECRET, BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL and your provider keys.
-FROM node:20-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
