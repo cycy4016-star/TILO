@@ -306,6 +306,20 @@ export const auth = betterAuth({
       create: {
         ...appHooks?.user?.create,
         before: async (user, ctx) => {
+          // Pilot capacity cap (optional). Runs on EVERY create path — phone AND
+          // Google — because the invite gate below exempts verified emails, so a
+          // hard account limit is the only way to hold "the first N shops". The
+          // pre-create count already excludes the pending row, so `>=` is exact.
+          const limit = env.SIGNUP_LIMIT;
+          if (limit) {
+            const count = await prisma.user.count();
+            if (count >= limit) {
+              throw APIError.from('FORBIDDEN', {
+                code: 'SIGNUP_LIMIT_REACHED',
+                message: `This pilot is limited to the first ${limit} shops and is now full.`,
+              });
+            }
+          }
           // Invite-code gate (optional). When SIGNUP_INVITE_CODE is set, only
           // sign-ups that present the exact code get through. Fully-verified
           // email identities (Google OAuth) are trusted and exempt. Returning

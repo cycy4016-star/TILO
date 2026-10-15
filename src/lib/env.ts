@@ -16,6 +16,11 @@ export const env = createEnv({
     // must submit this exact code or be rejected. Fully-verified email accounts
     // (e.g. Google sign-in) are exempt. Leave empty for open sign-up.
     SIGNUP_INVITE_CODE: z.string().optional(),
+    // Hard cap on the number of accounts (optional). When set, sign-up is
+    // rejected once this many users exist — the "first N shops" gate for a
+    // pilot. Enforced on every create path (phone AND Google), unlike the
+    // invite gate which Google identities skip.
+    SIGNUP_LIMIT: z.coerce.number().int().positive().optional(),
 
     // SMS (verification codes). All optional: the app boots without a
     // provider, and OTP sends report their failure instead of faking success.
@@ -73,6 +78,7 @@ export const env = createEnv({
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_PHONE: process.env.ADMIN_PHONE,
     SIGNUP_INVITE_CODE: process.env.SIGNUP_INVITE_CODE,
+    SIGNUP_LIMIT: process.env.SIGNUP_LIMIT,
     SMS_PROVIDER: process.env.SMS_PROVIDER,
     BMS_API_KEY: process.env.BMS_API_KEY,
     BMS_SENDER_ID: process.env.BMS_SENDER_ID,
