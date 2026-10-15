@@ -30,6 +30,9 @@ lerna-debug.log*
 # Local secrets helpers: never commit
 cron-secret.txt
 
+# OAuth client secret downloads (Google Cloud console JSON): never commit
+/client/
+
 # IDE / editor
 .vscode/
 .idea/
