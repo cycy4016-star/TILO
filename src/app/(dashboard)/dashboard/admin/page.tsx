@@ -1,17 +1,7 @@
-// Tilza Admin ops center: platform-wide monitor — every shop, product, order
-// and event. Platform-admin only: requireAdmin() now checks the role, so a
-// signed-in shop owner who guesses this URL is redirected to their dashboard.
-// This is the ONE page in the app that reads across shops.
-import type { Metadata } from 'next';
-import { AdminMonitor } from '@/components/custom/admin-monitor';
-import { requireAdmin } from '@/lib/require-admin';
+// Overview: the live platform pulse — accounts, shops, orders, revenue and the
+// 14-day trend. Operator-only; the guard lives in admin/layout.tsx.
+import { OverviewPanel } from '@/components/custom/admin/overview-panel';
 
-export const metadata: Metadata = {
-  title: 'Admin',
-  description: 'Platform monitor: every shop, product, order and event.',
-};
-
-export default async function AdminPage() {
-  await requireAdmin();
-  return <AdminMonitor />;
+export default function AdminOverviewPage() {
+  return <OverviewPanel />;
 }

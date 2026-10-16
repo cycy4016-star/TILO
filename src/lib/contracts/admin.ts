@@ -322,3 +322,30 @@ export type AdminFeedbackStatus = z.infer<typeof AdminFeedbackStatus>;
 export type AdminFeedbackRow = z.infer<typeof AdminFeedbackRow>;
 export type AdminFeedbackList = z.infer<typeof AdminFeedbackList>;
 export type AdminFeedbackQuery = z.infer<typeof AdminFeedbackQuery>;
+
+// ── admin actions ───────────────────────────────────────────────────────────
+// Account moderation from the console: promote/demote a platform operator and
+// suspend/restore a sign-in. At least one field must be present. Executed
+// through better-auth's admin plugin (set-role / ban-user / unban-user) so the
+// plugin's own rules — session revocation on ban, self-lockout guards — apply.
+export const AdminUserUpdate = z
+  .object({
+    role: z.enum(['admin', 'user']).optional(),
+    banned: z.boolean().optional(),
+  })
+  .refine((value) => value.role !== undefined || value.banned !== undefined, {
+    message: 'Provide role and/or banned.',
+  });
+export type AdminUserUpdate = z.infer<typeof AdminUserUpdate>;
+
+// Shop moderation: open or close a storefront without touching the account.
+export const AdminShopUpdate = z.object({
+  active: z.boolean(),
+});
+export type AdminShopUpdate = z.infer<typeof AdminShopUpdate>;
+
+export const AdminShopToggleResult = z.object({
+  userId: z.string(),
+  active: z.boolean(),
+});
+export type AdminShopToggleResult = z.infer<typeof AdminShopToggleResult>;

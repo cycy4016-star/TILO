@@ -85,8 +85,15 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
     ],
   },
   {
-    match: (p) => p === '/dashboard/admin',
-    actions: [{ label: 'Accounts', icon: ShieldCheck, sectionId: 'accounts-table' }],
+    // Console sections are real routes now, so these are links (and the match
+    // covers every /dashboard/admin/* section, not just the index).
+    match: (p) => isPath(p, '/dashboard/admin'),
+    actions: [
+      { label: 'Accounts', icon: ShieldCheck, href: '/dashboard/admin/users' },
+      { label: 'Shops', icon: Store, href: '/dashboard/admin/shops' },
+      { label: 'Health', icon: FireExtinguisher, href: '/dashboard/admin/health' },
+      { label: 'Feedback', icon: Tag, href: '/dashboard/admin/feedback' },
+    ],
   },
 ];
 

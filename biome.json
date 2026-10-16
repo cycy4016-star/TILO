@@ -41,7 +41,7 @@
         "src/app/**/route.tsx",
         "src/app/layout.tsx",
         "src/app/(setup)/page.tsx",
-        "src/app/(dashboard)/dashboard/admin/page.tsx",
+        "src/app/(dashboard)/dashboard/admin/layout.tsx",
         "src/lib/**",
         "src/modules/**/server/**",
         "src/proxy.ts"

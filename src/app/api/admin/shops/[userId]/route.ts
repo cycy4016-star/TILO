@@ -4,14 +4,16 @@
 import 'server-only';
 
 import { NextResponse } from 'next/server';
-import { AdminShopDetail } from '@/lib/contracts/admin';
+import { AdminShopDetail, AdminShopToggleResult, AdminShopUpdate } from '@/lib/contracts/admin';
 import { prisma } from '@/lib/db';
 import { requireAdminUser } from '@/lib/require-admin-api';
 import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
+type RouteContext = { params: Promise<{ userId: string }> };
+
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     await requireAdminUser(request);
     const { userId } = await params;
@@ -149,6 +151,36 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         })),
       }),
     );
+  } catch (error) {
+    return routeErrorResponse(error, request);
+  }
+}
+
+/** Open or close a storefront from the console — the owner's account is left
+ *  untouched, so a suspended shop keeps its data and can be switched back on. */
+export async function PATCH(request: Request, { params }: RouteContext) {
+  try {
+    await requireAdminUser(request);
+    const { userId } = await params;
+
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
+    }
+    const parsed = AdminShopUpdate.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid update' }, { status: 400 });
+    }
+
+    const store = await prisma.store.findUnique({ where: { userId }, select: { id: true } });
+    if (!store) {
+      return NextResponse.json({ error: 'That account has no storefront' }, { status: 404 });
+    }
+
+    await prisma.store.update({ where: { userId }, data: { active: parsed.data.active } });
+    return NextResponse.json(AdminShopToggleResult.parse({ userId, active: parsed.data.active }));
   } catch (error) {
     return routeErrorResponse(error, request);
   }
