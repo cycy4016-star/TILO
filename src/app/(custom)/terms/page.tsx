@@ -20,7 +20,7 @@ const sections: LegalSection[] = [
   {
     heading: 'Your account',
     body: [
-      `Accounts are phone-first and verified with a one-time SMS code. You are responsible for keeping your sign-in credentials secure and for what happens under your account.`,
+      `Accounts are created and signed in with Google. You are responsible for keeping your sign-in credentials secure and for what happens under your account.`,
       `The first user matching the owner contact configured for this deployment is granted admin, which controls access to workspace settings.`,
     ],
   },

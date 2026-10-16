@@ -7,21 +7,17 @@
 // endpoints are mounted at /api/auth/* by the catch-all route handler on that
 // same origin.
 
-import { adminClient, inferAdditionalFields, phoneNumberClient } from 'better-auth/client/plugins';
+import { adminClient, inferAdditionalFields } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
   plugins: [
     adminClient(),
-    phoneNumberClient(),
-    // Mirrors `user.additionalFields` in auth-config.ts so signUp.email accepts
-    // (and types) the `inviteCode` and `phoneNumber` fields sent by the sign-up
-    // form. `phoneNumber` is registered by the phoneNumber plugin server-side;
-    // the mirror keeps the client body typed for the OTP-free sign-up path.
+    // Mirrors `user.additionalFields` in auth-config.ts so the client body is
+    // typed for the fields the sign-up flow sends.
     inferAdditionalFields({
       user: {
         inviteCode: { type: 'string' },
-        phoneNumber: { type: 'string' },
         // Server-set free-trial end date, surfaced read-only on the session so
         // the dashboard can show the days-left banner.
         trialEndsAt: { type: 'date' },
@@ -34,7 +30,7 @@ export const { signIn, signUp, signOut, useSession } = authClient;
 
 /**
  * `true` only for a PLATFORM admin — the account promoted at sign-up by
- * ADMIN_PHONE / ADMIN_EMAIL. This is not "is this a shop owner": every signed-in
+ * ADMIN_EMAIL. This is not "is this a shop owner": every signed-in
  * account owns its own workspace and runs the full dashboard without any role.
  * Use it to reveal cross-account UI (the /dashboard/admin account monitor).
  *

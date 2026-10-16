@@ -96,9 +96,7 @@ export default function ProfilePage() {
           )}
           <div className="min-w-0">
             <h1 className="truncate text-h1 font-display">{session.user.name}</h1>
-            <p className="truncate text-small text-muted-foreground">
-              {session.user.phoneNumber ?? session.user.email}
-            </p>
+            <p className="truncate text-small text-muted-foreground">{session.user.email}</p>
           </div>
         </div>
 
@@ -139,12 +137,7 @@ export default function ProfilePage() {
               <span className="text-caption font-medium text-muted-foreground">Name</span>
               <span className="font-medium">{session.user.name}</span>
             </div>
-            <Separator />
-            <div className="flex items-center justify-between py-2">
-              <span className="text-caption font-medium text-muted-foreground">Phone</span>
-              <span className="font-medium">{session.user.phoneNumber ?? '—'}</span>
-            </div>
-            {session.user.email && !session.user.email.endsWith('@phone.tilo') ? (
+            {session.user.email ? (
               <>
                 <Separator />
                 <div className="flex items-center justify-between py-2">

@@ -14,10 +14,9 @@ const sections: LegalSection[] = [
   {
     heading: 'What we collect',
     body: [
-      `Account details you give us on sign-up: your name, phone number, and (optionally) email. Phone numbers are verified with a one-time SMS code.`,
+      `Account details from Google sign-in: your name and email address.`,
       `The business data you run on ${businessName}: customers, orders, amounts, store details, and catalogue items you create. Store logos, banners, item photos, and profile avatars are stored with your account.`,
       `Storefront visitor data left on your public store: name, phone, town, and any note, collected only when a visitor ticks the opt-in box. Submissions are saved to your customers list.`,
-      `An SMS usage ledger records the verification codes ${businessName} sends — recipient, segment count, and delivery result.`,
       `Payment data is handled by Paystack (recipient, amount, reference, status); ${businessName} stores the transaction reference and outcome needed to settle an order.`,
     ],
   },

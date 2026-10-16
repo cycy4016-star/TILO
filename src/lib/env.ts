@@ -8,35 +8,20 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_URL: z.string().url(),
     BETTER_AUTH_TRUSTED_ORIGINS: z.string().optional(),
-    // Owner account. The first user whose email or verified phone matches these
-    // gets the `admin` role (see src/lib/auth.ts). Both optional.
+    // Owner account. The first user whose email matches this gets the `admin`
+    // role (see src/lib/auth.ts). Optional.
     ADMIN_EMAIL: z.string().optional(),
-    ADMIN_PHONE: z.string().optional(),
-    // Invite-code gate for sign-up (optional). When set, phone-first sign-ups
-    // must submit this exact code or be rejected. Fully-verified email accounts
-    // (e.g. Google sign-in) are exempt. Leave empty for open sign-up.
+    // Invite-code gate for sign-up (optional). When set, sign-ups that are not
+    // from a fully-verified email (i.e. not Google) must submit this exact code
+    // or be rejected. Leave empty for open sign-up.
     SIGNUP_INVITE_CODE: z.string().optional(),
     // Hard cap on the number of accounts (optional). When set, sign-up is
     // rejected once this many users exist — the "first N shops" gate for a
-    // pilot. Enforced on every create path (phone AND Google), unlike the
-    // invite gate which Google identities skip.
+    // pilot.
     SIGNUP_LIMIT: z.coerce.number().int().positive().optional(),
 
-    // SMS (verification codes). All optional: the app boots without a
-    // provider, and OTP sends report their failure instead of faking success.
-    SMS_PROVIDER: z.enum(['bms', 'arkesel', 'none']).default('none'),
-    // BMS Africa (mNotify) — the approved Ghana bulk-SMS provider.
-    BMS_API_KEY: z.string().optional(),
-    BMS_SENDER_ID: z.string().optional(),
-    // BMS routes OTP blasts on a dedicated transactional path that bills the
-    // paid wallet (sms_type "otp"). Free/bonus credits only flow on the standard
-    // bulk route, so accounts running on free SMS must set this to "bulk".
-    BMS_SMS_TYPE: z.enum(['otp', 'bulk']).default('otp'),
-    ARKESEL_API_KEY: z.string().optional(),
-    ARKESEL_SENDER_ID: z.string().optional(),
-
-    // Transactional email (optional). Phone SMS is the primary verification
-    // channel; email is a secondary/fallback used for password-reset links.
+    // Transactional email (optional). Used for password-reset links when an
+    // account has a credential password; no-op until configured.
     EMAIL_PROVIDER: z.enum(['resend', 'none']).default('none'),
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().optional(),
@@ -46,8 +31,8 @@ export const env = createEnv({
     PAYSTACK_PUBLIC_KEY: z.string().optional(),
     PAYSTACK_CALLBACK_URL: z.string().url().optional(),
 
-    // Google OAuth (optional). Lets users pick "sign in with Google" instead of
-    // phone + SMS. Both must be set together or the button is hidden.
+    // Google OAuth (optional). The identity provider: users sign in / sign up
+    // with Google. Both must be set together or the button is disabled.
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
   },
@@ -58,11 +43,8 @@ export const env = createEnv({
     // (unset) means same-origin `/api`; set only for an external API origin.
     NEXT_PUBLIC_API_URL: z.string().url().optional(),
     // Shows the "Continue with Google" button on the sign-in/sign-up forms.
-    // Set to 'true' (with GOOGLE_CLIENT_ID/SECRET) to offer the alternative.
+    // Set to 'true' (with GOOGLE_CLIENT_ID/SECRET) to enable Google sign-in.
     NEXT_PUBLIC_GOOGLE_AUTH: z.enum(['true', 'false']).default('false'),
-    // Shows the "Invite code" field on the sign-up form. Set to 'true' and
-    // pair with SIGNUP_INVITE_CODE to gate phone-first sign-ups by invite.
-    NEXT_PUBLIC_SIGNUP_INVITE: z.enum(['true', 'false']).default('false'),
   },
 
   runtimeEnv: {
@@ -71,20 +53,12 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_GOOGLE_AUTH: process.env.NEXT_PUBLIC_GOOGLE_AUTH,
-    NEXT_PUBLIC_SIGNUP_INVITE: process.env.NEXT_PUBLIC_SIGNUP_INVITE,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     BETTER_AUTH_TRUSTED_ORIGINS: process.env.BETTER_AUTH_TRUSTED_ORIGINS,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
-    ADMIN_PHONE: process.env.ADMIN_PHONE,
     SIGNUP_INVITE_CODE: process.env.SIGNUP_INVITE_CODE,
     SIGNUP_LIMIT: process.env.SIGNUP_LIMIT,
-    SMS_PROVIDER: process.env.SMS_PROVIDER,
-    BMS_API_KEY: process.env.BMS_API_KEY,
-    BMS_SENDER_ID: process.env.BMS_SENDER_ID,
-    BMS_SMS_TYPE: process.env.BMS_SMS_TYPE,
-    ARKESEL_API_KEY: process.env.ARKESEL_API_KEY,
-    ARKESEL_SENDER_ID: process.env.ARKESEL_SENDER_ID,
     EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,

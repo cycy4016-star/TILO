@@ -1,10 +1,9 @@
 // Tilo dev-only auth bypass.
 //
-// WHY THIS EXISTS: the app verifies identity by SMS OTP (the phoneNumber
-// plugin in src/lib/auth.ts), and locally SMS_PROVIDER=none means no code can
-// ever be delivered — so sign-up and sign-in are both dead ends on a dev box.
-// This route lets you start `next dev` and land straight in the dashboard
-// instead of staring at a login form you cannot pass.
+// WHY THIS EXISTS: production accounts are created through Google OAuth, which
+// can't be exercised from a local dev box without wiring a real Google client
+// and callback. This route lets you start `next dev` and land straight in the
+// dashboard instead of staring at a login form you cannot pass.
 //
 // IT IS INERT UNLESS ALL THREE HOLD:
 //   1. NODE_ENV === 'development'  — `next build`/start never satisfies this,
@@ -47,7 +46,6 @@ async function ensureDevUser(): Promise<void> {
       email: DEV_EMAIL,
       emailVerified: true,
       role: 'admin',
-      phoneNumberVerified: true,
       createdAt: now,
       updatedAt: now,
     },

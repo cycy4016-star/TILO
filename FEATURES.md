@@ -21,9 +21,8 @@ where it lives, and what is deliberately not built yet.
   each other's data.
   - `Customer.userId`, `Order.userId`, `Store.userId` (`@unique` — one
     storefront per account), `Notification.userId`.
-  - `SmsUsage.userId` is **nullable and has no FK**: sign-up OTPs are sent before
-    an account exists. It is a write-only ledger for verification codes — there
-    is no usage UI.
+  - `SmsUsage.userId` is **nullable and has no FK**: it is a legacy ledger from
+    the retired SMS-OTP flow, kept for historical data. No new rows are written.
   - `StoreItem`, `Promotion` and `SocialAccount` have no `userId` of their own —
     they are reached *through* their store (`store: { userId }`), so a guessed
     cuid cannot be resolved against another shop.
@@ -54,57 +53,42 @@ where it lives, and what is deliberately not built yet.
 `src/lib/auth-client.ts`, `src/app/api/auth/[...all]/route.ts`,
 `src/app/(auth)/**`, `src/lib/require-auth.ts`, `src/lib/require-admin-api.ts`.
 
-- **Phone-first authentication.** Phone number is the primary verified identity
-  for phone accounts; email is optional. **Google OAuth** is an alternate
-  identity path users can pick instead (email verified by Google, no phone
-  required). The method the user picks when signing up decides which
-  identifiers are required for that account.
-- **Sign-up** (`/signup`, `src/components/custom/sign-up-form.tsx`):
-  1. Name + phone + password (+ optional email). Email is required by
-     better-auth internally, so when the user skips it we synthesize
-     `<e164digits>@phone.tilo`.
-  2. `signUp.email` creates the user and a session.
-  3. `phoneNumber.sendOtp` sends a 6-digit code over SMS.
-  4. `phoneNumber.verify({ updatePhoneNumber: true })` attaches the phone to the
-     signed-in user, marks `phoneNumberVerified`, and signs in.
-- **Sign-in** (`/login`, `src/components/custom/sign-in-form.tsx`): phone +
-  password via `signIn.phoneNumber` (requires a verified phone —
-  `requireVerification: true`), **or** "Continue with Google"
-  (`signIn.social` → `socialProviders.google`, shown when
-  `NEXT_PUBLIC_GOOGLE_AUTH=true` + both Google keys are set).
-- **Google sign-up/sign-in** (`src/components/custom/sign-up-form.tsx`): the
-  Google button skips the phone+OTP steps entirely — Google's verified email is
-  the identity. Phone-first users keep the SMS OTP flow. No phone is required
-  for Google accounts (and SMS password reset does not apply to them).
-- **Password reset** (`/forgot-password`,
-  `src/components/custom/forgot-password-form.tsx`): SMS-first —
-  `requestPasswordReset` sends a code, `resetPassword` sets the new password.
-  Email reset links are an optional fallback, used only when an email provider is
-  configured (`auth-config.ts → sendResetPassword`).
-- **Invite-code gate (optional).** When `SIGNUP_INVITE_CODE` is set, phone-first
-  sign-ups must submit the exact code or better-auth aborts the user creation in
-  the `user.create.before` hook (`src/lib/auth.ts`). The code arrives as an
-  `inviteCode` additional field on `User`. Google/email-verified sign-ups are
-  exempt (the identity is already trusted). The sign-up form shows the field
-  when `NEXT_PUBLIC_SIGNUP_INVITE=true`. Leave the env empty for open sign-up.
+- **Google OAuth authentication.** Google is the sign-in / sign-up identity; a
+  Google-verified email is the single trusted credential. `NEXT_PUBLIC_GOOGLE_AUTH=true`
+  plus both `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` enable it.
+- **Sign-up** (`/signup`, `src/components/custom/sign-up-form.tsx`): a single
+  "Continue with Google" button (`signIn.social`). On the first successful
+  Google sign-in the account is created (`user.create.before` in
+  `src/lib/auth.ts` stamps role + trial). Self-service email sign-up is disabled
+  (`auth-config.ts → disableSignUp`).
+- **Sign-in** (`/login`, `src/components/custom/sign-in-form.tsx`): "Continue
+  with Google" (`signIn.social` → `socialProviders.google`), plus an email +
+  password fallback (`signIn.email`) for pre-existing credential accounts.
+- **Password reset** (optional, email only): better-auth's reset link fires from
+  `auth-config.ts → sendResetPassword` when an email provider is configured; there
+  is no UI route for it, so credential accounts reset programmatically.
+- **Invite-code gate (optional).** When `SIGNUP_INVITE_CODE` is set, sign-ups that
+  are not from a fully-verified email (i.e. not Google) must present the exact
+  code or better-auth aborts the user creation in the `user.create.before` hook
+  (`src/lib/auth.ts`). Google sign-ups are exempt (the identity is already
+  trusted). Leave the env empty for open sign-up.
 - **Platform admin role.** The better-auth `admin` plugin is enabled, but the
   role is a **platform** role, not a per-shop one. Every sign-up is created as
   `role: "user"` (`defaultRole` + the `user.create.before` hook in
-  `src/lib/auth.ts → resolveRole`); only the account whose verified phone matches
-  `ADMIN_PHONE` (preferred) or whose email matches `ADMIN_EMAIL` is promoted to
-  `"admin"`. Both env vars are optional — with neither set nobody is an admin and
-  the monitor is simply unreachable. **Pre-existing admins are left untouched.**
-  What `admin` grants is exactly one thing: reading `/dashboard/admin` and
-  `/api/admin/users`. It grants no shop access, because shops are separated by
-  the `userId` columns, not by a role.
+  `src/lib/auth.ts → resolveRole`); only the account whose email matches
+  `ADMIN_EMAIL` is promoted to `"admin"`. The env var is optional — with it unset
+  nobody is an admin and the monitor is simply unreachable. **Pre-existing admins
+  are left untouched.** What `admin` grants is exactly one thing: reading
+  `/dashboard/admin` and `/api/admin/users`. It grants no shop access, because
+  shops are separated by the `userId` columns, not by a role.
 - **Server gates:** `requireAuth()` (any signed-in user — the gate for a shop's
   own data) and `requireAdmin()` / `requireAdminUser()` (platform-admin only:
   redirect `/dashboard` in a Server Component, throw a 403 `Response` in a route
   handler — never redirect a fetch). Both check the role via the shared
   `isAdminRole()` helper in `src/lib/roles.ts`. Client-side gating uses
   `useSession()` / `useIsAdmin()`, the latter reading `data.user.role`.
-- **Profile** (`/profile`): shows name, phone, and (only when set) real email;
-  avatar upload/capture/remove (stored on `User.image` as a data URL); sign-out.
+- **Profile** (`/profile`): shows name and email; avatar
+  upload/capture/remove (stored on `User.image` as a data URL); sign-out.
 
 ---
 
@@ -201,25 +185,17 @@ where it lives, and what is deliberately not built yet.
 
 ---
 
-## 8. SMS (BMS Africa / mNotify)
+## 8. SMS (removed)
 
-**Location:** `src/lib/sms.ts`, `src/lib/env.ts`, `prisma/schema/sms.prisma`.
+**Location:** `prisma/schema/sms.prisma` (legacy), admin analytics only.
 
-- **Provider:** BMS Africa / mNotify (`SMS_PROVIDER=bms`, the active Ghana
-  provider; Arkesel remains available via `SMS_PROVIDER=arkesel`). One JSON
-  endpoint, Ghanaian sender IDs. OTP confirmation codes are sent with
-  `sms_type: "otp"` by default (transactional route that avoids DND but bills
-  the paid wallet); accounts running on free/bonus credits set
-  `BMS_SMS_TYPE=bulk` so codes ship on the standard route (see `src/lib/env.ts`).
-  A send that BMS reports as fully rejected (DND /
-  unprovisioned number) is recorded as a failure rather than a silent success.
-  `sendSms(to, message, source)` never throws and returns `{ ok, providerRef, error }`.
-- **Verification codes only.** SMS exists to deliver sign-up OTPs (and password
-  resets). There is no bulk sender, no composer and no usage UI.
-- **Usage ledger.** Every attempt (success or failure) is written to the
-  `SmsUsage` table with segment count, credits, provider reference, and error.
-  Nothing reads it back today — it is an audit trail.
-- **Segment estimation:** `ceil(length / 160)`.
+- **SMS as an auth channel was removed.** Google OAuth replaced the phone +
+  OTP sign-up flow; the SMS transport (`src/lib/sms.ts`), the phone/OTP auth
+  forms and the SMS env vars (`SMS_PROVIDER`, `BMS_*`, `ARKESEL_*`) are gone.
+- **The `SmsUsage` ledger table remains** (kept in the schema for historical
+  data). Existing rows are still read by the platform-admin ops center
+  (`/api/admin/overview`, `/api/admin/events`, `/api/admin/shops/[userId]`) so
+  past usage stays visible; nothing writes new rows.
 
 ---
 
@@ -229,8 +205,8 @@ where it lives, and what is deliberately not built yet.
 
 - Provider-agnostic transport (Resend wired via HTTP, no SDK).
 - `sendEmail()` never throws; returns `{ ok, providerRef, error }`.
-- Used only for password-reset links when `EMAIL_PROVIDER=resend` +
-  `RESEND_API_KEY` are set. SMS remains the primary channel.
+- Used only for password-reset links for credential accounts when
+  `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` are set.
 - Swap vendors by changing `EMAIL_PROVIDER` and the one transport function.
 
 ---
@@ -365,10 +341,9 @@ returns 404. See §1.
 
 **Location:** `prisma/schema/*.prisma`.
 
-- **Auth:** `User` (with `phoneNumber` unique + `phoneNumberVerified`, `role`,
-  `inviteCode`, and the reverse ownership relations `customers`, `orders`,
-  `store`, `notifications`), `Session`, `Account`,
-  `Verification`.
+- **Auth:** `User` (with `role`, `inviteCode`, legacy `phoneNumber` unique +
+  `phoneNumberVerified` columns, and the reverse ownership relations `customers`,
+  `orders`, `store`, `notifications`), `Session`, `Account`, `Verification`.
 - **Shop data (every row owned):** `Customer` (`userId`), `Order` (`userId`),
   `Notification` (`userId`).
 - **Store:** `Store` (`userId` **unique** — one storefront per account;
@@ -424,20 +399,12 @@ See `.env.example` for the annotated list.
 
 - **Required:** `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
   (production), `NEXT_PUBLIC_APP_URL`.
-- **Owner:** `ADMIN_PHONE` (preferred) / `ADMIN_EMAIL`; invite gate via
-  `SIGNUP_INVITE_CODE` + `NEXT_PUBLIC_SIGNUP_INVITE=true`.
-- **Verification SMS:** `SMS_PROVIDER` (`bms` | `arkesel` | `none`),
-  `BMS_API_KEY`, `BMS_SENDER_ID`, `BMS_SMS_TYPE`, `ARKESEL_API_KEY`,
-  `ARKESEL_SENDER_ID`.
+- **Owner:** `ADMIN_EMAIL`; optional invite gate via `SIGNUP_INVITE_CODE`.
 - **Email (optional):** `EMAIL_PROVIDER`, `RESEND_API_KEY`, `EMAIL_FROM`.
 - **Paystack (optional):** `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`,
   `PAYSTACK_CALLBACK_URL`.
-- **Google OAuth (optional):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
-  client-side `NEXT_PUBLIC_GOOGLE_AUTH=true`.
-
-You can verify a BMS key + sender ID by signing up with `SMS_PROVIDER=bms` and
-checking the `SmsUsage` rows (a failed send records `ok: false` with the
-provider error instead of a silent drop).
+- **Google OAuth:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
+  client-side `NEXT_PUBLIC_GOOGLE_AUTH=true` — the sign-in / sign-up identity.
 
 ---
 

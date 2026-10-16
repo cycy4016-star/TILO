@@ -61,13 +61,11 @@ async function main() {
       email: OWNER_EMAIL,
       emailVerified: true,
       role: 'user',
-      phoneNumber: OWNER_PHONE,
-      phoneNumberVerified: true,
       trialEndsAt: new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
       createdAt: now,
       updatedAt: now,
     },
-    update: { email: OWNER_EMAIL, phoneNumber: OWNER_PHONE, updatedAt: now },
+    update: { email: OWNER_EMAIL, updatedAt: now },
   });
 
   const account = await prisma.account.findFirst({

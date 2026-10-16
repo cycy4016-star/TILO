@@ -10,7 +10,7 @@ has one-tap WhatsApp and SMS. Around that: a customer directory, order history,
 and sales analytics.
 
 Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn UI,
-better-auth (phone + password with SMS OTP, optional email, admin roles),
+better-auth (Google OAuth sign-in, admin roles),
 Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
 
 ## What is included
@@ -41,14 +41,12 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
   transactions all carry the owning account's `userId`, and every
   route filters on it — one deployment serves many businesses with no shared
   data. `FEATURES.md` §1 has the full map.
-- Auth: phone-first login/signup/forgot-password/profile (`src/app/(auth)/**`).
-  Sign-up collects name + phone + password (email optional), then confirms the
-  number with an SMS OTP. Password resets go by SMS too. Session API at
+- Auth: Google-first login/signup/profile (`src/app/(auth)/**`). Accounts are
+  created and identified through Google OAuth; a Google-verified email is the
+  trusted credential. Session API at
   `/api/auth/*` (`src/app/api/auth/[...all]/route.ts`), `requireAuth` server gate
   for your own shop, `requireAdmin` for the platform monitor, `useSession` /
   `useIsAdmin` client hooks.
-- SMS verification codes over BMS/Arkesel (`src/lib/sms.ts`), recorded in the
-  `SmsUsage` ledger.
 - Optional Paystack checkout for orders (`/api/payments/{initialize,verify,webhook}`).
 - Dashboard at `/dashboard`: sales analytics (money owed, margins, product
   rankings), plus a customer directory, customer detail + linked
@@ -97,42 +95,27 @@ See `.env.example` for the full list:
   (required in production).
 - `BETTER_AUTH_TRUSTED_ORIGINS` — optional comma-separated extra origins
   (preview deployments, custom domains).
-- `ADMIN_EMAIL` / `ADMIN_PHONE` — optional. The account whose verified phone
-  matches `ADMIN_PHONE` (preferred), or whose email matches `ADMIN_EMAIL`, gets
-  the platform `admin` role; every other sign-up is a plain `user`. `admin` only
+- `ADMIN_EMAIL` — optional. The account whose email matches this gets the
+  platform `admin` role; every other sign-up is a plain `user`. `admin` only
   unlocks the read-only account monitor at `/dashboard/admin` — it is not a
-  per-shop role, and it grants no access to any shop's data. With neither var
-  set, nobody is an admin. Already-promoted admins are never demoted.
-- `SIGNUP_INVITE_CODE` — optional. When set, phone-first sign-ups must submit
-  this exact invite code or they are rejected (Google/email-verified sign-ups
-  are exempt). Pair with `NEXT_PUBLIC_SIGNUP_INVITE=true` so the sign-up form
-  shows the field. Leave unset for open sign-up.
+  per-shop role, and it grants no access to any shop's data. Leave unset and
+  nobody is an admin. Already-promoted admins are never demoted.
+- `SIGNUP_INVITE_CODE` — optional. When set, sign-ups that are not from a
+  fully-verified email (i.e. not Google) must submit this exact invite code or
+  they are rejected. Leave unset for open sign-up.
 - `NEXT_PUBLIC_APP_URL` — public app origin for SEO/canonical URLs.
 - `NEXT_PUBLIC_API_URL` — optional, only for an external API origin.
 - `SEO_INDEXABLE` — set to `true` in production to allow indexing.
 
-Google OAuth (optional — the alternative to phone + SMS):
+Google OAuth (the sign-in / sign-up identity):
 
 - `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` — OAuth client from Google Cloud
   Console, with an authorized redirect URI of
   `https://<yourdomain>/api/auth/callback/google`.
 - `NEXT_PUBLIC_GOOGLE_AUTH` — `true` to show the Google buttons on sign-in and
-  sign-up (users then pick phone *or* Google as their verified identity).
-  Without the keys the buttons stay hidden even if set to `true`.
+  sign-up. Without the keys the buttons stay disabled even if set to `true`.
 
-SMS for verification codes (all optional — the app boots without a provider):
-
-- `SMS_PROVIDER` — `bms` | `arkesel` | `none` (default `none`).
-- `BMS_API_KEY` — BMS Africa / mNotify API key (https://bms.africa), the active
-  Ghana provider. OTP confirmation codes are routed as `sms_type: "otp"`.
-- `BMS_SENDER_ID` — approved sender ID shown to recipients (defaults to `TILO`).
-- `BMS_SMS_TYPE` — `otp` (default) or `bulk`. Use `bulk` when the account runs
-  on free/bonus credits: the `otp` transactional route bills the paid wallet,
-  while free credits only flow on the standard bulk route.
-- `ARKESEL_API_KEY` / `ARKESEL_SENDER_ID` — Arkesel (https://arkesel.com),
-  alternative provider switched via `SMS_PROVIDER=arkesel`.
-
-Email (optional — phone SMS is the primary verification/reset channel):
+Email (optional — password-reset links for credential accounts):
 
 - `EMAIL_PROVIDER` — `resend` | `none` (default `none`).
 - `RESEND_API_KEY` — Resend API key (https://resend.com).
@@ -153,8 +136,8 @@ Paystack (optional — order checkout returns `503` until configured):
    (already set as `npm run vercel-build`). Output directory: default.
 4. Environment variables: set `DATABASE_URL`, `BETTER_AUTH_SECRET`,
    `BETTER_AUTH_URL` (your `https://...vercel.app` URL),
-   `NEXT_PUBLIC_APP_URL` (same URL), `ADMIN_PHONE`, `SEO_INDEXABLE=true`, and the
-   provider keys you use (`BMS_*`/`ARKESEL_*`, `RESEND_*`, `PAYSTACK_*`).
+   `NEXT_PUBLIC_APP_URL` (same URL), `ADMIN_EMAIL`, `SEO_INDEXABLE=true`, and the
+   provider keys you use (`GOOGLE_*`, `RESEND_*`, `PAYSTACK_*`).
 5. Deploy. `prisma migrate deploy` applies `prisma/migrations/*` before the
    Next build; the app seeds idempotently at boot (`src/lib/seed.ts`).
 
@@ -164,9 +147,9 @@ Paystack (optional — order checkout returns `503` until configured):
 dashboard pick **New > Blueprint** and point it at this repo.
 
 - `DATABASE_URL` is linked automatically from the provisioned database.
-- Set `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `SMS_*`,
-  `ADMIN_PHONE`, and the optional `RESEND_*` / `PAYSTACK_*` keys to real values
-  after the first deploy (`sync: false` vars).
+- Set `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `GOOGLE_*`,
+  `ADMIN_EMAIL`, `NEXT_PUBLIC_GOOGLE_AUTH=true`, and the optional `RESEND_*` /
+  `PAYSTACK_*` keys to real values after the first deploy (`sync: false` vars).
 - `BETTER_AUTH_SECRET` is generated automatically.
 - Store photos, the store logo and banner, and profile avatars are stored in Postgres
   (no object storage), so they work on Render's ephemeral disk out of the box.

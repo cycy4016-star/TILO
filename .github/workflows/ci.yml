@@ -50,7 +50,6 @@ jobs:
       BETTER_AUTH_SECRET: ci-e2e-secret-ci-e2e-secret-ci-e2e-secret
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      SMS_PROVIDER: none
       E2E_BASE_URL: http://localhost:3000
       E2E_OWNER_EMAIL: e2e-owner@tilo.local
       E2E_OWNER_PASSWORD: tilo-e2e-password

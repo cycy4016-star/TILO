@@ -3,7 +3,7 @@
 // Role tests. There are two independent questions these answer:
 //
 //  1. Who gets the platform `admin` role? Only the account matching
-//     ADMIN_PHONE / ADMIN_EMAIL at sign-up. Everyone else is a plain `user`,
+//     ADMIN_EMAIL at sign-up. Everyone else is a plain `user`,
 //     because per-shop access comes from the userId ownership columns, not a role.
 //  2. Does the admin gate actually check that role? It used to be an alias for
 //     requireAuth, so any signed-in user could open the cross-account monitor.

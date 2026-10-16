@@ -1,9 +1,10 @@
 // Configure better-auth here (spread into betterAuth() by @/lib/auth).
 // Add emailAndPassword options, plugins, session, socialProviders, databaseHooks, etc.
 //
-// NOTE: email is optional in this app. Phone SMS (the phoneNumber plugin in
-// src/lib/auth.ts) is the primary verification + password-reset channel. The
-// email reset link below only fires when an email provider is configured.
+// NOTE: Google OAuth is the only account-creation path. The email+password
+// provider stays enabled for sign-IN (existing credential accounts and the
+// local dev-login bypass) but its self-service sign-up is disabled, and the
+// reset link below only fires when an email provider is configured.
 
 import type { BetterAuthOptions } from 'better-auth';
 import { isEmailConfigured, sendEmail } from '@/lib/email';
@@ -12,9 +13,9 @@ import { env } from '@/lib/env';
 export const authConfig: BetterAuthOptions = {
   // The invite code is collected on the user at sign-up (extra column on
   // prisma/schema/auth.prisma.User). Enforcement lives in the user.create.before
-  // hook (src/lib/auth.ts): when SIGNUP_INVITE_CODE is set, phone-first sign-ups
-  // are rejected unless the submitted code matches. Filled when the sign-up
-  // form sends `inviteCode` as an additional field.
+  // hook (src/lib/auth.ts): when SIGNUP_INVITE_CODE is set, sign-ups that are
+  // not from a fully-verified email (i.e. not Google) are rejected unless the
+  // submitted code matches.
   user: {
     additionalFields: {
       inviteCode: { type: 'string', required: false, input: true, defaultValue: '' },
@@ -25,11 +26,10 @@ export const authConfig: BetterAuthOptions = {
   },
   emailAndPassword: {
     enabled: true,
-    // Phone-first sign-up never uses the email+password route: accounts are
-    // created only after the SMS OTP is proven, via the custom
-    // `/phone-number/sign-up` endpoint (see src/lib/auth.ts). The built-in
+    // Accounts are created only through Google OAuth. The built-in
     // `/sign-up/email` route is disabled so it can't create an unverified
-    // account behind the form's back.
+    // account behind the form's back; sign-in by email/password stays open for
+    // any pre-existing credential account.
     disableSignUp: true,
     async sendResetPassword({ user, url }) {
       // No email provider → silently skip; users reset via SMS OTP instead.
@@ -41,10 +41,9 @@ export const authConfig: BetterAuthOptions = {
       });
     },
   },
-  // Google OAuth — the alternate identity path. Users pick phone+SMS *or*
-  // Google when signing up/in; each option is self-verifying (SMS OTP for
-  // phone, Google-verified email for Google). Enabled only when both
-  // GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set.
+  // Google OAuth — the identity path. A Google-verified email is trusted on its
+  // own (no separate OTP step). Enabled only when both GOOGLE_CLIENT_ID and
+  // GOOGLE_CLIENT_SECRET are set.
   socialProviders: {
     ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
       ? {

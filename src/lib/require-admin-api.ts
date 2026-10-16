@@ -1,6 +1,6 @@
 // Server-side PLATFORM-admin gate for API route handlers. Unlike requireAuth —
 // which every signed-in shop owner passes — this requires the `admin` role
-// assigned at sign-up by ADMIN_PHONE / ADMIN_EMAIL (see src/lib/roles.ts). Use it
+// assigned at sign-up by ADMIN_EMAIL (see src/lib/roles.ts). Use it
 // ONLY on routes that read across accounts (e.g. /api/admin/users).
 //
 // Per-shop routes should call requireAuth and then scope their queries by the

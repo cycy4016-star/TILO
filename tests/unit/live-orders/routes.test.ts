@@ -16,11 +16,8 @@ const db = vi.hoisted(() => ({
     },
   },
 }));
-const sms = vi.hoisted(() => ({ sendSms: vi.fn() }));
-
 vi.mock('@/lib/require-auth', () => auth);
 vi.mock('@/lib/db', () => db);
-vi.mock('@/lib/sms', () => sms);
 vi.mock('server-only', () => ({}));
 
 const store = {

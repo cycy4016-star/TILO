@@ -13,8 +13,9 @@ test('staff can create a Ghanaian SME customer, link an order, and update status
   if (!fixture) throw new Error('The Ghanaian SME fixture set is empty');
 
   await page.goto('/login');
-  // Sign-in is phone-first: one identifier field accepts a phone OR an email.
-  await page.getByLabel('Phone number or email').fill(process.env.E2E_OWNER_EMAIL ?? '');
+  // Credential sign-in (email + password) is the fallback path; Google OAuth is
+  // the primary one but can't be driven headlessly here.
+  await page.getByLabel('Email', { exact: true }).fill(process.env.E2E_OWNER_EMAIL ?? '');
   await page.getByLabel('Password').fill(process.env.E2E_OWNER_PASSWORD ?? '');
   await page.getByRole('button', { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard/);
