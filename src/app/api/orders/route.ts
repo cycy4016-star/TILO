@@ -188,7 +188,7 @@ export async function POST(request: Request) {
         description: parsed.data.description,
         status: parsed.data.status,
         amountPesewas,
-        orderNumber: `TILO-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+        orderNumber: `TILZA-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
         lines: lineData.length ? { create: lineData } : undefined,
       },
       include: { lines: true },

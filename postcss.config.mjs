@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 
 const config = {
   plugins: ['@tailwindcss/postcss'],

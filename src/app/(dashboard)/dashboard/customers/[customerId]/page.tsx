@@ -4,7 +4,7 @@ import { CustomerDetailWorkspace } from '@/components/custom/customer-detail-wor
 
 export const metadata: Metadata = {
   title: 'Customer details',
-  description: 'Review a Tilo customer and the orders connected to them.',
+  description: 'Review a Tilza customer and the orders connected to them.',
 };
 
 export default async function CustomerDetailPage({

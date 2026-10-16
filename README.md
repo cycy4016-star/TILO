@@ -1,6 +1,6 @@
-# Tilo
+# Tilza
 
-Tilo is a hosted shop page for small businesses. A sign-up gets a shareable
+Tilza is a hosted shop page for small businesses. A sign-up gets a shareable
 catalogue at `/store/<slug>` — products grouped on shelves with photos,
 prices (with a struck-through "before" where you discount), and a basket
 customers fill themselves. Every checkout lands in the owner's dashboard as an
@@ -91,7 +91,7 @@ See `.env.example` for the full list:
 
 - `DATABASE_URL` — PostgreSQL connection string (required).
 - `BETTER_AUTH_SECRET` — long random secret (required).
-- `BETTER_AUTH_URL` — canonical app origin, e.g. `https://tilo.vercel.app`
+- `BETTER_AUTH_URL` — canonical app origin, e.g. `https://tilza.org`
   (required in production).
 - `BETTER_AUTH_TRUSTED_ORIGINS` — optional comma-separated extra origins
   (preview deployments, custom domains).
@@ -119,7 +119,7 @@ Email (optional — password-reset links for credential accounts):
 
 - `EMAIL_PROVIDER` — `resend` | `none` (default `none`).
 - `RESEND_API_KEY` — Resend API key (https://resend.com).
-- `EMAIL_FROM` — verified From address, e.g. `Tilo <no-reply@yourdomain.com>`.
+- `EMAIL_FROM` — verified From address, e.g. `Tilza <no-reply@yourdomain.com>`.
 
 Paystack (optional — order checkout returns `503` until configured):
 

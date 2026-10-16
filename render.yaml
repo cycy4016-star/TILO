@@ -1,12 +1,12 @@
 # Render Blueprint — https://render.com/docs/infrastructure-as-code
 # Docs: https://render.com/docs/blueprint-spec
 #
-# Deploys Tilo as a Node web service + managed PostgreSQL on Render.
+# Deploys Tilza as a Node web service + managed PostgreSQL on Render.
 # Push this repo to GitHub and use "New > Blueprint" (render.yaml seen via
 # the public repository URL); Render provisions the Postgres database, links
 # DATABASE_URL automatically, runs migrations, then builds + starts Next.js.
 #
-# No schedulers: Tilo has no cron routes — nothing to trigger externally.
+# No schedulers: Tilza has no cron routes — nothing to trigger externally.
 
 # NOTE: Render's free Postgres instances are deleted after 30 days. For a
 # real rollout, set `plan: starter` (paid) after the trial — data survives

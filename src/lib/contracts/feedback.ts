@@ -1,5 +1,5 @@
 // Wire contract for the public feedback form at /feedback (and the storefront
-// widget). Deliberately loose and unauthenticated: anyone can tell Tilo what is
+// widget). Deliberately loose and unauthenticated: anyone can tell Tilza what is
 // broken, which is the whole point — the operator wants to hear about a problem
 // from the user, not from a stack trace.
 import { z } from 'zod';

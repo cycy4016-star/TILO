@@ -1,4 +1,4 @@
-// Tilo type system.
+// Tilza type system.
 //
 // Both faces are self-hosted by next/font: Next downloads them at build time
 // and serves them from /_next/static, so the browser never talks to Google and

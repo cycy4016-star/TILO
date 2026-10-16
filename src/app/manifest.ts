@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // /manifest.webmanifest — colors come from `brandVisual` in src/lib/brand.ts; set them there.
 import type { MetadataRoute } from 'next';

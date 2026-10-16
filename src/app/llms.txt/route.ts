@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // /llms.txt — the endpoint. Next has no metadata route for llms.txt, so this is a
 // plain GET handler serving text/plain; charset=utf-8. Indexing is OPT-IN, exactly

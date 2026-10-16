@@ -82,7 +82,7 @@ export type AdOrderActionInput = {
   compareAtPricePesewas: number | null;
   discountPercent: number | null;
   contactPhone: string | null;
-  /** Absolute site origin, e.g. "https://tilo.app" — used for the fallback. */
+  /** Absolute site origin, e.g. "https://tilza.org" — used for the fallback. */
   origin: string;
 };
 
@@ -128,7 +128,7 @@ export type StoreOrderActionInput = {
   storeName: string;
   storeSlug: string;
   contactPhone: string | null;
-  /** Absolute site origin, e.g. "https://tilo.app" — used for the fallback. */
+  /** Absolute site origin, e.g. "https://tilza.org" — used for the fallback. */
   origin: string;
 };
 
@@ -245,7 +245,7 @@ export type AdCampaignItem = {
 export type AdCampaignInput = {
   storeName: string;
   storeSlug: string;
-  /** Absolute site origin, e.g. "https://tilo.app" — used to build item links. */
+  /** Absolute site origin, e.g. "https://tilza.org" — used to build item links. */
   origin: string;
   contactPhone: string | null;
   /** Optional heading ("Today's picks"); falls back to a generic one. */

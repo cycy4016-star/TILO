@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 // Storefront catalog: a store with the items it sells — products or services.
 // One store per signed-up account (`userId` is unique), so every catalogue,
 // promotion, image and social row hangs off an owner and is unreachable from

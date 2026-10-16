@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // /sitemap.xml — merges nav pages (src/lib/nav.ts) with programmatic routes
 // (src/lib/seo-routes.ts). To add URLs, edit those companions, not this file.

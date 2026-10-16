@@ -290,7 +290,7 @@ describe('admin events route', () => {
     db.prisma.order.findMany.mockResolvedValue([
       {
         id: 'o-1',
-        orderNumber: 'TILO-1',
+        orderNumber: 'TILZA-1',
         description: '1x Apron',
         status: 'PENDING',
         amountPesewas: 1000,

@@ -4,9 +4,9 @@
 
 export const legalIdentity = {
   /** Legal/business name shown in the policies. */
-  businessName: 'Tilo',
+  businessName: 'Tilza',
   /** Contact email for privacy/compliance questions. */
-  businessEmail: 'hello@tilo.app',
+  businessEmail: 'techwithcisco@gmail.com',
   /** Version date of the current policy text. */
   effectiveDate: '22 September 2026',
   /** Regulatory framing — Ghana Data Protection Act, 2012 (Act 843). */

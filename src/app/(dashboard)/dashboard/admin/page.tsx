@@ -1,4 +1,4 @@
-// Tilo Admin ops center: platform-wide monitor — every shop, product, order
+// Tilza Admin ops center: platform-wide monitor — every shop, product, order
 // and event. Platform-admin only: requireAdmin() now checks the role, so a
 // signed-in shop owner who guesses this URL is redirected to their dashboard.
 // This is the ONE page in the app that reads across shops.

@@ -4,7 +4,7 @@ import { CustomerWorkspace } from '@/components/custom/customer-workspace';
 
 export const metadata: Metadata = {
   title: 'Customers',
-  description: 'Search and manage Tilo customer records.',
+  description: 'Search and manage Tilza customer records.',
 };
 
 export default function CustomersPage() {

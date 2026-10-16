@@ -123,7 +123,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
                 <PhoneMockup shop={shop} index={0} dispersed reduceMotion={reduceMotion} />
               </div>
               <p className="mt-3 text-center text-caption text-muted-foreground">
-                {shop.name} · tilo.app/store/{shop.slug} — sample photos, yours go here.
+                {shop.name} · tilza.org/store/{shop.slug} — sample photos, yours go here.
               </p>
             </div>
           </div>

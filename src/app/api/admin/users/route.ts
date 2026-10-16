@@ -1,4 +1,4 @@
-// Admin monitor API: every Tilo account with their sign-in pulse. This is the
+// Admin monitor API: every Tilza account with their sign-in pulse. This is the
 // one route that deliberately reads ACROSS shops — it is the platform operator's
 // view, guarded by requireAdminUser (403 for a signed-in non-admin).
 import 'server-only';

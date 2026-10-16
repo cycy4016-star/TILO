@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // next-themes wrapper. Wired into layout.tsx providers slot (class-based dark mode).
 'use client';

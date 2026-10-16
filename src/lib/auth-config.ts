@@ -36,8 +36,8 @@ export const authConfig: BetterAuthOptions = {
       if (!isEmailConfigured()) return;
       await sendEmail({
         to: user.email,
-        subject: 'Reset your Tilo password',
-        text: `We got a request to reset your Tilo password.\n\nOpen this link to choose a new one:\n${url}\n\nIf you did not ask for this, ignore this email.`,
+        subject: 'Reset your Tilza password',
+        text: `We got a request to reset your Tilza password.\n\nOpen this link to choose a new one:\n${url}\n\nIf you did not ask for this, ignore this email.`,
       });
     },
   },

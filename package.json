@@ -1,8 +1,8 @@
 {
-  "name": "tilo",
+  "name": "tilza",
   "version": "0.1.0",
   "private": true,
-  "description": "Tilo — a hosted shop page with categories, photos and a basket customers order from",
+  "description": "Tilza — a hosted shop page with categories, photos and a basket customers order from",
   "engines": {
     "node": ">=24.0.0"
   },

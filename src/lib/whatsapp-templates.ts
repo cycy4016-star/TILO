@@ -39,7 +39,7 @@ export type BasketOrderContext = {
 
 /**
  * The whole basket, sent to the shop after the order is recorded. Carries the
- * order number so the owner can match the chat against the order in Tilo.
+ * order number so the owner can match the chat against the order in Tilza.
  */
 export function basketOrderWhatsApp(context: BasketOrderContext): string {
   const parts = [

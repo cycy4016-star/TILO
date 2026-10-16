@@ -1,4 +1,4 @@
-// /privacy — how a Tilo deployment handles the personal data flowing through it.
+// /privacy — how a Tilza deployment handles the personal data flowing through it.
 // Text is honest to what the app actually does (see FEATURES.md §8-9, §14).
 // Edit the identity/copy to match your business before going live.
 

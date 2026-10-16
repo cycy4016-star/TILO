@@ -4,7 +4,7 @@ import { SettingsWorkspace } from '@/components/custom/settings-workspace';
 
 export const metadata: Metadata = {
   title: 'Settings',
-  description: 'Social links, storefront address and account settings for your Tilo shop.',
+  description: 'Social links, storefront address and account settings for your Tilza shop.',
 };
 
 export default function SettingsPage() {

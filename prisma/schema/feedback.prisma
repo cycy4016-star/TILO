@@ -1,4 +1,4 @@
-// User feedback and problem reports: what a shop owner or a shopper tells Tilo
+// User feedback and problem reports: what a shop owner or a shopper tells Tilza
 // in words, as opposed to what the telemetry ledger (telemetry.prisma) infers
 // from crashes. Ingested by the public POST /api/feedback route (or the
 // /feedback page) and triaged in the admin Feedback panel.

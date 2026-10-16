@@ -58,7 +58,7 @@ export function SampleSlideshow({ slides }: { slides: ShowcaseSlide[] }) {
         <span className="size-2 rounded-full bg-border" aria-hidden />
         <span className="size-2 rounded-full bg-border" aria-hidden />
         <span className="ml-2 font-display text-caption font-semibold text-muted-foreground">
-          tilo.app/store/amara-beads
+          tilza.org/store/amara-beads
         </span>
       </div>
 

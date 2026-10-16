@@ -1,5 +1,5 @@
-# Tilo on any VPS (e.g. InterServer): app + Postgres side by side.
-# Build + run: docker build -t tilo . && docker run -p 3000:3000 --env-file .env.prod tilo
+# Tilza on any VPS (e.g. InterServer): app + Postgres side by side.
+# Build + run: docker build -t tilza . && docker run -p 3000:3000 --env-file .env.prod tilza
 # .env.prod must set DATABASE_URL (pooler URL with ?connection_limit=5),
 # BETTER_AUTH_SECRET, BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL and your provider keys.
 FROM node:24-bookworm-slim AS base

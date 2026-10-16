@@ -23,7 +23,7 @@ export type ThemeKeyValue = z.infer<typeof ThemeKey>;
 
 // Layout/appearance presets (see src/lib/theme.ts for the descriptions).
 // SERVER-FACING keys only, validated like ThemeKey. "vibrant" is the loud
-// yellow-black Tilo look; "professional" is the clean, straight-edged business
+// yellow-black Tilza look; "professional" is the clean, straight-edged business
 // layout. Stored as a plain string so unknown values degrade to the default.
 export const AppearanceKey = z.enum(['vibrant', 'professional']);
 export type AppearanceKeyValue = z.infer<typeof AppearanceKey>;

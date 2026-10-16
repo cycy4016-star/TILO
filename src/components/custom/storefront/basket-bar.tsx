@@ -1,6 +1,6 @@
 // The always-on basket pill: floats above the page bottom whenever the basket
 // has something in it, totals the lot, and opens the checkout dialog. Painted
-// with the shop's own theme ramp so it reads as part of the shop, not Tilo.
+// with the shop's own theme ramp so it reads as part of the shop, not Tilza.
 'use client';
 
 import { ShoppingCart } from 'lucide-react';

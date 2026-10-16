@@ -1,16 +1,16 @@
-// The TILO mark: a restrained corporate badge — the brand at a glance. Used in
+// The TILZA mark: a restrained corporate badge — the brand at a glance. Used in
 // the site header, the dashboard shell, and on the auth cards. A flat primary
 // tile that follows the active theme (slate by default), so the mark stays
 // quiet on every surface instead of shouting in yellow.
 import { Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface TiloMarkProps {
+export interface TilzaMarkProps {
   className?: string;
   iconClassName?: string;
 }
 
-export function TiloMark({ className, iconClassName }: TiloMarkProps) {
+export function TilzaMark({ className, iconClassName }: TilzaMarkProps) {
   return (
     <span
       className={cn(

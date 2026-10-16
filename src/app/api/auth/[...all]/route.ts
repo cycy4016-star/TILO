@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // better-auth catch-all route handler. Mounts EVERY better-auth endpoint
 // (sign-in, sign-up, sign-out, session, callbacks, ...) under /api/auth/*.

@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // Shop analytics home. The route is gated server-side because the two roles
 // need different rooms: a shop owner sees their own shop, a platform operator

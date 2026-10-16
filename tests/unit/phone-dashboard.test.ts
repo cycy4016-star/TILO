@@ -30,7 +30,7 @@ describe('dashboard overview contract', () => {
     topChases: [
       {
         orderId: 'order-1',
-        orderNumber: 'TILO-ABC',
+        orderNumber: 'TILZA-ABC',
         customerId: 'customer-1',
         customerName: 'Ama',
         customerPhone: '0241234567',

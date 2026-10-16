@@ -87,8 +87,8 @@ export async function findOrCreateCustomer(input: {
   return { id: created.id, name: created.name, phone, address: created.address, created: true };
 }
 
-/** Order numbers read "TILO-YYYMMDD-XXXX" — same format as the owner-side route. */
+/** Order numbers read "TILZA-YYYMMDD-XXXX" — same format as the owner-side route. */
 export function buildOrderNumber(now: Date = new Date()): string {
   const date = now.toISOString().slice(0, 10).replaceAll('-', '');
-  return `TILO-${date}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  return `TILZA-${date}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 }

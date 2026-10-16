@@ -150,7 +150,7 @@ export function PhoneMockup({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-small font-semibold">{shop.name}</p>
                   <p className="truncate text-caption text-muted-foreground">
-                    tilo.app/store/{shop.slug}
+                    tilza.org/store/{shop.slug}
                   </p>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-semibold text-primary">
@@ -260,7 +260,7 @@ export function StoreCompareTable({ shops }: { shops: SampleShop[] }) {
         shop.basket ? `${shop.basket.count} items · ${shop.basket.total}` : 'Open for orders',
       ),
     },
-    { label: 'Shop link', values: shops.map((shop) => `tilo.app/store/${shop.slug}`) },
+    { label: 'Shop link', values: shops.map((shop) => `tilza.org/store/${shop.slug}`) },
   ];
 
   return (
@@ -313,7 +313,7 @@ export function StoreCompareTable({ shops }: { shops: SampleShop[] }) {
                     <span>
                       <span className="block text-small font-semibold">{shop.name}</span>
                       <span className="block text-caption font-normal text-muted-foreground">
-                        tilo.app/store/{shop.slug}
+                        tilza.org/store/{shop.slug}
                       </span>
                     </span>
                   </span>

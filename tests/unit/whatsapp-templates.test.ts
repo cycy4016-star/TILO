@@ -29,7 +29,7 @@ describe('whatsapp templates', () => {
   it('spells out the whole basket with the order number to match on', () => {
     const message = basketOrderWhatsApp({
       storeName: 'Adom Fabrics',
-      orderNumber: 'TILO-20261005-962D939B',
+      orderNumber: 'TILZA-20261005-962D939B',
       lines: [
         { name: 'Kente Strip (1 yard)', quantity: 2, amount: 'GH₵ 240.00' },
         { name: 'Fugu Smock', quantity: 1, amount: 'GH₵ 450.00' },
@@ -40,7 +40,7 @@ describe('whatsapp templates', () => {
       note: 'Please wrap it as a gift',
     });
 
-    expect(message).toContain('Order TILO-20261005-962D939B');
+    expect(message).toContain('Order TILZA-20261005-962D939B');
     expect(message).toContain('2x Kente Strip (1 yard) — GH₵ 240.00');
     expect(message).toContain('1x Fugu Smock — GH₵ 450.00');
     expect(message).toContain('Total: GH₵ 690.00');
@@ -52,7 +52,7 @@ describe('whatsapp templates', () => {
   it('leaves the note line out when the shopper had nothing to add', () => {
     const message = basketOrderWhatsApp({
       storeName: 'Adom Fabrics',
-      orderNumber: 'TILO-20261005-962D939B',
+      orderNumber: 'TILZA-20261005-962D939B',
       lines: [{ name: 'Beaded Necklace', quantity: 1, amount: 'GH₵ 90.00' }],
       total: 'GH₵ 90.00',
       customerName: 'Kwesi',

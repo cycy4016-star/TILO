@@ -182,7 +182,7 @@ export function AdSlideshow({
             <div className="h-1 overflow-hidden rounded-full bg-border">
               <div
                 key={`progress-${ad.itemId}`}
-                className="animate-tilo-progress h-full w-full rounded-full bg-primary"
+                className="animate-tilza-progress h-full w-full rounded-full bg-primary"
               />
             </div>
           )}

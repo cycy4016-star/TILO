@@ -1,4 +1,4 @@
-// The TILO message voice for the storefront's sms: deep links. Client-safe
+// The TILZA message voice for the storefront's sms: deep links. Client-safe
 // (used by sms: links on the public catalogue). Messages stay well under the
 // 320-char SMS cap.
 export type OrderRequestContext = {

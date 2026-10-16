@@ -28,9 +28,9 @@ if (!process.env.DATABASE_URL) {
   }
 }
 
-const OWNER_ID = 'e2e_tilo_owner';
-const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL ?? 'e2e-owner@tilo.local';
-const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD ?? 'tilo-e2e-password';
+const OWNER_ID = 'e2e_tilza_owner';
+const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL ?? 'e2e-owner@tilza.org';
+const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD ?? 'tilza-e2e-password';
 const OWNER_PHONE = '+233201110000';
 const STORE_SLUG = 'e2e-test-shop';
 const TRIAL_DAYS = 14;

@@ -44,7 +44,7 @@ const customer = {
 };
 const order = {
   id: 'order-1',
-  orderNumber: 'TILO-20260918-ABC12345',
+  orderNumber: 'TILZA-20260918-ABC12345',
   customerId: 'customer-1',
   description: '12 branded aprons',
   status: 'PENDING' as const,

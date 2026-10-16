@@ -1,4 +1,4 @@
-/* Tilo's custom global CSS.
+/* Tilza's custom global CSS.
  *
  * This is the seam for everything that is a *design decision* rather than a
  * token: the expressive `vibrant` appearance, keyframes, and a small set of
@@ -19,7 +19,7 @@
    Appearance: the one expressive variant
    ------------------------------------------------------------
    `professional` (the default) needs no rules — it simply is the
-   globals.css seed. `vibrant` opts a page into the louder Tilo
+   globals.css seed. `vibrant` opts a page into the louder Tilza
    personality: poster-round corners and a heavy display face.
    Applied wherever the attribute lands (the platform sets it on
    <html>; the storefront sets it on its own root element), so it
@@ -80,7 +80,7 @@ p {
 /* Soft breathing ring on the assistive-touch menu orb, so it reads as a
    tappable menu rather than a static dot. Pairs with the `motion-safe:`
    variant in the component. */
-@keyframes tilo-ping {
+@keyframes tilza-ping {
   0% {
     transform: scale(1);
     opacity: 0.45;
@@ -92,14 +92,14 @@ p {
   }
 }
 
-.animate-tilo-ping {
-  animation: tilo-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+.animate-tilza-ping {
+  animation: tilza-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* Autoplay progress bar for the Ad Studio slideshow. The element is keyed by
    the current ad, so a new slide restarts the fill; the duration matches
    AUTOPLAY_MS in ad-slideshow.tsx. */
-@keyframes tilo-progress {
+@keyframes tilza-progress {
   from {
     transform: scaleX(0);
   }
@@ -108,13 +108,13 @@ p {
   }
 }
 
-.animate-tilo-progress {
+.animate-tilza-progress {
   transform-origin: left;
-  animation: tilo-progress 4.5s linear forwards;
+  animation: tilza-progress 4.5s linear forwards;
 }
 
 /* Gentle floating bob for the dashboard hero accents. */
-@keyframes tilo-float {
+@keyframes tilza-float {
   0%,
   100% {
     transform: translateY(0);
@@ -125,7 +125,7 @@ p {
 }
 
 /* Diagonal light sweep that glides across a hero panel. */
-@keyframes tilo-sheen {
+@keyframes tilza-sheen {
   0% {
     transform: translateX(-150%) skewX(-12deg);
   }
@@ -135,12 +135,12 @@ p {
   }
 }
 
-.animate-tilo-float {
-  animation: tilo-float 4.5s ease-in-out infinite;
+.animate-tilza-float {
+  animation: tilza-float 4.5s ease-in-out infinite;
 }
 
-.animate-tilo-sheen {
-  animation: tilo-sheen 7s ease-in-out infinite;
+.animate-tilza-sheen {
+  animation: tilza-sheen 7s ease-in-out infinite;
 }
 
 /* ============================================================
@@ -210,7 +210,7 @@ a.bg-primary {
      utilities; a box-shadow would clobber each component's own
      shadow while focused, whereas `outline` draws alongside it.
    --ring and --background derive from the shop's own data-theme,
-   so the ring recolours with the store, not with Tilo.
+   so the ring recolours with the store, not with Tilza.
    ============================================================ */
 [data-platform="store"] :focus-visible {
   outline: 2px solid var(--ring);
@@ -221,10 +221,10 @@ a.bg-primary {
    Reduced motion — never animate movement for those who opt out
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .animate-tilo-ping,
-  .animate-tilo-float,
-  .animate-tilo-sheen,
-  .animate-tilo-progress,
+  .animate-tilza-ping,
+  .animate-tilza-float,
+  .animate-tilza-sheen,
+  .animate-tilza-progress,
   .lift,
   button.bg-primary,
   a.bg-primary {

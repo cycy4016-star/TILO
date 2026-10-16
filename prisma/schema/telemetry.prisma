@@ -1,4 +1,4 @@
-// Platform telemetry ledger: every unhandled failure in Tilo lands here so the
+// Platform telemetry ledger: every unhandled failure in Tilza lands here so the
 // operator never has to read a raw stack trace in a terminal. Rows are GROUPED
 // by `fingerprint` (route + normalised message + top stack frame) and folded —
 // the same bug firing 400 times is one row with `count = 400`, not 400 rows.

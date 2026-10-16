@@ -2,7 +2,7 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Reveal } from '@/components/custom/sample-showcase';
-import { TiloMark } from '@/components/custom/tilo-mark';
+import { TilzaMark } from '@/components/custom/tilza-mark';
 import { Button } from '@/components/ui/button';
 import { FOOTER_COLUMNS, LANDING, SOCIALS } from '@/lib/landing-content';
 import { siteName } from '@/lib/site';
@@ -48,7 +48,7 @@ export function LandingFooter() {
         <div className="grid gap-10 md:grid-cols-[1.2fr_repeat(3,1fr)]">
           <div>
             <p className="flex items-center gap-2">
-              <TiloMark className="size-8 rounded-xl" iconClassName="size-4" />
+              <TilzaMark className="size-8 rounded-xl" iconClassName="size-4" />
               <span className="font-display text-base font-semibold tracking-tight">
                 {siteName}
               </span>

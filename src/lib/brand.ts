@@ -1,7 +1,7 @@
 // Brand identity. Edit freely. `site.ts` re-exports
 // siteName/siteDescription; `manifest.ts` + `opengraph-image.tsx` read `brandVisual`.
 
-export const siteName = 'Tilo';
+export const siteName = 'Tilza';
 export const siteDescription =
   'A shareable shop page for your products — categories, photos and prices, a basket customers fill themselves, and orders that land itemised in your dashboard.';
 
@@ -17,6 +17,6 @@ export const brandVisual = {
     background: '#0f172a',
     foreground: '#f8fafc',
     /** Second line under the site name; '' hides it. */
-    tagline: 'Chat on WhatsApp. Run on Tilo.',
+    tagline: 'Chat on WhatsApp. Run on Tilza.',
   },
 } as const;

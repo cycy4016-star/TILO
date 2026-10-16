@@ -18,7 +18,7 @@ export async function register(): Promise<void> {
     await seed();
   } catch (error) {
     // biome-ignore lint/suspicious/noConsole: startup diagnostics — the seed failed but the server still boots.
-    console.error('[tilo] startup seed failed:', error);
+    console.error('[tilza] startup seed failed:', error);
   }
 }
 

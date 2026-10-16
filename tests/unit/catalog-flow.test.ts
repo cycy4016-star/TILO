@@ -167,7 +167,7 @@ describe('checkout stock guard', () => {
     const orderCreate = db.prisma.order.create as ReturnType<typeof vi.fn>;
     orderCreate.mockResolvedValue({
       id: 'order-1',
-      orderNumber: 'TILO-20261007-ABCDEFGH',
+      orderNumber: 'TILZA-20261007-ABCDEFGH',
       customerId: 'customer-1',
       description: '2x Widget',
       status: 'PENDING',

@@ -1,4 +1,4 @@
-// Tilo customer and order workspace models.
+// Tilza customer and order workspace models.
 //
 // TENANCY: every row is owned by the signed-up account that created it. The
 // `userId` column is the isolation boundary — API routes filter on it so one

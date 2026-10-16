@@ -39,7 +39,7 @@ const newCustomer = { id: 'customer-1', name: 'Ama', phone: '+233241112200', add
 const existingCustomer = { id: 'customer-9', name: 'Ama', phone: '+233241112200', address: 'Osu' };
 const order = {
   id: 'order-1',
-  orderNumber: 'TILO-20260922-A1B2C3D4',
+  orderNumber: 'TILZA-20260922-A1B2C3D4',
   customerId: 'customer-1',
   description: '1x Branded apron',
   status: 'PENDING' as const,
@@ -88,7 +88,7 @@ describe('public order placement', () => {
     expect(response.status).toBe(201);
     const body = await response.json();
     expect(body.ok).toBe(true);
-    expect(body.order.orderNumber).toBe('TILO-20260922-A1B2C3D4');
+    expect(body.order.orderNumber).toBe('TILZA-20260922-A1B2C3D4');
     expect(body.createdCustomer).toBe(true);
     // Everything the public flow writes is filed under the storefront's owner.
     expect(db.prisma.customer.findFirst).toHaveBeenCalledWith(

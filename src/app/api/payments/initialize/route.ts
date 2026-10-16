@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'This order is already paid' }, { status: 409 });
     }
 
-    const reference = `TILO-PAY-${crypto.randomUUID()}`;
+    const reference = `TILZA-PAY-${crypto.randomUUID()}`;
     const payment = await prisma.paymentTransaction.create({
       data: {
         reference,

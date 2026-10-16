@@ -1,4 +1,4 @@
-// Tilo sign-in / sign-out cluster for the public header.
+// Tilza sign-in / sign-out cluster for the public header.
 'use client';
 
 import { useState } from 'react';

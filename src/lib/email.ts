@@ -32,7 +32,7 @@ async function sendViaResend({ to, subject, text, html }: EmailInput): Promise<E
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: env.EMAIL_FROM ?? 'Tilo <no-reply@tilo.app>',
+      from: env.EMAIL_FROM ?? 'Tilza <no-reply@tilza.org>',
       to: [to],
       subject,
       text,

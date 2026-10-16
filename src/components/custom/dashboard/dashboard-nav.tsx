@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 'use client';
 
 import Link from 'next/link';

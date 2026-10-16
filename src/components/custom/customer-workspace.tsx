@@ -1,4 +1,4 @@
-// Tilo customer directory island: search + create, served loud.
+// Tilza customer directory island: search + create, served loud.
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

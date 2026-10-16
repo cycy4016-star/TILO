@@ -1,4 +1,4 @@
-// Tilo customer detail island: profile, orders, and status controls.
+// Tilza customer detail island: profile, orders, and status controls.
 'use client';
 
 import { ArrowLeft, Flame, Mail, MapPin, MessageCircle, Phone, Zap } from 'lucide-react';

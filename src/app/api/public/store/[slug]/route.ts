@@ -1,5 +1,5 @@
 // public storefront API — no auth. Serves the live catalog for /store/[slug]
-// so visitors can browse without a Tilo account. Only live promotions (active +
+// so visitors can browse without a Tilza account. Only live promotions (active +
 // inside their date window) are included.
 import 'server-only';
 

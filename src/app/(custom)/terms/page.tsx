@@ -1,4 +1,4 @@
-// /terms — the terms on which Tilo is provided. Plain-language, honest, and
+// /terms — the terms on which Tilza is provided. Plain-language, honest, and
 // edited to the business actually operating this deployment.
 
 import type { Metadata } from 'next';

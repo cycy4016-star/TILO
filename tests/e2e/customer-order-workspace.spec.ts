@@ -45,7 +45,7 @@ test('staff can create a Ghanaian SME customer, link an order, and update status
   await expect(page.getByRole('heading', { name: fixture.name })).toBeVisible();
   await page.getByLabel('Order label or description').fill(fixture.order.description);
   await page.getByRole('button', { name: /create order/i }).click();
-  await expect(page.getByText(/TILO-\d{8}-[A-Z0-9]+/)).toBeVisible();
+  await expect(page.getByText(/TILZA-\d{8}-[A-Z0-9]+/)).toBeVisible();
 
   const statusControl = page.getByRole('combobox', { name: 'Order status' });
   await statusControl.click();

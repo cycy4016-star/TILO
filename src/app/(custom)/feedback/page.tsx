@@ -1,5 +1,5 @@
 // /feedback — the public inbox. Anyone (shopper, owner, or a signed-out
-// stranger) can tell Tilo what is broken or what they think, and the note lands
+// stranger) can tell Tilza what is broken or what they think, and the note lands
 // in the admin Feedback panel. Storefronts deep-link here as
 // /feedback?shop=<slug> so the report is filed against the right shop.
 
@@ -21,7 +21,7 @@ export default function FeedbackPage() {
           <h1 className="mt-3 font-display text-h1">Feedback</h1>
           <p className="mt-4 max-w-[65ch] text-body leading-relaxed text-muted-foreground">
             Something crashed, something confused you, or something just works well — say so here.
-            Every note is read by a person on the Tilo team.
+            Every note is read by a person on the Tilza team.
           </p>
         </div>
       </section>

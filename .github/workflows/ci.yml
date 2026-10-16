@@ -51,8 +51,8 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       E2E_BASE_URL: http://localhost:3000
-      E2E_OWNER_EMAIL: e2e-owner@tilo.local
-      E2E_OWNER_PASSWORD: tilo-e2e-password
+      E2E_OWNER_EMAIL: e2e-owner@tilza.org
+      E2E_OWNER_PASSWORD: tilza-e2e-password
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

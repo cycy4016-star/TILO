@@ -5,7 +5,7 @@
 import type { Metadata } from 'next';
 import { PaymentReturn } from '@/components/custom/payment-return';
 
-export const metadata: Metadata = { title: 'Payment | Tilo' };
+export const metadata: Metadata = { title: 'Payment | Tilza' };
 
 export default function PaymentReturnPage() {
   return (

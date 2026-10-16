@@ -50,7 +50,7 @@ test('customer/order schema persists linked records across client instances', as
     data: {
       userId: owner.id,
       customerId: customer.id,
-      orderNumber: 'TILO-INTEGRATION-1',
+      orderNumber: 'TILZA-INTEGRATION-1',
       description: 'Fixture order',
     },
   });

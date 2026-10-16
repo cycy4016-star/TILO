@@ -1,4 +1,4 @@
-// Tilo marketing home: conversion-focused landing for shop owners.
+// Tilza marketing home: conversion-focused landing for shop owners.
 // Copy, plans, FAQs and features live in src/lib/landing-content.ts — edit
 // there, not here. Showcase and store-stage sections are reused as-is.
 
@@ -286,7 +286,7 @@ const SAMPLE_STORES: SampleShop[] = [
   },
 ];
 
-export default async function TiloHome() {
+export default async function TilzaHome() {
   // CSP-safe JSON-LD: the per-request nonce keeps strict script-src happy.
   // The root layout already opts the tree into dynamic rendering for this.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
@@ -330,7 +330,7 @@ export default async function TiloHome() {
           shop={
             SAMPLE_STORES[0] ?? {
               name: siteName,
-              slug: 'tilo',
+              slug: 'tilza',
               tagline: '',
               shelves: [],
               products: [],

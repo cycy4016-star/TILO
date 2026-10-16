@@ -310,7 +310,7 @@ export function Storefront({
           <p className="mt-1 text-caption text-muted-foreground">
             Powered by{' '}
             <a href="/" className="font-medium text-primary underline underline-offset-2">
-              Tilo
+              Tilza
             </a>{' '}
             ·{' '}
             <a href="/privacy" className="underline underline-offset-2">

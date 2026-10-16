@@ -29,7 +29,7 @@ export async function GET(_request: Request, context: RouteContext) {
       item.store.logo != null
         ? `data:${item.store.logoMime ?? 'image/jpeg'};base64,${Buffer.from(item.store.logo).toString('base64')}`
         : null;
-    const storeUrl = `tilo.app/store/${item.store.slug}`;
+    const storeUrl = `tilza.org/store/${item.store.slug}`;
 
     return new ImageResponse(
       <div

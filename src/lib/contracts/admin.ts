@@ -1,5 +1,5 @@
 // Client-safe Admin monitor contract shared by the route and the island: a
-// living list of every Tilo account with their sign-in pulse.
+// living list of every Tilza account with their sign-in pulse.
 import { z } from 'zod';
 
 export const AdminUserRow = z.object({

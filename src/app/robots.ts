@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 //
 // /robots.txt — standard Next 16 metadata route. Indexing is OPT-IN: only a
 // deploy that sets SEO_INDEXABLE=true (the production deploy) is crawlable.

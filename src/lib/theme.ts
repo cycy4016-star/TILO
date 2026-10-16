@@ -1,4 +1,4 @@
-// Colour theme for the Tilo platform. Each theme preset is a
+// Colour theme for the Tilza platform. Each theme preset is a
 // set of seed values (--brand-h/c/l) injected into the CSS in globals.css under
 // a `[data-theme="key"]` selector — the derived brand ramp and every semantic
 // token recompute from those three numbers, so one pick recolours the whole
@@ -26,7 +26,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: 'orange',
     label: 'Sunrise',
-    tagline: 'Bright golden-orange · the Tilo default',
+    tagline: 'Bright golden-orange · the Tilza default',
     accents: ['#f59e0b', '#fef3c7'],
     seed: { h: 70, c: 0.19, l: 0.72 },
   },
@@ -61,7 +61,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: 'gold',
     label: 'Gold',
-    tagline: 'Signature yellow · the original Tilo brand',
+    tagline: 'Signature yellow · the original Tilza brand',
     accents: ['#eab308', '#fef9c3'],
     seed: { h: 84, c: 0.19, l: 0.78 },
   },

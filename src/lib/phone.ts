@@ -33,7 +33,7 @@ export function waMessageLink(phone: string | null | undefined, text: string): s
 }
 
 // sms: deep link with a pre-filled body — the storefront's "Order via SMS"
-// buttons carry the TILO-template order message to the customer's composer.
+// buttons carry the TILZA-template order message to the customer's composer.
 // Returns null when there is no usable number.
 export function smsLink(phone: string | null | undefined, text: string): string | null {
   if (!phone) return null;

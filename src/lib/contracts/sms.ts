@@ -12,7 +12,7 @@ export const SmsDispatch = z.object({
     .trim()
     .min(1, 'Write the message first')
     .max(320, 'Keep it under 320 characters — one low-cost SMS'),
-  // Which TILO template the owner picked, stored on the notification only.
+  // Which TILZA template the owner picked, stored on the notification only.
   template: z.string().trim().max(40).optional(),
 });
 

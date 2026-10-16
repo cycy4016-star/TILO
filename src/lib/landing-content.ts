@@ -46,7 +46,7 @@ export const FEATURES: Feature[] = [
   {
     icon: 'link',
     title: 'One link for every bio',
-    body: 'tilo.app/store/yourname works in bios, statuses, flyers and replies.',
+    body: 'tilza.org/store/yourname works in bios, statuses, flyers and replies.',
     span: 1,
   },
   {

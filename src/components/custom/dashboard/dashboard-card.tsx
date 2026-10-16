@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 
 import type { HTMLAttributes, ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

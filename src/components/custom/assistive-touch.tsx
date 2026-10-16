@@ -46,14 +46,14 @@ export function AssistiveTouch() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'group relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-brand ring-4 ring-background transition-transform duration-300 ease-out-expo motion-safe:animate-tilo-float hover:scale-105 active:scale-95',
+          'group relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-brand ring-4 ring-background transition-transform duration-300 ease-out-expo motion-safe:animate-tilza-float hover:scale-105 active:scale-95',
           open && 'scale-105',
         )}
       >
         {/* Breathing ring — a gold halo so the orb reads as tappable. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-full bg-primary/40 motion-safe:animate-tilo-ping"
+          className="pointer-events-none absolute inset-0 rounded-full bg-primary/40 motion-safe:animate-tilza-ping"
         />
         <span
           className={cn(

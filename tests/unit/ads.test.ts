@@ -21,7 +21,7 @@ const STORE = {
   storeName: 'Ama Kente',
   storeSlug: 'ama-kente',
   storeTagline: 'Handwoven in Accra',
-  storeUrl: 'https://tilo.app/store/ama-kente',
+  storeUrl: 'https://tilza.org/store/ama-kente',
 };
 
 const ITEMS: AdItemInput[] = [
@@ -101,7 +101,7 @@ describe('day rotation helpers', () => {
 
 describe('adPostPlan', () => {
   const caption = 'New at Ama Kente\n\nlink here';
-  const url = 'https://tilo.app/store/ama-kente#i1';
+  const url = 'https://tilza.org/store/ama-kente#i1';
 
   it('hands WhatsApp the whole caption', () => {
     const plan = adPostPlan('whatsapp', caption, url);
@@ -189,7 +189,7 @@ describe('adOrderAction', () => {
     pricePesewas: 12000,
     compareAtPricePesewas: 15000,
     discountPercent: 20,
-    origin: 'https://tilo.app',
+    origin: 'https://tilza.org',
   };
 
   it('opens the shop chat with a prefilled order', () => {
@@ -207,7 +207,7 @@ describe('adOrderAction', () => {
     const action = adOrderAction({ ...BASE, contactPhone: null });
     expect(action.whatsapp).toBe(false);
     expect(action.label).toBe('Order from our shop');
-    expect(action.href).toBe('https://tilo.app/store/ama-kente#i1');
+    expect(action.href).toBe('https://tilza.org/store/ama-kente#i1');
   });
 
   it('uses the plain price when the listing is not on sale', () => {
@@ -249,7 +249,7 @@ describe('storeOrderAction', () => {
       storeName: 'Ama Kente',
       storeSlug: 'ama-kente',
       contactPhone: '0241234567',
-      origin: 'https://tilo.app',
+      origin: 'https://tilza.org',
     });
     expect(action.whatsapp).toBe(true);
     expect(action.label).toBe('Order on WhatsApp');
@@ -265,11 +265,11 @@ describe('storeOrderAction', () => {
       storeName: 'Ama Kente',
       storeSlug: 'ama-kente',
       contactPhone: null,
-      origin: 'https://tilo.app',
+      origin: 'https://tilza.org',
     });
     expect(action.whatsapp).toBe(false);
     expect(action.label).toBe('Visit our shop');
-    expect(action.href).toBe('https://tilo.app/store/ama-kente');
+    expect(action.href).toBe('https://tilza.org/store/ama-kente');
   });
 });
 
@@ -297,7 +297,7 @@ describe('buildCampaignCaption', () => {
     const caption = buildCampaignCaption({
       storeName: 'Ama Kente',
       storeSlug: 'ama-kente',
-      origin: 'https://tilo.app',
+      origin: 'https://tilza.org',
       contactPhone: null,
       items,
     });
@@ -305,7 +305,7 @@ describe('buildCampaignCaption', () => {
     expect(caption).toContain('1. New at Ama Kente: Kente Scarf');
     expect(caption).toContain('GH₵ 120.00 (was GH₵ 150.00, 20% off)');
     expect(caption).toContain('2. Book Logo Design today');
-    expect(caption).toContain('https://tilo.app/store/ama-kente#i1');
+    expect(caption).toContain('https://tilza.org/store/ama-kente#i1');
     expect(caption).toContain('Shop the full collection:');
   });
 
@@ -313,7 +313,7 @@ describe('buildCampaignCaption', () => {
     const caption = buildCampaignCaption({
       storeName: 'Ama Kente',
       storeSlug: 'ama-kente',
-      origin: 'https://tilo.app',
+      origin: 'https://tilza.org',
       contactPhone: '0241234567',
       items,
     });
@@ -327,7 +327,7 @@ describe('buildCampaignCaption', () => {
     const caption = buildCampaignCaption({
       storeName: 'Ama Kente',
       storeSlug: 'ama-kente',
-      origin: 'https://tilo.app',
+      origin: 'https://tilza.org',
       contactPhone: null,
       title: 'Weekend bundle',
       items: [items[0] as AdCampaignItem],

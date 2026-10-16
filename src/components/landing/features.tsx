@@ -53,7 +53,7 @@ function Visual({ icon }: { icon: FeatureIcon }) {
         className="inline-flex items-center gap-2 rounded-full border border-border bg-background/90 px-4 py-1.5 font-mono text-caption text-muted-foreground shadow-xs"
       >
         <Link2 className="size-3.5 text-primary" />
-        tilo.app/store/you
+        tilza.org/store/you
       </div>
     );
   }

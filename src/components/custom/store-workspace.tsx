@@ -1,4 +1,4 @@
-// Tilo store manager island: set up the shop's public page, then curate the
+// Tilza store manager island: set up the shop's public page, then curate the
 // product/service catalog. The share link is the /store/[slug] storefront.
 'use client';
 

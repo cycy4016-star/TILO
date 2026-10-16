@@ -1,6 +1,6 @@
-# Tilo — Feature Inventory
+# Tilza — Feature Inventory
 
-Tilo is a hosted shop page for small Ghanaian/African businesses. Sign up, put
+Tilza is a hosted shop page for small Ghanaian/African businesses. Sign up, put
 your products on shelves with photos and prices, share one link, and let
 customers check out a basket from `/store/<slug>` — the order lands itemised and
 totalled in your dashboard. Around that core sit a customer directory, order
@@ -132,7 +132,7 @@ where it lives, and what is deliberately not built yet.
 - Create an order against a customer (description, optional amount in pesewas).
 - Status lifecycle: `PENDING → PROCESSING → COMPLETED / CANCELLED`, editable
   inline.
-- Auto order numbers: `TILO-YYYYMMDD-XXXXXXXX`.
+- Auto order numbers: `TILZA-YYYYMMDD-XXXXXXXX`.
 - Payment tracking: `amountPesewas` (whole pesewas, no floats) and `paidAt`.
 - Mark-paid action records a manual payment; the Paystack flow records an online
   one.
@@ -504,7 +504,7 @@ See `.env.example` for the annotated list.
   from its card, or open **Post all at once** to pick any subset of the day's ads
   and send them together — compose channels open once with the combined campaign
   caption, image-first channels save every selected image and copy that caption.
-- **No true auto-publish.** Tilo never posts to a network on the owner's behalf
+- **No true auto-publish.** Tilza never posts to a network on the owner's behalf
   (see §19) — it generates the asset and hands it to each network's own
   composer. Captions are template-based today; LLM-written copy and video ads are
   a deliberate later layer.

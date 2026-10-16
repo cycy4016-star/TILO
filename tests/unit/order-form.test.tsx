@@ -64,7 +64,7 @@ describe('OrderForm', () => {
       status: 201,
       json: async () => ({
         id: 'order-1',
-        orderNumber: 'TILO-20261012-0001',
+        orderNumber: 'TILZA-20261012-0001',
         customerId: 'customer-1',
         description: '2 branded aprons',
         status: 'PENDING',

@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 'use client';
 
 import { Check } from 'lucide-react';

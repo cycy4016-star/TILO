@@ -1,5 +1,5 @@
 // Client-safe contracts for the public storefront's self-serve flows: visitors
-// place orders on Tilo or leave their details, both landing straight in the
+// place orders on Tilza or leave their details, both landing straight in the
 // owner's customers list with a live notification.
 import { z } from 'zod';
 import { OrderItem } from '@/lib/contracts/order';

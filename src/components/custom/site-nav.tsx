@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { AuthNav } from '@/components/custom/auth-nav';
 import { ThemeToggle } from '@/components/custom/theme-toggle';
-import { TiloMark } from '@/components/custom/tilo-mark';
+import { TilzaMark } from '@/components/custom/tilza-mark';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -95,7 +95,7 @@ function isDashboardPath(pathname: string) {
 
 // The storefront ships its own chrome (a sticky shop masthead + shop footer),
 // so the marketing bar and footer step aside on /store paths like they do on
-// /dashboard — a visitor should feel like they're inside the shop, not Tilo.
+// /dashboard — a visitor should feel like they're inside the shop, not Tilza.
 function isStorePath(pathname: string) {
   return pathname === '/store' || pathname.startsWith('/store/');
 }
@@ -140,7 +140,7 @@ export function SiteNav() {
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
         <Link href="/" className="mr-2 flex min-w-0 items-center gap-2">
-          <TiloMark className="size-8 rounded-xl" iconClassName="size-4" />
+          <TilzaMark className="size-8 rounded-xl" iconClassName="size-4" />
           <span className="truncate font-display text-[1.05rem] font-semibold tracking-tight">
             {siteName}
           </span>
@@ -381,7 +381,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-background text-muted-foreground">
       <div className="container-page flex flex-col gap-4 py-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:pb-8">
-        <p className="font-display text-h4 font-semibold tracking-tight text-foreground">Tilo</p>
+        <p className="font-display text-h4 font-semibold tracking-tight text-foreground">Tilza</p>
         <nav aria-label="Footer" className="flex flex-wrap items-center gap-1">
           {footer.map((item) => (
             <Button

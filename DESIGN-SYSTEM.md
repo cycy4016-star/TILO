@@ -1,7 +1,7 @@
-# Tilo design system — "Refined & premium"
+# Tilza design system — "Refined & premium"
 
 Direction: **quiet surfaces, one confident accent, real typographic hierarchy.**
-Think Linear/Stripe, not a poster. The gold is Tilo's signature, so it is used
+Think Linear/Stripe, not a poster. The gold is Tilza's signature, so it is used
 precisely rather than in floods.
 
 This document is the contract for UI work. The tokens below already exist —
@@ -106,7 +106,7 @@ Rules:
 - Enter with `tw-animate-css` (`animate-in fade-in slide-in-from-bottom-4
   duration-500`) only where it clarifies hierarchy — not on every element.
 - Always `motion-safe:` for decorative animation; respect reduced motion.
-- Decorative noise to remove: floating blurred blobs, `animate-tilo-sheen`
+- Decorative noise to remove: floating blurred blobs, `animate-tilza-sheen`
   light sweeps, and multi-stop radial-gradient backgrounds behind heroes. At most
   **one** restrained radial accent, and only if it earns its place.
 

@@ -1,4 +1,4 @@
-// Tilo app code.
+// Tilza app code.
 
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';

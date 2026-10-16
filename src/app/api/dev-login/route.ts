@@ -1,4 +1,4 @@
-// Tilo dev-only auth bypass.
+// Tilza dev-only auth bypass.
 //
 // WHY THIS EXISTS: production accounts are created through Google OAuth, which
 // can't be exercised from a local dev box without wiring a real Google client
@@ -23,8 +23,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
-const DEV_EMAIL = 'dev@tilo.local';
-const DEV_PASSWORD = 'tilo-dev-password';
+const DEV_EMAIL = 'dev@tilza.org';
+const DEV_PASSWORD = 'tilza-dev-password';
 
 /** Fails closed: any unexpected env (including production) means "no route". */
 function bypassEnabled(): boolean {
@@ -39,9 +39,9 @@ async function ensureDevUser(): Promise<void> {
   const password = await hashPassword(DEV_PASSWORD);
 
   await prisma.user.upsert({
-    where: { id: 'dev_tilo_owner' },
+    where: { id: 'dev_tilza_owner' },
     create: {
-      id: 'dev_tilo_owner',
+      id: 'dev_tilza_owner',
       name: 'Local Dev',
       email: DEV_EMAIL,
       emailVerified: true,
@@ -53,7 +53,7 @@ async function ensureDevUser(): Promise<void> {
   });
 
   const account = await prisma.account.findFirst({
-    where: { userId: 'dev_tilo_owner', providerId: 'credential' },
+    where: { userId: 'dev_tilza_owner', providerId: 'credential' },
     select: { id: true },
   });
 
@@ -69,9 +69,9 @@ async function ensureDevUser(): Promise<void> {
   await prisma.account.create({
     data: {
       id: randomUUID(),
-      accountId: 'dev_tilo_owner',
+      accountId: 'dev_tilza_owner',
       providerId: 'credential',
-      userId: 'dev_tilo_owner',
+      userId: 'dev_tilza_owner',
       password,
       createdAt: now,
       updatedAt: now,

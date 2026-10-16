@@ -1,4 +1,4 @@
-/* Tilo theme scaffold. — the agent's ONLY authority here is the SEED inside
+/* Tilza theme scaffold. — the agent's ONLY authority here is the SEED inside
  * the `brand_tokens` slot. Everything else (the @theme namespaces, the
  * framework-DERIVED color block, @layer base/components, @custom-variant dark)
  * is FRAMEWORK STRUCTURE — do not edit it.
@@ -118,19 +118,19 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* === BEGIN tilo:brand_tokens === */
+/* === BEGIN tilza:brand_tokens === */
 /* THE SEED — the agent's only styling authority on this file.
    Set the brand HUE (and optionally chroma/lightness), the radius, and the
    fonts. The framework derives the full --brand ramp + every surface/text/
    border role + dark mode from these (see the derived block below), so editing
    --brand-h ALONE recolors the entire site. Keep values in range. */
 :root {
-  --brand-h: 84; /* brand hue, 0–360 (oklch yellow — the Tilo colour) */
+  --brand-h: 84; /* brand hue, 0–360 (oklch yellow — the Tilza colour) */
   /* Chroma 0.21 / lightness 0.58 — a deep, saturated gold rather than the pale
      amber the template shipped. The old 0.16/0.74 seed washed the whole
      interface out: white cards on near-white, invisible borders, mid-grey
      text and a soft amber accent, all derived from these same three numbers.
-     Hue stays 84 — gold is the Tilo signature; only its confidence changed. */
+     Hue stays 84 — gold is the Tilza signature; only its confidence changed. */
   --brand-c: 0.21; /* brand chroma (saturation), 0–0.3 */
   --brand-l: 0.58; /* lightness of the brand-500 step */
   /* 10px: buttons sit at 8px, cards at 14px — the crisp modern scale, replacing
@@ -169,7 +169,7 @@
 /* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)
    recomputes the whole derived brand ramp + every semantic token, so one
    attribute recolors the workspace and storefront coherently. */
-/* Orange — Tilo's own bright golden-orange default for WhatsApp sellers. A
+/* Orange — Tilza's own bright golden-orange default for WhatsApp sellers. A
    sunny, high-energy amber (yellower than a plain orange, warmer than the old
    yellow) with a vivid commerce ramp for the storefront, so the whole platform
    reads bright, warm and young instead of the desaturated corporate slate it
@@ -307,7 +307,7 @@
   --tl-cta-border: #e09a4e;
   --tl-banner: #fffaf3;
 }
-/* === END tilo:brand_tokens === */
+/* === END tilza:brand_tokens === */
 
 /* FRAMEWORK-DERIVED — NOT agent-editable (outside the slot). The full ramp,
    every semantic role, and dark mode are computed from the seed above. Neutrals
@@ -354,7 +354,7 @@
   --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
 }
 
-/* TILO's yellow-gold is bright, so its buttons carry near-black text instead of
+/* TILZA's yellow-gold is bright, so its buttons carry near-black text instead of
    the default white (a bright warm fill + white washes out). Applied to the
    gold and golden-orange themes only — every other theme keeps white on its
    darker primary. */

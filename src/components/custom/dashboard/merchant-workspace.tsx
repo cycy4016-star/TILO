@@ -1,4 +1,4 @@
-// Tilo analytics hub: money owed, the balance sheet and what moves —
+// Tilza analytics hub: money owed, the balance sheet and what moves —
 // Pulse, Intelligence and Products folded into one screen.
 //
 // Merchant workspace. This is the shop owner's OWN shop, so the page is
