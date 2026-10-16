@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { signOut, useIsAdmin, useSession } from '@/lib/auth-client';
 import { QuickAccessPanel } from '../assistive-menu';
 import { NotificationBell } from '../notification-bell';
-import { TilzaMark } from '../tilza-mark';
+import { TilzaLogo } from '../tilza-logo';
 import { AppearancePicker } from './appearance-picker';
 import { DashboardNav } from './dashboard-nav';
 import { TrialBanner } from './trial-banner';
@@ -49,7 +49,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-background px-5">
         <div className="flex flex-col items-center gap-3">
-          <TilzaMark className="size-10" iconClassName="size-5" />
+          <TilzaLogo className="text-3xl" />
           <p className="text-small text-muted-foreground">Loading…</p>
         </div>
       </main>
@@ -62,7 +62,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-background px-5">
         <div className="flex flex-col items-center gap-3">
-          <TilzaMark className="size-10" iconClassName="size-5" />
+          <TilzaLogo className="text-3xl" />
           <p className="text-small text-muted-foreground">Signing you in…</p>
         </div>
       </main>
@@ -76,11 +76,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
     >
       <header className="shrink-0 border-b border-border bg-background">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
-          <Link href="/dashboard" className="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none">
-            <TilzaMark className="size-9 shrink-0" iconClassName="size-5" />
-            <span className="truncate font-display text-base font-semibold tracking-tight text-foreground">
-              Tilza
-            </span>
+          <Link href="/dashboard" className="flex min-w-0 flex-1 items-center sm:flex-none">
+            <TilzaLogo className="text-xl text-foreground" />
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Popover open={assistiveOpen} onOpenChange={setAssistiveOpen}>

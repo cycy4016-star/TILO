@@ -2,7 +2,7 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Reveal } from '@/components/custom/sample-showcase';
-import { TilzaMark } from '@/components/custom/tilza-mark';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Button } from '@/components/ui/button';
 import { FOOTER_COLUMNS, LANDING, SOCIALS } from '@/lib/landing-content';
 import { siteName } from '@/lib/site';
@@ -47,11 +47,8 @@ export function LandingFooter() {
       <div className="container-page section">
         <div className="grid gap-10 md:grid-cols-[1.2fr_repeat(3,1fr)]">
           <div>
-            <p className="flex items-center gap-2">
-              <TilzaMark className="size-8 rounded-xl" iconClassName="size-4" />
-              <span className="font-display text-base font-semibold tracking-tight">
-                {siteName}
-              </span>
+            <p className="flex items-center">
+              <TilzaLogo className="text-xl" />
             </p>
             <p className="mt-3 max-w-xs text-small text-muted-foreground">
               A shareable shop page for your products — made for growing African businesses.

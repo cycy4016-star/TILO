@@ -5,6 +5,11 @@ export const siteName = 'Tilza';
 export const siteDescription =
   'A shareable shop page for your products — categories, photos and prices, a basket customers fill themselves, and orders that land itemised in your dashboard.';
 
+// Uploaded logo. Drop your file in /public (e.g. /public/logo.svg) and set this
+// to its path (e.g. '/logo.svg'). While it is null, the app renders its built-in
+// "TILZA" wordmark instead — see src/components/custom/tilza-logo.tsx.
+export const brandLogo: string | null = null;
+
 // PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
 // readable here) — set to match the corporate slate default.
 export const brandVisual = {

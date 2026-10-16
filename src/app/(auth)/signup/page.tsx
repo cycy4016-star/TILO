@@ -1,7 +1,7 @@
 // Tilza sign-up shell.
 import Link from 'next/link';
 import { SignUpForm } from '@/components/custom/sign-up-form';
-import { TilzaMark } from '@/components/custom/tilza-mark';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function SignupPage() {
@@ -9,7 +9,9 @@ export default function SignupPage() {
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-12">
       <Card className="w-full shadow-sm">
         <CardHeader className="space-y-2 pb-2 text-center">
-          <TilzaMark className="mx-auto size-12 rounded-xl shadow-brand" iconClassName="size-6" />
+          <div className="flex justify-center">
+            <TilzaLogo className="text-4xl" />
+          </div>
           <p className="text-eyebrow">New here</p>
           {/* Card title, not page title — login uses text-h2, and the two
               screens are structurally identical, so they share a scale step. */}
