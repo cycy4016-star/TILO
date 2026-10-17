@@ -14,6 +14,8 @@ export const dynamic = 'force-dynamic';
 
 const DAY_MS = 86_400_000;
 const SERIES_DAYS = 14;
+// The series window is operator-selectable; anything else falls back to 14.
+const ALLOWED_SERIES_DAYS = new Set([7, 14, 30]);
 
 function startOfDay(date: Date): Date {
   const day = new Date(date);
@@ -27,7 +29,9 @@ export async function GET(request: Request) {
     const now = new Date();
     const todayStart = startOfDay(now);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const seriesStart = new Date(startOfDay(now).getTime() - (SERIES_DAYS - 1) * DAY_MS);
+    const requestedDays = Number(new URL(request.url).searchParams.get('days'));
+    const seriesDays = ALLOWED_SERIES_DAYS.has(requestedDays) ? requestedDays : SERIES_DAYS;
+    const seriesStart = new Date(startOfDay(now).getTime() - (seriesDays - 1) * DAY_MS);
 
     const [
       userCount,
@@ -123,7 +127,7 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const daily = Array.from({ length: SERIES_DAYS }, (_, index) => {
+    const daily = Array.from({ length: seriesDays }, (_, index) => {
       const day = new Date(seriesStart.getTime() + index * DAY_MS);
       const key = day.toISOString().slice(0, 10);
       return { day: key, signups: 0, orders: 0, items: 0, inquiries: 0, errors: 0 };

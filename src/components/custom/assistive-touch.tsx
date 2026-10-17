@@ -17,7 +17,11 @@ export function AssistiveTouch() {
   const pathname = usePathname();
   // Dashboard-only shortcut: on marketing, storefront and auth routes the orb
   // would sit on top of the sticky CTAs and footers, so stay unmounted there.
+  // The ops terminal is excluded too — it is a full-viewport console with its
+  // own function-key nav and command line, so a floating orb would just be in
+  // the way of the tape.
   const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
+  const isTerminal = pathname === '/dashboard/admin' || pathname.startsWith('/dashboard/admin/');
   const [open, setOpen] = React.useState(false);
 
   // Close on Escape.
@@ -30,7 +34,7 @@ export function AssistiveTouch() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open]);
 
-  if (!isDashboard) return null;
+  if (!isDashboard || isTerminal) return null;
 
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1.25rem)] right-[calc(env(safe-area-inset-right)_+_1.25rem)] z-40">

@@ -1,46 +1,39 @@
-// Accounts console: every Tilza account, with the two actions an operator
-// needs — promote/demote a teammate to platform operator, and suspend/restore a
-// sign-in. Writes go through PATCH /api/admin/users/[userId], which runs them
-// through better-auth's admin plugin (so a ban also revokes live sessions).
+// F3 · ACCOUNTS — every Tilza account, with the two actions an operator needs:
+// promote/demote a platform operator, and suspend/restore a sign-in. Writes go
+// through PATCH /api/admin/users/[userId], which runs them through
+// better-auth's admin plugin (so a ban also revokes live sessions).
 'use client';
 
-import { ShieldAlert, ShieldCheck, UserCheck, Users } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import { useSession } from '@/lib/auth-client';
+import { AdminUserMonitor, AdminUserRow } from '@/lib/contracts/admin';
 import {
-  AdminUserMonitor,
-  AdminUserRow,
-  type AdminUserMonitor as Monitor,
-} from '@/lib/contracts/admin';
-import { formatDate, PanelFallback, StatCard } from './shared';
+  Cell,
+  DataTable,
+  Dot,
+  Empty,
+  ErrorState,
+  formatStamp,
+  LivePill,
+  Panel,
+  Row,
+  Stat,
+  Tag,
+  TButton,
+  TONE,
+} from './terminal/primitives';
+import { useLiveData } from './use-live';
 
 export function UsersConsole() {
   const { data: session } = useSession();
   const meId = session?.user?.id ?? null;
 
-  const [data, setData] = useState<Monitor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const feed = useLiveData('/api/admin/users', AdminUserMonitor);
+  const data = feed.data;
+
   const [busy, setBusy] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      setData(await apiFetch('/api/admin/users', { schema: AdminUserMonitor }));
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const [feedback, setFeedback] = useState<{ tone: 'green' | 'red'; text: string } | null>(null);
 
   const patch = async (
     userId: string,
@@ -55,16 +48,16 @@ export function UsersConsole() {
         body: JSON.stringify(body),
         schema: AdminUserRow,
       });
-      setFeedback(message);
-      await load();
+      setFeedback({ tone: 'green', text: message });
+      feed.refresh();
     } catch {
-      setFeedback('That change did not go through — nothing was updated.');
+      setFeedback({ tone: 'red', text: 'That change did not go through — nothing was updated.' });
     } finally {
       setBusy(null);
     }
   };
 
-  const toggleRole = (row: Monitor['users'][number], next: 'admin' | 'user') => {
+  const toggleRole = (row: AdminUserRow, next: 'admin' | 'user') => {
     if (
       next === 'user' &&
       !window.confirm(`Remove operator access from ${row.name}? They will keep their own shop.`)
@@ -80,7 +73,7 @@ export function UsersConsole() {
     );
   };
 
-  const toggleBanned = (row: Monitor['users'][number], next: boolean) => {
+  const toggleBanned = (row: AdminUserRow, next: boolean) => {
     if (
       next &&
       !window.confirm(
@@ -96,130 +89,138 @@ export function UsersConsole() {
     );
   };
 
-  if (loading) {
-    return <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />;
-  }
-  if (error || !data) {
-    return <PanelFallback message="Could not load the account list." onRetry={() => void load()} />;
-  }
-
   return (
-    <div className="grid scroll-mt-24 gap-4 sm:gap-6">
-      <section className="grid grid-cols-3 gap-3 sm:gap-4">
-        <StatCard icon={Users} label="Accounts" value={String(data.totalUsers)} />
-        <StatCard icon={ShieldCheck} label="Admins" value={String(data.adminCount)} />
-        <StatCard icon={UserCheck} label="Active this month" value={String(data.activeThisMonth)} />
-      </section>
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--t-dim)]">
+          Identity ledger · bans revoke live sessions
+        </span>
+        <LivePill
+          live={feed.live}
+          updatedAt={feed.updatedAt}
+          onToggle={feed.live ? feed.pause : feed.resume}
+          onRefresh={feed.refresh}
+        />
+      </div>
 
-      {feedback && (
-        <output className="rounded-lg border border-border bg-primary/10 px-4 py-3 text-small font-medium text-primary">
-          {feedback}
-        </output>
-      )}
-
-      {data.users.length === 0 ? (
-        <div className="rounded-xl bg-muted/40 px-6 py-12 text-center">
-          <ShieldAlert aria-hidden className="mx-auto size-10 text-muted-foreground" />
-          <p className="mt-3 text-h4 font-display">No accounts yet</p>
-        </div>
+      {!data ? (
+        feed.error ? (
+          <Panel code="AC" title="Account ledger">
+            <ErrorState message="Could not load the account list." onRetry={feed.refresh} />
+          </Panel>
+        ) : (
+          <Panel code="AC" title="Account ledger">
+            <p className="animate-pulse py-20 text-center text-[12px] uppercase tracking-[0.2em] text-[var(--t-faint)]">
+              Loading accounts…
+            </p>
+          </Panel>
+        )
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[880px] text-left">
-              <thead>
-                <tr className="border-b border-border bg-muted/60 text-caption font-medium uppercase tracking-widest text-muted-foreground">
-                  <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">Sign-ins</th>
-                  <th className="px-5 py-3">Last seen</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Role</th>
-                  <th className="px-5 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
+        <>
+          <div className="grid grid-cols-3 border border-[var(--t-border)] bg-[var(--t-card)]">
+            <Stat label="Accounts" value={data.totalUsers} tone="text" />
+            <Stat label="Operators" value={data.adminCount} tone="amber" />
+            <Stat label="Active this month" value={data.activeThisMonth} tone="green" />
+          </div>
+
+          {feedback && (
+            <output
+              className={`border px-2 py-1 text-[11px] font-bold ${
+                feedback.tone === 'green'
+                  ? 'border-[var(--t-green)] text-[var(--t-green)]'
+                  : 'border-[var(--t-red)] text-[var(--t-red)]'
+              }`}
+            >
+              {feedback.tone === 'green' ? 'OK  ' : 'ERR '}
+              {feedback.text}
+            </output>
+          )}
+
+          <Panel
+            code="AC"
+            title="Account ledger"
+            right={<span>{data.users.length} accounts</span>}
+            bodyClassName="p-0"
+          >
+            {data.users.length === 0 ? (
+              <Empty title="No accounts yet" hint="Sign-ups land here the moment they happen." />
+            ) : (
+              <DataTable
+                columns={[
+                  { key: 'name', label: 'Account' },
+                  { key: 'sessions', label: 'Sign-ins', right: true },
+                  { key: 'seen', label: 'Last seen', right: true },
+                  { key: 'status', label: 'Status' },
+                  { key: 'role', label: 'Role' },
+                  { key: 'actions', label: 'Actions', right: true },
+                ]}
+              >
                 {data.users.map((row) => {
                   const isMe = row.id === meId;
                   const isAdmin = (row.role ?? '').split(',').includes('admin');
                   const isBusy = busy === row.id;
                   return (
-                    <tr key={row.id} className="transition-colors hover:bg-muted/50">
-                      <td className="px-5 py-3">
-                        <p className="text-small font-medium">
-                          {row.name}
-                          {isMe && (
-                            <span className="ml-2 font-mono text-caption text-muted-foreground">
-                              you
-                            </span>
-                          )}
-                        </p>
-                        <p className="mt-0.5 truncate text-caption text-muted-foreground">
+                    <Row key={row.id}>
+                      <td className="max-w-0 px-3 py-2">
+                        <span className="flex items-baseline gap-1.5">
+                          <span className="truncate font-bold text-[var(--t-text)]">
+                            {row.name}
+                          </span>
+                          {isMe && <span className="text-[10px] text-[var(--t-amber)]">you</span>}
+                        </span>
+                        <span className="block truncate text-[10px] text-[var(--t-cyan)]">
                           {row.email}
-                        </p>
-                        <p className="mt-0.5 font-mono text-caption text-muted-foreground">
+                        </span>
+                        <span className="block truncate text-[10px] text-[var(--t-faint)]">
                           {row.phone ?? 'no phone'}
-                        </p>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold">
-                        {row.sessionCount}
-                      </td>
-                      <td className="px-5 py-3 text-small text-muted-foreground">
-                        {row.lastSeenAt ? formatDate(row.lastSeenAt) : 'Never'}
-                      </td>
-                      <td className="px-5 py-3">
-                        {row.banned ? (
-                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-destructive">
-                            Suspended
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-primary">
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-caption font-medium uppercase tracking-wide ${
-                            isAdmin
-                              ? 'bg-primary/10 text-primary'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
-                        >
-                          {isAdmin ? 'Operator' : 'Owner'}
                         </span>
                       </td>
-                      <td className="px-5 py-3">
-                        <div className="flex flex-wrap justify-end gap-1.5">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
+                      <Cell right tone={row.sessionCount > 0 ? 'text' : 'faint'}>
+                        {row.sessionCount}
+                      </Cell>
+                      <Cell right tone="dim">
+                        {row.lastSeenAt ? formatStamp(row.lastSeenAt) : 'never'}
+                      </Cell>
+                      <Cell>
+                        {row.banned ? (
+                          <Tag tone="red">Suspended</Tag>
+                        ) : (
+                          <Tag tone="green">Active</Tag>
+                        )}
+                      </Cell>
+                      <Cell>
+                        <span className="flex items-center gap-1.5">
+                          <Dot tone={isAdmin ? 'amber' : 'dim'} />
+                          <span className={isAdmin ? TONE.amber : TONE.dim}>
+                            {isAdmin ? 'Operator' : 'Owner'}
+                          </span>
+                        </span>
+                      </Cell>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center justify-end gap-1">
+                          <TButton
+                            tone="dim"
                             disabled={isBusy || isMe}
                             onClick={() => toggleRole(row, isAdmin ? 'user' : 'admin')}
-                            className="h-8 rounded-md px-3 text-caption font-semibold"
-                            title={isMe ? 'You cannot change your own role' : undefined}
                           >
-                            {isAdmin ? 'Make owner' : 'Make operator'}
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={row.banned ? 'default' : 'destructive'}
+                            {isAdmin ? 'Demote' : 'Promote'}
+                          </TButton>
+                          <TButton
+                            tone={row.banned ? 'green' : 'red'}
                             disabled={isBusy || isMe}
                             onClick={() => toggleBanned(row, !row.banned)}
-                            className="h-8 rounded-md px-3 text-caption font-semibold"
-                            title={isMe ? 'You cannot suspend yourself' : undefined}
                           >
                             {row.banned ? 'Restore' : 'Suspend'}
-                          </Button>
+                          </TButton>
                         </div>
                       </td>
-                    </tr>
+                    </Row>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </DataTable>
+            )}
+          </Panel>
+        </>
       )}
     </div>
   );

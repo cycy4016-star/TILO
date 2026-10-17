@@ -77,7 +77,7 @@ export const AdminOverview = z.object({
   // ── feedback ──
   feedbackTotal: z.number().int().nonnegative(),
   feedbackNew: z.number().int().nonnegative(),
-  // Oldest-first, one entry per day for the trailing 14 days.
+  // Oldest-first, one entry per day for the trailing window (7, 14 or 30).
   daily: z.array(AdminOverviewDay),
 });
 

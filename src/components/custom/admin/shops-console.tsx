@@ -1,224 +1,152 @@
-// Shops console: the cross-account shop table plus the per-account dossier,
-// with the power to open or close a storefront. Client island rendered by the
-// /dashboard/admin/shops page.
+// F2 · SHOPS — the cross-account shop table plus the per-account dossier, with
+// the power to open or close a storefront. Terminal tables, live.
 'use client';
 
-import {
-  ArrowLeft,
-  Package,
-  Search,
-  ShoppingCart,
-  Store as StoreIcon,
-  Users,
-  Wallet,
-} from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
-import {
-  AdminShopDetail,
-  AdminShops,
-  AdminShopToggleResult,
-  type AdminShopDetail as Dossier,
-  type AdminShops as Shops,
-} from '@/lib/contracts/admin';
+import { AdminShopDetail, AdminShops, AdminShopToggleResult } from '@/lib/contracts/admin';
 import { formatGhs } from '@/lib/contracts/order';
-import { formatDate, PanelFallback, StatCard } from './shared';
+import {
+  Cell,
+  DataTable,
+  Dot,
+  Empty,
+  ErrorState,
+  formatStamp,
+  Kv,
+  LivePill,
+  Panel,
+  Row,
+  SearchField,
+  Stat,
+  Tag,
+  TButton,
+  TONE,
+} from './terminal/primitives';
+import { useLiveData } from './use-live';
 
 function ShopsPanel({ onOpen }: { onOpen: (userId: string) => void }) {
-  const [shops, setShops] = useState<Shops | null>(null);
+  const [q, setQ] = useState('');
   const [input, setInput] = useState('');
-  const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const load = useCallback(async (search: string) => {
-    setLoading(true);
-    setError(false);
-    try {
-      const params = search ? `?q=${encodeURIComponent(search)}` : '';
-      setShops(await apiFetch(`/api/admin/shops${params}`, { schema: AdminShops }));
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load(query);
-  }, [load, query]);
+  const feed = useLiveData(`/api/admin/shops${q ? `?q=${encodeURIComponent(q)}` : ''}`, AdminShops);
+  const shops = feed.data;
 
   return (
-    <div className="grid gap-4">
-      <form
-        className="flex w-full gap-2 sm:max-w-md"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setQuery(input.trim());
-        }}
-      >
-        <div className="relative min-w-0 flex-1">
-          <Search
-            aria-hidden
-            className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <div className="min-w-0 flex-1 sm:max-w-md">
+          <SearchField
+            label="Search shops"
             value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="Search owner, phone, shop or slug"
-            aria-label="Search shops"
-            className="h-11 rounded-md border-border bg-card pl-11"
+            onChange={setInput}
+            onSubmit={() => setQ(input.trim())}
+            placeholder="owner · phone · shop · slug"
           />
         </div>
-        <Button type="submit" variant="outline" className="h-11 rounded-md font-semibold">
-          Search
-        </Button>
-      </form>
+        <LivePill
+          live={feed.live}
+          updatedAt={feed.updatedAt}
+          onToggle={feed.live ? feed.pause : feed.resume}
+          onRefresh={feed.refresh}
+        />
+      </div>
 
-      {loading ? (
-        <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
-      ) : error || !shops ? (
-        <PanelFallback message="Could not load the shops." onRetry={() => void load(query)} />
+      {!shops ? (
+        feed.error ? (
+          <Panel code="SH" title="Shop register">
+            <ErrorState message="Could not load the shop register." onRetry={feed.refresh} />
+          </Panel>
+        ) : (
+          <Panel code="SH" title="Shop register">
+            <p className="animate-pulse py-20 text-center text-[12px] uppercase tracking-[0.2em] text-[var(--t-faint)]">
+              Loading register…
+            </p>
+          </Panel>
+        )
       ) : shops.shops.length === 0 ? (
-        <div className="rounded-xl border border-border bg-muted/40 px-6 py-12 text-center">
-          <StoreIcon aria-hidden className="mx-auto size-10 text-muted-foreground" />
-          <p className="mt-3 text-h4 font-display">No shops match</p>
-        </div>
+        <Panel code="SH" title="Shop register">
+          <Empty title="No shops match" hint="Clear the search or try a slug fragment." />
+        </Panel>
       ) : (
-        <>
-          <ol className="grid gap-3 sm:hidden">
+        <Panel
+          code="SH"
+          title="Shop register"
+          right={
+            <span>
+              {shops.shops.length}/{shops.total} accounts · press a row to open the dossier
+            </span>
+          }
+          bodyClassName="p-0"
+        >
+          <DataTable
+            columns={[
+              { key: 'shop', label: 'Shop' },
+              { key: 'owner', label: 'Owner' },
+              { key: 'state', label: 'State' },
+              { key: 'orders', label: 'Orders', right: true },
+              { key: 'unpaid', label: 'Unpaid', right: true },
+              { key: 'customers', label: 'Cust', right: true },
+              { key: 'volume', label: 'Volume', right: true },
+              { key: 'last', label: 'Last order', right: true },
+            ]}
+            empty="No shops match."
+          >
             {shops.shops.map((shop) => (
-              <li key={shop.userId}>
-                <button
-                  type="button"
-                  onClick={() => onOpen(shop.userId)}
-                  className="w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm"
-                >
-                  <span className="flex items-start justify-between gap-3">
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">
-                        {shop.storeName ?? shop.ownerName}
-                      </span>
-                      <span className="mt-0.5 block truncate text-caption text-muted-foreground">
-                        {shop.ownerName} · {shop.ownerPhone ?? 'no phone'}
-                      </span>
-                    </span>
-                    {shop.storeActive === false ? (
-                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-caption font-medium text-muted-foreground">
-                        Closed
-                      </span>
-                    ) : (
-                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
-                        Live
-                      </span>
-                    )}
+              <Row key={shop.userId} className="cursor-pointer">
+                <td className="max-w-0 px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => onOpen(shop.userId)}
+                    className="block max-w-full truncate text-left font-bold text-[var(--t-amber)] hover:underline"
+                  >
+                    {shop.storeName ?? '—'}
+                  </button>
+                  <span className="block truncate text-[10px] text-[var(--t-faint)]">
+                    /store/{shop.slug ?? '—'} · {shop.itemCount} items
                   </span>
-                  <span className="mt-3 grid grid-cols-3 gap-2 text-center">
-                    <span className="rounded-lg bg-muted/60 px-1 py-1.5">
-                      <span className="block font-mono text-small font-semibold">
-                        {shop.orderCount}
-                      </span>
-                      <span className="block text-caption text-muted-foreground">orders</span>
-                    </span>
-                    <span className="rounded-lg bg-muted/60 px-1 py-1.5">
-                      <span className="block font-mono text-small font-semibold">
-                        {shop.customerCount}
-                      </span>
-                      <span className="block text-caption text-muted-foreground">customers</span>
-                    </span>
-                    <span className="rounded-lg bg-muted/60 px-1 py-1.5">
-                      <span className="block truncate font-mono text-small font-semibold">
-                        {formatGhs(shop.gmvPesewas)}
-                      </span>
-                      <span className="block text-caption text-muted-foreground">volume</span>
-                    </span>
+                </td>
+                <Cell>
+                  {shop.ownerName}
+                  <span className="block truncate text-[10px] text-[var(--t-faint)]">
+                    {shop.ownerPhone ?? 'no phone'}
                   </span>
-                </button>
-              </li>
+                </Cell>
+                <Cell>
+                  {shop.storeActive === false ? (
+                    <Tag tone="red">Closed</Tag>
+                  ) : (
+                    <Tag tone="green">Live</Tag>
+                  )}
+                </Cell>
+                <Cell right tone={shop.orderCount > 0 ? 'text' : 'faint'}>
+                  {shop.orderCount}
+                </Cell>
+                <Cell right tone={shop.unpaidCount > 0 ? 'red' : 'faint'}>
+                  {shop.unpaidCount}
+                </Cell>
+                <Cell right tone="text">
+                  {shop.customerCount}
+                </Cell>
+                <Cell right tone="amber">
+                  {formatGhs(shop.gmvPesewas)}
+                </Cell>
+                <Cell right tone="dim">
+                  {shop.lastOrderAt ? formatStamp(shop.lastOrderAt) : 'never'}
+                </Cell>
+              </Row>
             ))}
-          </ol>
-          <div className="hidden overflow-hidden rounded-xl border border-border bg-card sm:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left">
-                <thead>
-                  <tr className="border-b border-border bg-muted/60 text-caption font-medium uppercase tracking-widest text-muted-foreground">
-                    <th className="px-5 py-3">Shop</th>
-                    <th className="px-5 py-3">Owner</th>
-                    <th className="px-5 py-3">Orders</th>
-                    <th className="px-5 py-3">Unpaid</th>
-                    <th className="px-5 py-3">Volume</th>
-                    <th className="px-5 py-3">Last order</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {shops.shops.map((shop) => (
-                    <tr key={shop.userId} className="transition-colors hover:bg-muted/50">
-                      <td className="px-5 py-3">
-                        <button
-                          type="button"
-                          onClick={() => onOpen(shop.userId)}
-                          className="text-left font-medium text-primary underline-offset-2 hover:underline"
-                        >
-                          {shop.storeName ?? '—'}
-                        </button>
-                        <p className="mt-0.5 font-mono text-caption text-muted-foreground">
-                          /store/{shop.slug ?? '—'} · {shop.itemCount} items
-                        </p>
-                      </td>
-                      <td className="px-5 py-3 text-small">
-                        {shop.ownerName}
-                        <p className="font-mono text-caption text-muted-foreground">
-                          {shop.ownerPhone ?? '—'}
-                        </p>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold">
-                        {shop.orderCount}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold">
-                        {shop.unpaidCount}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold">
-                        {formatGhs(shop.gmvPesewas)}
-                      </td>
-                      <td className="px-5 py-3 text-small text-muted-foreground">
-                        {shop.lastOrderAt ? formatDate(shop.lastOrderAt) : 'Never'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
+          </DataTable>
+        </Panel>
       )}
     </div>
   );
 }
 
 function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void }) {
-  const [data, setData] = useState<Dossier | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const feed = useLiveData(`/api/admin/shops/${userId}`, AdminShopDetail);
+  const data = feed.data;
   const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      setData(await apiFetch(`/api/admin/shops/${userId}`, { schema: AdminShopDetail }));
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const toggleActive = async () => {
     if (!data || data.storeActive == null) return;
@@ -238,7 +166,7 @@ function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void })
         body: JSON.stringify({ active: next }),
         schema: AdminShopToggleResult,
       });
-      await load();
+      feed.refresh();
     } catch {
       // Leave the dossier as it was; the button re-enables for another try.
     } finally {
@@ -246,180 +174,230 @@ function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void })
     }
   };
 
-  if (loading) {
-    return <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />;
-  }
-  if (error || !data) {
-    return <PanelFallback message="Could not load that account." onRetry={() => void load()} />;
+  if (!data) {
+    return (
+      <Panel code="SH" title={`Dossier ${userId}`}>
+        {feed.error ? (
+          <ErrorState message="Could not load that account." onRetry={feed.refresh} />
+        ) : (
+          <p className="animate-pulse py-20 text-center text-[12px] uppercase tracking-[0.2em] text-[var(--t-faint)]">
+            Loading dossier…
+          </p>
+        )}
+      </Panel>
+    );
   }
 
   return (
-    <div className="grid gap-4 sm:gap-6">
-      <div>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onBack}
-          className="-ml-3 mb-3 gap-2 font-semibold text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft aria-hidden className="size-4" /> Shops
-        </Button>
-        <section className="rounded-xl border border-border bg-card p-5 sm:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-eyebrow">User dossier</p>
-              <h2 className="mt-2 break-words font-display text-h2">{data.ownerName}</h2>
-              <p className="mt-1 break-all text-small text-muted-foreground">
-                {data.ownerEmail} · {data.ownerPhone ?? 'no phone'}
-                {data.phoneVerified ? ' · verified' : ''}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-caption font-medium text-primary">
-                  {data.role ?? 'user'}
-                </span>
-                {data.banned ? (
-                  <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-caption font-medium text-destructive">
-                    Suspended
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-muted px-2.5 py-1 text-caption font-medium text-muted-foreground">
-                    Active
-                  </span>
-                )}
-                <span className="rounded-full bg-muted px-2.5 py-1 font-mono text-caption text-muted-foreground">
-                  /store/{data.slug ?? '—'}
-                </span>
-                {data.storeActive === false && (
-                  <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-caption font-medium text-destructive">
-                    Shop closed
-                  </span>
-                )}
-              </div>
-            </div>
-            <Button
-              type="button"
-              variant={data.storeActive === false ? 'default' : 'outline'}
-              disabled={busy || data.storeActive == null}
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <TButton onClick={onBack} tone="dim">
+          ← Back to register
+        </TButton>
+        <LivePill
+          live={feed.live}
+          updatedAt={feed.updatedAt}
+          onToggle={feed.live ? feed.pause : feed.resume}
+          onRefresh={feed.refresh}
+        />
+      </div>
+
+      <Panel
+        code="SH"
+        title={data.storeName ?? data.ownerName}
+        right={
+          <span className="flex items-center gap-2">
+            <Tag tone={data.banned ? 'red' : 'green'}>{data.banned ? 'Suspended' : 'Active'}</Tag>
+            <Tag tone={data.role === 'admin' ? 'amber' : 'dim'}>{data.role ?? 'user'}</Tag>
+            {data.storeActive === false && <Tag tone="red">Shop closed</Tag>}
+            <TButton
               onClick={() => void toggleActive()}
-              className="shrink-0 rounded-md font-semibold"
+              disabled={busy || data.storeActive == null}
+              tone={data.storeActive === false ? 'green' : 'red'}
             >
               {data.storeActive == null
                 ? 'No storefront'
                 : data.storeActive === false
                   ? 'Reopen shop'
                   : 'Close shop'}
-            </Button>
-          </div>
-        </section>
+            </TButton>
+          </span>
+        }
+      >
+        <div className="grid gap-x-4 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+          <Kv k="Owner" v={data.ownerName} />
+          <Kv k="Email" v={data.ownerEmail} />
+          <Kv k="Phone" v={data.ownerPhone ?? '—'} />
+          <Kv
+            k="Verified"
+            v={data.phoneVerified ? 'yes' : 'no'}
+            tone={data.phoneVerified ? 'green' : 'dim'}
+          />
+          <Kv k="Storefront" v={`/store/${data.slug ?? '—'}`} tone="cyan" />
+          <Kv k="Account" v={`opened ${formatStamp(data.createdAt)}`} tone="dim" />
+          <Kv
+            k="Last seen"
+            v={data.lastSeenAt ? formatStamp(data.lastSeenAt) : 'never'}
+            tone={data.lastSeenAt ? 'text' : 'dim'}
+          />
+          <Kv k="Created" v={formatStamp(data.createdAt)} tone="dim" />
+          <Kv k="User id" v={data.userId} tone="dim" />
+        </div>
+      </Panel>
+
+      <div className="grid grid-cols-2 border border-[var(--t-border)] bg-[var(--t-card)] sm:grid-cols-4">
+        <Stat
+          label="Orders"
+          value={data.orderCount}
+          sub={`${formatGhs(data.gmvPesewas)} volume`}
+          tone="amber"
+        />
+        <Stat label="Collected" value={formatGhs(data.paidPesewas)} tone="green" />
+        <Stat label="Customers" value={data.customerCount} />
+        <Stat
+          label="Catalogue"
+          value={data.itemCount}
+          sub={data.storeActive === false ? 'storefront closed' : 'storefront live'}
+          tone={data.storeActive === false ? 'red' : 'text'}
+        />
       </div>
 
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatCard
-          icon={ShoppingCart}
-          label="Orders"
-          value={String(data.orderCount)}
-          sub={`${formatGhs(data.gmvPesewas)} volume`}
-        />
-        <StatCard icon={Wallet} label="Collected" value={formatGhs(data.paidPesewas)} />
-        <StatCard icon={Users} label="Customers" value={String(data.customerCount)} />
-        <StatCard
-          icon={Package}
-          label="Catalogue"
-          value={String(data.itemCount)}
-          sub={data.storeName ?? 'no store yet'}
-        />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-xl border border-border bg-card p-5 sm:p-6">
-          <h3 className="text-h4 font-display">Top items by revenue</h3>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Panel
+          code="ITM"
+          title="Top items by revenue"
+          right={<span>{data.topItems.length} ranked</span>}
+          bodyClassName="p-0"
+        >
           {data.topItems.length === 0 ? (
-            <p className="mt-2 text-small text-muted-foreground">No productized sales yet.</p>
+            <Empty title="No productized sales yet" />
           ) : (
-            <ul className="mt-3 divide-y divide-border">
+            <DataTable
+              columns={[
+                { key: 'name', label: 'Item' },
+                { key: 'units', label: 'Units', right: true },
+                { key: 'revenue', label: 'Revenue', right: true },
+              ]}
+            >
               {data.topItems.map((item) => (
-                <li key={item.name} className="flex items-center justify-between gap-3 py-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-small font-medium">{item.name}</span>
-                    <span className="text-caption text-muted-foreground">{item.units} sold</span>
-                  </span>
-                  <span className="shrink-0 font-mono text-small font-semibold">
+                <Row key={item.name}>
+                  <Cell tone="text">{item.name}</Cell>
+                  <Cell right tone="dim">
+                    {item.units}
+                  </Cell>
+                  <Cell right tone="amber">
                     {formatGhs(item.revenuePesewas)}
-                  </span>
-                </li>
+                  </Cell>
+                </Row>
               ))}
-            </ul>
+            </DataTable>
           )}
-        </article>
-        <article className="rounded-xl border border-border bg-card p-5 sm:p-6">
-          <h3 className="text-h4 font-display">Recent orders</h3>
+        </Panel>
+
+        <Panel
+          code="ORD"
+          title="Recent orders"
+          right={<span>{data.recentOrders.length} shown</span>}
+          bodyClassName="p-0"
+        >
           {data.recentOrders.length === 0 ? (
-            <p className="mt-2 text-small text-muted-foreground">No orders yet.</p>
+            <Empty title="No orders yet" />
           ) : (
-            <ul className="mt-3 divide-y divide-border">
+            <DataTable
+              columns={[
+                { key: 'number', label: 'Order' },
+                { key: 'customer', label: 'Customer' },
+                { key: 'status', label: 'Status' },
+                { key: 'amount', label: 'Amount', right: true },
+              ]}
+            >
               {data.recentOrders.map((order) => (
-                <li key={order.id} className="flex items-center justify-between gap-3 py-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-caption font-semibold text-primary">
-                      {order.orderNumber}
-                    </span>
-                    <span className="block truncate text-caption text-muted-foreground">
-                      {order.customerName ?? 'Walk-in'} · {order.status}
-                    </span>
-                  </span>
-                  <span className="shrink-0 font-mono text-small font-semibold">
-                    {order.amountPesewas != null ? formatGhs(order.amountPesewas) : '—'}
-                  </span>
-                </li>
+                <Row key={order.id}>
+                  <Cell tone="cyan">{order.orderNumber}</Cell>
+                  <Cell tone="dim">{order.customerName ?? 'Walk-in'}</Cell>
+                  <Cell tone={order.status === 'COMPLETED' ? 'green' : 'text'}>
+                    <span className="uppercase">{order.status}</span>
+                  </Cell>
+                  <Cell right tone={order.amountPesewas == null ? 'faint' : 'amber'}>
+                    {order.amountPesewas == null ? '—' : formatGhs(order.amountPesewas)}
+                  </Cell>
+                </Row>
               ))}
-            </ul>
+            </DataTable>
           )}
-        </article>
-        <article className="rounded-xl border border-border bg-card p-5 sm:p-6">
-          <h3 className="text-h4 font-display">Recent customers</h3>
+        </Panel>
+
+        <Panel
+          code="CUS"
+          title="Recent customers"
+          right={<span>{data.customerCount} total</span>}
+          bodyClassName="p-0"
+        >
           {data.recentCustomers.length === 0 ? (
-            <p className="mt-2 text-small text-muted-foreground">No customers yet.</p>
+            <Empty title="No customers yet" />
           ) : (
-            <ul className="mt-3 divide-y divide-border">
+            <DataTable
+              columns={[
+                { key: 'name', label: 'Customer' },
+                { key: 'phone', label: 'Phone' },
+                { key: 'orders', label: 'Orders', right: true },
+                { key: 'seen', label: 'First seen', right: true },
+              ]}
+            >
               {data.recentCustomers.map((customer) => (
-                <li key={customer.id} className="flex items-center justify-between gap-3 py-2">
-                  <span className="min-w-0 flex-1 truncate text-small font-medium">
-                    {customer.name}
-                  </span>
-                  <span className="shrink-0 text-caption text-muted-foreground">
-                    {customer.orderCount} orders
-                  </span>
-                </li>
+                <Row key={customer.id}>
+                  <Cell tone="text">{customer.name}</Cell>
+                  <Cell tone="dim">{customer.phone ?? '—'}</Cell>
+                  <Cell right tone="amber">
+                    {customer.orderCount}
+                  </Cell>
+                  <Cell right tone="dim">
+                    {formatStamp(customer.createdAt)}
+                  </Cell>
+                </Row>
               ))}
-            </ul>
+            </DataTable>
           )}
-        </article>
-        <article className="rounded-xl border border-border bg-card p-5 sm:p-6">
-          <h3 className="text-h4 font-display">Recent SMS</h3>
+        </Panel>
+
+        <Panel
+          code="SMS"
+          title="Recent SMS"
+          right={<span>{data.recentSms.length} shown</span>}
+          bodyClassName="p-0"
+        >
           {data.recentSms.length === 0 ? (
-            <p className="mt-2 text-small text-muted-foreground">No SMS on this account.</p>
+            <Empty title="No SMS on this account" />
           ) : (
-            <ul className="mt-3 divide-y divide-border">
+            <DataTable
+              columns={[
+                { key: 'to', label: 'To' },
+                { key: 'source', label: 'Source' },
+                { key: 'credits', label: 'Credits', right: true },
+                { key: 'ok', label: 'Result' },
+              ]}
+            >
               {data.recentSms.map((sms) => (
-                <li key={sms.id} className="flex items-center justify-between gap-3 py-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-small font-semibold">
-                      {sms.to}
+                <Row key={sms.id}>
+                  <Cell tone="text">{sms.to}</Cell>
+                  <Cell tone="dim">{sms.source}</Cell>
+                  <Cell right tone="dim">
+                    {sms.credits}
+                  </Cell>
+                  <Cell>
+                    <span className="flex items-center gap-1.5">
+                      <Dot tone={sms.ok ? 'green' : 'red'} />
+                      <span className={sms.ok ? TONE.green : TONE.red}>
+                        {sms.ok ? 'DELIVERED' : 'FAILED'}
+                      </span>
                     </span>
-                    <span className="text-caption text-muted-foreground">
-                      {sms.source} · {sms.credits} credits
-                    </span>
-                  </span>
-                  <span
-                    title={sms.ok ? 'delivered' : 'failed'}
-                    className={`size-2.5 shrink-0 rounded-full ${sms.ok ? 'bg-primary' : 'bg-destructive'}`}
-                  />
-                </li>
+                  </Cell>
+                </Row>
               ))}
-            </ul>
+            </DataTable>
           )}
-        </article>
-      </section>
+        </Panel>
+      </div>
     </div>
   );
 }

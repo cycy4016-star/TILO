@@ -1,20 +1,28 @@
-// The error ledger. This is the panel that replaces reading a terminal: a
-// message a human wrote, how many times it fired, where it came from, and a
-// button to clear it once it is dealt with.
+// F6 · HEALTH — the incident ledger. A message a human wrote, how many times
+// it fired, where it came from, the stack if you want it, and a button to clear
+// it once dealt with. Live, so a new incident appears on its own.
 'use client';
 
-import { Check, RotateCcw, Search, ShieldCheck } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Fragment, useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
+import { AdminLogRow, AdminLogs, type AdminLogRow as LogRow } from '@/lib/contracts/admin';
 import {
-  AdminLogRow,
-  AdminLogs,
-  type AdminLogRow as LogRow,
-  type AdminLogs as Logs,
-} from '@/lib/contracts/admin';
-import { Chip, formatDate, PanelFallback } from './shared';
+  Cell,
+  DataTable,
+  Dot,
+  Empty,
+  ErrorState,
+  formatStamp,
+  LivePill,
+  Panel,
+  Row,
+  SearchField,
+  Stat,
+  Tag,
+  TButton,
+  TChip,
+} from './terminal/primitives';
+import { useLiveData } from './use-live';
 
 const LOG_SOURCES = [
   { value: '', label: 'Everywhere' },
@@ -23,44 +31,37 @@ const LOG_SOURCES = [
 ];
 
 const LOG_STATUSES = [
-  { value: '', label: 'All incidents' },
+  { value: '', label: 'All' },
   { value: 'open', label: 'Open' },
   { value: 'resolved', label: 'Resolved' },
 ];
 
+const COLUMNS = [
+  { key: 'state', label: 'State' },
+  { key: 'source', label: 'Src' },
+  { key: 'message', label: 'Incident' },
+  { key: 'route', label: 'Route' },
+  { key: 'fired', label: 'Fired', right: true },
+  { key: 'first', label: 'First seen', right: true },
+  { key: 'last', label: 'Last seen', right: true },
+  { key: 'action', label: 'Action', right: true },
+];
+
 export function HealthPanel() {
-  const [logs, setLogs] = useState<Logs | null>(null);
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const [source, setSource] = useState('');
   const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      const params = new URLSearchParams();
-      if (query) params.set('q', query);
-      if (source) params.set('source', source);
-      if (status) params.set('status', status);
-      const suffix = params.toString();
-      setLogs(
-        await apiFetch(`/api/admin/logs${suffix ? `?${suffix}` : ''}`, { schema: AdminLogs }),
-      );
-    } catch {
-      setFailed(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [query, source, status]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const params = new URLSearchParams();
+  if (query) params.set('q', query);
+  if (source) params.set('source', source);
+  if (status) params.set('status', status);
+  const suffix = params.toString();
+  const feed = useLiveData(`/api/admin/logs${suffix ? `?${suffix}` : ''}`, AdminLogs);
+  const logs = feed.data;
 
   const toggleResolved = async (row: LogRow) => {
     setBusy(row.id);
@@ -70,7 +71,7 @@ export function HealthPanel() {
         body: JSON.stringify({ id: row.id, resolved: !row.resolved }),
         schema: AdminLogRow,
       });
-      await load();
+      feed.refresh();
     } catch {
       // The flip is cosmetic — a failed write leaves the list as it was.
     } finally {
@@ -79,145 +80,164 @@ export function HealthPanel() {
   };
 
   return (
-    <div className="grid gap-4">
-      <form
-        className="flex w-full gap-2 sm:max-w-md"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setQuery(input.trim());
-        }}
-      >
-        <div className="relative min-w-0 flex-1">
-          <Search
-            aria-hidden
-            className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <div className="min-w-0 flex-1 sm:max-w-md">
+          <SearchField
+            label="Search incidents"
             value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="Search messages, routes, stacks…"
-            aria-label="Search incidents"
-            className="h-11 rounded-md border-border bg-card pl-11"
+            onChange={setInput}
+            onSubmit={() => setQuery(input.trim())}
+            placeholder="message · route · stack"
           />
         </div>
-        <Button type="submit" variant="outline" className="h-11 rounded-md font-semibold">
-          Hunt
-        </Button>
-      </form>
+        <LivePill
+          live={feed.live}
+          updatedAt={feed.updatedAt}
+          onToggle={feed.live ? feed.pause : feed.resume}
+          onRefresh={feed.refresh}
+        />
+      </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-1 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <span className="mr-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-dim)]">
+          State
+        </span>
         {LOG_STATUSES.map((entry) => (
-          <Chip
+          <TChip
             key={entry.value}
             active={status === entry.value}
             onClick={() => setStatus(entry.value)}
           >
             {entry.label}
-          </Chip>
+          </TChip>
         ))}
-        <span aria-hidden className="mx-1 self-center border-l border-border" />
+        <span aria-hidden className="mx-2 border-l border-[var(--t-border)]" />
+        <span className="mr-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-dim)]">
+          Src
+        </span>
         {LOG_SOURCES.map((entry) => (
-          <Chip
+          <TChip
             key={entry.value}
             active={source === entry.value}
             onClick={() => setSource(entry.value)}
           >
             {entry.label}
-          </Chip>
+          </TChip>
         ))}
       </div>
 
-      {loading ? (
-        <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
-      ) : failed || !logs ? (
-        <PanelFallback message="Could not load the incident ledger." onRetry={() => void load()} />
+      {!logs ? (
+        feed.error ? (
+          <Panel code="HL" title="Incident ledger">
+            <ErrorState message="Could not load the incident ledger." onRetry={feed.refresh} />
+          </Panel>
+        ) : (
+          <Panel code="HL" title="Incident ledger">
+            <p className="animate-pulse py-20 text-center text-[12px] uppercase tracking-[0.2em] text-[var(--t-faint)]">
+              Reading ledger…
+            </p>
+          </Panel>
+        )
       ) : (
         <>
-          <p className="text-caption text-muted-foreground">
-            <span className="font-semibold text-foreground">{logs.open}</span> open ·{' '}
-            <span className="font-semibold text-foreground">{logs.total}</span> incidents ·{' '}
-            <span className="font-semibold text-foreground">{logs.occurrences}</span> occurrences in
-            view
-          </p>
-          {logs.items.length === 0 ? (
-            <div className="rounded-xl border border-border bg-muted/40 px-6 py-12 text-center">
-              <ShieldCheck aria-hidden className="mx-auto size-10 text-muted-foreground" />
-              <p className="mt-3 text-h4 font-display">Nothing broken</p>
-              <p className="mx-auto mt-1 max-w-sm text-small text-muted-foreground">
-                No incidents match that filter — the ledger is clean for this view.
-              </p>
-            </div>
-          ) : (
-            <ol className="grid gap-2">
-              {logs.items.map((row) => {
-                const isOpen = !row.resolved;
-                const isOpenStack = expanded === row.id;
-                return (
-                  <li key={row.id} className="rounded-xl border border-border bg-card p-3 sm:p-4">
-                    <div className="flex items-start gap-3">
-                      <span
-                        aria-hidden
-                        className={`mt-1.5 size-2.5 shrink-0 rounded-full ${
-                          isOpen ? 'bg-destructive' : 'bg-primary'
-                        }`}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="break-words text-small font-medium">{row.message}</p>
-                        <p className="mt-0.5 truncate text-caption text-muted-foreground">
-                          {[row.summary, row.status ? `HTTP ${row.status}` : null, row.userId]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </p>
-                        <p className="mt-1 text-caption text-muted-foreground">
-                          fired ×{row.count} · first {formatDate(row.firstSeenAt)} · last{' '}
-                          {formatDate(row.lastSeenAt)}
-                        </p>
-                        {row.stack && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setExpanded(isOpenStack ? null : row.id)}
-                              className="mt-2 text-caption font-medium text-primary underline-offset-2 hover:underline"
-                            >
-                              {isOpenStack ? 'Hide stack' : 'Show stack'}
-                            </button>
-                            {isOpenStack && (
-                              <pre className="mt-2 max-h-64 overflow-auto rounded-lg bg-muted/60 p-3 text-caption font-mono text-muted-foreground">
-                                {row.stack}
-                              </pre>
+          <div className="grid grid-cols-3 border border-[var(--t-border)] bg-[var(--t-card)]">
+            <Stat label="Open incidents" value={logs.open} tone={logs.open > 0 ? 'red' : 'green'} />
+            <Stat label="Incidents in view" value={logs.total} />
+            <Stat
+              label="Occurrences"
+              value={logs.occurrences}
+              sub="repeats folded away"
+              tone="amber"
+            />
+          </div>
+
+          <Panel
+            code="HL"
+            title="Incident ledger"
+            right={<span>press STACK to open a trace</span>}
+            bodyClassName="p-0"
+          >
+            {logs.items.length === 0 ? (
+              <Empty
+                title="Nothing broken"
+                hint="No incidents match that filter — the ledger is clean for this view."
+              />
+            ) : (
+              <DataTable columns={COLUMNS}>
+                {logs.items.map((row) => {
+                  const isOpen = !row.resolved;
+                  const isOpenStack = expanded === row.id;
+                  return (
+                    <Fragment key={row.id}>
+                      <Row>
+                        <Cell>
+                          <span className="flex items-center gap-1.5">
+                            <Dot tone={isOpen ? 'red' : 'green'} />
+                            <Tag tone={isOpen ? 'red' : 'green'}>{isOpen ? 'Open' : 'Fixed'}</Tag>
+                          </span>
+                        </Cell>
+                        <Cell>
+                          <Tag tone={row.source === 'CLIENT' ? 'cyan' : 'dim'}>
+                            {row.source === 'CLIENT' ? 'browser' : 'server'}
+                          </Tag>
+                        </Cell>
+                        <td className="max-w-0 px-3 py-2">
+                          <span className="block truncate font-bold text-[var(--t-text)]">
+                            {row.message}
+                          </span>
+                          <span className="block truncate text-[10px] text-[var(--t-faint)]">
+                            {row.summary ?? row.fingerprint.slice(0, 16)}
+                            {row.userId ? ` · user ${row.userId.slice(0, 8)}` : ''}
+                          </span>
+                        </td>
+                        <Cell tone="cyan">
+                          {row.method ?? '—'} {row.route ?? '—'}
+                        </Cell>
+                        <Cell right tone={row.count > 1 ? 'amber' : 'text'}>
+                          ×{row.count}
+                        </Cell>
+                        <Cell right tone="dim">
+                          {formatStamp(row.firstSeenAt)}
+                        </Cell>
+                        <Cell right tone={isOpen ? 'red' : 'dim'}>
+                          {formatStamp(row.lastSeenAt)}
+                        </Cell>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-end gap-1">
+                            {row.stack && (
+                              <TButton
+                                tone="dim"
+                                onClick={() => setExpanded(isOpenStack ? null : row.id)}
+                              >
+                                {isOpenStack ? 'Hide' : 'Stack'}
+                              </TButton>
                             )}
-                          </>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-2">
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-muted-foreground">
-                          {row.source === 'CLIENT' ? 'browser' : 'server'}
-                        </span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={isOpen ? 'outline' : 'ghost'}
-                          disabled={busy === row.id}
-                          onClick={() => void toggleResolved(row)}
-                          className="h-8 rounded-md px-3 text-caption font-semibold"
-                        >
-                          {isOpen ? (
-                            <>
-                              <Check aria-hidden className="size-3.5" /> Resolve
-                            </>
-                          ) : (
-                            <>
-                              <RotateCcw aria-hidden className="size-3.5" /> Reopen
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
+                            <TButton
+                              tone={isOpen ? 'green' : 'amber'}
+                              disabled={busy === row.id}
+                              onClick={() => void toggleResolved(row)}
+                            >
+                              {isOpen ? 'Resolve' : 'Reopen'}
+                            </TButton>
+                          </div>
+                        </td>
+                      </Row>
+                      {isOpenStack && (
+                        <Row key={`${row.id}-stack`}>
+                          <td colSpan={COLUMNS.length} className="bg-black px-3 py-3">
+                            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words border border-[var(--t-border)] bg-[var(--t-panel)] p-2 text-[10px] leading-relaxed text-[var(--t-dim)]">
+                              {row.stack}
+                            </pre>
+                          </td>
+                        </Row>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </DataTable>
+            )}
+          </Panel>
         </>
       )}
     </div>

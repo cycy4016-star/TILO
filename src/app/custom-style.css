@@ -218,6 +218,114 @@ a.bg-primary {
 }
 
 /* ============================================================
+   Tilza Terminal — the admin console's phosphor island
+   ------------------------------------------------------------
+   A deliberately self-contained look: pure black, amber/green/red
+   phosphor, monospace. It carries its own variables instead of the
+   brand tokens so the ops console reads like a market terminal and
+   nothing else on the app inherits it. Everything is scoped under
+   `.tlz-terminal`, so it applies to one subtree and no further.
+   ============================================================ */
+.tlz-terminal {
+  --t-bg: #000000;
+  --t-panel: #070707;
+  --t-card: #0b0b0b;
+  --t-card-hi: #121212;
+  --t-border: #202020;
+  --t-grid: #161616;
+  --t-amber: #ff9e1b;
+  --t-amber-dim: #a86a10;
+  --t-green: #35d07f;
+  --t-red: #ff4d4d;
+  --t-cyan: #4cc2ff;
+  --t-text: #cecece;
+  --t-bright: #f6f6f6;
+  --t-dim: #828282;
+  --t-faint: #545454;
+  background: var(--t-bg);
+  color: var(--t-text);
+  font-family:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A hairline grid that reads on black without shouting. */
+.tlz-scan {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 158, 27, 0.022) 0px,
+    rgba(255, 158, 27, 0.022) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+@keyframes tlz-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.tlz-ticker {
+  animation: tlz-ticker 48s linear infinite;
+}
+
+@keyframes tlz-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.tlz-blink {
+  animation: tlz-blink 1.1s steps(1) infinite;
+}
+
+/* The base layer forces every heading into the display face. Inside the
+   terminal that would break the monospace illusion, so headings opt back in. */
+.tlz-terminal :is(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+  text-wrap: wrap;
+}
+
+/* Amber scrollbars so even the scroll chrome belongs to the terminal. */
+.tlz-terminal ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.tlz-terminal ::-webkit-scrollbar-track {
+  background: #000;
+}
+
+.tlz-terminal ::-webkit-scrollbar-thumb {
+  background: #262626;
+  border: 2px solid #000;
+}
+
+.tlz-terminal ::-webkit-scrollbar-thumb:hover {
+  background: var(--t-amber-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tlz-ticker,
+  .tlz-blink {
+    animation: none;
+  }
+}
+
+/* ============================================================
    Reduced motion — never animate movement for those who opt out
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {

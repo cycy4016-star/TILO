@@ -1,181 +1,190 @@
-// Platform product intelligence: buy rate across every shop.
+// F4 · PRODUCTS — platform product intelligence: buy rate across every shop,
+// ranked fastest-first, with margin and stock health on the same row.
 'use client';
 
-import { Activity, Package, PackageX, ShoppingCart } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { apiFetch } from '@/lib/api-client';
-import { AdminProducts, type AdminProducts as Products } from '@/lib/contracts/admin';
+import { useMemo, useState } from 'react';
+import { AdminProducts } from '@/lib/contracts/admin';
 import { formatGhs } from '@/lib/contracts/order';
-import { PanelFallback, StatCard } from './shared';
+import {
+  Bar,
+  Cell,
+  DataTable,
+  Empty,
+  ErrorState,
+  formatStamp,
+  LivePill,
+  Panel,
+  Row,
+  SearchField,
+  Stat,
+  Tag,
+  TONE,
+} from './terminal/primitives';
+import { useLiveData } from './use-live';
+
+function rate(unitsPerDay: number) {
+  return unitsPerDay < 10 ? unitsPerDay.toFixed(1) : String(Math.round(unitsPerDay));
+}
 
 export function ProductsPanel() {
-  const [data, setData] = useState<Products | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const feed = useLiveData('/api/admin/products', AdminProducts);
+  const data = feed.data;
+  const [input, setInput] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      setData(await apiFetch('/api/admin/products', { schema: AdminProducts }));
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  if (loading) {
-    return <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />;
-  }
-  if (error || !data) {
-    return (
-      <PanelFallback message="Could not load product intelligence." onRetry={() => void load()} />
+  const items = useMemo(() => {
+    if (!data) return [];
+    const q = input.trim().toLowerCase();
+    if (!q) return data.items;
+    return data.items.filter(
+      (item) => item.name.toLowerCase().includes(q) || (item.shop ?? '').toLowerCase().includes(q),
     );
-  }
+  }, [data, input]);
+
+  const maxRate = Math.max(1, ...items.map((item) => item.unitsPerDay));
 
   return (
-    <div className="grid gap-4 sm:gap-6">
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatCard
-          icon={Package}
-          label="Units sold"
-          value={String(data.totalUnits)}
-          sub={`${formatGhs(data.totalRevenuePesewas)} revenue`}
-        />
-        <StatCard icon={ShoppingCart} label="Items ranked" value={String(data.items.length)} />
-        <StatCard icon={PackageX} label="Out of stock" value={String(data.outOfStock)} />
-        <StatCard
-          icon={Activity}
-          label="Running low"
-          value={String(data.lowStock)}
-          sub="5 or fewer left"
-        />
-      </section>
-
-      {data.items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-muted/40 px-6 py-12 text-center">
-          <PackageX aria-hidden className="mx-auto size-10 text-muted-foreground" />
-          <p className="mt-3 text-h4 font-display">No sales counted yet</p>
-          <p className="mx-auto mt-1 max-w-sm text-small text-muted-foreground">
-            Buy rates appear here once any shop sells through its storefront.
-          </p>
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <div className="min-w-0 flex-1 sm:max-w-md">
+          <SearchField
+            label="Filter products"
+            value={input}
+            onChange={setInput}
+            onSubmit={() => undefined}
+            placeholder="item or shop"
+          />
         </div>
+        <LivePill
+          live={feed.live}
+          updatedAt={feed.updatedAt}
+          onToggle={feed.live ? feed.pause : feed.resume}
+          onRefresh={feed.refresh}
+        />
+      </div>
+
+      {!data ? (
+        feed.error ? (
+          <Panel code="PR" title="Product intelligence">
+            <ErrorState message="Could not load product intelligence." onRetry={feed.refresh} />
+          </Panel>
+        ) : (
+          <Panel code="PR" title="Product intelligence">
+            <p className="animate-pulse py-20 text-center text-[12px] uppercase tracking-[0.2em] text-[var(--t-faint)]">
+              Ranking products…
+            </p>
+          </Panel>
+        )
       ) : (
         <>
-          <ol className="grid gap-3 sm:hidden">
-            {data.items.map((item, index) => (
-              <li
-                key={`${item.slug ?? 'loose'}-${item.name}`}
-                className="rounded-xl border border-border bg-card p-4 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-caption font-medium text-primary">#{index + 1} fastest</p>
-                    <p className="mt-0.5 truncate text-small font-medium">{item.name}</p>
-                    <p className="mt-0.5 truncate text-caption text-muted-foreground">
-                      {item.shop ?? 'Deleted item'} · {item.units} sold in {item.orderCount}{' '}
-                      {item.orderCount === 1 ? 'order' : 'orders'}
-                    </p>
-                  </div>
-                  {item.stock != null && item.stock <= 0 ? (
-                    <span className="shrink-0 rounded-full bg-destructive/10 px-2 py-0.5 text-caption font-medium text-destructive">
-                      Sold out
-                    </span>
-                  ) : (
-                    item.marginPercent != null && (
-                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
-                        {item.marginPercent}%
-                      </span>
-                    )
-                  )}
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <span className="rounded-lg bg-muted/60 px-1 py-1.5">
-                    <span className="block font-mono text-small font-semibold">
-                      {item.unitsPerDay < 10
-                        ? item.unitsPerDay.toFixed(1)
-                        : Math.round(item.unitsPerDay)}
-                      /day
-                    </span>
-                    <span className="block text-caption text-muted-foreground">buy rate</span>
-                  </span>
-                  <span className="rounded-lg bg-muted/60 px-1 py-1.5">
-                    <span className="block truncate font-mono text-small font-semibold">
-                      {formatGhs(item.revenuePesewas)}
-                    </span>
-                    <span className="block text-caption text-muted-foreground">revenue</span>
-                  </span>
-                  <span className="rounded-lg bg-muted/60 px-1 py-1.5">
-                    <span className="block truncate font-mono text-small font-semibold">
-                      {formatGhs(item.profitPesewas)}
-                    </span>
-                    <span className="block text-caption text-muted-foreground">profit</span>
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <div className="hidden overflow-hidden rounded-xl border border-border bg-card sm:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left">
-                <thead>
-                  <tr className="border-b border-border bg-muted/60 text-caption font-medium uppercase tracking-widest text-muted-foreground">
-                    <th className="px-5 py-3">#</th>
-                    <th className="px-5 py-3">Item</th>
-                    <th className="px-5 py-3">Buy rate</th>
-                    <th className="px-5 py-3">Sold</th>
-                    <th className="px-5 py-3">Revenue</th>
-                    <th className="px-5 py-3">Profit</th>
-                    <th className="px-5 py-3">Stock</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {data.items.map((item, index) => (
-                    <tr key={`${item.slug ?? 'loose'}-${item.name}`} className="hover:bg-muted/50">
-                      <td className="px-5 py-3 font-mono text-small text-muted-foreground">
-                        {index + 1}
-                      </td>
-                      <td className="px-5 py-3">
-                        <p className="text-small font-medium">{item.name}</p>
-                        <p className="text-caption text-muted-foreground">{item.shop ?? '—'}</p>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold text-primary">
-                        {item.unitsPerDay < 10
-                          ? item.unitsPerDay.toFixed(1)
-                          : Math.round(item.unitsPerDay)}
-                        /day
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small">
-                        {item.units} · {item.orderCount} orders
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold">
-                        {formatGhs(item.revenuePesewas)}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-small font-semibold">
-                        {formatGhs(item.profitPesewas)}
-                      </td>
-                      <td className="px-5 py-3 text-small">
-                        {item.stock == null ? (
-                          <span className="text-muted-foreground">Untracked</span>
-                        ) : item.stock <= 0 ? (
-                          <span className="font-semibold text-destructive">Sold out</span>
-                        ) : item.stock <= 5 ? (
-                          <span className="font-semibold text-primary">{item.stock} left</span>
-                        ) : (
-                          <span className="text-muted-foreground">{item.stock}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid grid-cols-2 border border-[var(--t-border)] bg-[var(--t-card)] sm:grid-cols-4">
+            <Stat
+              label="Units sold"
+              value={data.totalUnits}
+              sub={`${formatGhs(data.totalRevenuePesewas)} revenue`}
+              tone="amber"
+            />
+            <Stat label="Items ranked" value={data.items.length} />
+            <Stat
+              label="Out of stock"
+              value={data.outOfStock}
+              tone={data.outOfStock > 0 ? 'red' : 'green'}
+            />
+            <Stat
+              label="Running low"
+              value={data.lowStock}
+              sub="5 or fewer left"
+              tone={data.lowStock > 0 ? 'amber' : 'green'}
+            />
           </div>
+
+          <Panel
+            code="PR"
+            title="Buy-rate board · fastest first"
+            right={
+              <span>
+                {items.length} of {data.items.length} ranked
+              </span>
+            }
+            bodyClassName="p-0"
+          >
+            {items.length === 0 ? (
+              <Empty
+                title={data.items.length === 0 ? 'No sales counted yet' : 'Nothing matches'}
+                hint={
+                  data.items.length === 0
+                    ? 'Buy rates appear the moment a shop sells through its storefront.'
+                    : 'Try a shorter filter.'
+                }
+              />
+            ) : (
+              <DataTable
+                columns={[
+                  { key: 'rank', label: '#', right: true },
+                  { key: 'item', label: 'Item' },
+                  { key: 'rate', label: 'Buy rate' },
+                  { key: 'tape', label: 'Rate' },
+                  { key: 'sold', label: 'Sold', right: true },
+                  { key: 'revenue', label: 'Revenue', right: true },
+                  { key: 'profit', label: 'Profit', right: true },
+                  { key: 'margin', label: 'Margin', right: true },
+                  { key: 'stock', label: 'Stock' },
+                  { key: 'last', label: 'Last sold', right: true },
+                ]}
+              >
+                {items.map((item, index) => (
+                  <Row key={`${item.slug ?? 'loose'}-${item.name}`}>
+                    <Cell right tone="faint">
+                      {index + 1}
+                    </Cell>
+                    <td className="max-w-0 px-3 py-2">
+                      <span className="block truncate font-bold text-[var(--t-text)]">
+                        {item.name}
+                      </span>
+                      <span className="block truncate text-[10px] text-[var(--t-cyan)]">
+                        {item.shop ?? 'deleted item'}
+                      </span>
+                    </td>
+                    <Cell tone="amber">
+                      <span className="font-bold">{rate(item.unitsPerDay)}</span>
+                      <span className="text-[10px] text-[var(--t-faint)]">/day</span>
+                    </Cell>
+                    <td className="px-3 py-2">
+                      <Bar value={item.unitsPerDay} max={maxRate} tone="amber" />
+                    </td>
+                    <Cell right tone="text">
+                      {item.units}
+                      <span className="ml-1 text-[10px] text-[var(--t-faint)]">
+                        · {item.orderCount} ord
+                      </span>
+                    </Cell>
+                    <Cell right tone="amber">
+                      {formatGhs(item.revenuePesewas)}
+                    </Cell>
+                    <Cell right tone={item.profitPesewas > 0 ? 'green' : 'dim'}>
+                      {formatGhs(item.profitPesewas)}
+                    </Cell>
+                    <Cell right tone={item.marginPercent == null ? 'faint' : 'cyan'}>
+                      {item.marginPercent == null ? '—' : `${item.marginPercent}%`}
+                    </Cell>
+                    <Cell>
+                      {item.stock == null ? (
+                        <Tag tone="dim">untracked</Tag>
+                      ) : item.stock <= 0 ? (
+                        <Tag tone="red">sold out</Tag>
+                      ) : item.stock <= 5 ? (
+                        <Tag tone="amber">{item.stock} left</Tag>
+                      ) : (
+                        <span className={TONE.text}>{item.stock}</span>
+                      )}
+                    </Cell>
+                    <Cell right tone="dim">
+                      {item.lastSoldAt ? formatStamp(item.lastSoldAt) : '—'}
+                    </Cell>
+                  </Row>
+                ))}
+              </DataTable>
+            )}
+          </Panel>
         </>
       )}
     </div>

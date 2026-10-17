@@ -1,63 +1,49 @@
-// What users actually said, triaged NEW → SEEN → RESOLVED.
+// F7 · FEEDBACK — what users actually said, triaged NEW → SEEN → RESOLVED.
 'use client';
 
-import { MessageSquareText, Search, Star } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
+import { AdminFeedbackList, AdminFeedbackRow, AdminFeedbackStatus } from '@/lib/contracts/admin';
 import {
-  AdminFeedbackList,
-  AdminFeedbackRow,
-  AdminFeedbackStatus,
-  type AdminFeedbackList as Feedback,
-  type AdminFeedbackRow as FeedbackRow,
-} from '@/lib/contracts/admin';
-import { Chip, formatDate, PanelFallback } from './shared';
+  Cell,
+  DataTable,
+  Empty,
+  ErrorState,
+  formatStamp,
+  LivePill,
+  Panel,
+  Row,
+  SearchField,
+  Stat,
+  Tag,
+  TButton,
+  TChip,
+  type Tone,
+} from './terminal/primitives';
+import { useLiveData } from './use-live';
 
-const FEEDBACK_STATUSES = [
-  { value: '', label: 'Everything' },
-  { value: 'NEW', label: 'New' },
-  { value: 'SEEN', label: 'Seen' },
-  { value: 'RESOLVED', label: 'Resolved' },
-];
+const STATUS_TONE: Record<string, Tone> = {
+  NEW: 'amber',
+  SEEN: 'cyan',
+  RESOLVED: 'green',
+};
 
 type FeedbackStatusValue = (typeof AdminFeedbackStatus.options)[number];
 
 export function FeedbackPanel() {
-  const [data, setData] = useState<Feedback | null>(null);
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      const params = new URLSearchParams();
-      if (query) params.set('q', query);
-      if (status) params.set('status', status);
-      const suffix = params.toString();
-      setData(
-        await apiFetch(`/api/admin/feedback${suffix ? `?${suffix}` : ''}`, {
-          schema: AdminFeedbackList,
-        }),
-      );
-    } catch {
-      setFailed(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [query, status]);
+  const params = new URLSearchParams();
+  if (query) params.set('q', query);
+  if (status) params.set('status', status);
+  const suffix = params.toString();
+  const feed = useLiveData(`/api/admin/feedback${suffix ? `?${suffix}` : ''}`, AdminFeedbackList);
+  const data = feed.data;
 
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const moveStatus = async (row: FeedbackRow, next: FeedbackStatusValue) => {
+  const moveStatus = async (row: AdminFeedbackRow, next: FeedbackStatusValue) => {
     setBusy(row.id);
     try {
       await apiFetch('/api/admin/feedback', {
@@ -65,7 +51,7 @@ export function FeedbackPanel() {
         body: JSON.stringify({ id: row.id, status: next }),
         schema: AdminFeedbackRow,
       });
-      await load();
+      feed.refresh();
     } catch {
       // Leave the row as it was; the list is still valid.
     } finally {
@@ -74,111 +60,131 @@ export function FeedbackPanel() {
   };
 
   return (
-    <div className="grid gap-4">
-      <form
-        className="flex w-full gap-2 sm:max-w-md"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setQuery(input.trim());
-        }}
-      >
-        <div className="relative min-w-0 flex-1">
-          <Search
-            aria-hidden
-            className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <div className="min-w-0 flex-1 sm:max-w-md">
+          <SearchField
+            label="Search feedback"
             value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="Search messages, pages, emails…"
-            aria-label="Search feedback"
-            className="h-11 rounded-md border-border bg-card pl-11"
+            onChange={setInput}
+            onSubmit={() => setQuery(input.trim())}
+            placeholder="message · page · email"
           />
         </div>
-        <Button type="submit" variant="outline" className="h-11 rounded-md font-semibold">
-          Hunt
-        </Button>
-      </form>
+        <LivePill
+          live={feed.live}
+          updatedAt={feed.updatedAt}
+          onToggle={feed.live ? feed.pause : feed.resume}
+          onRefresh={feed.refresh}
+        />
+      </div>
 
-      <div className="flex flex-wrap gap-2">
-        {FEEDBACK_STATUSES.map((entry) => (
-          <Chip
+      <div className="flex flex-wrap items-center gap-1 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+        <span className="mr-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-dim)]">
+          Triage
+        </span>
+        {[
+          { value: '', label: 'Everything' },
+          ...AdminFeedbackStatus.options.map((value) => ({ value, label: value })),
+        ].map((entry) => (
+          <TChip
             key={entry.value}
             active={status === entry.value}
             onClick={() => setStatus(entry.value)}
           >
             {entry.label}
-          </Chip>
+          </TChip>
         ))}
       </div>
 
-      {loading ? (
-        <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
-      ) : failed || !data ? (
-        <PanelFallback message="Could not load the feedback queue." onRetry={() => void load()} />
+      {!data ? (
+        feed.error ? (
+          <Panel code="FB" title="Feedback queue">
+            <ErrorState message="Could not load the feedback queue." onRetry={feed.refresh} />
+          </Panel>
+        ) : (
+          <Panel code="FB" title="Feedback queue">
+            <p className="animate-pulse py-20 text-center text-[12px] uppercase tracking-[0.2em] text-[var(--t-faint)]">
+              Loading queue…
+            </p>
+          </Panel>
+        )
       ) : (
         <>
-          <p className="text-caption text-muted-foreground">
-            <span className="font-semibold text-foreground">{data.newCount}</span> new ·{' '}
-            <span className="font-semibold text-foreground">{data.total}</span> in the queue
-          </p>
-          {data.items.length === 0 ? (
-            <div className="rounded-xl border border-border bg-muted/40 px-6 py-12 text-center">
-              <MessageSquareText aria-hidden className="mx-auto size-10 text-muted-foreground" />
-              <p className="mt-3 text-h4 font-display">No feedback here</p>
-              <p className="mx-auto mt-1 max-w-sm text-small text-muted-foreground">
-                Nothing matches that filter yet — try another status or clear the search.
-              </p>
-            </div>
-          ) : (
-            <ol className="grid gap-2">
-              {data.items.map((row) => (
-                <li key={row.id} className="rounded-xl border border-border bg-card p-3 sm:p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-muted-foreground">
-                          {row.kind}
-                        </span>
-                        {row.rating != null && (
-                          <span className="inline-flex items-center gap-1 text-caption font-medium text-primary">
-                            <Star aria-hidden className="size-3.5" />
-                            {row.rating}/5
-                          </span>
-                        )}
-                      </p>
-                      <p className="mt-2 break-words text-small">{row.message}</p>
-                      <p className="mt-1 truncate text-caption text-muted-foreground">
-                        {[row.reporter, row.email, row.shop, row.page].filter(Boolean).join(' · ')}
-                      </p>
-                      <p className="mt-1 text-caption text-muted-foreground">
-                        {formatDate(row.createdAt)}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 flex-col items-end gap-2">
-                      <div className="flex flex-wrap justify-end gap-1">
+          <div className="grid grid-cols-2 border border-[var(--t-border)] bg-[var(--t-card)]">
+            <Stat
+              label="Untriaged"
+              value={data.newCount}
+              tone={data.newCount > 0 ? 'amber' : 'green'}
+            />
+            <Stat label="In queue" value={data.total} />
+          </div>
+
+          <Panel
+            code="FB"
+            title="Feedback queue"
+            right={<span>press a state to move a note</span>}
+            bodyClassName="p-0"
+          >
+            {data.items.length === 0 ? (
+              <Empty
+                title="No feedback here"
+                hint="Nothing matches that filter — try another state or clear the search."
+              />
+            ) : (
+              <DataTable
+                columns={[
+                  { key: 'state', label: 'State' },
+                  { key: 'kind', label: 'Kind' },
+                  { key: 'message', label: 'Note' },
+                  { key: 'from', label: 'From' },
+                  { key: 'when', label: 'When', right: true },
+                  { key: 'actions', label: 'Move to', right: true },
+                ]}
+              >
+                {data.items.map((row) => (
+                  <Row key={row.id}>
+                    <Cell>
+                      <Tag tone={STATUS_TONE[row.status] ?? 'dim'}>{row.status}</Tag>
+                    </Cell>
+                    <Cell tone="dim">
+                      <span className="uppercase">{row.kind}</span>
+                    </Cell>
+                    <td className="max-w-0 px-3 py-2">
+                      <span className="block truncate font-bold text-[var(--t-text)]">
+                        {row.message}
+                      </span>
+                      <span className="block truncate text-[10px] text-[var(--t-faint)]">
+                        {[row.page, row.shop, row.email].filter(Boolean).join(' · ') || '—'}
+                      </span>
+                    </td>
+                    <Cell tone="cyan">{row.reporter ?? 'anonymous'}</Cell>
+                    <Cell right tone="dim">
+                      {formatStamp(row.createdAt)}
+                      {row.rating != null && (
+                        <span className="ml-1 text-[var(--t-amber)]">★{row.rating}</span>
+                      )}
+                    </Cell>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-1">
                         {AdminFeedbackStatus.options.map((option) => (
-                          <button
+                          <TButton
                             key={option}
-                            type="button"
+                            tone={STATUS_TONE[option] ?? 'dim'}
+                            active={row.status === option}
                             disabled={busy === row.id || row.status === option}
                             onClick={() => void moveStatus(row, option)}
-                            className={`rounded-full px-2 py-0.5 text-caption font-medium uppercase tracking-wide transition-colors ${
-                              row.status === option
-                                ? 'bg-primary text-primary-foreground'
-                                : 'border border-border text-muted-foreground hover:bg-muted'
-                            }`}
                           >
-                            {option}
-                          </button>
+                            {option.slice(0, 3)}
+                          </TButton>
                         ))}
                       </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
+                    </td>
+                  </Row>
+                ))}
+              </DataTable>
+            )}
+          </Panel>
         </>
       )}
     </div>
