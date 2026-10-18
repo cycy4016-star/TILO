@@ -3,6 +3,7 @@
 // the reliability strip. Live; the window chips re-request with ?days=.
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { AdminOverview, type AdminOverviewDay } from '@/lib/contracts/admin';
 import { formatGhs } from '@/lib/contracts/order';
@@ -153,6 +154,34 @@ export function OverviewPanel() {
 
   return (
     <div className="grid gap-3">
+      {o.errorsOpen > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border border-[var(--t-red)] bg-[var(--t-red)]/5 px-3 py-2.5">
+          <p className="min-w-0 text-[12px] leading-relaxed text-[var(--t-text)]">
+            <span className="mr-2 font-bold uppercase tracking-[0.14em] text-[var(--t-red)]">
+              Attention
+            </span>
+            {o.errorsOpen === 1
+              ? 'One incident is open on the platform.'
+              : `${o.errorsOpen} incidents are open on the platform.`}{' '}
+            HEALTH explains each one in plain words; DOCTOR runs the full system check.
+          </p>
+          <span className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/dashboard/admin/health"
+              className="inline-flex items-center border border-[var(--t-border)] px-2.5 py-[4px] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--t-amber)] transition-colors hover:border-current hover:bg-[var(--t-card-hi)]"
+            >
+              Open health
+            </Link>
+            <Link
+              href="/dashboard/admin/doctor"
+              className="inline-flex items-center border border-[var(--t-border)] px-2.5 py-[4px] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--t-amber)] transition-colors hover:border-current hover:bg-[var(--t-card-hi)]"
+            >
+              Run doctor
+            </Link>
+          </span>
+        </div>
+      )}
+
       <Panel code="MKT" title="Platform tape" right={controls}>
         <div className="grid grid-cols-2 border-b border-[var(--t-grid)] sm:grid-cols-3 xl:grid-cols-6">
           <Hero

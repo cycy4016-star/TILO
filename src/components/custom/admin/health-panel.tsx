@@ -6,6 +6,7 @@
 import { Fragment, useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import { AdminLogRow, AdminLogs, type AdminLogRow as LogRow } from '@/lib/contracts/admin';
+import { incidentGuide } from '@/lib/incident-guide';
 import {
   Cell,
   DataTable,
@@ -54,6 +55,7 @@ export function HealthPanel() {
   const [status, setStatus] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const params = new URLSearchParams();
   if (query) params.set('q', query);
@@ -76,6 +78,23 @@ export function HealthPanel() {
       // The flip is cosmetic — a failed write leaves the list as it was.
     } finally {
       setBusy(null);
+    }
+  };
+
+  /** The whole incident as a plain-text reference — what a helper needs, no login. */
+  const copyReference = async (row: LogRow) => {
+    const reference = [
+      `TILZA INCIDENT ${row.fingerprint}`,
+      row.summary ?? row.message,
+      row.message,
+      `first seen ${row.firstSeenAt} · last seen ${row.lastSeenAt} · fired ${row.count}x`,
+    ].join('\n');
+    try {
+      await navigator.clipboard.writeText(reference);
+      setCopiedId(row.id);
+      window.setTimeout(() => setCopiedId(null), 4000);
+    } catch {
+      // Clipboard blocked — the reference is still on screen in the guide block.
     }
   };
 
@@ -155,7 +174,7 @@ export function HealthPanel() {
           <Panel
             code="HL"
             title="Incident ledger"
-            right={<span>press STACK to open a trace</span>}
+            right={<span>press GUIDE — every incident explains itself in plain words</span>}
             bodyClassName="p-0"
           >
             {logs.items.length === 0 ? (
@@ -167,7 +186,12 @@ export function HealthPanel() {
               <DataTable columns={COLUMNS}>
                 {logs.items.map((row) => {
                   const isOpen = !row.resolved;
-                  const isOpenStack = expanded === row.id;
+                  const isOpenGuide = expanded === row.id;
+                  const guide = incidentGuide({
+                    message: row.message,
+                    route: row.route,
+                    source: row.source,
+                  });
                   return (
                     <Fragment key={row.id}>
                       <Row>
@@ -205,14 +229,12 @@ export function HealthPanel() {
                         </Cell>
                         <td className="px-3 py-2">
                           <div className="flex items-center justify-end gap-1">
-                            {row.stack && (
-                              <TButton
-                                tone="dim"
-                                onClick={() => setExpanded(isOpenStack ? null : row.id)}
-                              >
-                                {isOpenStack ? 'Hide' : 'Stack'}
-                              </TButton>
-                            )}
+                            <TButton
+                              tone="dim"
+                              onClick={() => setExpanded(isOpenGuide ? null : row.id)}
+                            >
+                              {isOpenGuide ? 'Hide' : 'Guide'}
+                            </TButton>
                             <TButton
                               tone={isOpen ? 'green' : 'amber'}
                               disabled={busy === row.id}
@@ -223,12 +245,59 @@ export function HealthPanel() {
                           </div>
                         </td>
                       </Row>
-                      {isOpenStack && (
-                        <Row key={`${row.id}-stack`}>
+                      {isOpenGuide && (
+                        <Row key={`${row.id}-guide`}>
                           <td colSpan={COLUMNS.length} className="bg-black px-3 py-3">
-                            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words border border-[var(--t-border)] bg-[var(--t-panel)] p-2 text-[10px] leading-relaxed text-[var(--t-dim)]">
-                              {row.stack}
-                            </pre>
+                            <div className="border border-[var(--t-border)] bg-[var(--t-panel)]">
+                              <div className="border-b border-[var(--t-grid)] px-3 py-2.5">
+                                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--t-amber)]">
+                                  What this means · {guide.area}
+                                </p>
+                                <p className="mt-1 text-[12px] font-bold text-[var(--t-bright)]">
+                                  {guide.title}
+                                </p>
+                                <p className="mt-1 text-[12px] leading-relaxed text-[var(--t-dim)]">
+                                  {guide.what}
+                                </p>
+                              </div>
+                              <div className="px-3 py-2.5">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-amber)]">
+                                  What to do
+                                </p>
+                                <ol className="mt-1.5 grid gap-1.5">
+                                  {guide.steps.map((step, index) => (
+                                    <li
+                                      key={step}
+                                      className="flex gap-2 text-[12px] leading-relaxed text-[var(--t-text)]"
+                                    >
+                                      <span className="shrink-0 font-bold text-[var(--t-amber)]">
+                                        {index + 1}.
+                                      </span>
+                                      <span className="min-w-0">{step}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                                  <TButton tone="dim" onClick={() => void copyReference(row)}>
+                                    {copiedId === row.id ? 'Copied ✓' : 'Copy reference'}
+                                  </TButton>
+                                  <span className="text-[10px] text-[var(--t-faint)]">
+                                    reference {row.fingerprint.slice(0, 12)}… — send it with any
+                                    report
+                                  </span>
+                                </div>
+                              </div>
+                              {row.stack && (
+                                <div className="border-t border-[var(--t-grid)] px-3 py-2.5">
+                                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-dim)]">
+                                    Technical trace — for developers
+                                  </p>
+                                  <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap break-words border border-[var(--t-border)] bg-black p-2 text-[10px] leading-relaxed text-[var(--t-dim)]">
+                                    {row.stack}
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
                           </td>
                         </Row>
                       )}

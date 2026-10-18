@@ -404,3 +404,37 @@ export const AdminVault = z.object({
   since: z.string().datetime().nullable(),
 });
 export type AdminVault = z.infer<typeof AdminVault>;
+
+// ── doctor ────────────────────────────────────────────────────────────────────
+// The self-check. Every result is written for an operator who has never seen a
+// terminal: one plain sentence saying what is true right now, and numbered
+// steps saying exactly what to do when it is not. `status` is the verdict of
+// that single check; the report's own status is the worst of them.
+export const AdminDoctorStatus = z.enum(['pass', 'warn', 'fail']);
+
+export const AdminDoctorCheck = z.object({
+  id: z.string(),
+  // Short terminal tag shown on the row (DB, VLT, SGN…).
+  area: z.string(),
+  title: z.string(),
+  status: AdminDoctorStatus,
+  // One plain sentence: what is true right now.
+  summary: z.string(),
+  // The technical reading underneath, if there is one. Never required.
+  detail: z.string().nullable(),
+  // Numbered plain-English steps. Empty when nothing needs doing.
+  actions: z.array(z.string()),
+});
+export type AdminDoctorStatus = z.infer<typeof AdminDoctorStatus>;
+export type AdminDoctorCheck = z.infer<typeof AdminDoctorCheck>;
+
+export const AdminDoctor = z.object({
+  checkedAt: z.string().datetime(),
+  durationMs: z.number().int().nonnegative(),
+  status: AdminDoctorStatus,
+  passed: z.number().int().nonnegative(),
+  warnings: z.number().int().nonnegative(),
+  failures: z.number().int().nonnegative(),
+  checks: z.array(AdminDoctorCheck),
+});
+export type AdminDoctor = z.infer<typeof AdminDoctor>;
