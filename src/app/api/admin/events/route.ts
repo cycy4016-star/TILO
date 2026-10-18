@@ -220,10 +220,11 @@ export async function GET(request: Request) {
           id: `signup:${user.id}`,
           ts: user.createdAt.toISOString(),
           kind: 'signup',
-          // The tape's Shop column tells the operator whether the account has
-          // opened a storefront yet; the person's name already rides in the
-          // summary, so the columns never repeat the same value.
-          shop: user.store?.name ?? 'no shop yet',
+          // The tape's Shop column shows the account's own storefront when one
+          // exists — and stays empty when it does not. It never asserts "no
+          // shop yet": the database can only speak for itself, not for what a
+          // merchant may have built before a wipe (see the vault, F10).
+          shop: user.store?.name ?? '—',
           summary: `${user.name} joined`,
           // Account details on the row itself: email + phone, both searchable.
           detail: [user.email, user.phoneNumber].filter(Boolean).join(' · ') || null,
@@ -235,7 +236,7 @@ export async function GET(request: Request) {
           id: `signin:${event.id}`,
           ts: event.createdAt.toISOString(),
           kind: 'signin',
-          shop: event.user.store?.name ?? 'no shop yet',
+          shop: event.user.store?.name ?? '—',
           summary: `${event.user.name} signed in`,
           // Account details plus a compact device hint: browser name + network,
           // so the operator can spot odd sign-ins without reading a raw UA.

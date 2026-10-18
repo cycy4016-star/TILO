@@ -20,6 +20,36 @@ export async function register(): Promise<void> {
     // biome-ignore lint/suspicious/noConsole: startup diagnostics — the seed failed but the server still boots.
     console.error('[tilza] startup seed failed:', error);
   }
+
+  try {
+    await startVault();
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: startup diagnostics — the vault failed but the server still boots.
+    console.error('[tilza] vault startup failed:', error);
+  }
+}
+
+// The self-archive rides on the boot hook: one snapshot at startup (at most
+// every six hours, so redeploy bursts do not stack) and a slow timer that
+// checks every six hours whether a day has passed since the last one. Both are
+// fail-open — an unreachable database must never stop the server from booting.
+const VAULT_BOOT_GAP_MS = 6 * 60 * 60 * 1000;
+const VAULT_DAILY_GAP_MS = 20 * 60 * 60 * 1000;
+const VAULT_CHECK_MS = 6 * 60 * 60 * 1000;
+
+async function startVault(): Promise<void> {
+  const { createWorldSnapshot } = await import('@/lib/vault');
+  await createWorldSnapshot('boot', { minGapMs: VAULT_BOOT_GAP_MS });
+
+  const guard = globalThis as typeof globalThis & { __tlzaVaultTimer?: boolean };
+  if (guard.__tlzaVaultTimer) return;
+  guard.__tlzaVaultTimer = true;
+
+  setInterval(() => {
+    void createWorldSnapshot('daily', { minGapMs: VAULT_DAILY_GAP_MS }).catch(() => {
+      // Next tick will try again; the console shows the last snapshot's age.
+    });
+  }, VAULT_CHECK_MS).unref();
 }
 
 /**

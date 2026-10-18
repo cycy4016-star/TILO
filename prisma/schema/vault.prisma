@@ -1,0 +1,31 @@
+// Tilza vault: the platform's self-archive.
+//
+// Every deploy boot and once a day the server writes a full snapshot of the
+// business world — accounts, storefronts, catalogues, contacts, orders and the
+// auth ledger — into this table. Snapshots are how the terminal can tell the
+// truth about what existed before a wipe: if the live database ever shrinks
+// below its latest snapshot, the vault shows exactly what disappeared, and
+// `scripts/vault-restore.mjs` can put it back. Rows are append-only from the
+// app's point of view; `manual` snapshots are kept forever, while automatic
+// ones are pruned beyond PRUNE_DAYS by src/lib/vault.ts.
+//
+// `payload` carries the JSON of every archived table (or a JSON document of
+// equal shape when a snapshot exceeds the image byte budget — see
+// `imagesIncluded`). `counts` repeats just the headline figures so the vault
+// list never has to parse multi-megabyte payloads.
+model WorldSnapshot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  // "boot" | "daily" | "manual"
+  trigger   String
+  counts    Json
+  // Approximate serialized size of `payload`, in bytes.
+  bytes     Int
+  // False when the snapshot exceeded the image byte budget and was archived
+  // text-only: restore brings back the words and numbers, not the photos.
+  imagesIncluded Boolean @default(false)
+  payload   Json
+
+  @@index([createdAt])
+  @@map("world_snapshot")
+}

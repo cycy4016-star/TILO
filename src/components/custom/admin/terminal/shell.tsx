@@ -27,6 +27,7 @@ export const SECTIONS = [
   { code: 'FB', fn: 'F7', href: '/dashboard/admin/feedback', label: 'FEEDBACK' },
   { code: 'AL', fn: 'F8', href: '/dashboard/admin/alerts', label: 'ALERTS' },
   { code: 'RP', fn: 'F9', href: '/dashboard/admin/report', label: 'REPORT' },
+  { code: 'VT', fn: 'F10', href: '/dashboard/admin/vault', label: 'VAULT' },
 ] as const;
 
 const FEED_PATH = '/api/admin/overview?days=14';
@@ -214,7 +215,7 @@ function CommandLine() {
           setValue(event.target.value);
           setNote(null);
         }}
-        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP   ·   HELP"
+        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP  VT   ·   HELP"
         className="min-w-0 flex-1 border border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <button

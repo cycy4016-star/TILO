@@ -164,7 +164,7 @@ async function buildSheet(report: ReportId, request: Request): Promise<ExportShe
         shop.ownerPhone,
         shop.storeName,
         shop.slug,
-        shop.storeActive === null ? 'No store' : shop.storeActive ? 'Live' : 'Closed',
+        shop.storeActive === null ? '—' : shop.storeActive ? 'Live' : 'Closed',
         shop.itemCount,
         shop.customerCount,
         shop.orderCount,

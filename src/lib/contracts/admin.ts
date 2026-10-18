@@ -358,3 +358,49 @@ export const AdminShopToggleResult = z.object({
   active: z.boolean(),
 });
 export type AdminShopToggleResult = z.infer<typeof AdminShopToggleResult>;
+
+// ── vault ─────────────────────────────────────────────────────────────────────
+// The self-archive: headline counts of the world, one row per snapshot, and the
+// loss the live database shows against the newest snapshot (empty = no shrink).
+export const AdminVaultCounts = z.object({
+  users: z.number().int().nonnegative(),
+  stores: z.number().int().nonnegative(),
+  storesActive: z.number().int().nonnegative(),
+  items: z.number().int().nonnegative(),
+  orders: z.number().int().nonnegative(),
+  customers: z.number().int().nonnegative(),
+  leads: z.number().int().nonnegative(),
+  feedback: z.number().int().nonnegative(),
+  signups: z.number().int().nonnegative(),
+  signins: z.number().int().nonnegative(),
+});
+export type AdminVaultCounts = z.infer<typeof AdminVaultCounts>;
+
+export const AdminVaultLoss = z.object({
+  key: z.string(),
+  label: z.string(),
+  before: z.number().int().nonnegative(),
+  after: z.number().int().nonnegative(),
+  lost: z.number().int().positive(),
+});
+export type AdminVaultLoss = z.infer<typeof AdminVaultLoss>;
+
+export const AdminVaultSnapshot = z.object({
+  id: z.string(),
+  createdAt: z.string().datetime(),
+  trigger: z.string(),
+  counts: AdminVaultCounts,
+  bytes: z.number().int().nonnegative(),
+  imagesIncluded: z.boolean(),
+});
+export type AdminVaultSnapshot = z.infer<typeof AdminVaultSnapshot>;
+
+export const AdminVault = z.object({
+  snapshots: z.array(AdminVaultSnapshot),
+  current: AdminVaultCounts,
+  // What the live world is missing against the newest snapshot, if anything.
+  loss: z.array(AdminVaultLoss),
+  // When the baseline snapshot was taken; null = the vault is empty.
+  since: z.string().datetime().nullable(),
+});
+export type AdminVault = z.infer<typeof AdminVault>;

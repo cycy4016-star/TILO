@@ -500,13 +500,14 @@ describe('admin events route', () => {
     expect((await storeHunt.json()).events.map((e: { kind: string }) => e.kind)).toEqual(['store']);
 
     // Sign-ups carry the account's own details: email + phone in the detail
-    // and the shop (or "no shop yet") in the Shop column.
+    // and the account's storefront in the Shop column — a dash when the
+    // database holds none, never a claim about the wider world.
     const signups = await GET(new Request('http://test/api/admin/events?kind=signup'));
     const signupBody = await signups.json();
     expect(signupBody.events).toHaveLength(1);
     expect(signupBody.events[0]).toMatchObject({
       kind: 'signup',
-      shop: 'no shop yet',
+      shop: '—',
       summary: 'Cyber joined',
       detail: 'cyber@example.com · +233240000009',
       ok: null,
