@@ -4,6 +4,7 @@ import 'server-only';
 
 import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import { StoreUpsert } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
@@ -69,6 +70,17 @@ export async function PUT(request: Request) {
         );
       }
       throw error;
+    }
+    // First save = shop opening — the operator alert for STORE rides on the
+    // create branch only, never on routine settings edits.
+    if (!existing) {
+      await captureAdminAlert({
+        kind: 'STORE',
+        title: `New shop · ${store.name}`,
+        body: `${user.name} opened /store/${store.slug}`,
+        refType: 'store',
+        refId: store.id,
+      });
     }
     return NextResponse.json(serializeStore(store));
   } catch (error) {

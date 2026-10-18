@@ -13,6 +13,7 @@
 import 'server-only';
 
 import { after } from 'next/server';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import { prisma } from '@/lib/db';
 
 const MAX_MESSAGE = 600;
@@ -153,6 +154,21 @@ export async function recordError(input: CaptureInput): Promise<void> {
       method: input.method,
     });
     const now = new Date();
+    // A fingerprint that already has a row is a recurrence, not news — the
+    // operator alert (and its WhatsApp-style ping) only fires for first
+    // sightings so a 500-loop cannot spam the alert stream. The lookup gets
+    // its own catch: if it hiccups we stay quiet rather than risk a ping storm
+    // or lose the ledger write below.
+    let firstSighting = false;
+    try {
+      const existing = await prisma.appLog.findUnique({
+        where: { fingerprint },
+        select: { id: true },
+      });
+      firstSighting = !existing;
+    } catch {
+      firstSighting = false;
+    }
     await prisma.appLog.upsert({
       where: { fingerprint },
       create: {
@@ -184,6 +200,15 @@ export async function recordError(input: CaptureInput): Promise<void> {
         url: input.url ? clip(input.url, MAX_FIELD) : undefined,
       },
     });
+    if (firstSighting) {
+      await captureAdminAlert({
+        kind: 'INCIDENT',
+        title: `Incident · ${summarize(input)}`,
+        body: `${input.source === 'CLIENT' ? 'browser' : 'server'} · ${message}`,
+        refType: 'appLog',
+        refId: fingerprint,
+      });
+    }
   } catch {
     // The ledger table may not exist yet (mid-deploy) or the DB may be down.
     // Losing a log line is acceptable; losing the request is not.

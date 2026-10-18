@@ -14,6 +14,7 @@
 import 'server-only';
 
 import { NextResponse } from 'next/server';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import { FeedbackAck, FeedbackCreate } from '@/lib/contracts/feedback';
 import { prisma } from '@/lib/db';
 import { allow, ipOf } from '@/lib/rate-limit';
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
 
     const user = await getSessionUser().catch(() => null);
 
-    await prisma.feedback.create({
+    const record = await prisma.feedback.create({
       data: {
         message,
         kind,
@@ -86,6 +87,18 @@ export async function POST(request: Request) {
         userId: user?.id ?? null,
         storeId,
       },
+    });
+
+    // Operator alert: a typed report is the one signal that never shows up in
+    // the error ledger, so it always pings the admin's ALERTS panel.
+    await captureAdminAlert({
+      kind: 'FEEDBACK',
+      title: `${kind.toLowerCase()} feedback${
+        user ? ` from ${user.name}` : email ? ` from ${email}` : ''
+      }`,
+      body: message,
+      refType: 'feedback',
+      refId: record.id,
     });
 
     return NextResponse.json(FeedbackAck.parse({ ok: true }), { status: 201 });

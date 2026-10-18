@@ -2,6 +2,7 @@
 // Paystack webhook. Idempotent: once a reference is SUCCESS it never regresses,
 // so a webhook retry (or verify-after-webhook) can't double-charge or double-mark.
 import 'server-only';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import { prisma } from '@/lib/db';
 
 type LocalStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'ABANDONED';
@@ -61,6 +62,22 @@ export async function settlePayment(input: {
       await prisma.order.updateMany({
         where: { id: payment.orderId, paidAt: null },
         data: { paidAt },
+      });
+    }
+    // Operator alert on real transitions only — a retried webhook that lands on
+    // the same status must not re-ring the bell.
+    if (status !== payment.status && (status === 'SUCCESS' || status === 'FAILED')) {
+      const amount = (payment.amountPesewas / 100).toFixed(2);
+      await captureAdminAlert({
+        kind: 'PAYMENT',
+        title:
+          status === 'SUCCESS'
+            ? `Payment succeeded · GH₵${amount}`
+            : `Payment failed · GH₵${amount}`,
+        body: `ref ${payment.reference}${payment.orderId ? '' : ' (no order)'}`,
+        amountPesewas: payment.amountPesewas,
+        refType: 'payment',
+        refId: payment.id,
       });
     }
   }

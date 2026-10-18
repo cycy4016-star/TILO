@@ -5,6 +5,7 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import { OrderItem, type OrderStatus } from '@/lib/contracts/order';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import { prisma } from '@/lib/db';
@@ -198,6 +199,16 @@ export async function POST(request: Request, context: RouteContext) {
       message: `${captured.name} (${captured.phone}) ordered ${summary}. #${order.orderNumber}`,
       customerId: captured.id,
       orderId: order.id,
+    });
+
+    // Operator alert: the sale ping the admin's ALERTS panel receives.
+    await captureAdminAlert({
+      kind: 'ORDER',
+      title: `New order · GH₵${(amountPesewas / 100).toFixed(2)}`,
+      body: `${store.name} · ${captured.name} · ${summary}`,
+      amountPesewas,
+      refType: 'order',
+      refId: order.id,
     });
 
     return NextResponse.json(

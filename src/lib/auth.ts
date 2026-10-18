@@ -2,6 +2,7 @@ import 'server-only';
 import { APIError, betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import { authConfig } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
 import { env } from '@/lib/env';
@@ -111,6 +112,17 @@ export const auth = betterAuth({
               trialEndsAt: base.trialEndsAt ?? trialEndsAtFrom(new Date()),
             },
           };
+        },
+        // Platform activity alert: the operator's ALERTS panel hears about
+        // every new account the moment it lands (best-effort, never throws).
+        after: async (user) => {
+          await captureAdminAlert({
+            kind: 'SIGNUP',
+            title: `${user.name} joined`,
+            body: user.email,
+            refType: 'user',
+            refId: user.id,
+          });
         },
       },
     },

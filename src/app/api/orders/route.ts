@@ -3,6 +3,7 @@ import 'server-only';
 
 import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
+import { captureAdminAlert } from '@/lib/admin-alerts';
 import {
   OrderCreate,
   OrderItem,
@@ -192,6 +193,16 @@ export async function POST(request: Request) {
         lines: lineData.length ? { create: lineData } : undefined,
       },
       include: { lines: true },
+    });
+    // Operator alert: a sale logged from the dashboard is a sale too.
+    await captureAdminAlert({
+      kind: 'ORDER',
+      title:
+        amountPesewas != null ? `New order · GH₵${(amountPesewas / 100).toFixed(2)}` : 'New order',
+      body: `${user.name} · ${parsed.data.description}`,
+      amountPesewas: amountPesewas ?? null,
+      refType: 'order',
+      refId: order.id,
     });
     return NextResponse.json(
       {

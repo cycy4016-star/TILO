@@ -48,8 +48,13 @@ model User {
   store           Store?
   notifications   Notification[]
   // Feedback filed against this shop (null-owner rows are platform-level and
-  // never appear here — they only surface in the admin panel).
+  // never appear here - they only surface in the admin panel).
   feedback        Feedback[]
+  // Operator (admin) alert stream: per-kind cadence/filter settings, events
+  // waiting inside open digest windows, and the materialised alerts sent.
+  adminAlertSettings AdminAlertSetting[]
+  adminAlertEvents   AdminAlertEvent[]
+  adminAlerts        AdminAlert[]
 
   @@unique([email])
   @@map("user")

@@ -1,0 +1,85 @@
+// Operator activity alerts: the admin's WhatsApp-style notification stream.
+// Capture writes one lightweight AdminAlertEvent per activity worth surfacing;
+// materialisation then either fires an AdminAlert instantly (cadence INSTANT)
+// or waits for the digest flush to roll a closed hour/day window into a single
+// alert (cadence HOURLY/DAILY). Per-admin cadences and filters live in
+// AdminAlertSetting; a missing row means that kind is INSTANT for that admin.
+// Datasource + generator live in _base.prisma.
+
+enum AdminAlertKind {
+  SIGNUP
+  STORE
+  ORDER
+  PAYMENT
+  INCIDENT
+  FEEDBACK
+}
+
+enum AdminAlertCadence {
+  OFF
+  INSTANT
+  HOURLY
+  DAILY
+}
+
+model AdminAlertSetting {
+  id               String            @id @default(cuid())
+  userId           String
+  kind             AdminAlertKind
+  cadence          AdminAlertCadence @default(INSTANT)
+  // ORDER/PAYMENT only: ignore activity below this amount (pesewas). Null = no
+  // floor, every sale rings. Stored per kind so thresholds move independently.
+  minAmountPesewas Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind])
+}
+
+model AdminAlertEvent {
+  id            String         @id @default(cuid())
+  // One row per (activity × admin who defers it). Per-admin rows keep digest
+  // flushing independent — one operator's cadence never eats another's events.
+  userId        String
+  kind          AdminAlertKind
+  title         String
+  body          String?
+  amountPesewas Int?
+  // Optional world reference (userId, storeId, orderId…) so a future deep-link
+  // can jump to the row the alert is about.
+  refType       String?
+  refId         String?
+  createdAt     DateTime       @default(now())
+  // Null while the event is still waiting inside an unclosed digest window.
+  flushedAt     DateTime?
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind, flushedAt, createdAt])
+  @@index([createdAt])
+}
+
+model AdminAlert {
+  id            String         @id @default(cuid())
+  userId        String
+  kind          AdminAlertKind
+  title         String
+  body          String?
+  amountPesewas Int?
+  count         Int            @default(1)
+  // Same optional world reference as the event rows, carried onto the alert so
+  // the stream row knows what it is about (instant rows have no digest window).
+  refType       String?
+  refId         String?
+  windowStart   DateTime?
+  windowEnd     DateTime?
+  // Idempotency key for digest rows: "userId:kind:CADENCE:windowStartMs".
+  // Null for instant rows — each event is its own alert there.
+  digestKey     String?        @unique
+  readAt        DateTime?
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}

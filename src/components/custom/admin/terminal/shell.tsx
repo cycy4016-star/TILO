@@ -13,6 +13,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { AdminOverview } from '@/lib/contracts/admin';
 import { formatGhs } from '@/lib/contracts/order';
+import { AdminAlertsProvider, AlertToasts, useAdminAlerts } from '../use-admin-alerts';
 import { useLiveData } from '../use-live';
 import { ageLabel, Dot, num, TONE } from './primitives';
 
@@ -24,6 +25,7 @@ export const SECTIONS = [
   { code: 'EV', fn: 'F5', href: '/dashboard/admin/events', label: 'EVENTS' },
   { code: 'HL', fn: 'F6', href: '/dashboard/admin/health', label: 'HEALTH' },
   { code: 'FB', fn: 'F7', href: '/dashboard/admin/feedback', label: 'FEEDBACK' },
+  { code: 'AL', fn: 'F8', href: '/dashboard/admin/alerts', label: 'ALERTS' },
 ] as const;
 
 const FEED_PATH = '/api/admin/overview?days=14';
@@ -172,7 +174,7 @@ function CommandLine() {
         }
         return;
       }
-      if (event.altKey && /^[1-7]$/.test(event.key)) {
+      if (event.altKey && /^[1-8]$/.test(event.key)) {
         const section = SECTIONS[Number(event.key) - 1];
         if (section) {
           event.preventDefault();
@@ -211,7 +213,7 @@ function CommandLine() {
           setValue(event.target.value);
           setNote(null);
         }}
-        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB   ·   HELP"
+        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL   ·   HELP"
         className="min-w-0 flex-1 border border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <button
@@ -231,6 +233,8 @@ function CommandLine() {
 
 function FunctionNav() {
   const pathname = usePathname();
+  const { feed } = useAdminAlerts();
+  const unread = feed.data?.unread ?? 0;
 
   return (
     <nav
@@ -257,6 +261,16 @@ function FunctionNav() {
               {section.fn}
             </span>
             {section.label}
+            {section.code === 'AL' && unread > 0 && (
+              <span
+                className={`ml-0.5 min-w-[16px] rounded-sm px-1 text-center text-[10px] font-bold leading-[14px] ${
+                  active ? 'bg-black text-[var(--t-amber)]' : 'bg-[var(--t-red)] text-black'
+                }`}
+              >
+                {unread}
+                <span className="sr-only"> unread alerts</span>
+              </span>
+            )}
           </Link>
         );
       })}
@@ -265,7 +279,7 @@ function FunctionNav() {
           <span className="text-[var(--t-amber)]">/</span> COMMAND
         </span>
         <span>
-          <span className="text-[var(--t-amber)]">ALT+1..7</span> JUMP
+          <span className="text-[var(--t-amber)]">ALT+1..8</span> JUMP
         </span>
       </span>
     </nav>
@@ -273,6 +287,16 @@ function FunctionNav() {
 }
 
 export function TerminalShell({ children }: { children: ReactNode }) {
+  // The alert poll lives here so the badge, toasts and tab-title counter keep
+  // working across panel navigations without restarting on every route change.
+  return (
+    <AdminAlertsProvider>
+      <TerminalFrame>{children}</TerminalFrame>
+    </AdminAlertsProvider>
+  );
+}
+
+function TerminalFrame({ children }: { children: ReactNode }) {
   const feed = useLiveData(FEED_PATH, AdminOverview, FEED_MS);
   const [now, setNow] = useState<number | null>(null);
 
@@ -341,6 +365,8 @@ export function TerminalShell({ children }: { children: ReactNode }) {
         </span>
         <span className="text-[var(--t-faint)]">TILZA TERMINAL · OPERATOR ONLY</span>
       </footer>
+
+      <AlertToasts />
     </div>
   );
 }

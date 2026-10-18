@@ -3,12 +3,20 @@
 // Error-ledger tests: the telemetry helpers that turn a raw failure into one
 // grouped, human-readable incident — grouping, route normalisation, and the
 // routeErrorResponse contract every API catch block now delegates to.
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-const db = vi.hoisted(() => ({ prisma: { appLog: { upsert: vi.fn() } } }));
+const db = vi.hoisted(() => ({
+  prisma: { appLog: { upsert: vi.fn(), findUnique: vi.fn() } },
+}));
+const alerts = vi.hoisted(() => ({ captureAdminAlert: vi.fn() }));
 vi.mock('@/lib/db', () => db);
+vi.mock('@/lib/admin-alerts', () => alerts);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 // Long enough to trip the cuid-shaped collapse rule in normalizeForFingerprint.
 const ID_A = 'cmf000000000000000000000a';
@@ -79,5 +87,29 @@ describe('routeErrorResponse', () => {
     db.prisma.appLog.upsert.mockRejectedValueOnce(new Error('table missing'));
     const response = routeErrorResponse(new Error('kaboom'), new Request('http://test/api/x'));
     expect(response.status).toBe(500);
+  });
+});
+
+describe('first-sighting alerts', () => {
+  it('pings the operator on the first sighting only', async () => {
+    const { recordError } = await import('@/lib/telemetry');
+    db.prisma.appLog.findUnique.mockResolvedValue(null);
+    await recordError({ message: 'kaboom', route: '/api/orders', method: 'GET' });
+    expect(alerts.captureAdminAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'INCIDENT' }),
+    );
+
+    alerts.captureAdminAlert.mockClear();
+    db.prisma.appLog.findUnique.mockResolvedValue({ id: 'log-1' });
+    await recordError({ message: 'kaboom', route: '/api/orders', method: 'GET' });
+    expect(alerts.captureAdminAlert).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet when the sighting lookup itself fails, but still writes the ledger', async () => {
+    const { recordError } = await import('@/lib/telemetry');
+    db.prisma.appLog.findUnique.mockRejectedValue(new Error('table missing'));
+    await recordError({ message: 'kaboom', route: '/api/orders', method: 'GET' });
+    expect(alerts.captureAdminAlert).not.toHaveBeenCalled();
+    expect(db.prisma.appLog.upsert).toHaveBeenCalledTimes(1);
   });
 });
