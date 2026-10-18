@@ -30,14 +30,20 @@ export type AppearanceKeyValue = z.infer<typeof AppearanceKey>;
 
 const optionalText = (max: number) => z.string().trim().max(max).optional();
 
+// Link-word rules, shared by the upsert contract, the slug-check route and the
+// onboarding wizard (src/lib/slug.ts) so client hints and server validation
+// can never drift.
+export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SLUG_MAX = 40;
+
 export const StoreUpsert = z.object({
   name: z.string().trim().min(1, 'Store name is required').max(80, 'Name is too long'),
   slug: z
     .string()
     .trim()
     .min(2, 'Link must be at least 2 characters')
-    .max(40, 'Link is too long')
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and dashes only'),
+    .max(SLUG_MAX, 'Link is too long')
+    .regex(SLUG_PATTERN, 'Use lowercase letters, numbers and dashes only'),
   tagline: optionalText(140),
   description: optionalText(500),
   promoBanner: optionalText(200),
@@ -48,6 +54,15 @@ export const StoreUpsert = z.object({
   // the fields without silently resetting the workspace look.
   theme: ThemeKey.optional(),
   appearance: AppearanceKey.optional(),
+});
+
+// Answer to "is this link word free?": the wizard asks as the owner types so
+// a taken slug is caught before Save. `suggestion` is a free alternative
+// (e.g. "amas-boutique-2") or null when nothing reasonable was found.
+export const SlugCheck = z.object({
+  slug: z.string(),
+  available: z.boolean(),
+  suggestion: z.string().nullable(),
 });
 
 const priceRule = z
@@ -179,6 +194,7 @@ export const StorePublic = z.object({
 });
 
 export type StoreUpsertInput = z.infer<typeof StoreUpsert>;
+export type SlugCheckResult = z.infer<typeof SlugCheck>;
 export type StoreItemCreateInput = z.infer<typeof StoreItemCreate>;
 export type StoreItemUpdateInput = z.infer<typeof StoreItemUpdate>;
 export type StoreItem = z.infer<typeof StoreItemRecord>;

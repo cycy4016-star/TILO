@@ -1,12 +1,13 @@
 // Post-signup onboarding wizard: store info → socials (optional) → visuals →
 // review. Each step saves through the same owner APIs the manager uses, so
-// leaving mid-way never loses progress — the dashboard gate re-checks on entry.
-// Socials can be skipped entirely and filled in later from Settings.
+// leaving mid-way never loses progress — and reopening the wizard resumes at
+// the furthest completed step. Socials can be skipped entirely and filled in
+// later from Settings.
 'use client';
 
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Copy, ExternalLink, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import {
@@ -20,16 +21,22 @@ import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
 import { useSession } from '@/lib/auth-client';
 import { SocialAccountList } from '@/lib/contracts/social';
-import { StorePayload, type StorePayload as StoreRecord } from '@/lib/contracts/store';
+import { SlugCheck, StorePayload, type StorePayload as StoreRecord } from '@/lib/contracts/store';
 import { fitImageFile } from '@/lib/image';
+import { isValidSlug, slugify } from '@/lib/slug';
 import { SOCIAL_PLATFORM_DEFS, type SocialPlatformDef } from '@/lib/social';
 import { uploadImageFile } from '@/lib/uploads';
 
 const AvatarResult = z.object({ image: z.string().nullable() });
 
-const SLUG_RULE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SLUG_HINT = 'Use lowercase letters, numbers and dashes (min 2 characters)';
 
 type SocialRow = { platform: string; handle: string; url: string };
+type FieldName = 'name' | 'slug' | 'phone';
+type SlugCheckState = {
+  status: 'idle' | 'checking' | 'available' | 'taken';
+  suggestion: string | null;
+};
 
 const STEPS = ['Store info', 'Socials', 'Visuals', 'Review'];
 
@@ -52,6 +59,17 @@ export function OnboardingWizard() {
   const [avatar, setAvatar] = useState<ImageSelection>(emptyImageSelection);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [slugCheck, setSlugCheck] = useState<SlugCheckState>({
+    status: 'idle',
+    suggestion: null,
+  });
+  // Once the owner edits the link word by hand, the store name stops
+  // rewriting it. A ref so typing never re-renders just for this flag.
+  const slugTouched = useRef(false);
+  // Monotonic sequence: only the newest availability response may set state,
+  // so a slow reply for an old slug can't overwrite a newer verdict.
+  const slugCheckSeq = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +98,12 @@ export function OnboardingWizard() {
           }),
         );
       }
+      // Resume where the owner left off: no usable identity → step 0;
+      // identity but no visuals → step 1 (one more shot at socials on the
+      // way); otherwise straight to Review.
+      const hasPhone = (storeResult?.contactPhone ?? '').replace(/\D/g, '').length >= 9;
+      const hasVisuals = !!storeResult && (storeResult.hasLogo || storeResult.hasBanner);
+      setStep(!storeResult || !hasPhone ? 0 : !hasVisuals ? 1 : 3);
       setLoading(false);
     });
     return () => {
@@ -92,6 +116,68 @@ export function OnboardingWizard() {
     if (typeof image === 'string' && image) setAvatarUrl(image);
   }, [session?.user?.image]);
 
+  const trimmedSlug = slug.trim();
+
+  // Debounced availability check: catching a taken link word before Save is
+  // the whole point, so the verdict (and a free suggestion) appears inline.
+  useEffect(() => {
+    if (!trimmedSlug || !isValidSlug(trimmedSlug)) {
+      setSlugCheck({ status: 'idle', suggestion: null });
+      return;
+    }
+    if (store?.slug === trimmedSlug) {
+      setSlugCheck({ status: 'available', suggestion: null });
+      return;
+    }
+    setSlugCheck({ status: 'checking', suggestion: null });
+    slugCheckSeq.current += 1;
+    const seq = slugCheckSeq.current;
+    const timer = window.setTimeout(() => {
+      apiFetch(`/api/store/slug-check?slug=${encodeURIComponent(trimmedSlug)}`, {
+        schema: SlugCheck,
+      })
+        .then((result) => {
+          if (slugCheckSeq.current !== seq) return;
+          setSlugCheck({
+            status: result.available ? 'available' : 'taken',
+            suggestion: result.suggestion,
+          });
+        })
+        .catch(() => {
+          if (slugCheckSeq.current !== seq) return;
+          // No verdict (offline, hiccup): let Save decide — the server still
+          // owns uniqueness and mirrors a 409 back inline.
+          setSlugCheck({ status: 'idle', suggestion: null });
+        });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [trimmedSlug, store]);
+
+  function clearFieldError(field: FieldName) {
+    setFieldErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
+  }
+
+  function handleNameChange(value: string) {
+    setName(value);
+    clearFieldError('name');
+    // The link word follows the name until the owner touches it directly.
+    if (!slugTouched.current) setSlug(slugify(value));
+  }
+
+  function handleSlugChange(value: string) {
+    slugTouched.current = true;
+    setSlug(value);
+    clearFieldError('slug');
+  }
+
+  function applySuggestion() {
+    if (!slugCheck.suggestion) return;
+    slugTouched.current = true;
+    setSlug(slugCheck.suggestion);
+    clearFieldError('slug');
+    document.getElementById('ob-slug')?.focus();
+  }
+
   function setSocialField(platform: string, field: 'handle' | 'url', value: string) {
     setSocials((current) =>
       current.map((row) => (row.platform === platform ? { ...row, [field]: value } : row)),
@@ -99,16 +185,20 @@ export function OnboardingWizard() {
   }
 
   async function saveStoreInfo(): Promise<boolean> {
-    if (!name.trim()) {
-      toast.error('Give the store a name');
-      return false;
-    }
-    if (!SLUG_RULE.test(slug.trim())) {
-      toast.error('Link word: lowercase letters, numbers and dashes only');
-      return false;
+    const problems: Partial<Record<FieldName, string>> = {};
+    if (!name.trim()) problems.name = 'Give the store a name';
+    if (!isValidSlug(slug.trim())) {
+      problems.slug = SLUG_HINT;
+    } else if (slugCheck.status === 'taken') {
+      problems.slug = 'That link word is already taken — try the suggestion';
     }
     if (phone.replace(/\D/g, '').length < 9) {
-      toast.error('Add a dialable phone number (at least 9 digits)');
+      problems.phone = 'Add a number customers can reach (9+ digits)';
+    }
+    setFieldErrors(problems);
+    const firstInvalid = (['name', 'slug', 'phone'] as const).find((field) => problems[field]);
+    if (firstInvalid) {
+      document.getElementById(`ob-${firstInvalid}`)?.focus();
       return false;
     }
     setSaving(true);
@@ -127,6 +217,10 @@ export function OnboardingWizard() {
         schema: StorePayload,
       });
       setStore(saved);
+      setSlugCheck({ status: 'available', suggestion: null });
+      toast.success('Your page is live', {
+        description: `/store/${saved.slug} — share the link anywhere.`,
+      });
       // Prefill the WhatsApp handle from the order number when empty.
       setSocials((current) =>
         current.map((row) =>
@@ -136,8 +230,22 @@ export function OnboardingWizard() {
         ),
       );
       return true;
-    } catch {
-      toast.error('Could not save the store — is the link word taken?');
+    } catch (error) {
+      // The server owns slug uniqueness: mirror its field errors inline
+      // (409 "taken", 400 format) instead of a generic toast.
+      const serverErrors = (error as { cause?: { errors?: Record<string, string> } }).cause?.errors;
+      const inline: Partial<Record<FieldName, string>> = {};
+      if (serverErrors?.slug) {
+        inline.slug = serverErrors.slug;
+        setSlugCheck({ status: 'taken', suggestion: null });
+      }
+      if (serverErrors?.name) inline.name = serverErrors.name;
+      if (inline.slug || inline.name) {
+        setFieldErrors(inline);
+        document.getElementById(inline.slug ? 'ob-slug' : 'ob-name')?.focus();
+      } else {
+        toast.error('Could not save the store — check your connection and try again');
+      }
       return false;
     } finally {
       setSaving(false);
@@ -229,8 +337,23 @@ export function OnboardingWizard() {
     else if (step === 2 && (await saveVisuals())) setStep(3);
   }
 
+  async function copyStoreLink() {
+    if (!store) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/store/${store.slug}`);
+      toast.success('Link copied');
+    } catch {
+      toast.error('Could not copy — long-press the link instead');
+    }
+  }
+
   function finish() {
-    router.push('/dashboard');
+    toast.success('Shop set up — add your first product', {
+      description: 'Your shelf is waiting inside the catalogue.',
+    });
+    // Land on the catalogue, scrolled to the shelf, so the very next tap
+    // fills the empty page the owner just went live with.
+    router.push('/dashboard/store#the-shelf');
     router.refresh();
   }
 
@@ -263,6 +386,66 @@ export function OnboardingWizard() {
 
   const firstName = session?.user?.name?.split(' ')[0] ?? 'Chief';
   const connectedSocials = socials.filter((row) => row.handle.trim()).length;
+
+  let slugHint: ReactNode;
+  if (fieldErrors.slug) {
+    slugHint = <p className="text-caption text-destructive">{fieldErrors.slug}</p>;
+  } else if (!trimmedSlug) {
+    slugHint = (
+      <p className="text-caption text-muted-foreground">
+        Your page lives at /store/<span className="font-mono">…</span>
+      </p>
+    );
+  } else if (!isValidSlug(trimmedSlug)) {
+    slugHint = <p className="text-caption text-muted-foreground">{SLUG_HINT}</p>;
+  } else if (store?.slug === trimmedSlug) {
+    slugHint = (
+      <p className="text-caption text-muted-foreground">
+        Your page is live at{' '}
+        <a
+          href={`/store/${store.slug}`}
+          target="_blank"
+          rel="noreferrer"
+          className="font-mono font-semibold text-primary underline underline-offset-2"
+        >
+          /store/{store.slug} <ExternalLink aria-hidden className="inline size-3" />
+        </a>
+      </p>
+    );
+  } else if (slugCheck.status === 'checking') {
+    slugHint = (
+      <p className="text-caption text-muted-foreground">
+        Checking /store/<span className="font-mono">{trimmedSlug}</span>…
+      </p>
+    );
+  } else if (slugCheck.status === 'available') {
+    slugHint = (
+      <p className="text-caption font-medium text-primary">
+        <Check aria-hidden className="inline size-3.5" /> /store/{trimmedSlug} is yours
+      </p>
+    );
+  } else if (slugCheck.status === 'taken') {
+    slugHint = (
+      <p className="flex flex-wrap items-center gap-x-1.5 text-caption text-destructive">
+        /store/{trimmedSlug} is taken.
+        {slugCheck.suggestion && (
+          <button
+            type="button"
+            onClick={applySuggestion}
+            className="font-semibold underline underline-offset-2"
+          >
+            Use {slugCheck.suggestion}
+          </button>
+        )}
+      </p>
+    );
+  } else {
+    slugHint = (
+      <p className="text-caption text-muted-foreground">
+        Your page lives at /store/<span className="font-mono">{trimmedSlug}</span>
+      </p>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl">
@@ -306,7 +489,15 @@ export function OnboardingWizard() {
         ))}
       </ol>
 
-      <div className="mt-6 rounded-xl border border-border bg-card p-5 shadow-xs sm:p-8">
+      <form
+        className="mt-6 rounded-xl border border-border bg-card p-5 shadow-xs sm:p-8"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (step < 3) void next();
+          else finish();
+        }}
+      >
         {step === 0 && (
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -315,24 +506,43 @@ export function OnboardingWizard() {
                 <Input
                   id="ob-name"
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) => handleNameChange(event.target.value)}
+                  onBlur={() => {
+                    if (!name.trim()) {
+                      setFieldErrors((current) => ({ ...current, name: 'Give the store a name' }));
+                    }
+                  }}
                   placeholder="Ama's Boutique"
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? 'ob-name-error' : undefined}
                   className="h-11 rounded-md"
                 />
+                {fieldErrors.name && (
+                  <p id="ob-name-error" className="text-caption text-destructive">
+                    {fieldErrors.name}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="ob-slug">Link word</Label>
                 <Input
                   id="ob-slug"
                   value={slug}
-                  onChange={(event) => setSlug(event.target.value)}
+                  onChange={(event) => handleSlugChange(event.target.value)}
+                  onBlur={() => {
+                    const value = slug.trim();
+                    if (value && !isValidSlug(value)) {
+                      setFieldErrors((current) => ({ ...current, slug: SLUG_HINT }));
+                    }
+                  }}
                   placeholder="amas-boutique"
+                  aria-invalid={!!fieldErrors.slug}
+                  aria-describedby="ob-slug-hint"
                   className="h-11 rounded-md font-mono"
                 />
-                <p className="text-caption text-muted-foreground">
-                  Your page lives at /store/
-                  <span className="font-mono">{slug.trim() || '…'}</span>
-                </p>
+                <div id="ob-slug-hint" aria-live="polite">
+                  {slugHint}
+                </div>
               </div>
             </div>
             <div className="grid gap-2">
@@ -350,13 +560,32 @@ export function OnboardingWizard() {
               <Input
                 id="ob-phone"
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                onChange={(event) => {
+                  setPhone(event.target.value);
+                  clearFieldError('phone');
+                }}
+                onBlur={() => {
+                  if (phone.replace(/\D/g, '').length < 9) {
+                    setFieldErrors((current) => ({
+                      ...current,
+                      phone: 'Add a number customers can reach (9+ digits)',
+                    }));
+                  }
+                }}
                 placeholder="024 000 0000"
+                aria-invalid={!!fieldErrors.phone}
+                aria-describedby={fieldErrors.phone ? 'ob-phone-error' : 'ob-phone-hint'}
                 className="h-11 rounded-md"
               />
-              <p className="text-caption text-muted-foreground">
-                Every “order” button opens a chat with this number.
-              </p>
+              {fieldErrors.phone ? (
+                <p id="ob-phone-error" className="text-caption text-destructive">
+                  {fieldErrors.phone}
+                </p>
+              ) : (
+                <p id="ob-phone-hint" className="text-caption text-muted-foreground">
+                  Every “order” button opens a chat with this number.
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -468,6 +697,32 @@ export function OnboardingWizard() {
                 </p>
               </div>
             </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild variant="outline" className="h-10 rounded-md font-semibold">
+                <a href={`/store/${store.slug}`} target="_blank" rel="noreferrer">
+                  Open your page <ExternalLink aria-hidden className="size-4" />
+                </a>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-md font-semibold"
+                onClick={() => void copyStoreLink()}
+              >
+                <Copy aria-hidden className="size-4" /> Copy link
+              </Button>
+              <Button asChild variant="outline" className="h-10 rounded-md font-semibold">
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `Check out ${store.name} on Tilza: ${window.location.origin}/store/${store.slug}`,
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle aria-hidden className="size-4" /> Share on WhatsApp
+                </a>
+              </Button>
+            </div>
             <ul className="grid gap-2 text-small">
               {[
                 { label: 'Store info', done: true },
@@ -500,7 +755,7 @@ export function OnboardingWizard() {
               ))}
             </ul>
             <p className="text-small text-muted-foreground">
-              Add products next — your page is already live at the link above.
+              Your page is already live. Next: add your first product so the shelf isn&apos;t empty.
             </p>
           </div>
         )}
@@ -528,24 +783,23 @@ export function OnboardingWizard() {
           )}
           {step < 3 ? (
             <Button
-              type="button"
+              type="submit"
               disabled={saving}
-              onClick={() => void next()}
               className="h-11 w-full rounded-md px-6 font-semibold sm:w-auto"
             >
               {saving ? 'Saving…' : 'Save & continue'} <ArrowRight aria-hidden className="size-4" />
             </Button>
           ) : (
             <Button
-              type="button"
-              onClick={finish}
+              type="submit"
+              disabled={saving}
               className="h-11 w-full rounded-md px-6 font-semibold sm:w-auto"
             >
-              Open your dashboard <ArrowRight aria-hidden className="size-4" />
+              Next: add your first product <ArrowRight aria-hidden className="size-4" />
             </Button>
           )}
         </div>
-      </div>
+      </form>
     </div>
   );
 }
