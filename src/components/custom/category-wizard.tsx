@@ -137,7 +137,7 @@ export function CategoryWizard({
             <Label>
               Cover photo <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
-            <ImagePicker currentUrl={null} value={cover} onChange={setCover} />
+            <ImagePicker currentUrl={null} value={cover} onChange={setCover} fit="contain" />
           </div>
           <Button
             type="button"

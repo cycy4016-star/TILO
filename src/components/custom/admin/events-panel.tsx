@@ -1,6 +1,6 @@
-// F5 · EVENTS — a merge of orders, SMS, payments, signups, incidents and
-// feedback into one tape: the closest thing the platform has to a Splunk feed.
-// Live, so a new event surfaces on its own.
+// F5 · EVENTS — a merge of orders, SMS, payments, signups, shop openings, lead
+// captures, incidents and feedback into one tape: the closest thing the platform
+// has to a Splunk feed. Live, so a new event surfaces on its own.
 'use client';
 
 import { useState } from 'react';
@@ -27,6 +27,7 @@ const EVENT_KINDS: { value: OpsEventKind | ''; label: string }[] = [
   { value: 'sms', label: 'SMS' },
   { value: 'payment', label: 'Payments' },
   { value: 'signup', label: 'Signups' },
+  { value: 'lead', label: 'Leads' },
   { value: 'store', label: 'Shops' },
   { value: 'error', label: 'Errors' },
   { value: 'feedback', label: 'Feedback' },
@@ -37,6 +38,7 @@ const KIND_TONE: Record<OpsEventKind, Tone> = {
   sms: 'dim',
   payment: 'green',
   signup: 'cyan',
+  lead: 'cyan',
   store: 'dim',
   error: 'red',
   feedback: 'text',

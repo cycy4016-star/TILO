@@ -111,13 +111,14 @@ export type AdminShopRow = z.infer<typeof AdminShopRow>;
 export type AdminShops = z.infer<typeof AdminShops>;
 
 // One normalized event for the operator's search feed. Sources are the live
-// order, SMS-ledger, payment, signup, incident and feedback rows — the closest
-// thing the app has to a Splunk event stream.
+// order, SMS-ledger, payment, signup, shop-opening, lead-capture, incident and
+// feedback rows — the closest thing the app has to a Splunk event stream.
 export const OpsEventKind = z.enum([
   'order',
   'sms',
   'payment',
   'signup',
+  'lead',
   'store',
   'error',
   'feedback',

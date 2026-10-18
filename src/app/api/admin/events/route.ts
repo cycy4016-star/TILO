@@ -1,7 +1,7 @@
 // Platform event search: the operator's Splunk-style feed. Merges the newest
-// order, SMS-ledger, payment, signup, incident and feedback rows into one
-// timestamped stream and filters it by free text (`?q=`) and source
-// (`?kind=`). Admin-only.
+// order, SMS-ledger, payment, signup, shop-opening, lead-capture, incident and
+// feedback rows into one timestamped stream and filters it by free text (`?q=`)
+// and source (`?kind=`). Admin-only.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -22,88 +22,115 @@ export async function GET(request: Request) {
     const kindParam = params.get('kind')?.trim() ?? '';
     const kind = OpsEventKind.safeParse(kindParam).success ? kindParam : '';
 
-    const [orders, smsRows, payments, users, incidents, feedback] = await Promise.all([
-      prisma.order.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 25,
-        select: {
-          id: true,
-          orderNumber: true,
-          description: true,
-          status: true,
-          amountPesewas: true,
-          paidAt: true,
-          createdAt: true,
-          customer: { select: { name: true } },
-          user: { select: { name: true, store: { select: { name: true } } } },
-        },
-      }),
-      prisma.smsUsage.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 25,
-        select: {
-          id: true,
-          to: true,
-          source: true,
-          provider: true,
-          ok: true,
-          error: true,
-          credits: true,
-          createdAt: true,
-        },
-      }),
-      prisma.paymentTransaction.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 25,
-        select: {
-          id: true,
-          reference: true,
-          amountPesewas: true,
-          status: true,
-          createdAt: true,
-          order: {
-            select: {
-              orderNumber: true,
-              user: { select: { store: { select: { name: true } } } },
+    const [orders, smsRows, payments, users, stores, leads, incidents, feedback] =
+      await Promise.all([
+        prisma.order.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 25,
+          select: {
+            id: true,
+            orderNumber: true,
+            description: true,
+            status: true,
+            amountPesewas: true,
+            paidAt: true,
+            createdAt: true,
+            customer: { select: { name: true } },
+            user: { select: { name: true, store: { select: { name: true } } } },
+          },
+        }),
+        prisma.smsUsage.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 25,
+          select: {
+            id: true,
+            to: true,
+            source: true,
+            provider: true,
+            ok: true,
+            error: true,
+            credits: true,
+            createdAt: true,
+          },
+        }),
+        prisma.paymentTransaction.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 25,
+          select: {
+            id: true,
+            reference: true,
+            amountPesewas: true,
+            status: true,
+            createdAt: true,
+            order: {
+              select: {
+                orderNumber: true,
+                user: { select: { store: { select: { name: true } } } },
+              },
             },
           },
-        },
-      }),
-      prisma.user.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-        select: { id: true, name: true, phoneNumber: true, createdAt: true },
-      }),
-      prisma.appLog.findMany({
-        orderBy: { lastSeenAt: 'desc' },
-        take: 15,
-        select: {
-          id: true,
-          summary: true,
-          message: true,
-          route: true,
-          method: true,
-          source: true,
-          count: true,
-          resolvedAt: true,
-          lastSeenAt: true,
-        },
-      }),
-      prisma.feedback.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 15,
-        select: {
-          id: true,
-          kind: true,
-          status: true,
-          message: true,
-          email: true,
-          createdAt: true,
-          store: { select: { name: true } },
-          customer: { select: { name: true } },
-        },
-      }),
-    ]);
+        }),
+        prisma.user.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, name: true, phoneNumber: true, createdAt: true },
+        }),
+        prisma.store.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 15,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            active: true,
+            createdAt: true,
+            _count: { select: { items: true } },
+          },
+        }),
+        prisma.customer.findMany({
+          where: { source: 'LEAD' },
+          orderBy: [{ lastInquiryAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+          take: 15,
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            inquiryCount: true,
+            createdAt: true,
+            lastInquiryAt: true,
+            user: { select: { store: { select: { name: true } } } },
+          },
+        }),
+        prisma.appLog.findMany({
+          orderBy: { lastSeenAt: 'desc' },
+          take: 15,
+          select: {
+            id: true,
+            summary: true,
+            message: true,
+            route: true,
+            method: true,
+            source: true,
+            count: true,
+            resolvedAt: true,
+            lastSeenAt: true,
+          },
+        }),
+        prisma.feedback.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 15,
+          select: {
+            id: true,
+            kind: true,
+            status: true,
+            message: true,
+            email: true,
+            createdAt: true,
+            store: { select: { name: true } },
+            customer: { select: { name: true } },
+          },
+        }),
+      ]);
 
     const events: OpsEvent[] = [
       ...orders.map(
@@ -152,6 +179,35 @@ export async function GET(request: Request) {
           ok: null,
         }),
       ),
+      ...stores.map(
+        (store): OpsEvent => ({
+          id: `store:${store.id}`,
+          ts: store.createdAt.toISOString(),
+          kind: 'store',
+          shop: store.name,
+          summary: `${store.name} opened its storefront`,
+          detail: `/${store.slug} · ${store._count.items} item${
+            store._count.items === 1 ? '' : 's'
+          } · ${store.active ? 'live' : 'closed'}`,
+          ok: null,
+        }),
+      ),
+      ...leads.map((lead): OpsEvent => {
+        // A returning visitor resurfaces at their latest capture, the same
+        // moment the merchant's bell rings for them.
+        const lastCapture = lead.lastInquiryAt ?? lead.createdAt;
+        return {
+          id: `lead:${lead.id}`,
+          ts: lastCapture.toISOString(),
+          kind: 'lead',
+          shop: lead.user.store?.name ?? null,
+          summary: `Visitor captured · ${lead.name}`,
+          detail: `${lead.phone ?? 'no phone'}${
+            lead.inquiryCount > 1 ? ` · ${lead.inquiryCount} inquiries` : ''
+          }`,
+          ok: null,
+        };
+      }),
       ...incidents.map((incident): OpsEvent => {
         const headline = incident.summary || incident.message;
         const stats = `${incident.source === 'CLIENT' ? 'browser' : 'server'} · fired ×${incident.count}${

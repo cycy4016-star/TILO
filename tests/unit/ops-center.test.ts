@@ -30,9 +30,10 @@ vi.mock('@/lib/db', () => db);
 beforeEach(() => {
   vi.clearAllMocks();
   gate.requireAdminUser.mockResolvedValue({ id: 'admin-1', role: 'admin' });
-  // The overview and events routes grew three new ledgers; give them empty
+  // The overview and events routes grew several new ledgers; give them empty
   // defaults so every pre-existing test keeps its original shape.
   db.prisma.storeItem.findMany.mockResolvedValue([]);
+  db.prisma.store.findMany.mockResolvedValue([]);
   db.prisma.customer.findMany.mockResolvedValue([]);
   db.prisma.customer.aggregate.mockResolvedValue({ _sum: { inquiryCount: 0 } });
   db.prisma.appLog.count.mockResolvedValue(0);
@@ -130,6 +131,10 @@ describe('ops contracts', () => {
   it('rejects an unknown event kind', async () => {
     const { OpsEventKind } = await import('@/lib/contracts/admin');
     expect(OpsEventKind.safeParse('order').success).toBe(true);
+    // Every source the tape advertises parses; unknown ones never do.
+    for (const kind of ['store', 'lead']) {
+      expect(OpsEventKind.safeParse(kind).success).toBe(true);
+    }
     expect(OpsEventKind.safeParse('audit-log').success).toBe(false);
   });
 });
@@ -339,6 +344,27 @@ describe('admin events route', () => {
         customer: null,
       },
     ]);
+    db.prisma.store.findMany.mockResolvedValue([
+      {
+        id: 'st-1',
+        name: 'Shop A',
+        slug: 'shop-a',
+        active: true,
+        createdAt: new Date('2026-10-05T10:00:00.000Z'),
+        _count: { items: 12 },
+      },
+    ]);
+    db.prisma.customer.findMany.mockResolvedValue([
+      {
+        id: 'cu-1',
+        name: 'Ama',
+        phone: '+233240000001',
+        inquiryCount: 2,
+        createdAt: new Date('2026-10-05T11:00:00.000Z'),
+        lastInquiryAt: new Date('2026-10-06T10:00:00.000Z'),
+        user: { store: { name: 'Shop A' } },
+      },
+    ]);
 
     const { GET } = await import('@/app/api/admin/events/route');
     const failures = await GET(new Request('http://test/api/admin/events?q=402&kind=sms'));
@@ -368,6 +394,34 @@ describe('admin events route', () => {
     const searched = await GET(new Request('http://test/api/admin/events?q=connection'));
     const searchedBody = await searched.json();
     expect(searchedBody.events.map((e: { kind: string }) => e.kind)).toEqual(['error']);
+
+    // Shop openings and lead captures are recorded too — the two real-time
+    // signals the tape's own source chips advertise.
+    const shops = await GET(new Request('http://test/api/admin/events?kind=store'));
+    const shopBody = await shops.json();
+    expect(shopBody.events).toHaveLength(1);
+    expect(shopBody.events[0]).toMatchObject({
+      kind: 'store',
+      shop: 'Shop A',
+      summary: 'Shop A opened its storefront',
+      detail: '/shop-a · 12 items · live',
+      ok: null,
+    });
+
+    const leads = await GET(new Request('http://test/api/admin/events?kind=lead'));
+    const leadBody = await leads.json();
+    expect(leadBody.events).toHaveLength(1);
+    expect(leadBody.events[0]).toMatchObject({
+      kind: 'lead',
+      shop: 'Shop A',
+      summary: 'Visitor captured · Ama',
+      detail: '+233240000001 · 2 inquiries',
+    });
+    // A returning visitor resurfaces at their latest capture, not first sighting.
+    expect(leadBody.events[0].ts).toBe('2026-10-06T10:00:00.000Z');
+
+    const storeHunt = await GET(new Request('http://test/api/admin/events?q=opened'));
+    expect((await storeHunt.json()).events.map((e: { kind: string }) => e.kind)).toEqual(['store']);
   });
 });
 

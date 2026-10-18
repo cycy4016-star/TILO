@@ -517,7 +517,7 @@ function CategoryForm({
         <FormItem>
           <Label>Cover photo</Label>
           <div>
-            <ImagePicker currentUrl={coverUrl} value={cover} onChange={setCover} />
+            <ImagePicker currentUrl={coverUrl} value={cover} onChange={setCover} fit="contain" />
           </div>
           <p className="text-xs text-muted-foreground">Shown on the shelf card, when set.</p>
         </FormItem>
@@ -842,7 +842,7 @@ function ItemForm({
         <FormItem>
           <Label>Photo</Label>
           <div>
-            <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} />
+            <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} fit="contain" />
           </div>
           <p className="text-xs text-muted-foreground">
             Photos help customers see what you offer — they appear on your public page.
@@ -1186,7 +1186,7 @@ function PromoForm({
         <FormItem>
           <Label>Banner image (optional)</Label>
           <div>
-            <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} />
+            <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} fit="contain" />
           </div>
           <p className="text-xs text-muted-foreground">
             A wide banner makes the offer stand out on your public page.
@@ -1475,11 +1475,11 @@ export function StoreWorkspace() {
         className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
       >
         {item.hasImage ? (
-          <span className="size-12 shrink-0 overflow-hidden rounded-lg">
+          <span className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
             <img
               src={`/api/public/store/items/${item.id}/image?t=${Date.parse(item.updatedAt)}`}
               alt=""
-              className="size-full object-cover"
+              className="size-full object-contain"
             />
           </span>
         ) : (
@@ -1866,11 +1866,11 @@ export function StoreWorkspace() {
                     }`}
                   >
                     {promo.hasImage ? (
-                      <span className="size-12 shrink-0 overflow-hidden rounded-lg">
+                      <span className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                         <img
                           src={`/api/public/store/promotions/${promo.id}/image?t=${Date.parse(promo.updatedAt)}`}
                           alt=""
-                          className="size-full object-cover"
+                          className="size-full object-contain"
                         />
                       </span>
                     ) : (

@@ -283,7 +283,7 @@ export function PromoWizard({
             <Label>
               Banner image <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
-            <ImagePicker currentUrl={null} value={image} onChange={setImage} />
+            <ImagePicker currentUrl={null} value={image} onChange={setImage} fit="contain" />
           </div>
           <Button
             type="button"
