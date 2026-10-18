@@ -210,6 +210,47 @@ export function Bar({ value, max, tone = 'green' }: { value: number; max: number
   );
 }
 
+/**
+ * Trend — the panel's area chart. An SVG polyline with a phosphor-tinted fill,
+ * drawn from `currentColor` so it inherits whichever tone it is set to. The
+ * axis-less shape is deliberate: the table under it carries the exact numbers,
+ * the chart carries the direction.
+ */
+export function Trend({
+  values,
+  tone = 'green',
+  height = 48,
+  title = 'Trend',
+}: {
+  values: number[];
+  tone?: Tone;
+  height?: number;
+  title?: string;
+}) {
+  if (values.length === 0) return <span className={TONE.faint}>—</span>;
+  const width = 240;
+  const max = Math.max(1, ...values);
+  const points = values.map((value, index) => {
+    const x = values.length > 1 ? (index / (values.length - 1)) * width : width / 2;
+    const y = height - 3 - (value / max) * (height - 8);
+    return [x, y] as const;
+  });
+  const line = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const area = `0,${height} ${line} ${width},${height}`;
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={`${title}: ${values.join(', ')}`}
+      className={`h-12 w-full ${TONE[tone]}`}
+    >
+      <polygon points={area} fill="currentColor" opacity="0.12" />
+      <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 /** A dense monospace table. Columns carry the header + alignment; rows are children. */
 export function DataTable({
   columns,
@@ -230,24 +271,28 @@ export function DataTable({
     );
   }
   return (
-    <table className="w-full border-collapse text-left text-[12px]">
-      <thead>
-        <tr className="bg-[var(--t-card-hi)]">
-          {columns.map((column) => (
-            <th
-              key={column.key}
-              scope="col"
-              className={`sticky top-0 z-[1] whitespace-nowrap border-b border-[var(--t-border)] bg-[var(--t-card-hi)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--t-dim)] ${
-                column.right ? 'text-right' : 'text-left'
-              }`}
-            >
-              {column.label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>{children}</tbody>
-    </table>
+    // Wide ledgers scroll sideways on phones instead of crushing the columns;
+    // the min-width keeps the tape's column rhythm on every viewport.
+    <div className="w-full overflow-x-auto">
+      <table className="w-full min-w-[640px] border-collapse text-left text-[12px]">
+        <thead>
+          <tr className="bg-[var(--t-card-hi)]">
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                scope="col"
+                className={`sticky top-0 z-[1] whitespace-nowrap border-b border-[var(--t-border)] bg-[var(--t-card-hi)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--t-dim)] ${
+                  column.right ? 'text-right' : 'text-left'
+                }`}
+              >
+                {column.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
   );
 }
 

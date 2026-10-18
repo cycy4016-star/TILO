@@ -21,6 +21,7 @@ const db = vi.hoisted(() => ({
     paymentTransaction: { count: vi.fn(), findMany: vi.fn() },
     appLog: { count: vi.fn(), aggregate: vi.fn(), findMany: vi.fn() },
     feedback: { count: vi.fn(), findMany: vi.fn() },
+    authEvent: { count: vi.fn(), groupBy: vi.fn(), aggregate: vi.fn(), findMany: vi.fn() },
   },
 }));
 
@@ -41,6 +42,13 @@ beforeEach(() => {
   db.prisma.appLog.findMany.mockResolvedValue([]);
   db.prisma.feedback.count.mockResolvedValue(0);
   db.prisma.feedback.findMany.mockResolvedValue([]);
+  db.prisma.authEvent.count.mockResolvedValue(0);
+  db.prisma.authEvent.groupBy.mockResolvedValue([]);
+  db.prisma.authEvent.aggregate.mockResolvedValue({
+    _count: { _all: 0 },
+    _max: { createdAt: null },
+  });
+  db.prisma.authEvent.findMany.mockResolvedValue([]);
 });
 
 describe('ops contracts', () => {
@@ -51,6 +59,8 @@ describe('ops contracts', () => {
       AdminOverview.safeParse({
         users: 1,
         signupsMonth: 1,
+        signInsToday: 0,
+        signInsMonth: 0,
         stores: 1,
         activeStores: 1,
         items: 0,
@@ -82,6 +92,8 @@ describe('ops contracts', () => {
       AdminOverview.safeParse({
         users: -1,
         signupsMonth: 0,
+        signInsToday: 0,
+        signInsMonth: 0,
         stores: 0,
         activeStores: 0,
         items: 0,
@@ -132,7 +144,7 @@ describe('ops contracts', () => {
     const { OpsEventKind } = await import('@/lib/contracts/admin');
     expect(OpsEventKind.safeParse('order').success).toBe(true);
     // Every source the tape advertises parses; unknown ones never do.
-    for (const kind of ['store', 'lead']) {
+    for (const kind of ['store', 'lead', 'signin']) {
       expect(OpsEventKind.safeParse(kind).success).toBe(true);
     }
     expect(OpsEventKind.safeParse('audit-log').success).toBe(false);
@@ -172,12 +184,15 @@ describe('admin overview route', () => {
     db.prisma.appLog.count.mockResolvedValue(3);
     db.prisma.appLog.aggregate.mockResolvedValue({ _sum: { count: 41 } });
     db.prisma.feedback.count.mockResolvedValueOnce(7).mockResolvedValueOnce(4);
+    db.prisma.authEvent.count.mockResolvedValueOnce(2).mockResolvedValueOnce(9);
 
     const { GET } = await import('@/app/api/admin/overview/route');
     const response = await GET(new Request('http://test/api/admin/overview'));
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.users).toBe(4);
+    expect(body.signInsToday).toBe(2);
+    expect(body.signInsMonth).toBe(9);
     expect(body.gmvPesewas).toBe(50000);
     expect(body.paidPesewas).toBe(20000);
     expect(body.ordersByStatus).toEqual({ PENDING: 2 });
@@ -200,6 +215,43 @@ describe('admin overview route', () => {
     expect(body.errorOccurrences).toBe(41);
     expect(body.feedbackTotal).toBe(7);
     expect(body.feedbackNew).toBe(4);
+  });
+});
+
+describe('admin users ledger', () => {
+  it('builds sign-in stats from the permanent ledger, not sessions', async () => {
+    const seenAt = new Date('2026-10-07T08:00:00.000Z');
+    db.prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'u-1',
+        name: 'Ama',
+        email: 'ama@test.dev',
+        phoneNumber: null,
+        role: 'user',
+        banned: false,
+        createdAt: new Date('2026-09-01T00:00:00.000Z'),
+      },
+    ]);
+    db.prisma.authEvent.groupBy
+      .mockResolvedValueOnce([{ userId: 'u-1', _count: { _all: 3 }, _max: { createdAt: seenAt } }])
+      .mockResolvedValueOnce([{ userId: 'u-1', _count: { _all: 1 } }]);
+
+    const { GET } = await import('@/app/api/admin/users/route');
+    const response = await GET(new Request('http://test/api/admin/users'));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.users[0]).toMatchObject({
+      id: 'u-1',
+      signInCount: 3,
+      lastSeenAt: seenAt.toISOString(),
+    });
+    // Active-this-month counts ledger sign-ins inside the window.
+    expect(body.activeThisMonth).toBe(1);
+    // The volatile session include is gone for good.
+    const call = db.prisma.user.findMany.mock.calls[0]?.[0] as
+      | { select?: Record<string, unknown> }
+      | undefined;
+    expect(call?.select?.sessions).toBeUndefined();
   });
 });
 
@@ -319,6 +371,16 @@ describe('admin events route', () => {
     ]);
     db.prisma.paymentTransaction.findMany.mockResolvedValue([]);
     db.prisma.user.findMany.mockResolvedValue([]);
+    db.prisma.authEvent.findMany.mockResolvedValue([
+      {
+        id: 'ae-1',
+        ipAddress: '41.66.1.2',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        createdAt: new Date('2026-10-07T10:00:00.000Z'),
+        user: { name: 'Ama' },
+      },
+    ]);
     db.prisma.appLog.findMany.mockResolvedValue([
       {
         id: 'log-1',
@@ -422,6 +484,24 @@ describe('admin events route', () => {
 
     const storeHunt = await GET(new Request('http://test/api/admin/events?q=opened'));
     expect((await storeHunt.json()).events.map((e: { kind: string }) => e.kind)).toEqual(['store']);
+
+    // Sign-ins come off the permanent ledger — one event per sign-in, with a
+    // compact device hint instead of the raw UA string.
+    const signIns = await GET(new Request('http://test/api/admin/events?kind=signin'));
+    const signInBody = await signIns.json();
+    expect(signInBody.events).toHaveLength(1);
+    expect(signInBody.events[0]).toMatchObject({
+      kind: 'signin',
+      shop: 'Ama',
+      summary: 'Ama signed in',
+      detail: '41.66.1.2 · Chrome 120',
+      ok: null,
+    });
+
+    const signedHunt = await GET(new Request('http://test/api/admin/events?q=signed+in'));
+    expect((await signedHunt.json()).events.map((e: { kind: string }) => e.kind)).toEqual([
+      'signin',
+    ]);
   });
 });
 

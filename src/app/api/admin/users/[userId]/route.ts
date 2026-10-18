@@ -20,24 +20,27 @@ export const dynamic = 'force-dynamic';
 type RouteContext = { params: Promise<{ userId: string }> };
 
 async function loadRow(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      role: true,
-      banned: true,
-      createdAt: true,
-      sessions: { select: { id: true, createdAt: true } },
-    },
-  });
+  const [user, ledger] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+        banned: true,
+        createdAt: true,
+      },
+    }),
+    // Permanent sign-in history (survives session deletion — see auth-events.ts).
+    prisma.authEvent.aggregate({
+      where: { userId, kind: 'SIGNIN' },
+      _count: { _all: true },
+      _max: { createdAt: true },
+    }),
+  ]);
   if (!user) return null;
-  const lastSeen = user.sessions.reduce<Date | null>((latest, session) => {
-    if (!latest || session.createdAt > latest) return session.createdAt;
-    return latest;
-  }, null);
   return AdminUserRow.parse({
     id: user.id,
     name: user.name,
@@ -45,8 +48,8 @@ async function loadRow(userId: string) {
     phone: user.phoneNumber,
     role: user.role,
     banned: user.banned ?? false,
-    sessionCount: user.sessions.length,
-    lastSeenAt: lastSeen ? lastSeen.toISOString() : null,
+    signInCount: ledger._count._all,
+    lastSeenAt: ledger._max.createdAt ? ledger._max.createdAt.toISOString() : null,
     createdAt: user.createdAt.toISOString(),
   });
 }

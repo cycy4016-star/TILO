@@ -42,6 +42,8 @@ export async function GET(request: Request) {
       orderCount,
       ordersToday,
       signupsMonth,
+      signInsToday,
+      signInsMonth,
       gmv,
       paid,
       unpaidOrders,
@@ -74,6 +76,10 @@ export async function GET(request: Request) {
       prisma.order.count(),
       prisma.order.count({ where: { createdAt: { gte: todayStart } } }),
       prisma.user.count({ where: { createdAt: { gte: monthStart } } }),
+      // Sign-ins straight off the permanent ledger (auth_event) — surviving
+      // sign-out and session expiry is the whole point of that table.
+      prisma.authEvent.count({ where: { kind: 'SIGNIN', createdAt: { gte: todayStart } } }),
+      prisma.authEvent.count({ where: { kind: 'SIGNIN', createdAt: { gte: monthStart } } }),
       prisma.order.aggregate({
         _sum: { amountPesewas: true },
         where: { status: { not: 'CANCELLED' }, amountPesewas: { not: null } },
@@ -159,6 +165,8 @@ export async function GET(request: Request) {
       AdminOverview.parse({
         users: userCount,
         signupsMonth,
+        signInsToday,
+        signInsMonth,
         stores: storeCount,
         activeStores,
         items: itemCount,

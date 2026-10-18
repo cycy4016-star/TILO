@@ -326,6 +326,66 @@ a.bg-primary {
 }
 
 /* ============================================================
+   Printing a report from the terminal
+   ------------------------------------------------------------
+   Paper is white and has no click targets: the phosphor palette
+   flips to ink, the screen furniture (masthead, ticker, function
+   nav, status bar, toasts, action bars) drops out via
+   `.tlz-print-hide`, and the scrolling panel area unrolls to its
+   full height so the document prints end to end.
+   ============================================================ */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .tlz-terminal {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    background-image: none !important;
+    color: #111;
+    /* Ink-flavoured palette for everything that reads the --t-* vars. */
+    --t-bg: #ffffff;
+    --t-panel: #ffffff;
+    --t-card: #ffffff;
+    --t-card-hi: #f2f2f2;
+    --t-border: #9a9a9a;
+    --t-grid: #c9c9c9;
+    --t-amber: #8a5200;
+    --t-amber-dim: #a86a10;
+    --t-green: #0a6e3c;
+    --t-red: #a01616;
+    --t-cyan: #0f5f8a;
+    --t-text: #111111;
+    --t-bright: #000000;
+    --t-dim: #3d3d3d;
+    --t-faint: #5c5c5c;
+    font-size: 11px;
+  }
+
+  .tlz-print-hide {
+    display: none !important;
+  }
+
+  .tlz-terminal main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  /* Keep rows and cards whole across page breaks. */
+  .tlz-terminal tr,
+  .tlz-terminal section {
+    break-inside: avoid;
+  }
+
+  .tlz-terminal a[href]::after {
+    content: "";
+  }
+}
+
+/* ============================================================
    Reduced motion — never animate movement for those who opt out
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {

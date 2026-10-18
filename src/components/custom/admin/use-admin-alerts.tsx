@@ -174,7 +174,7 @@ export function AlertToasts() {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed right-4 bottom-4 z-50 flex w-[min(92vw,340px)] flex-col gap-2"
+      className="tlz-print-hide pointer-events-none fixed right-4 bottom-4 z-50 flex w-[min(92vw,340px)] flex-col gap-2"
     >
       {toasts.map((toast) => (
         <button

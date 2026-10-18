@@ -9,9 +9,11 @@ export const AdminUserRow = z.object({
   phone: z.string().nullable(),
   role: z.string().nullable(),
   banned: z.boolean(),
-  // Number of sessions that account has started (a rough "logins" gauge).
-  sessionCount: z.number().int().nonnegative(),
-  // CreatedAt of the account's most recent session.
+  // Sign-ins recorded on the append-only auth-event ledger. Unlike the old
+  // session-derived count, this never shrinks when a user logs out or their
+  // session expires.
+  signInCount: z.number().int().nonnegative(),
+  // Timestamp of the account's most recent SIGNIN entry on the ledger.
   lastSeenAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
 });
@@ -45,6 +47,10 @@ export const AdminOverviewDay = z.object({
 export const AdminOverview = z.object({
   users: z.number().int().nonnegative(),
   signupsMonth: z.number().int().nonnegative(),
+  // Sign-ins on the permanent ledger — today and since the month began. These
+  // survive logout/expiry because they come from auth_event, not session.
+  signInsToday: z.number().int().nonnegative(),
+  signInsMonth: z.number().int().nonnegative(),
   stores: z.number().int().nonnegative(),
   activeStores: z.number().int().nonnegative(),
   items: z.number().int().nonnegative(),
@@ -111,13 +117,15 @@ export type AdminShopRow = z.infer<typeof AdminShopRow>;
 export type AdminShops = z.infer<typeof AdminShops>;
 
 // One normalized event for the operator's search feed. Sources are the live
-// order, SMS-ledger, payment, signup, shop-opening, lead-capture, incident and
-// feedback rows — the closest thing the app has to a Splunk event stream.
+// order, SMS-ledger, payment, signup, sign-in, shop-opening, lead-capture,
+// incident and feedback rows — the closest thing the app has to a Splunk
+// event stream.
 export const OpsEventKind = z.enum([
   'order',
   'sms',
   'payment',
   'signup',
+  'signin',
   'lead',
   'store',
   'error',

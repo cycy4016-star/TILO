@@ -1,7 +1,7 @@
 // Platform event search: the operator's Splunk-style feed. Merges the newest
-// order, SMS-ledger, payment, signup, shop-opening, lead-capture, incident and
-// feedback rows into one timestamped stream and filters it by free text (`?q=`)
-// and source (`?kind=`). Admin-only.
+// order, SMS-ledger, payment, signup, sign-in, shop-opening, lead-capture,
+// incident and feedback rows into one timestamped stream and filters it by
+// free text (`?q=`) and source (`?kind=`). Admin-only.
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -14,6 +14,25 @@ export const dynamic = 'force-dynamic';
 
 const LIMIT = 40;
 
+// "Edge 120"-style label from a user-agent string — enough context for the
+// operator without pasting raw headers into the tape.
+const BROWSERS: Array<[RegExp, string]> = [
+  [/Edg\/(\d+)/, 'Edge'],
+  [/OPR\/(\d+)/, 'Opera'],
+  [/Chrome\/(\d+)/, 'Chrome'],
+  [/Firefox\/(\d+)/, 'Firefox'],
+  [/Version\/(\d+).*Safari/, 'Safari'],
+];
+
+function browserOf(userAgent: string | null): string | null {
+  if (!userAgent) return null;
+  for (const [pattern, name] of BROWSERS) {
+    const match = pattern.exec(userAgent);
+    if (match) return `${name} ${match[1]}`;
+  }
+  return null;
+}
+
 export async function GET(request: Request) {
   try {
     await requireAdminUser(request);
@@ -22,7 +41,7 @@ export async function GET(request: Request) {
     const kindParam = params.get('kind')?.trim() ?? '';
     const kind = OpsEventKind.safeParse(kindParam).success ? kindParam : '';
 
-    const [orders, smsRows, payments, users, stores, leads, incidents, feedback] =
+    const [orders, smsRows, payments, users, signIns, stores, leads, incidents, feedback] =
       await Promise.all([
         prisma.order.findMany({
           orderBy: { createdAt: 'desc' },
@@ -74,6 +93,20 @@ export async function GET(request: Request) {
           orderBy: { createdAt: 'desc' },
           take: 10,
           select: { id: true, name: true, phoneNumber: true, createdAt: true },
+        }),
+        // Permanent sign-in ledger — each row is one sign-in, and unlike the
+        // session it came from it is never deleted on sign-out/expiry.
+        prisma.authEvent.findMany({
+          where: { kind: 'SIGNIN' },
+          orderBy: { createdAt: 'desc' },
+          take: 15,
+          select: {
+            id: true,
+            ipAddress: true,
+            userAgent: true,
+            createdAt: true,
+            user: { select: { name: true } },
+          },
         }),
         prisma.store.findMany({
           orderBy: { createdAt: 'desc' },
@@ -176,6 +209,19 @@ export async function GET(request: Request) {
           shop: user.name,
           summary: `${user.name} joined`,
           detail: user.phoneNumber,
+          ok: null,
+        }),
+      ),
+      ...signIns.map(
+        (event): OpsEvent => ({
+          id: `signin:${event.id}`,
+          ts: event.createdAt.toISOString(),
+          kind: 'signin',
+          shop: event.user.name,
+          summary: `${event.user.name} signed in`,
+          // Compact device hint: browser name + network, so the operator can
+          // spot odd sign-ins without reading a raw UA string.
+          detail: [event.ipAddress, browserOf(event.userAgent)].filter(Boolean).join(' · ') || null,
           ok: null,
         }),
       ),

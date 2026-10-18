@@ -22,6 +22,7 @@ import {
   TChip,
   TONE,
   type Tone,
+  Trend,
 } from './terminal/primitives';
 import { useLiveData } from './use-live';
 
@@ -186,8 +187,14 @@ export function OverviewPanel() {
             sub={`${o.leads} leads on file`}
           />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
           <Stat label="Accounts" value={num(o.users)} sub={`+${o.signupsMonth} this month`} />
+          <Stat
+            label="Sign-ins today"
+            value={num(o.signInsToday)}
+            sub={`+${o.signInsMonth} this month`}
+            tone="cyan"
+          />
           <Stat label="Catalogue" value={num(o.items)} sub={`+${o.itemsAddedMonth} this month`} />
           <Stat label="Leads" value={num(o.leads)} sub={`+${o.leadsMonth} this month`} />
           <Stat label="Inquiries" value={num(o.inquiries)} sub="all-time submissions" />
@@ -222,6 +229,34 @@ export function OverviewPanel() {
           }
           bodyClassName="p-0"
         >
+          <div className="grid grid-cols-1 gap-x-4 border-b border-[var(--t-grid)] px-3 pt-2.5 sm:grid-cols-3">
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--t-dim)]">
+                Orders
+              </span>
+              <Trend
+                values={o.daily.map((day) => day.orders)}
+                tone="amber"
+                title="Orders per day"
+              />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--t-dim)]">
+                Items added
+              </span>
+              <Trend values={o.daily.map((day) => day.items)} tone="cyan" title="Items per day" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--t-dim)]">
+                Signups
+              </span>
+              <Trend
+                values={o.daily.map((day) => day.signups)}
+                tone="green"
+                title="Signups per day"
+              />
+            </div>
+          </div>
           <DailyTape daily={o.daily} days={days} />
         </Panel>
 

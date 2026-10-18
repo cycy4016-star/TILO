@@ -26,6 +26,7 @@ export const SECTIONS = [
   { code: 'HL', fn: 'F6', href: '/dashboard/admin/health', label: 'HEALTH' },
   { code: 'FB', fn: 'F7', href: '/dashboard/admin/feedback', label: 'FEEDBACK' },
   { code: 'AL', fn: 'F8', href: '/dashboard/admin/alerts', label: 'ALERTS' },
+  { code: 'RP', fn: 'F9', href: '/dashboard/admin/report', label: 'REPORT' },
 ] as const;
 
 const FEED_PATH = '/api/admin/overview?days=14';
@@ -108,7 +109,7 @@ function tape(overview: AdminOverview): TapeItem[] {
 
 function Tape({ items }: { items: TapeItem[] }) {
   return (
-    <div className="relative overflow-hidden border-b border-[var(--t-border)] bg-[var(--t-panel)]">
+    <div className="tlz-print-hide relative overflow-hidden border-b border-[var(--t-border)] bg-[var(--t-panel)]">
       <div
         className="tlz-ticker flex w-max items-center gap-8 py-1.5 pl-4 text-[11px] font-bold"
         aria-hidden
@@ -174,7 +175,7 @@ function CommandLine() {
         }
         return;
       }
-      if (event.altKey && /^[1-8]$/.test(event.key)) {
+      if (event.altKey && /^[1-9]$/.test(event.key)) {
         const section = SECTIONS[Number(event.key) - 1];
         if (section) {
           event.preventDefault();
@@ -213,7 +214,7 @@ function CommandLine() {
           setValue(event.target.value);
           setNote(null);
         }}
-        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL   ·   HELP"
+        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP   ·   HELP"
         className="min-w-0 flex-1 border border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <button
@@ -239,7 +240,7 @@ function FunctionNav() {
   return (
     <nav
       aria-label="Terminal functions"
-      className="flex shrink-0 items-stretch gap-px overflow-x-auto border-b border-[var(--t-border)] bg-[var(--t-panel)] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="tlz-print-hide relative flex shrink-0 items-stretch gap-px overflow-x-auto border-b border-[var(--t-border)] bg-[var(--t-panel)] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {SECTIONS.map((section) => {
         const active =
@@ -279,7 +280,7 @@ function FunctionNav() {
           <span className="text-[var(--t-amber)]">/</span> COMMAND
         </span>
         <span>
-          <span className="text-[var(--t-amber)]">ALT+1..8</span> JUMP
+          <span className="text-[var(--t-amber)]">ALT+1..9</span> JUMP
         </span>
       </span>
     </nav>
@@ -316,7 +317,7 @@ function TerminalFrame({ children }: { children: ReactNode }) {
         Tilza Terminal — platform-wide monitor for every shop, account, incident and event
       </h1>
 
-      <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--t-border)] bg-[var(--t-panel)] px-3 py-2 sm:px-4">
+      <header className="tlz-print-hide flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--t-border)] bg-[var(--t-panel)] px-3 py-2 sm:px-4">
         <span className="flex shrink-0 items-baseline gap-2">
           <span className="text-[15px] font-bold uppercase tracking-[0.22em] text-[var(--t-amber)]">
             Tilza
@@ -347,7 +348,7 @@ function TerminalFrame({ children }: { children: ReactNode }) {
 
       <main className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">{children}</main>
 
-      <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-[var(--t-border)] bg-[var(--t-panel)] px-3 py-1.5 text-[10px] text-[var(--t-dim)] sm:px-4">
+      <footer className="tlz-print-hide flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-[var(--t-border)] bg-[var(--t-panel)] px-3 py-1.5 text-[10px] text-[var(--t-dim)] sm:px-4">
         <span className="flex items-center gap-2">
           <Dot tone={feed.live ? 'green' : 'dim'} pulse={feed.live} />
           <span className={`font-bold tracking-[0.1em] ${feed.live ? TONE.green : TONE.dim}`}>

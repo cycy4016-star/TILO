@@ -4,6 +4,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
 import { captureAdminAlert } from '@/lib/admin-alerts';
 import { authConfig } from '@/lib/auth-config';
+import { recordAuthEvent } from '@/lib/auth-events';
 import { prisma } from '@/lib/db';
 import { env } from '@/lib/env';
 import { trialEndsAtFrom } from '@/lib/trial';
@@ -115,6 +116,7 @@ export const auth = betterAuth({
         },
         // Platform activity alert: the operator's ALERTS panel hears about
         // every new account the moment it lands (best-effort, never throws).
+        // The permanent ledger gets its SIGNUP row at the same point.
         after: async (user) => {
           await captureAdminAlert({
             kind: 'SIGNUP',
@@ -122,6 +124,26 @@ export const auth = betterAuth({
             body: user.email,
             refType: 'user',
             refId: user.id,
+          });
+          await recordAuthEvent({ userId: user.id, kind: 'SIGNUP' });
+        },
+      },
+    },
+    // Permanent sign-in history. Session rows are deleted by better-auth on
+    // sign-out / revocation / expiry; this hook copies each fresh sign-in into
+    // the append-only auth_event ledger so the operator console's sign-in
+    // counts and "last seen" survive them (see src/lib/auth-events.ts).
+    session: {
+      ...appHooks?.session,
+      create: {
+        ...appHooks?.session?.create,
+        after: async (session) => {
+          await appHooks?.session?.create?.after?.(session, null);
+          await recordAuthEvent({
+            userId: session.userId,
+            kind: 'SIGNIN',
+            ipAddress: session.ipAddress,
+            userAgent: session.userAgent,
           });
         },
       },

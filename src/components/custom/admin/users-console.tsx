@@ -175,8 +175,8 @@ export function UsersConsole() {
                           {row.phone ?? 'no phone'}
                         </span>
                       </td>
-                      <Cell right tone={row.sessionCount > 0 ? 'text' : 'faint'}>
-                        {row.sessionCount}
+                      <Cell right tone={row.signInCount > 0 ? 'text' : 'faint'}>
+                        {row.signInCount}
                       </Cell>
                       <Cell right tone="dim">
                         {row.lastSeenAt ? formatStamp(row.lastSeenAt) : 'never'}

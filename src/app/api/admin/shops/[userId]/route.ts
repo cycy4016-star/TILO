@@ -29,7 +29,6 @@ export async function GET(request: Request, { params }: RouteContext) {
         role: true,
         banned: true,
         createdAt: true,
-        sessions: { select: { createdAt: true }, orderBy: { createdAt: 'desc' }, take: 1 },
         store: {
           select: {
             name: true,
@@ -43,54 +42,61 @@ export async function GET(request: Request, { params }: RouteContext) {
     });
     if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const [totals, paid, lines, recentOrders, recentCustomers, recentSms] = await Promise.all([
-      prisma.order.aggregate({
-        _sum: { amountPesewas: true },
-        where: { userId, status: { not: 'CANCELLED' }, amountPesewas: { not: null } },
-      }),
-      prisma.order.aggregate({
-        _sum: { amountPesewas: true },
-        where: { userId, paidAt: { not: null }, amountPesewas: { not: null } },
-      }),
-      prisma.orderLineItem.findMany({
-        where: { order: { userId, status: { not: 'CANCELLED' } } },
-        select: { name: true, quantity: true, unitPricePesewas: true },
-        take: 500,
-      }),
-      prisma.order.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-        select: {
-          id: true,
-          orderNumber: true,
-          description: true,
-          status: true,
-          amountPesewas: true,
-          paidAt: true,
-          createdAt: true,
-          customer: { select: { name: true } },
-        },
-      }),
-      prisma.customer.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-        select: {
-          id: true,
-          name: true,
-          phone: true,
-          createdAt: true,
-          _count: { select: { orders: true } },
-        },
-      }),
-      prisma.smsUsage.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-        select: { id: true, to: true, source: true, ok: true, credits: true, createdAt: true },
-      }),
-    ]);
+    const [totals, paid, lines, recentOrders, recentCustomers, recentSms, lastSignIn] =
+      await Promise.all([
+        prisma.order.aggregate({
+          _sum: { amountPesewas: true },
+          where: { userId, status: { not: 'CANCELLED' }, amountPesewas: { not: null } },
+        }),
+        prisma.order.aggregate({
+          _sum: { amountPesewas: true },
+          where: { userId, paidAt: { not: null }, amountPesewas: { not: null } },
+        }),
+        prisma.orderLineItem.findMany({
+          where: { order: { userId, status: { not: 'CANCELLED' } } },
+          select: { name: true, quantity: true, unitPricePesewas: true },
+          take: 500,
+        }),
+        prisma.order.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            orderNumber: true,
+            description: true,
+            status: true,
+            amountPesewas: true,
+            paidAt: true,
+            createdAt: true,
+            customer: { select: { name: true } },
+          },
+        }),
+        prisma.customer.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            createdAt: true,
+            _count: { select: { orders: true } },
+          },
+        }),
+        prisma.smsUsage.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, to: true, source: true, ok: true, credits: true, createdAt: true },
+        }),
+        // Permanent last-seen: the most recent ledger sign-in (session rows are
+        // deleted on sign-out/expiry, which used to erase this timestamp).
+        prisma.authEvent.aggregate({
+          where: { userId, kind: 'SIGNIN' },
+          _max: { createdAt: true },
+        }),
+      ]);
 
     const revenueByName = new Map<string, { units: number; revenue: number }>();
     for (const line of lines) {
@@ -114,7 +120,7 @@ export async function GET(request: Request, { params }: RouteContext) {
         role: user.role,
         banned: user.banned ?? false,
         createdAt: user.createdAt.toISOString(),
-        lastSeenAt: user.sessions[0] ? user.sessions[0].createdAt.toISOString() : null,
+        lastSeenAt: lastSignIn._max.createdAt ? lastSignIn._max.createdAt.toISOString() : null,
         storeName: user.store?.name ?? null,
         slug: user.store?.slug ?? null,
         storeActive: user.store?.active ?? null,

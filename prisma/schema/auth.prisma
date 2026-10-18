@@ -41,6 +41,11 @@ model User {
   updatedAt           DateTime
   sessions            Session[]
   accounts            Account[]
+  // Permanent sign-up / sign-in ledger (see AuthEvent below). Unlike Session
+  // rows, these are NEVER deleted — the admin console counts sign-ins and
+  // "last seen" from here, so logging out or a session expiring can no longer
+  // erase a user's activity history.
+  authEvents          AuthEvent[]
   // Per-shop ownership. One user = one workspace, so each of these is a
   // one-to-many from the account that signed up.
   customers       Customer[]
@@ -77,6 +82,38 @@ model Session {
   // index of its own, so every cascade delete scanned the table.
   @@index([userId])
   @@map("session")
+}
+
+// Permanent auth-activity ledger. Session rows are ephemeral — better-auth
+// deletes them on sign-out, on revocation (ban / sign-out-everywhere) and on
+// expiry — so anything derived from `session` (login counts, last-seen times,
+// "active this month") used to evaporate the moment a user logged out or
+// returned days later. These rows are append-only: every sign-up and every
+// sign-in writes ONE new row keyed to the user's unique id, and nothing in the
+// app ever updates or deletes them. Written from the databaseHooks in
+// src/lib/auth.ts via src/lib/auth-events.ts (never-throw, so a ledger write
+// can never block a sign-in).
+model AuthEvent {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      AuthEventKind
+  // Connection metadata copied off the session at sign-in time; the session row
+  // itself may be gone tomorrow, this record keeps the evidence.
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime      @default(now())
+
+  // F3 reads "sign-ins per user" and "last seen"; the tape reads the newest
+  // rows across all users; dashboards window by kind+time.
+  @@index([userId, createdAt])
+  @@index([kind, createdAt])
+  @@map("auth_event")
+}
+
+enum AuthEventKind {
+  SIGNUP
+  SIGNIN
 }
 
 model Account {
