@@ -271,7 +271,7 @@ export function ReportConsole() {
                   { key: 'items', label: 'Items', right: true },
                   { key: 'gmv', label: 'Volume', right: true },
                 ]}
-                empty="No shops yet."
+                empty="No shops in this window yet — a shop appears once a merchant creates one."
               >
                 {topShops.map((shop) => (
                   <Row key={shop.userId}>
@@ -331,7 +331,7 @@ export function ReportConsole() {
                 { key: 'last', label: 'Last sign-in', right: true },
                 { key: 'status', label: 'Status' },
               ]}
-              empty="No accounts yet."
+              empty="No accounts yet — sign-ups land here the moment they happen."
             >
               {recentUsers.map((user) => (
                 <Row key={user.id}>

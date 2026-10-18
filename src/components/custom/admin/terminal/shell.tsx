@@ -11,24 +11,94 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { AdminOverview } from '@/lib/contracts/admin';
+import { AdminDoctor, AdminOverview } from '@/lib/contracts/admin';
 import { formatGhs } from '@/lib/contracts/order';
 import { AdminAlertsProvider, AlertToasts, useAdminAlerts } from '../use-admin-alerts';
 import { useLiveData } from '../use-live';
 import { ageLabel, Dot, num, TONE } from './primitives';
 
 export const SECTIONS = [
-  { code: 'OV', fn: 'F1', href: '/dashboard/admin', label: 'OVERVIEW' },
-  { code: 'SH', fn: 'F2', href: '/dashboard/admin/shops', label: 'SHOPS' },
-  { code: 'AC', fn: 'F3', href: '/dashboard/admin/users', label: 'ACCOUNTS' },
-  { code: 'PR', fn: 'F4', href: '/dashboard/admin/products', label: 'PRODUCTS' },
-  { code: 'EV', fn: 'F5', href: '/dashboard/admin/events', label: 'EVENTS' },
-  { code: 'HL', fn: 'F6', href: '/dashboard/admin/health', label: 'HEALTH' },
-  { code: 'FB', fn: 'F7', href: '/dashboard/admin/feedback', label: 'FEEDBACK' },
-  { code: 'AL', fn: 'F8', href: '/dashboard/admin/alerts', label: 'ALERTS' },
-  { code: 'RP', fn: 'F9', href: '/dashboard/admin/report', label: 'REPORT' },
-  { code: 'VT', fn: 'F10', href: '/dashboard/admin/vault', label: 'VAULT' },
-  { code: 'DR', fn: 'F11', href: '/dashboard/admin/doctor', label: 'DOCTOR' },
+  {
+    code: 'OV',
+    fn: 'F1',
+    href: '/dashboard/admin',
+    label: 'OVERVIEW',
+    blurb:
+      'The whole platform on one screen — money, orders, accounts, and anything that needs you.',
+  },
+  {
+    code: 'SH',
+    fn: 'F2',
+    href: '/dashboard/admin/shops',
+    label: 'SHOPS',
+    blurb: "Every merchant's shop: how healthy, how busy, and how to step in if one goes quiet.",
+  },
+  {
+    code: 'AC',
+    fn: 'F3',
+    href: '/dashboard/admin/users',
+    label: 'ACCOUNTS',
+    blurb: 'Every account that has signed up, what they own, and how to suspend or free one.',
+  },
+  {
+    code: 'PR',
+    fn: 'F4',
+    href: '/dashboard/admin/products',
+    label: 'PRODUCTS',
+    blurb: "Every shop's catalogue in one place — what exists, what sells, and what to hide.",
+  },
+  {
+    code: 'EV',
+    fn: 'F5',
+    href: '/dashboard/admin/events',
+    label: 'EVENTS',
+    blurb:
+      'The live stream of what is happening: sign-ins, orders, errors — with plain-word reasons.',
+  },
+  {
+    code: 'HL',
+    fn: 'F6',
+    href: '/dashboard/admin/health',
+    label: 'HEALTH',
+    blurb: 'Open incidents explained in plain words, each with what it means and what to do.',
+  },
+  {
+    code: 'FB',
+    fn: 'F7',
+    href: '/dashboard/admin/feedback',
+    label: 'FEEDBACK',
+    blurb: 'What merchants are telling you, with a reply path and a trail.',
+  },
+  {
+    code: 'AL',
+    fn: 'F8',
+    href: '/dashboard/admin/alerts',
+    label: 'ALERTS',
+    blurb: 'The watchtower: everything the platform flagged for review, oldest first.',
+  },
+  {
+    code: 'RP',
+    fn: 'F9',
+    href: '/dashboard/admin/report',
+    label: 'REPORT',
+    blurb: "The operator's report — totals, trends and the exact state of the world.",
+  },
+  {
+    code: 'VT',
+    fn: 'F10',
+    href: '/dashboard/admin/vault',
+    label: 'VAULT',
+    blurb:
+      'Automatic archives of the whole world. If anything goes missing, bring it back here with one press.',
+  },
+  {
+    code: 'DR',
+    fn: 'F11',
+    href: '/dashboard/admin/doctor',
+    label: 'DOCTOR',
+    blurb:
+      'Self-examination: ten checks, plain results, and a copyable report — start here when anything feels wrong.',
+  },
 ] as const;
 
 const FEED_PATH = '/api/admin/overview?days=14';
@@ -131,7 +201,7 @@ function Tape({ items }: { items: TapeItem[] }) {
   );
 }
 
-function CommandLine() {
+function CommandLine({ onHelp }: { onHelp: () => void }) {
   const router = useRouter();
   const [value, setValue] = useState('');
   const [note, setNote] = useState<string | null>(null);
@@ -153,16 +223,19 @@ function CommandLine() {
         return;
       }
       if (cmd === 'HELP' || cmd === '?') {
-        setNote(SECTIONS.map((section) => `${section.code}:${section.label}`).join('  '));
+        setValue('');
+        setNote(null);
+        onHelp();
         return;
       }
       setNote(`NO SUCH FUNCTION — ${cmd} · TYPE HELP`);
     },
-    [router],
+    [router, onHelp],
   );
 
   // "/" is the terminal's "put the cursor in the command line" key, and
-  // Alt+1..7 jumps to a function the way F-keys would on a real desk.
+  // Alt+1..9 jumps to a function the way F-keys would on a real desk.
+  // "?" opens the operator handbook from anywhere on the page.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === '/' && !event.metaKey && !event.ctrlKey) {
@@ -177,6 +250,18 @@ function CommandLine() {
         }
         return;
       }
+      if (event.key === '?' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        const target = event.target as HTMLElement | null;
+        const typing =
+          target?.tagName === 'INPUT' ||
+          target?.tagName === 'TEXTAREA' ||
+          target?.isContentEditable === true;
+        if (!typing) {
+          event.preventDefault();
+          onHelp();
+        }
+        return;
+      }
       if (event.altKey && /^[1-9]$/.test(event.key)) {
         const section = SECTIONS[Number(event.key) - 1];
         if (section) {
@@ -187,7 +272,7 @@ function CommandLine() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusInput, router]);
+  }, [focusInput, onHelp, router]);
 
   return (
     <form
@@ -216,7 +301,7 @@ function CommandLine() {
           setValue(event.target.value);
           setNote(null);
         }}
-        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP  VT  DR   ·   HELP"
+        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP  VT  DR   ·   HELP  ·   ?"
         className="min-w-0 flex-1 border border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <button
@@ -284,8 +369,115 @@ function FunctionNav() {
         <span>
           <span className="text-[var(--t-amber)]">ALT+1..9</span> JUMP
         </span>
+        <span>
+          <span className="text-[var(--t-amber)]">?</span> HANDBOOK
+        </span>
       </span>
     </nav>
+  );
+}
+
+function Handbook({ onClose }: { onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-3 sm:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Operator handbook"
+    >
+      <button
+        type="button"
+        aria-label="Close handbook"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-transparent"
+      />
+      <div className="relative mx-auto w-full max-w-2xl border border-[var(--t-amber)] bg-[var(--t-panel)]">
+        <header className="flex items-center justify-between gap-3 border-b border-[var(--t-border)] px-4 py-3">
+          <span className="text-[13px] font-bold uppercase tracking-[0.2em] text-[var(--t-amber)]">
+            Operator handbook
+          </span>
+          <button
+            type="button"
+            ref={closeRef}
+            onClick={onClose}
+            className="border border-[var(--t-border)] px-2.5 py-[3px] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--t-dim)] hover:border-current hover:text-[var(--t-amber)]"
+          >
+            Close · ESC
+          </button>
+        </header>
+        <p className="border-b border-[var(--t-border)] px-4 py-2.5 text-[11px] leading-relaxed text-[var(--t-text)]">
+          Type a code in the command line — or press{' '}
+          <span className="font-bold text-[var(--t-amber)]">ALT+number</span> — and the terminal
+          jumps there. When anything feels wrong, open{' '}
+          <span className="font-bold text-[var(--t-amber)]">DOCTOR</span> first: it examines the
+          whole platform and writes down exactly what to do.
+        </p>
+        <ul className="grid gap-px p-1 sm:grid-cols-2">
+          {SECTIONS.map((section) => (
+            <li key={section.href}>
+              <Link
+                href={section.href}
+                onClick={onClose}
+                className="block border border-transparent px-3 py-2.5 hover:border-[var(--t-amber-dim)] hover:bg-[var(--t-card-hi)]"
+              >
+                <span className="flex items-baseline gap-2">
+                  <span className="text-[10px] font-bold text-[var(--t-amber-dim)]">
+                    {section.fn}
+                  </span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--t-bright)]">
+                    {section.label}
+                  </span>
+                  <span className="text-[9px] text-[var(--t-faint)]">{section.code}</span>
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-[var(--t-dim)]">
+                  {section.blurb}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <footer className="border-t border-[var(--t-border)] px-4 py-2.5 text-[10px] leading-relaxed text-[var(--t-faint)]">
+          The doctor explains, the vault restores, HEALTH lists open incidents. Nothing here changes
+          data unless you press a button that says what it does.
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function DocLight({ className = '' }: { className?: string }) {
+  const doctor = useLiveData('/api/admin/doctor', AdminDoctor, 120_000);
+  const status = doctor.data?.status;
+  const tone =
+    status === 'fail' ? 'red' : status === 'warn' ? 'amber' : status === 'pass' ? 'green' : 'dim';
+  const label = !doctor.data
+    ? 'CHECKING'
+    : status === 'fail'
+      ? `${doctor.data.failures} FAULT${doctor.data.failures === 1 ? '' : 'S'}`
+      : status === 'warn'
+        ? `${doctor.data.warnings} WATCH`
+        : 'ALL CLEAR';
+  return (
+    <Link
+      href="/dashboard/admin/doctor"
+      title="Open the doctor — a full self-examination of the platform"
+      className={`flex shrink-0 items-center gap-2 hover:text-[var(--t-amber)] ${className}`}
+    >
+      <Dot tone={tone} pulse={status === 'fail'} />
+      <span className={`font-bold tracking-[0.1em] ${TONE[tone]}`}>DOC {label}</span>
+    </Link>
   );
 }
 
@@ -302,6 +494,7 @@ export function TerminalShell({ children }: { children: ReactNode }) {
 function TerminalFrame({ children }: { children: ReactNode }) {
   const feed = useLiveData(FEED_PATH, AdminOverview, FEED_MS);
   const [now, setNow] = useState<number | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     setNow(Date.now());
@@ -332,7 +525,7 @@ function TerminalFrame({ children }: { children: ReactNode }) {
           </span>
         </span>
         <span className="min-w-0 flex-1">
-          <CommandLine />
+          <CommandLine onHelp={() => setHelpOpen(true)} />
         </span>
         <span className="flex shrink-0 items-center gap-3">
           <Clock />
@@ -363,6 +556,7 @@ function TerminalFrame({ children }: { children: ReactNode }) {
             </span>
           )}
         </span>
+        <DocLight className="hidden sm:flex" />
         <span className="hidden text-[var(--t-faint)] md:inline">
           EVERY FIGURE IS LIVE FROM THE PLATFORM — NO SAMPLES
         </span>
@@ -370,6 +564,7 @@ function TerminalFrame({ children }: { children: ReactNode }) {
       </footer>
 
       <AlertToasts />
+      {helpOpen && <Handbook onClose={() => setHelpOpen(false)} />}
     </div>
   );
 }

@@ -270,7 +270,10 @@ function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void })
           bodyClassName="p-0"
         >
           {data.topItems.length === 0 ? (
-            <Empty title="No productized sales yet" />
+            <Empty
+              title="No productized sales yet"
+              hint="Revenue ranks appear the moment an order line names a catalogue item."
+            />
           ) : (
             <DataTable
               columns={[
@@ -301,7 +304,7 @@ function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void })
           bodyClassName="p-0"
         >
           {data.recentOrders.length === 0 ? (
-            <Empty title="No orders yet" />
+            <Empty title="No orders yet" hint="Customer checkouts land here in real time." />
           ) : (
             <DataTable
               columns={[
@@ -334,7 +337,10 @@ function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void })
           bodyClassName="p-0"
         >
           {data.recentCustomers.length === 0 ? (
-            <Empty title="No customers yet" />
+            <Empty
+              title="No customers yet"
+              hint="A customer appears with their first order or inquiry."
+            />
           ) : (
             <DataTable
               columns={[
@@ -367,7 +373,10 @@ function ShopDossier({ userId, onBack }: { userId: string; onBack: () => void })
           bodyClassName="p-0"
         >
           {data.recentSms.length === 0 ? (
-            <Empty title="No SMS on this account" />
+            <Empty
+              title="No SMS on this account"
+              hint="Messages sent to this shop's customers will show here."
+            />
           ) : (
             <DataTable
               columns={[

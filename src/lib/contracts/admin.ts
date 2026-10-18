@@ -405,6 +405,25 @@ export const AdminVault = z.object({
 });
 export type AdminVault = z.infer<typeof AdminVault>;
 
+// The in-app restore: which snapshot was used and exactly what came back —
+// `restored` rows added, `skipped` rows already present (or unrecoverable
+// because a newer row holds their unique name). Nothing is ever overwritten.
+export const AdminVaultRestore = z.object({
+  snapshotId: z.string(),
+  takenAt: z.string().nullable(),
+  imagesIncluded: z.boolean(),
+  restored: z.number().int().nonnegative(),
+  skipped: z.number().int().nonnegative(),
+  byTable: z.array(
+    z.object({
+      key: z.string(),
+      restored: z.number().int().nonnegative(),
+      skipped: z.number().int().nonnegative(),
+    }),
+  ),
+});
+export type AdminVaultRestore = z.infer<typeof AdminVaultRestore>;
+
 // ── doctor ────────────────────────────────────────────────────────────────────
 // The self-check. Every result is written for an operator who has never seen a
 // terminal: one plain sentence saying what is true right now, and numbered

@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
-import { AdminVault, AdminVaultSnapshot } from '@/lib/contracts/admin';
+import { AdminVault, AdminVaultRestore, AdminVaultSnapshot } from '@/lib/contracts/admin';
 import { lossHeadline } from '@/lib/vault-diff';
 import {
   Cell,
@@ -51,7 +51,9 @@ function TriggerTag({ trigger }: { trigger: string }) {
 export function VaultPanel() {
   const feed = useLiveData('/api/admin/vault', AdminVault, 60_000);
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [note, setNote] = useState<{ text: string; kind: 'ok' | 'bad' } | null>(null);
   const vault = feed.data;
 
   const snapshotNow = async () => {
@@ -59,11 +61,48 @@ export function VaultPanel() {
     setNote(null);
     try {
       await apiFetch('/api/admin/vault', { method: 'POST', schema: AdminVaultSnapshot });
+      setNote({
+        kind: 'ok',
+        text: 'Snapshot taken — it is now the baseline every loss is measured against.',
+      });
       feed.refresh();
     } catch {
-      setNote('Snapshot failed — the database did not answer.');
+      setNote({ kind: 'bad', text: 'Snapshot failed — the database did not answer.' });
     } finally {
       setBusy(false);
+    }
+  };
+
+  // Two-step on purpose: the first press arms the button, the second performs
+  // the add-only restore. Nothing is ever overwritten or deleted.
+  const restoreNow = async () => {
+    const latest = vault?.snapshots[0];
+    if (!latest) return;
+    if (!confirming) {
+      setConfirming(true);
+      setNote(null);
+      return;
+    }
+    setRestoring(true);
+    try {
+      const result = await apiFetch(`/api/admin/vault/${latest.id}/restore`, {
+        method: 'POST',
+        schema: AdminVaultRestore,
+      });
+      const tables = result.byTable
+        .filter((entry) => entry.restored > 0)
+        .map((entry) => `${entry.restored} ${entry.key}`)
+        .join(' · ');
+      setNote({
+        kind: 'ok',
+        text: `Brought back ${result.restored} row${result.restored === 1 ? '' : 's'}${tables ? ` — ${tables}` : ''}${result.skipped > 0 ? ` · ${result.skipped} row${result.skipped === 1 ? '' : 's'} already existed and were left untouched` : ''}.`,
+      });
+      feed.refresh();
+    } catch {
+      setNote({ kind: 'bad', text: 'Restore failed — the database did not answer.' });
+    } finally {
+      setRestoring(false);
+      setConfirming(false);
     }
   };
 
@@ -110,8 +149,33 @@ export function VaultPanel() {
                 <span className="font-bold text-[var(--t-red)]">{lossHeadline(vault.loss)}</span>{' '}
                 {vault.loss.length === 1 ? 'is' : 'are'} gone from the live database.
               </p>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <TButton
+                  tone={confirming ? 'red' : 'amber'}
+                  onClick={() => void restoreNow()}
+                  disabled={restoring}
+                >
+                  {restoring
+                    ? 'Bringing back…'
+                    : confirming
+                      ? 'Press again to confirm'
+                      : 'Bring back missing rows'}
+                </TButton>
+                {confirming && !restoring && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirming(false)}
+                    className="text-[10px] uppercase tracking-[0.08em] text-[var(--t-faint)] underline hover:text-[var(--t-dim)]"
+                  >
+                    cancel
+                  </button>
+                )}
+                <span className="text-[10px] text-[var(--t-faint)]">
+                  adds only — never changes or deletes anything that exists
+                </span>
+              </div>
               <p className="mt-1.5 text-[11px] text-[var(--t-faint)]">
-                Restore with{' '}
+                Deeper restore (also rolls existing rows back to the snapshot):{' '}
                 <span className="font-mono text-[var(--t-amber)]">
                   npm run vault:restore -- {vault.snapshots[0]?.id.slice(0, 8)}…
                 </span>{' '}
@@ -141,8 +205,14 @@ export function VaultPanel() {
           )}
 
           {note && (
-            <p className="border border-[var(--t-red)] px-3 py-2 text-[11px] font-bold text-[var(--t-red)]">
-              {note}
+            <p
+              className={`border px-3 py-2 text-[11px] font-bold ${
+                note.kind === 'ok'
+                  ? 'border-[var(--t-green)] text-[var(--t-green)]'
+                  : 'border-[var(--t-red)] text-[var(--t-red)]'
+              }`}
+            >
+              {note.text}
             </p>
           )}
 
