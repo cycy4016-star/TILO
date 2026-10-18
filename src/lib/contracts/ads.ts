@@ -30,10 +30,12 @@ export const AdDraft = z.object({
 });
 
 // Today's ad feed for one shop. `dayKey` (YYYY-MM-DD, UTC) is the rotation seed
-// — the same listings produce a fresh set at the next UTC day boundary.
+// — the same listings produce a fresh set at the next UTC day boundary, and
+// `variant` rotates the angles on demand (the studio's Shuffle button).
 export const AdFeed = z.object({
   generatedAt: z.string().datetime(),
   dayKey: z.string(),
+  variant: z.number().int().nonnegative(),
   storeName: z.string(),
   storeSlug: z.string(),
   storeTagline: z.string().nullable(),

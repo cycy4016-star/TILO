@@ -101,27 +101,36 @@ describe('day rotation helpers', () => {
 
 describe('adPostPlan', () => {
   const caption = 'New at Ama Kente\n\nlink here';
-  const url = 'https://tilza.org/store/ama-kente#i1';
 
-  it('hands WhatsApp the whole caption', () => {
-    const plan = adPostPlan('whatsapp', caption, url);
+  it('hands WhatsApp the whole caption and saves the image to attach', () => {
+    const plan = adPostPlan('whatsapp', caption);
     expect(plan.href).toContain('https://wa.me/?text=');
     expect(plan.href).toContain(encodeURIComponent(caption));
-    expect(plan.saveImage).toBe(false);
+    expect(plan.saveImage).toBe(true);
   });
 
   it('saves the image and copies the caption for image-first networks', () => {
-    const instagram = adPostPlan('instagram', caption, url);
+    const instagram = adPostPlan('instagram', caption);
     expect(instagram.saveImage).toBe(true);
     expect(instagram.copyCaption).toBe(true);
     expect(instagram.href).toBeTruthy();
   });
 
-  it('copies the caption for Facebook, which takes only a link', () => {
-    const facebook = adPostPlan('facebook', caption, url);
+  it('saves the image and copies the caption for Facebook', () => {
+    // The web sharer can only publish a bare link, so the real flow is
+    // save-image + copy-caption and post from the app.
+    const facebook = adPostPlan('facebook', caption);
     expect(facebook.copyCaption).toBe(true);
-    expect(facebook.href).toContain('facebook.com/sharer');
-    expect(facebook.saveImage).toBe(false);
+    expect(facebook.saveImage).toBe(true);
+    expect(facebook.href).toBe('https://www.facebook.com/');
+  });
+
+  it('every compose channel saves the image the note tells the owner to attach', () => {
+    for (const channel of ['whatsapp', 'telegram', 'x'] as const) {
+      const plan = adPostPlan(channel, caption);
+      expect(plan.saveImage, `${channel} should save its image`).toBe(true);
+      expect(plan.note.toLowerCase()).toContain('image');
+    }
   });
 });
 
@@ -177,6 +186,41 @@ describe('buildDailyAds', () => {
       if (scarf) headlines.add(scarf.headline);
     }
     expect(headlines.size).toBeGreaterThan(1);
+  });
+
+  it('shuffles angles by variant, deterministically', () => {
+    const headlines = new Set<string>();
+    for (let variant = 0; variant < 8; variant += 1) {
+      const feed = buildDailyAds({
+        ...STORE,
+        items: ITEMS,
+        promotions: PROMOTIONS,
+        date: DAY,
+        variant,
+      });
+      const scarf = feed.ads[0];
+      if (scarf) headlines.add(scarf.headline);
+    }
+    // Across eight shuffle variants the sale item (deal + promo + generic
+    // angles) must show more than one headline.
+    expect(headlines.size).toBeGreaterThan(1);
+
+    const again = buildDailyAds({
+      ...STORE,
+      items: ITEMS,
+      promotions: PROMOTIONS,
+      date: DAY,
+      variant: 3,
+    });
+    const rerun = buildDailyAds({
+      ...STORE,
+      items: ITEMS,
+      promotions: PROMOTIONS,
+      date: DAY,
+      variant: 3,
+    });
+    expect(again.ads.map((ad) => ad.caption)).toEqual(rerun.ads.map((ad) => ad.caption));
+    expect(again.variant).toBe(3);
   });
 });
 

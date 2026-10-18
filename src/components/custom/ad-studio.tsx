@@ -9,8 +9,8 @@ import {
   Layers,
   Megaphone,
   MonitorPlay,
-  RefreshCcw,
   Send,
+  Shuffle,
   Sparkles,
   Store,
 } from 'lucide-react';
@@ -64,17 +64,21 @@ export function AdStudio() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [format, setFormat] = useState<AdFormat['key']>('square');
+  // Which angle-shuffle set is on screen. The server rebuilds deterministically
+  // per (day, variant), so a shuffle is stable across reloads.
+  const [variant, setVariant] = useState(0);
   const [posting, setPosting] = useState<AdDraft | null>(null);
   // Index into the feed when the slideshow is open; null keeps it closed.
   const [stageIndex, setStageIndex] = useState<number | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [showcaseOpen, setShowcaseOpen] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (target: number) => {
     setLoading(true);
     setError(false);
     try {
-      setFeed(await apiFetch('/api/ads', { schema: AdFeed }));
+      setFeed(await apiFetch(`/api/ads?variant=${target}`, { schema: AdFeed }));
+      setVariant(target);
     } catch {
       setError(true);
     } finally {
@@ -83,7 +87,7 @@ export function AdStudio() {
   }, []);
 
   useEffect(() => {
-    void load();
+    void load(0);
   }, [load]);
 
   const activeFormat: AdFormat =
@@ -132,7 +136,7 @@ export function AdStudio() {
         </h1>
         <p className="mt-2 max-w-lg text-small text-muted-foreground">
           A fresh ad for every listing, written and designed for you. Pick a look, hit post, and
-          choose where it goes.
+          choose where it goes — new angles arrive every night at midnight UTC.
         </p>
         {feed && feed.ads.length > 0 && (
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -277,7 +281,7 @@ export function AdStudio() {
           </p>
           <Button
             type="button"
-            onClick={() => void load()}
+            onClick={() => void load(variant)}
             className="h-9 justify-self-center rounded-md font-semibold"
           >
             Try again
@@ -383,11 +387,11 @@ export function AdStudio() {
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => void load()}
+          onClick={() => void load(variant + 1)}
           disabled={loading}
           className="h-8 rounded-md font-semibold text-muted-foreground hover:text-foreground"
         >
-          <RefreshCcw aria-hidden className="size-3.5" /> Rebuild today&apos;s ads
+          <Shuffle aria-hidden className="size-3.5" /> Shuffle the angles
         </Button>
       </div>
 
@@ -403,6 +407,10 @@ export function AdStudio() {
           url={`${origin}/store/${feed.storeSlug}#${posting.itemId}`}
           imageUrl={adImagePath(posting.itemId, format)}
           imageName={`${posting.itemName}-ad-${format}.png`}
+          storeName={feed.storeName}
+          storeSlug={feed.storeSlug}
+          itemName={posting.itemName}
+          imageAspect={`${activeFormat.width} / ${activeFormat.height}`}
         />
       )}
 
@@ -435,6 +443,10 @@ export function AdStudio() {
           url={`${origin}/store/${feed.storeSlug}`}
           imageUrl={carouselAdPath(feed.storeSlug, carouselIds, format)}
           imageName={`${feed.storeSlug}-showcase-${format}.png`}
+          storeName={feed.storeName}
+          storeSlug={feed.storeSlug}
+          itemName={`${carouselAds.length} featured product${carouselAds.length === 1 ? '' : 's'}`}
+          imageAspect={`${activeFormat.width} / ${activeFormat.height}`}
         />
       )}
 

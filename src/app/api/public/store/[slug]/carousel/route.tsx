@@ -16,8 +16,14 @@ import {
 import { adFormat, CAROUSEL_MAX } from '@/lib/ads';
 import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
+import { imageCacheHeaders, notModified } from '@/lib/image-response';
+import { allow, ipOf } from '@/lib/rate-limit';
 
 export const contentType = 'image/png';
+
+// CPU-heavy render: cached but revalidated on every view (see the item ad
+// route) so tiles refresh the moment a listing or the store changes.
+const CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 
 type RouteContext = { params: Promise<{ slug: string }> };
 
@@ -89,6 +95,9 @@ function chunk<T>(list: T[], size: number): T[][] {
 
 export async function GET(request: Request, context: RouteContext) {
   try {
+    if (!allow(`${ipOf(request)}:ad-carousel`, 120)) {
+      return new Response('Too many requests', { status: 429, headers: { 'retry-after': '60' } });
+    }
     const { slug } = await context.params;
     const params = new URL(request.url).searchParams;
     const format = adFormat(params.get('format'));
@@ -106,6 +115,7 @@ export async function GET(request: Request, context: RouteContext) {
         contactPhone: true,
         logo: true,
         logoMime: true,
+        updatedAt: true,
       },
     });
     if (!store) return new Response('Not found', { status: 404 });
@@ -125,6 +135,7 @@ export async function GET(request: Request, context: RouteContext) {
         pricePesewas: true,
         image: true,
         imageMime: true,
+        updatedAt: true,
       },
     });
     // Preserve the caller's ordering (the query order is unspecified).
@@ -134,6 +145,14 @@ export async function GET(request: Request, context: RouteContext) {
       return item ? [item] : [];
     });
     if (items.length === 0) return new Response('Not found', { status: 404 });
+
+    // The canvas paints the store (name, logo, theme, phone) and the tiles, so
+    // the newest of those timestamps is the strong validator.
+    const updatedAt = new Date(
+      Math.max(store.updatedAt.getTime(), ...items.map((item) => item.updatedAt.getTime())),
+    );
+    const notModifiedResponse = notModified(request, updatedAt, CACHE_CONTROL);
+    if (notModifiedResponse) return notModifiedResponse;
 
     const { accent, accentText, pillText } = adPalette(store.theme);
     const { pad, gap, cols, nameSize, priceSize, tilePad } = LAYOUT[format.key];
@@ -162,6 +181,7 @@ export async function GET(request: Request, context: RouteContext) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              position: 'relative',
               flexGrow: 1,
               minHeight: 0,
               overflow: 'hidden',
@@ -169,12 +189,35 @@ export async function GET(request: Request, context: RouteContext) {
             }}
           >
             {photoSrc ? (
-              // biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM.
-              <img
-                src={photoSrc}
-                alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <>
+                {/* Autofit: dimmed full-bleed copy behind, uncropped photo in
+                    front — any upload shape fills the tile cleanly. */}
+                {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+                <img
+                  src={photoSrc}
+                  alt=""
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: 0.3,
+                  }}
+                />
+                {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+                <img
+                  src={photoSrc}
+                  alt=""
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                  }}
+                />
+              </>
             ) : (
               <div
                 style={{
@@ -325,7 +368,11 @@ export async function GET(request: Request, context: RouteContext) {
       </div>
     );
 
-    return new ImageResponse(canvas, { width: format.width, height: format.height });
+    return new ImageResponse(canvas, {
+      width: format.width,
+      height: format.height,
+      headers: imageCacheHeaders(updatedAt, CACHE_CONTROL),
+    });
   } catch {
     return new Response('Internal Server Error', { status: 500 });
   }

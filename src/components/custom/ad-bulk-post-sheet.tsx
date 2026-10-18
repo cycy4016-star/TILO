@@ -70,7 +70,6 @@ export function AdBulkPostSheet({
   const selectedSet = new Set(selected);
   const chosen = feed.ads.filter((ad) => selectedSet.has(ad.itemId));
   const caption = campaignCaption(feed, selected, origin);
-  const url = `${origin}/store/${feed.storeSlug}`;
 
   function toggle(itemId: string) {
     setSelected((current) =>
@@ -83,7 +82,7 @@ export function AdBulkPostSheet({
       toast.error('Pick at least one ad to post');
       return;
     }
-    const plan = adPostPlan(channel, caption, url);
+    const plan = adPostPlan(channel, caption);
     setBusy(channel);
     try {
       if (plan.saveImage) {

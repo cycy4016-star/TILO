@@ -16,6 +16,10 @@ export async function GET(request: Request) {
   try {
     const user = await requireAuth(request);
     const now = new Date();
+    // Angle shuffle: ?variant=N rotates today's angles (deterministic per
+    // day+variant, so "Shuffle" never produces a different set per reload).
+    const variantParam = new URL(request.url).searchParams.get('variant');
+    const variant = Math.min(999, Math.max(0, Math.trunc(Number(variantParam ?? 0) || 0)));
     // Tenancy: the catalogue is reached through the caller's own store.
     const store = await prisma.store.findUnique({
       where: { userId: user.id },
@@ -97,6 +101,7 @@ export async function GET(request: Request) {
         categoryIds: promotion.categoryIds,
       })),
       date: now,
+      variant,
     });
 
     return NextResponse.json(AdFeed.parse({ ...feed, contactPhone: store.contactPhone }));

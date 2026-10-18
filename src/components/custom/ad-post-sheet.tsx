@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { AdChannelPreview } from '@/components/custom/ad-channel-preview';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -67,6 +68,10 @@ export function AdPostSheet({
   url,
   imageUrl,
   imageName,
+  storeName,
+  storeSlug,
+  itemName,
+  imageAspect,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -76,11 +81,15 @@ export function AdPostSheet({
   url: string;
   imageUrl: string;
   imageName: string;
+  storeName: string;
+  storeSlug: string;
+  itemName: string;
+  imageAspect: string;
 }) {
   const [busy, setBusy] = useState<AdChannel | null>(null);
 
   async function select(channel: AdChannel) {
-    const plan = adPostPlan(channel, caption, url);
+    const plan = adPostPlan(channel, caption);
     setBusy(channel);
     try {
       if (plan.saveImage) await downloadAdImage(imageUrl, imageName);
@@ -118,12 +127,21 @@ export function AdPostSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-xl sm:max-w-md">
+      <DialogContent className="max-h-[88dvh] overflow-y-auto rounded-xl sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-h3">{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-2">
+        <AdChannelPreview
+          storeName={storeName}
+          storeSlug={storeSlug}
+          caption={caption}
+          imageUrl={imageUrl}
+          imageAspect={imageAspect}
+          itemName={itemName}
+          url={url}
+        />
+        <div className="grid gap-2 border-t border-border pt-3">
           {AD_CHANNELS.map((channel) => {
             const Icon = CHANNEL_ICONS[channel.key];
             return (

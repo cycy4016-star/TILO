@@ -162,7 +162,9 @@ export type AdChannelInfo = {
 
 export const AD_CHANNELS: AdChannelInfo[] = [
   { key: 'whatsapp', label: 'WhatsApp', mode: 'compose' },
-  { key: 'facebook', label: 'Facebook', mode: 'compose' },
+  // Facebook's web sharer can only publish a bare link, so the real flow is
+  // "save the image, copy the caption, post from the app" — same as Instagram.
+  { key: 'facebook', label: 'Facebook', mode: 'save' },
   { key: 'instagram', label: 'Instagram', mode: 'save' },
   { key: 'tiktok', label: 'TikTok', mode: 'save' },
   { key: 'x', label: 'X', mode: 'compose' },
@@ -182,37 +184,38 @@ export type AdPostPlan = {
 
 /**
  * What tapping a channel should do. `caption` already carries the shop link,
- * so compose channels hand the whole thing over as text.
+ * so compose channels hand the whole thing over as text, and every channel
+ * also saves the generated image so the note's "attach" is never a lie.
  */
-export function adPostPlan(channel: AdChannel, caption: string, url: string): AdPostPlan {
+export function adPostPlan(channel: AdChannel, caption: string): AdPostPlan {
   switch (channel) {
     case 'whatsapp':
       return {
         href: `https://wa.me/?text=${encodeURIComponent(caption)}`,
         copyCaption: false,
-        saveImage: false,
-        note: 'WhatsApp opened with your ad. Attach the saved image to include the photo.',
+        saveImage: true,
+        note: 'WhatsApp opened with your ad — the image is saved; attach it to show the photo.',
       };
     case 'telegram':
       return {
         href: `https://t.me/share/url?text=${encodeURIComponent(caption)}`,
         copyCaption: false,
-        saveImage: false,
-        note: 'Telegram opened with your ad.',
+        saveImage: true,
+        note: 'Telegram opened with your ad — attach the saved image before sending.',
       };
     case 'x':
       return {
         href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(caption)}`,
         copyCaption: false,
-        saveImage: false,
-        note: 'X opened with your ad.',
+        saveImage: true,
+        note: 'X opened with your ad — attach the saved image to the post.',
       };
     case 'facebook':
       return {
-        href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        href: 'https://www.facebook.com/',
         copyCaption: true,
-        saveImage: false,
-        note: 'Facebook opened with the link — the caption is copied, paste it into the post.',
+        saveImage: true,
+        note: 'Image saved and caption copied — create the post in the Facebook app.',
       };
     case 'instagram':
       return {
@@ -552,7 +555,9 @@ export function contextForItem(input: {
 
 /**
  * Today's ad feed: one draft per listing, each with a day-stable angle and
- * caption. `date` fixes the rotation (tests pass a fixed day).
+ * caption. `date` fixes the rotation (tests pass a fixed day). `variant` lets
+ * the owner shuffle the day's angles (the studio's "Shuffle" button) — the
+ * same (slug, day, variant) always rebuilds the exact same set.
  */
 export function buildDailyAds(input: {
   storeName: string;
@@ -562,9 +567,11 @@ export function buildDailyAds(input: {
   items: AdItemInput[];
   promotions: AdPromoInput[];
   date?: Date;
+  variant?: number;
 }): {
   generatedAt: string;
   dayKey: string;
+  variant: number;
   storeName: string;
   storeSlug: string;
   storeTagline: string | null;
@@ -586,6 +593,7 @@ export function buildDailyAds(input: {
 } {
   const date = input.date ?? new Date();
   const key = dayKey(date);
+  const variant = Math.max(0, Math.trunc(input.variant ?? 0));
   const ads = input.items.map((item) => {
     const context = contextForItem({
       storeName: input.storeName,
@@ -594,7 +602,7 @@ export function buildDailyAds(input: {
       promotions: input.promotions,
       now: date,
     });
-    const seed = hashSeed([input.storeSlug, key, item.id]);
+    const seed = hashSeed([input.storeSlug, key, item.id, variant]);
     const copy = buildAdCaption(context, seed);
     return {
       itemId: item.id,
@@ -615,6 +623,7 @@ export function buildDailyAds(input: {
   return {
     generatedAt: date.toISOString(),
     dayKey: key,
+    variant,
     storeName: input.storeName,
     storeSlug: input.storeSlug,
     storeTagline: input.storeTagline,

@@ -14,11 +14,18 @@ import { AD_INK, AD_PANEL, AD_PAPER, adPalette, clampText, nameFontSize } from '
 import { adFormat } from '@/lib/ads';
 import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
+import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { itemDiscountPercent } from '@/lib/promotions';
+import { allow, ipOf } from '@/lib/rate-limit';
 
 export const contentType = 'image/png';
 
 type RouteContext = { params: Promise<{ itemId: string }> };
+
+// Rendering is CPU-heavy, so the URL is cached but revalidated on every view:
+// the ETag (item + store + category updatedAt) turns repeat views into cheap
+// 304s while an edit is visible on the very next load.
+const CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 
 function toDataUrl(bytes: Uint8Array, mime: string | null): string {
   return `data:${mime ?? 'image/jpeg'};base64,${Buffer.from(bytes).toString('base64')}`;
@@ -26,6 +33,9 @@ function toDataUrl(bytes: Uint8Array, mime: string | null): string {
 
 export async function GET(request: Request, context: RouteContext) {
   try {
+    if (!allow(`${ipOf(request)}:ad-art`, 120)) {
+      return new Response('Too many requests', { status: 429, headers: { 'retry-after': '60' } });
+    }
     const { itemId } = await context.params;
     const params = new URL(request.url).searchParams;
     const format = adFormat(params.get('format'));
@@ -38,6 +48,18 @@ export async function GET(request: Request, context: RouteContext) {
       include: { store: true, category: true },
     });
     if (!item) return new Response('Not found', { status: 404 });
+
+    // Everything painted here (item, its shelf heading, the store's name,
+    // logo, theme and phone) is covered by these three timestamps.
+    const updatedAt = new Date(
+      Math.max(
+        item.updatedAt.getTime(),
+        item.store.updatedAt.getTime(),
+        item.category?.updatedAt.getTime() ?? 0,
+      ),
+    );
+    const notModifiedResponse = notModified(request, updatedAt, CACHE_CONTROL);
+    if (notModifiedResponse) return notModifiedResponse;
 
     const discount = itemDiscountPercent(item);
     // Saturated accents read well on the dark card; the dark ones (slate, ocean,
@@ -126,12 +148,36 @@ export async function GET(request: Request, context: RouteContext) {
         }}
       >
         {photoSrc ? (
-          // biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM.
-          <img
-            src={photoSrc}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+          <>
+            {/* Autofit: the photo itself is never cropped. A dimmed full-bleed
+                copy fills the frame behind it, so any upload shape — portrait,
+                square, panorama — reads as intentional with no adjusting. */}
+            {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+            <img
+              src={photoSrc}
+              alt=""
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 0.3,
+              }}
+            />
+            {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+            <img
+              src={photoSrc}
+              alt=""
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+              }}
+            />
+          </>
         ) : (
           <div
             style={{
@@ -281,7 +327,11 @@ export async function GET(request: Request, context: RouteContext) {
       </div>
     );
 
-    return new ImageResponse(canvas, { width: format.width, height: format.height });
+    return new ImageResponse(canvas, {
+      width: format.width,
+      height: format.height,
+      headers: imageCacheHeaders(updatedAt, CACHE_CONTROL),
+    });
   } catch {
     return new Response('Internal Server Error', { status: 500 });
   }
