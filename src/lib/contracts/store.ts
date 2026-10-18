@@ -10,6 +10,7 @@ export const StoreItemKind = z.enum(['PRODUCT', 'SERVICE']);
 // the API and the client validate against the exact same allowlist. The
 // runtime value is also checked by ThemeKey.parse before it drives CSS.
 export const ThemeKey = z.enum([
+  'blue',
   'orange',
   'gold',
   'ember',
@@ -50,8 +51,8 @@ export const StoreUpsert = z.object({
   contactPhone: optionalText(40),
   active: z.boolean().default(true),
   // Optional on create/update — absent means "leave as is" (DB defaults to
-  // gold + vibrant). Keeping these required-free lets old clients PUT without
-  // the fields without silently resetting the workspace look.
+  // blue + professional). Keeping these required-free lets old clients PUT
+  // without the fields without silently resetting the workspace look.
   theme: ThemeKey.optional(),
   appearance: AppearanceKey.optional(),
 });

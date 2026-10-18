@@ -2,7 +2,7 @@
 // set of seed values (--brand-h/c/l) injected into the CSS in globals.css under
 // a `[data-theme="key"]` selector — the derived brand ramp and every semantic
 // token recompute from those three numbers, so one pick recolours the whole
-// dashboard coherently. The default is a bright golden-orange ("Sunrise"); shops
+// dashboard coherently. The default is a clean royal blue ("Blue"); shops
 // and users may still pick a different brand colour from the picker. The
 // storefront renders one unified corporate layout — there is no alternate
 // appearance anymore (see normalizeAppearance).
@@ -24,9 +24,16 @@ export type ThemePreset = {
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
+    key: 'blue',
+    label: 'Blue',
+    tagline: 'Royal blue · the Tilza default',
+    accents: ['#2563eb', '#dbeafe'],
+    seed: { h: 263, c: 0.23, l: 0.63 },
+  },
+  {
     key: 'orange',
     label: 'Sunrise',
-    tagline: 'Bright golden-orange · the Tilza default',
+    tagline: 'Bright golden-orange · warm and energetic',
     accents: ['#f59e0b', '#fef3c7'],
     seed: { h: 70, c: 0.19, l: 0.72 },
   },
@@ -63,7 +70,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: 'Gold',
     tagline: 'Signature yellow · the original Tilza brand',
     accents: ['#eab308', '#fef9c3'],
-    seed: { h: 84, c: 0.19, l: 0.78 },
+    seed: { h: 84, c: 0.21, l: 0.58 },
   },
   {
     key: 'violet',
@@ -81,10 +88,10 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
 ];
 
-export const DEFAULT_THEME: ThemeKeyValue = 'orange';
+export const DEFAULT_THEME: ThemeKeyValue = 'blue';
 
 // Safely coerce any persisted value (string | null | undefined) into a valid
-// theme key. Mirrors the DB default so unknown values fall back to slate.
+// theme key. Unknown values fall back to the platform default (blue).
 export function normalizeTheme(value: string | null | undefined): ThemeKeyValue {
   const parsed = ThemeKey.safeParse(value);
   return parsed.success ? parsed.data : DEFAULT_THEME;

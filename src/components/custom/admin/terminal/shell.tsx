@@ -287,7 +287,7 @@ function CommandLine({ onHelp }: { onHelp: () => void }) {
       </label>
       <span
         aria-hidden
-        className="flex items-center border border-r-0 border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] font-bold text-[var(--t-amber)]"
+        className="flex items-center border border-r-0 border-[var(--t-border)] bg-[var(--t-input)] px-2.5 py-[5px] text-[12px] font-bold text-[var(--t-amber)]"
       >
         &gt;
       </span>
@@ -302,11 +302,11 @@ function CommandLine({ onHelp }: { onHelp: () => void }) {
           setNote(null);
         }}
         placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP  VT  DR   ·   HELP  ·   ?"
-        className="min-w-0 flex-1 border border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
+        className="min-w-0 flex-1 border border-[var(--t-border)] bg-[var(--t-input)] px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <button
         type="submit"
-        className="shrink-0 border border-[var(--t-amber)] bg-[var(--t-amber)] px-3 py-[5px] text-[10px] font-bold uppercase tracking-[0.1em] text-black transition-colors hover:bg-[var(--t-amber-dim)]"
+        className="shrink-0 border border-[var(--t-amber)] bg-[var(--t-amber)] px-3 py-[5px] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--t-on-accent)] transition-colors hover:bg-[var(--t-amber-dim)]"
       >
         &lt;GO&gt;
       </button>
@@ -341,18 +341,20 @@ function FunctionNav() {
             aria-current={active ? 'page' : undefined}
             className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors ${
               active
-                ? 'bg-[var(--t-amber)] text-black'
+                ? 'bg-[var(--t-amber)] text-[var(--t-on-accent)]'
                 : 'text-[var(--t-dim)] hover:bg-[var(--t-card-hi)] hover:text-[var(--t-amber)]'
             }`}
           >
-            <span className={active ? 'text-black/60' : 'text-[var(--t-amber-dim)]'}>
+            <span className={active ? 'text-[var(--t-on-accent)]/70' : 'text-[var(--t-faint)]'}>
               {section.fn}
             </span>
             {section.label}
             {section.code === 'AL' && unread > 0 && (
               <span
                 className={`ml-0.5 min-w-[16px] rounded-sm px-1 text-center text-[10px] font-bold leading-[14px] ${
-                  active ? 'bg-black text-[var(--t-amber)]' : 'bg-[var(--t-red)] text-black'
+                  active
+                    ? 'bg-[var(--t-on-accent)] text-[var(--t-amber)]'
+                    : 'bg-[var(--t-red)] text-[var(--t-on-accent)]'
                 }`}
               >
                 {unread}
@@ -391,7 +393,7 @@ function Handbook({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-3 sm:p-8"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/45 p-3 sm:p-8"
       role="dialog"
       aria-modal="true"
       aria-label="Operator handbook"
@@ -433,9 +435,7 @@ function Handbook({ onClose }: { onClose: () => void }) {
                 className="block border border-transparent px-3 py-2.5 hover:border-[var(--t-amber-dim)] hover:bg-[var(--t-card-hi)]"
               >
                 <span className="flex items-baseline gap-2">
-                  <span className="text-[10px] font-bold text-[var(--t-amber-dim)]">
-                    {section.fn}
-                  </span>
+                  <span className="text-[10px] font-bold text-[var(--t-faint)]">{section.fn}</span>
                   <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--t-bright)]">
                     {section.label}
                   </span>

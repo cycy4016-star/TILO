@@ -43,8 +43,8 @@ model Store {
   // whole platform surface for this workspace — dashboard shell and public
   // storefront — by seeding --brand-h/c/l in globals.css. Validated client-side
   // against ThemeKey; stored as a plain string so unknown keys degrade to the
-  // default orange seed rather than crashing the page. New shops start on orange.
-  theme        String            @default("orange")
+  // default blue seed rather than crashing the page. New shops start on blue.
+  theme        String            @default("blue")
   // Owner-chosen layout/appearance preset key (see src/lib/theme.ts). Picks the
   // storefront arrangement: "vibrant" is the loud yellow-black look, while
   // "professional" is the clean business layout. Stored as a plain string; the

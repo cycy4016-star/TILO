@@ -1,4 +1,4 @@
-// Presentation primitives for the Tilza Terminal: the amber-on-black building
+// Presentation primitives for the Tilza Terminal: the blue-on-white building
 // blocks every ops panel is assembled from. They are pure — no data fetching,
 // no hooks except LivePill — so they stay reusable across sections.
 'use client';
@@ -201,7 +201,7 @@ export function Bar({ value, max, tone = 'green' }: { value: number; max: number
   const pct = max <= 0 ? 0 : Math.max(0, Math.min(100, (value / max) * 100));
   return (
     <span
-      className="block h-[6px] w-full min-w-8 border border-[var(--t-grid)] bg-black"
+      className="block h-[6px] w-full min-w-8 border border-[var(--t-grid)] bg-[var(--t-card-hi)]"
       role="img"
       aria-label={`${value} of ${max}`}
     >
@@ -346,7 +346,7 @@ export function TButton({
   const base =
     'inline-flex items-center gap-1 border px-2.5 py-[4px] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors disabled:opacity-40';
   const look = active
-    ? `border-current bg-[var(--t-amber)] text-black`
+    ? `border-current bg-[var(--t-amber)] text-[var(--t-on-accent)]`
     : `border-[var(--t-border)] ${TONE[tone]} hover:border-current hover:bg-[var(--t-card-hi)]`;
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${look}`}>
@@ -371,7 +371,7 @@ export function TChip({
       aria-pressed={active}
       className={`border px-2.5 py-[3px] text-[10px] font-bold uppercase tracking-[0.1em] transition-colors ${
         active
-          ? 'border-[var(--t-amber)] bg-[var(--t-amber)] text-black'
+          ? 'border-[var(--t-amber)] bg-[var(--t-amber)] text-[var(--t-on-accent)]'
           : 'border-[var(--t-border)] text-[var(--t-dim)] hover:border-[var(--t-amber-dim)] hover:text-[var(--t-amber)]'
       }`}
     >
@@ -406,7 +406,7 @@ export function SearchField({
       </label>
       <span
         aria-hidden
-        className="flex items-center border border-r-0 border-[var(--t-border)] bg-black px-2.5 text-[12px] font-bold text-[var(--t-amber)]"
+        className="flex items-center border border-r-0 border-[var(--t-border)] bg-[var(--t-input)] px-2.5 text-[12px] font-bold text-[var(--t-amber)]"
       >
         &gt;
       </span>
@@ -415,7 +415,7 @@ export function SearchField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="min-w-0 flex-1 border border-[var(--t-border)] bg-black px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
+        className="min-w-0 flex-1 border border-[var(--t-border)] bg-[var(--t-input)] px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <TButton type="submit">Go</TButton>
     </form>

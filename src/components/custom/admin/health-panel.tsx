@@ -247,7 +247,7 @@ export function HealthPanel() {
                       </Row>
                       {isOpenGuide && (
                         <Row key={`${row.id}-guide`}>
-                          <td colSpan={COLUMNS.length} className="bg-black px-3 py-3">
+                          <td colSpan={COLUMNS.length} className="bg-[var(--t-well)] px-3 py-3">
                             <div className="border border-[var(--t-border)] bg-[var(--t-panel)]">
                               <div className="border-b border-[var(--t-grid)] px-3 py-2.5">
                                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--t-amber)]">
@@ -292,7 +292,7 @@ export function HealthPanel() {
                                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-dim)]">
                                     Technical trace — for developers
                                   </p>
-                                  <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap break-words border border-[var(--t-border)] bg-black p-2 text-[10px] leading-relaxed text-[var(--t-dim)]">
+                                  <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap break-words border border-[var(--t-border)] bg-[var(--t-well)] p-2 text-[10px] leading-relaxed text-[var(--t-dim)]">
                                     {row.stack}
                                   </pre>
                                 </div>

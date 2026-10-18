@@ -41,14 +41,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
-    // Bright default: the whole tree ships orange-first (a saturated
-    // marketplace orange for WhatsApp sellers). The dashboard AppearancePicker
+    // Bright default: the whole tree ships blue-first (a modern royal blue for
+    // the platform's clean white-and-blue look). The dashboard AppearancePicker
     // overwrites this with the user's saved theme on mount, and the storefront
     // sets its own per-store theme on its <main>.
     <html
       lang={locale.lang}
       dir={locale.dir}
-      data-theme="orange"
+      data-theme="blue"
       className={fontVariables}
       suppressHydrationWarning
     >

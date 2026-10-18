@@ -125,14 +125,13 @@
    border role + dark mode from these (see the derived block below), so editing
    --brand-h ALONE recolors the entire site. Keep values in range. */
 :root {
-  --brand-h: 84; /* brand hue, 0–360 (oklch yellow — the Tilza colour) */
-  /* Chroma 0.21 / lightness 0.58 — a deep, saturated gold rather than the pale
-     amber the template shipped. The old 0.16/0.74 seed washed the whole
-     interface out: white cards on near-white, invisible borders, mid-grey
-     text and a soft amber accent, all derived from these same three numbers.
-     Hue stays 84 — gold is the Tilza signature; only its confidence changed. */
-  --brand-c: 0.21; /* brand chroma (saturation), 0–0.3 */
-  --brand-l: 0.58; /* lightness of the brand-500 step */
+  --brand-h: 263; /* brand hue, 0–360 (oklch royal blue — the Tilza colour) */
+  /* Chroma 0.23 / lightness 0.63 places brand-600 exactly on #2563eb — the
+     classic modern SaaS blue — so buttons and links land on the intended
+     royal blue, while the 500 step above it stays a bright sky tone. Because
+     the neutrals derive from the same hue, one number cools every surface. */
+  --brand-c: 0.23; /* brand chroma (saturation), 0–0.3 */
+  --brand-l: 0.63; /* lightness of the brand-500 step */
   /* 10px: buttons sit at 8px, cards at 14px — the crisp modern scale, replacing
       the poster-round 1.1rem the template shipped with. */
   --radius: 0.625rem; /* corner roundness — cascades to every primitive */
@@ -145,11 +144,44 @@
   --font-body: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
 
   /* Interface chrome ramp consumed by the storefront + dashboard via
-      arbitrary-value classes (bg-[var(--tl-950)] etc.). These are the GOLD
-      theme's own values: a warm espresso-to-bronze ramp that gives the public
-      shop page a real tonal gradient, replacing the flat mustard-brown the
-      template shipped with. Every other [data-theme] overrides them alongside
-      the derived --brand ramp above. */
+      arbitrary-value classes (bg-[var(--tl-950)] etc.). These are the BLUE
+      theme's own values: the standard modern blue ramp (Tailwind's blue
+      scale), giving the public shop page a clean, trustworthy gradient.
+      Every other [data-theme] overrides them alongside the derived --brand
+      ramp above. */
+  --tl-950: #172554;
+  --tl-900: #1e3a8a;
+  --tl-800: #1e40af;
+  --tl-700: #1d4ed8;
+  --tl-600: #2563eb;
+  --tl-500: #3b82f6;
+  --tl-400: #60a5fa;
+  --tl-300: #93c5fd;
+  --tl-200: #bfdbfe;
+  --tl-100: #dbeafe;
+  --tl-50: #eff6ff;
+  --tl-cta: #2563eb;
+  --tl-cta-border: #60a5fa;
+  --tl-banner: #eff6ff;
+}
+
+/* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)
+   recomputes the whole derived brand ramp + every semantic token, so one
+   attribute recolors the workspace and storefront coherently. */
+/* Royal blue — the platform default. Named explicitly so a persisted "blue"
+   from the picker resolves to exactly the root seed; the chrome ramp is
+   inherited from :root unchanged. */
+[data-theme="blue"] {
+  --brand-h: 263;
+  --brand-c: 0.23;
+  --brand-l: 0.63;
+}
+/* Original golden seed + warm espresso chrome ramp, preserved for stores and
+   accounts that chose Gold before blue became the platform default. */
+[data-theme="gold"] {
+  --brand-h: 84;
+  --brand-c: 0.21;
+  --brand-l: 0.58;
   --tl-950: #191308;
   --tl-900: #2d2312;
   --tl-800: #463518;
@@ -165,15 +197,8 @@
   --tl-cta-border: #d8b45e;
   --tl-banner: #fdfaf1;
 }
-
-/* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)
-   recomputes the whole derived brand ramp + every semantic token, so one
-   attribute recolors the workspace and storefront coherently. */
-/* Orange — Tilza's own bright golden-orange default for WhatsApp sellers. A
-   sunny, high-energy amber (yellower than a plain orange, warmer than the old
-   yellow) with a vivid commerce ramp for the storefront, so the whole platform
-   reads bright, warm and young instead of the desaturated corporate slate it
-   shipped with. */
+/* Orange — bright golden-orange ("Sunrise"): a sunny, high-energy amber with a
+   vivid commerce ramp, kept for merchants who want the warm marketplace look. */
 [data-theme="orange"] {
   --brand-h: 70;
   --brand-c: 0.19;
@@ -354,11 +379,10 @@
   --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
 }
 
-/* TILZA's yellow-gold is bright, so its buttons carry near-black text instead of
-   the default white (a bright warm fill + white washes out). Applied to the
-   gold and golden-orange themes only — every other theme keeps white on its
-   darker primary. */
-:root:not([data-theme]),
+/* The gold and golden-orange fills are bright, so their buttons carry near-black
+   text instead of the default white (a bright warm fill + white washes out).
+   Applied to the gold and orange themes only — every other theme, including the
+   blue default, keeps white on its darker primary. */
 [data-theme="gold"],
 [data-theme="orange"] {
   --primary-foreground: oklch(0.24 0.04 70);

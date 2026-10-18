@@ -86,7 +86,7 @@ function CheckRow({ check }: { check: AdminDoctorCheck }) {
         )}
       </div>
       {open && (
-        <div className="border-t border-[var(--t-grid)] bg-black px-3 py-3 sm:pl-[92px]">
+        <div className="border-t border-[var(--t-grid)] bg-[var(--t-well)] px-3 py-3 sm:pl-[92px]">
           {check.actions.length > 0 && (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--t-amber)]">
@@ -222,7 +222,7 @@ export function DoctorPanel() {
                 value={reportText}
                 rows={16}
                 aria-label="Doctor report as plain text"
-                className="w-full resize-y border-0 bg-black p-3 font-mono text-[11px] leading-relaxed text-[var(--t-dim)] focus:outline-none"
+                className="w-full resize-y border-0 bg-[var(--t-well)] p-3 font-mono text-[11px] leading-relaxed text-[var(--t-dim)] focus:outline-none"
               />
             </Panel>
           )}

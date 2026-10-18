@@ -218,47 +218,56 @@ a.bg-primary {
 }
 
 /* ============================================================
-   Tilza Terminal — the admin console's phosphor island
+   Tilza Terminal — the admin console
    ------------------------------------------------------------
-   A deliberately self-contained look: pure black, amber/green/red
-   phosphor, monospace. It carries its own variables instead of the
-   brand tokens so the ops console reads like a market terminal and
-   nothing else on the app inherits it. Everything is scoped under
-   `.tlz-terminal`, so it applies to one subtree and no further.
+   A deliberately self-contained look: it carries its own variables instead of
+   the brand tokens so the ops console can tune its density and accents
+   independently and nothing else on the app inherits it. Everything is scoped
+   under `.tlz-terminal`, so it applies to one subtree and no further.
+
+   HISTORY: this was a phosphor-on-black CRT surface (amber/green/red on pure
+   black, monospace). It now ships a modern white-and-blue console that matches
+   the platform's royal-blue design — the light surfaces, the blue accent and
+   the platform's own body font. The `--t-amber*` names survive from the CRT
+   era; today they simply mean "the console accent" (royal blue) and "its
+   deeper hover shade".
    ============================================================ */
 .tlz-terminal {
-  --t-bg: #000000;
-  --t-panel: #070707;
-  --t-card: #0b0b0b;
-  --t-card-hi: #121212;
-  --t-border: #202020;
-  --t-grid: #161616;
-  --t-amber: #ff9e1b;
-  --t-amber-dim: #a86a10;
-  --t-green: #35d07f;
-  --t-red: #ff4d4d;
-  --t-cyan: #4cc2ff;
-  --t-text: #cecece;
-  --t-bright: #f6f6f6;
-  --t-dim: #828282;
-  --t-faint: #545454;
+  --t-bg: #f4f6fb;
+  --t-panel: #ffffff;
+  --t-card: #ffffff;
+  --t-card-hi: #f1f5f9;
+  --t-border: #dbe2ee;
+  --t-grid: #e8edf6;
+  --t-amber: #2563eb;
+  --t-amber-dim: #1d4ed8;
+  --t-green: #15803d;
+  --t-red: #dc2626;
+  --t-cyan: #0e7490;
+  --t-text: #334155;
+  --t-bright: #0f172a;
+  --t-dim: #64748b;
+  --t-faint: #94a3b8;
+  /* Inset wells (log blocks, expanded rows) and form fields. */
+  --t-well: #f1f5f9;
+  --t-input: #ffffff;
+  /* Text drawn on top of an accent-filled control. */
+  --t-on-accent: #ffffff;
   background: var(--t-bg);
   color: var(--t-text);
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New",
-    monospace;
+  font-family: var(--font-body, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.45;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 
-/* A hairline grid that reads on black without shouting. */
+/* A hairline blue grid that reads on white without shouting. */
 .tlz-scan {
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(255, 158, 27, 0.022) 0px,
-    rgba(255, 158, 27, 0.022) 1px,
+    rgba(37, 99, 235, 0.028) 0px,
+    rgba(37, 99, 235, 0.028) 1px,
     transparent 1px,
     transparent 4px
   );
@@ -293,25 +302,26 @@ a.bg-primary {
 }
 
 /* The base layer forces every heading into the display face. Inside the
-   terminal that would break the monospace illusion, so headings opt back in. */
+   console they stay in the console's own face so dense readouts keep one
+   rhythm. */
 .tlz-terminal :is(h1, h2, h3, h4, h5, h6) {
   font-family: inherit;
   text-wrap: wrap;
 }
 
-/* Amber scrollbars so even the scroll chrome belongs to the terminal. */
+/* Blue scrollbars so even the scroll chrome belongs to the console. */
 .tlz-terminal ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
 
 .tlz-terminal ::-webkit-scrollbar-track {
-  background: #000;
+  background: var(--t-bg);
 }
 
 .tlz-terminal ::-webkit-scrollbar-thumb {
-  background: #262626;
-  border: 2px solid #000;
+  background: #c7d2e4;
+  border: 2px solid var(--t-bg);
 }
 
 .tlz-terminal ::-webkit-scrollbar-thumb:hover {
@@ -328,7 +338,7 @@ a.bg-primary {
 /* ============================================================
    Printing a report from the terminal
    ------------------------------------------------------------
-   Paper is white and has no click targets: the phosphor palette
+   Paper is white and has no click targets: the console palette
    flips to ink, the screen furniture (masthead, ticker, function
    nav, status bar, toasts, action bars) drops out via
    `.tlz-print-hide`, and the scrolling panel area unrolls to its
@@ -353,8 +363,8 @@ a.bg-primary {
     --t-card-hi: #f2f2f2;
     --t-border: #9a9a9a;
     --t-grid: #c9c9c9;
-    --t-amber: #8a5200;
-    --t-amber-dim: #a86a10;
+    --t-amber: #1d4ed8;
+    --t-amber-dim: #475569;
     --t-green: #0a6e3c;
     --t-red: #a01616;
     --t-cyan: #0f5f8a;
@@ -362,6 +372,9 @@ a.bg-primary {
     --t-bright: #000000;
     --t-dim: #3d3d3d;
     --t-faint: #5c5c5c;
+    --t-well: #f3f4f6;
+    --t-input: #ffffff;
+    --t-on-accent: #1d4ed8;
     font-size: 11px;
   }
 

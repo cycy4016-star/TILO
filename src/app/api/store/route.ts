@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStore, storeSelect } from '@/lib/store-serializers';
 import { routeErrorResponse } from '@/lib/telemetry';
+import { DEFAULT_THEME } from '@/lib/theme';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,9 +58,9 @@ export async function PUT(request: Request) {
         : await prisma.store.create({
             // One storefront per account: userId is stamped from the session and
             // is unique, so a second sign-up can never hijack this shop's URL.
-            // Corporate default: a store created without an explicit theme
-            // ships slate (the DB default predates the unification).
-            data: { theme: 'orange', ...data, userId: user.id },
+            // Default: a store created without an explicit theme ships the
+            // platform blue.
+            data: { theme: DEFAULT_THEME, ...data, userId: user.id },
             ...storeSelect,
           });
     } catch (error) {

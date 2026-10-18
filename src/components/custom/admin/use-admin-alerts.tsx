@@ -134,7 +134,7 @@ export function useAdminAlerts(): AlertsContextValue {
   return value;
 }
 
-/** Per-kind phosphor colour for tags, toasts and badges. */
+/** Per-kind signal colour for tags, toasts and badges. */
 export const KIND_TONE: Record<AlertKindValue, 'amber' | 'green' | 'red' | 'cyan' | 'text'> = {
   SIGNUP: 'cyan',
   STORE: 'cyan',
@@ -184,7 +184,7 @@ export function AlertToasts() {
             dismissToast(toast.key);
             router.push('/dashboard/admin/alerts');
           }}
-          className={`pointer-events-auto border border-[var(--t-border)] border-l-2 ${border[toast.kind]} bg-[var(--t-card)] px-3 py-2 text-left shadow-[0_10px_28px_rgba(0,0,0,0.65)] transition-colors hover:bg-[var(--t-card-hi)]`}
+          className={`pointer-events-auto border border-[var(--t-border)] border-l-2 ${border[toast.kind]} bg-[var(--t-card)] px-3 py-2 text-left shadow-[0_10px_28px_rgba(15,23,42,0.16)] transition-colors hover:bg-[var(--t-card-hi)]`}
         >
           <span className="flex items-baseline gap-2">
             <span

@@ -13,6 +13,7 @@ import {
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
 import { routeErrorResponse } from '@/lib/telemetry';
+import { DEFAULT_THEME } from '@/lib/theme';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,9 +23,9 @@ export async function GET(request: Request) {
     const pref = await prisma.appearancePreference.findUnique({
       where: { userId: user.id },
     });
-    // No preference yet → the platform defaults (orange + professional).
+    // No preference yet → the platform defaults (blue + professional).
     return NextResponse.json({
-      theme: pref?.theme ?? 'orange',
+      theme: pref?.theme ?? DEFAULT_THEME,
       appearance: pref?.appearance ?? 'professional',
     });
   } catch (error) {
@@ -55,7 +56,7 @@ export async function PUT(request: Request) {
       where: { userId: user.id },
       create: {
         userId: user.id,
-        theme: parsed.data.theme ?? 'orange',
+        theme: parsed.data.theme ?? DEFAULT_THEME,
         appearance: parsed.data.appearance ?? 'professional',
       },
       update: {

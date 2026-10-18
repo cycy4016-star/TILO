@@ -107,7 +107,7 @@ function ThresholdInput({
         }}
         placeholder="0.00"
         inputMode="decimal"
-        className={`w-[72px] border bg-black px-2 py-[3px] text-right text-[11px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:outline-none ${
+        className={`w-[72px] border bg-[var(--t-input)] px-2 py-[3px] text-right text-[11px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:outline-none ${
           busy
             ? 'border-[var(--t-amber-dim)]'
             : 'border-[var(--t-border)] focus:border-[var(--t-amber)]'

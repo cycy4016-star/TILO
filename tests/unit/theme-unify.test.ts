@@ -1,5 +1,5 @@
-// Corporate unification tests: the platform defaults to a bright marketplace
-// orange and every stored appearance normalizes to the single corporate layout,
+// Corporate unification tests: the platform defaults to a clean royal blue
+// and every stored appearance normalizes to the single corporate layout,
 // including legacy "vibrant" rows.
 import { describe, expect, it } from 'vitest';
 import {
@@ -9,18 +9,20 @@ import {
   getThemePreset,
   normalizeAppearance,
   normalizeTheme,
+  THEME_PRESETS,
 } from '@/lib/theme';
 
 describe('corporate theme defaults', () => {
-  it('ships orange as the bright default', () => {
-    expect(DEFAULT_THEME).toBe('orange');
-    expect(getThemePreset(undefined).key).toBe('orange');
-    expect(normalizeTheme('nope')).toBe('orange');
+  it('ships blue as the bright default', () => {
+    expect(DEFAULT_THEME).toBe('blue');
+    expect(getThemePreset(undefined).key).toBe('blue');
+    expect(normalizeTheme('nope')).toBe('blue');
     expect(normalizeTheme('ocean')).toBe('ocean');
   });
 
-  it('lists orange first in the picker', () => {
+  it('lists blue first in the picker', () => {
     expect(APPEARANCE_PRESETS.length).toBeGreaterThan(0);
+    expect(THEME_PRESETS[0]?.key).toBe('blue');
   });
 });
 
