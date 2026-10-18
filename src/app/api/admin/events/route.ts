@@ -92,7 +92,14 @@ export async function GET(request: Request) {
         prisma.user.findMany({
           orderBy: { createdAt: 'desc' },
           take: 10,
-          select: { id: true, name: true, phoneNumber: true, createdAt: true },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            createdAt: true,
+            store: { select: { name: true } },
+          },
         }),
         // Permanent sign-in ledger — each row is one sign-in, and unlike the
         // session it came from it is never deleted on sign-out/expiry.
@@ -105,7 +112,14 @@ export async function GET(request: Request) {
             ipAddress: true,
             userAgent: true,
             createdAt: true,
-            user: { select: { name: true } },
+            user: {
+              select: {
+                name: true,
+                email: true,
+                phoneNumber: true,
+                store: { select: { name: true } },
+              },
+            },
           },
         }),
         prisma.store.findMany({
@@ -206,9 +220,13 @@ export async function GET(request: Request) {
           id: `signup:${user.id}`,
           ts: user.createdAt.toISOString(),
           kind: 'signup',
-          shop: user.name,
+          // The tape's Shop column tells the operator whether the account has
+          // opened a storefront yet; the person's name already rides in the
+          // summary, so the columns never repeat the same value.
+          shop: user.store?.name ?? 'no shop yet',
           summary: `${user.name} joined`,
-          detail: user.phoneNumber,
+          // Account details on the row itself: email + phone, both searchable.
+          detail: [user.email, user.phoneNumber].filter(Boolean).join(' · ') || null,
           ok: null,
         }),
       ),
@@ -217,11 +235,14 @@ export async function GET(request: Request) {
           id: `signin:${event.id}`,
           ts: event.createdAt.toISOString(),
           kind: 'signin',
-          shop: event.user.name,
+          shop: event.user.store?.name ?? 'no shop yet',
           summary: `${event.user.name} signed in`,
-          // Compact device hint: browser name + network, so the operator can
-          // spot odd sign-ins without reading a raw UA string.
-          detail: [event.ipAddress, browserOf(event.userAgent)].filter(Boolean).join(' · ') || null,
+          // Account details plus a compact device hint: browser name + network,
+          // so the operator can spot odd sign-ins without reading a raw UA.
+          detail:
+            [event.user.email, event.user.phoneNumber, event.ipAddress, browserOf(event.userAgent)]
+              .filter(Boolean)
+              .join(' · ') || null,
           ok: null,
         }),
       ),

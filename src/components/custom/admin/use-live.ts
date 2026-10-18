@@ -28,22 +28,21 @@ export function useLiveData<T>(path: string, schema: ZodType<T>, intervalMs = 20
   const [live, setLive] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
 
-  const inFlight = useRef(false);
   const hasLoaded = useRef(false);
-  const pathRef = useRef(path);
-  pathRef.current = path;
+  // Monotonic request id: a newer fetch (filter change, pulse) always wins and
+  // a slow stale response can never overwrite fresher data on screen.
+  const requestSeq = useRef(0);
 
   const load = useCallback(
     async (quiet: boolean) => {
-      // Never overlap requests — a slow response must not race the pulse.
-      if (inFlight.current) return;
-      inFlight.current = true;
+      const id = ++requestSeq.current;
       if (!quiet) {
         setLoading(true);
         setError(false);
       }
       try {
-        const next = await apiFetch(pathRef.current, { schema });
+        const next = await apiFetch(path, { schema });
+        if (id !== requestSeq.current) return;
         setData(next);
         setUpdatedAt(Date.now());
         setError(false);
@@ -51,16 +50,18 @@ export function useLiveData<T>(path: string, schema: ZodType<T>, intervalMs = 20
       } catch {
         // A failed background refresh keeps the last good snapshot on screen;
         // only a failure before any data has arrived is worth a full error state.
+        if (id !== requestSeq.current) return;
         if (!hasLoaded.current) setError(true);
       } finally {
-        inFlight.current = false;
-        setLoading(false);
+        if (id === requestSeq.current) setLoading(false);
       }
     },
-    [schema],
+    [path, schema],
   );
 
-  // Initial load, and a silent reload whenever the path changes (range, filters).
+  // Initial load, and an immediate silent reload whenever the path changes
+  // (range, filters). `load` closes over `path`, so a filter click re-runs this
+  // effect at once instead of waiting for the pulse.
   useEffect(() => {
     void load(true);
   }, [load]);

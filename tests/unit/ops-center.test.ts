@@ -370,7 +370,16 @@ describe('admin events route', () => {
       },
     ]);
     db.prisma.paymentTransaction.findMany.mockResolvedValue([]);
-    db.prisma.user.findMany.mockResolvedValue([]);
+    db.prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'u-9',
+        name: 'Cyber',
+        email: 'cyber@example.com',
+        phoneNumber: '+233240000009',
+        createdAt: new Date('2026-10-08T10:00:00.000Z'),
+        store: null,
+      },
+    ]);
     db.prisma.authEvent.findMany.mockResolvedValue([
       {
         id: 'ae-1',
@@ -378,7 +387,12 @@ describe('admin events route', () => {
         userAgent:
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         createdAt: new Date('2026-10-07T10:00:00.000Z'),
-        user: { name: 'Ama' },
+        user: {
+          name: 'Ama',
+          email: 'ama@example.com',
+          phoneNumber: null,
+          store: { name: 'Shop A' },
+        },
       },
     ]);
     db.prisma.appLog.findMany.mockResolvedValue([
@@ -485,16 +499,35 @@ describe('admin events route', () => {
     const storeHunt = await GET(new Request('http://test/api/admin/events?q=opened'));
     expect((await storeHunt.json()).events.map((e: { kind: string }) => e.kind)).toEqual(['store']);
 
-    // Sign-ins come off the permanent ledger — one event per sign-in, with a
-    // compact device hint instead of the raw UA string.
+    // Sign-ups carry the account's own details: email + phone in the detail
+    // and the shop (or "no shop yet") in the Shop column.
+    const signups = await GET(new Request('http://test/api/admin/events?kind=signup'));
+    const signupBody = await signups.json();
+    expect(signupBody.events).toHaveLength(1);
+    expect(signupBody.events[0]).toMatchObject({
+      kind: 'signup',
+      shop: 'no shop yet',
+      summary: 'Cyber joined',
+      detail: 'cyber@example.com · +233240000009',
+      ok: null,
+    });
+
+    // An email hunt finds the sign-up — account details are searchable too.
+    const emailHunt = await GET(new Request('http://test/api/admin/events?q=cyber%40example.com'));
+    expect((await emailHunt.json()).events.map((e: { kind: string }) => e.kind)).toEqual([
+      'signup',
+    ]);
+
+    // Sign-ins come off the permanent ledger — one event per sign-in, with the
+    // account details and a compact device hint instead of the raw UA string.
     const signIns = await GET(new Request('http://test/api/admin/events?kind=signin'));
     const signInBody = await signIns.json();
     expect(signInBody.events).toHaveLength(1);
     expect(signInBody.events[0]).toMatchObject({
       kind: 'signin',
-      shop: 'Ama',
+      shop: 'Shop A',
       summary: 'Ama signed in',
-      detail: '41.66.1.2 · Chrome 120',
+      detail: 'ama@example.com · 41.66.1.2 · Chrome 120',
       ok: null,
     });
 
