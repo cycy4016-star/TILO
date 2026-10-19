@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Check production /health
         env:
-          URL: https://tilo-production-81c6.up.railway.app/health
+          # Override with a repository variable when the custom domain is
+          # attached; the Railway URL is only the current fallback.
+          URL: ${{ format('{0}/health', vars.PRODUCTION_URL || 'https://tilo-production-81c6.up.railway.app') }}
         run: |
           set -euo pipefail
           echo "Checking ${URL}"

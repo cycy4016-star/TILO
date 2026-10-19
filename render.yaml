@@ -1,3 +1,9 @@
+# LEGACY — NOT THE ACTIVE DEPLOYMENT.
+#
+# Production runs on Railway; see "Deploy to Railway + Postgres" in README.md.
+# This blueprint is kept only as a reference. It provisions a free Postgres
+# that Render deletes 30 days after creation, so it is not safe for real data.
+#
 # Render Blueprint — https://render.com/docs/infrastructure-as-code
 # Docs: https://render.com/docs/blueprint-spec
 #

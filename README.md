@@ -63,7 +63,7 @@ Prisma 6 + PostgreSQL, Zod contracts, Biome, Vitest.
 
 ## Local development
 
-Prerequisites: Node >= 20.18.1, npm, a PostgreSQL database.
+Prerequisites: Node >= 24, npm, a PostgreSQL database.
 
 ```bash
 cp .env.example .env.local
@@ -103,6 +103,8 @@ See `.env.example` for the full list:
 - `SIGNUP_INVITE_CODE` — optional. When set, sign-ups that are not from a
   fully-verified email (i.e. not Google) must submit this exact invite code or
   they are rejected. Leave unset for open sign-up.
+- `SIGNUP_LIMIT` — optional. Hard cap on the number of accounts (the "first N
+  shops" gate for a pilot). Sign-up is rejected once the cap is reached.
 - `NEXT_PUBLIC_APP_URL` — public app origin for SEO/canonical URLs.
 - `NEXT_PUBLIC_API_URL` — optional, only for an external API origin.
 - `SEO_INDEXABLE` — set to `true` in production to allow indexing.
@@ -127,39 +129,53 @@ Paystack (optional — order checkout returns `503` until configured):
 - `PAYSTACK_PUBLIC_KEY` — public key (kept for future inline checkout).
 - `PAYSTACK_CALLBACK_URL` — where Paystack returns the customer after checkout.
 
-## Deploy to Vercel + Postgres
+## Deploy to Railway + Postgres
 
-1. Create a Postgres database (Neon, Supabase, or Vercel Postgres) and copy the
-   connection string.
-2. Push this repo to GitHub and import it in Vercel.
-3. Build command: `prisma generate && prisma migrate deploy && next build`
-   (already set as `npm run vercel-build`). Output directory: default.
-4. Environment variables: set `DATABASE_URL`, `BETTER_AUTH_SECRET`,
-   `BETTER_AUTH_URL` (your `https://...vercel.app` URL),
-   `NEXT_PUBLIC_APP_URL` (same URL), `ADMIN_EMAIL`, `SEO_INDEXABLE=true`, and the
-   provider keys you use (`GOOGLE_*`, `RESEND_*`, `PAYSTACK_*`).
-5. Deploy. `prisma migrate deploy` applies `prisma/migrations/*` before the
-   Next build; the app seeds idempotently at boot (`src/lib/seed.ts`).
+Production runs on Railway: a `tilo` web service plus a `tilo-db` Postgres
+service in the same project. The database has no public network access; only
+the web service gets a public domain.
 
-## Deploy to Render (blueprint)
+1. Create a Railway project with a Postgres service. Railway exposes its
+   connection string as `DATABASE_URL`.
+2. Point the web service at this repo. The service builds and starts with
+   `npm run start`; `prestart` runs `scripts/boot-migrate.mjs`, which applies
+   `prisma/migrations/*` before the server accepts traffic.
+3. Set `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
+   `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_AUTH=true`,
+   `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL`, and set
+   `SEO_INDEXABLE=true` once the site is ready to be indexed.
 
-`render.yaml` provisions a Node web service + managed PostgreSQL. In the Render
-dashboard pick **New > Blueprint** and point it at this repo.
+Migrations deliberately run at **boot**, not during the build: Railway's build
+sandbox cannot reach the Postgres private network, so `prisma migrate deploy`
+in the build step fails with `P1001`. `prestart` runs where `DATABASE_URL`
+actually resolves. `scripts/boot-migrate.mjs` also self-heals a previously
+failed migration (`P3009`) before deploying again.
 
-- `DATABASE_URL` is linked automatically from the provisioned database.
-- Set `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `GOOGLE_*`,
-  `ADMIN_EMAIL`, `NEXT_PUBLIC_GOOGLE_AUTH=true`, and the optional `RESEND_*` /
-  `PAYSTACK_*` keys to real values after the first deploy (`sync: false` vars).
-- `BETTER_AUTH_SECRET` is generated automatically.
-- Store photos, the store logo and banner, and profile avatars are stored in Postgres
-  (no object storage), so they work on Render's ephemeral disk out of the box.
+`src/app/store/[slug]/page.tsx` self-fetches through `BETTER_AUTH_URL`, and
+SEO/canonical URLs come from `NEXT_PUBLIC_APP_URL`, so both must be the public
+origin of the deployment.
+
+### Moving to a custom domain
+
+Nothing in the code is hardcoded to the Railway URL; the cutover is three
+settings:
+
+1. Attach the domain to the `tilo` service and point DNS at Railway.
+2. Set `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, and
+   `BETTER_AUTH_TRUSTED_ORIGINS` (keep the old Railway URL in the trusted list
+   during the transition).
+3. Add `https://<domain>/api/auth/callback/google` to the Google OAuth client's
+   Authorized redirect URIs, keeping the existing one until sign-in is verified.
+
+`render.yaml` is retained for reference but is not used by the Railway
+deployment.
 
 Database workflows:
 
 ```bash
 npm run db:generate        # regenerate Prisma client
 npm run db:migrate:dev     # local migration during development
-npm run db:migrate:deploy  # apply migrations (CI / production)
+npm run db:migrate:deploy  # apply migrations manually (ops / recovery)
 npm run db:studio          # inspect data
 ```
 
