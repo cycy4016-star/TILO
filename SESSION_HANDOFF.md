@@ -19,6 +19,12 @@ ads and analytics in `/dashboard`.
 Multi-tenant by `userId` ownership columns, not by role. One deployment serves
 many shops.
 
+The catalogue's shopper tools run client-side from `src/lib/catalog-view.ts`:
+search (plus shelf suggestions and recent searches), sort, in-stock / on-sale /
+saved filters, a cedi price band, load-more paging, and a recently-viewed
+strip. Saved items, recent searches and recently viewed live in `localStorage`
+per shop; there are no shopper accounts yet.
+
 ---
 
 ## 2. Production
@@ -114,7 +120,7 @@ Run all four before committing:
 ```powershell
 npm.cmd run typecheck
 npm.cmd run lint     # biome, 0 errors + 15 pre-existing warnings
-npm.cmd test         # vitest, 384 tests / 46 files
+npm.cmd test         # vitest, 399 tests / 47 files
 npm.cmd run build
 ```
 
@@ -159,8 +165,8 @@ Node 24, then a Postgres integration job plus Playwright E2E.
 4. **`/store/test`** was an empty "Test" shop created during deploy
    verification. The row has been deleted (the owner account was kept), so
    `/store/test` returns 404 and it is absent from the sitemap and `llms.txt`.
-   The production database has no active shops, which is expected until the
-   first real owner signs up.
+   Two real shops (`daves-ishop`, `tambes-logages365`) were created on
+   2026-10-19 and both were still empty at this snapshot.
 5. **Secrets.** `.env.local` is gitignored and has never been committed; the
    only secret-shaped strings in history are placeholders in `.env.example`.
    No rotation is required for that reason alone, but rotate normally if the
