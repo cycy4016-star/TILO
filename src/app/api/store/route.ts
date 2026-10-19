@@ -19,7 +19,7 @@ type StoreWithItems = Prisma.StoreGetPayload<typeof storeSelect>;
 export async function GET(request: Request) {
   try {
     const user = await requireAuth(request);
-    // Tenancy: resolved through Store.userId (unique) â€” never a global
+    // Tenancy: resolved through Store.userId (unique) — never a global
     // findFirst, which would hand the caller whichever shop happened to be first.
     const store = await prisma.store.findUnique({
       where: { userId: user.id },
@@ -66,7 +66,7 @@ export async function PUT(request: Request) {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json(
-          { errors: { slug: 'That link is already taken â€” try another' } },
+          { errors: { slug: 'That link is already taken — try another' } },
           { status: 409 },
         );
       }

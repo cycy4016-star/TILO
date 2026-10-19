@@ -1,4 +1,4 @@
-// Sticky shop chrome for /store/[slug] â€” the marketplace masthead. Owns no
+// Sticky shop chrome for /store/[slug] — the marketplace masthead. Owns no
 // state of its own: the search text and basket count are lifted to the
 // storefront shell so the header, the grid and the basket bar always agree.
 // The bar paints with the shop's own theme ramp (--tl-*), so every preset
@@ -34,7 +34,7 @@ export function StoreHeader({
         type="text"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
-        placeholder={`Search ${storeName}â€¦`}
+        placeholder={`Search ${storeName}…`}
         aria-label={`Search ${storeName}`}
         className="h-10 w-full rounded-lg border bg-background pl-9 pr-9 text-small text-foreground shadow-xs outline-none ring-1 ring-border transition placeholder:text-muted-foreground focus:ring-2 focus:ring-highlight"
       />

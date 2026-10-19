@@ -1,5 +1,5 @@
 // Checkout: the basket review, the customer details, and the receipt that
-// hands the finished order to WhatsApp. One dialog, two states (form â†’
+// hands the finished order to WhatsApp. One dialog, two states (form —
 // receipt) so the customer never loses the order that was just placed.
 'use client';
 
@@ -57,7 +57,7 @@ export function CheckoutDialog({
   storeName: string;
   contactPhone: string | null;
   slug: string;
-  /** Shop theme key â€” the dialog is portaled outside the themed <main>, so it
+  /** Shop theme key — the dialog is portaled outside the themed <main>, so it
    *  re-scopes the --tl/brand tokens on itself to stay in the shop's skin. */
   theme: string;
   lines: CheckoutItem[];
@@ -73,7 +73,7 @@ export function CheckoutDialog({
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // The hand-off message is built from the receipt, not the live basket â€” the
+  // The hand-off message is built from the receipt, not the live basket — the
   // basket is emptied the moment the order is recorded.
   const waOrderLink =
     receipt && contactPhone
@@ -129,7 +129,7 @@ export function CheckoutDialog({
       setReceipt({ ...snapshot, orderNumber: result.order.orderNumber });
       onPlaced();
       toast.success(
-        contactPhone ? 'Order recorded â€” send it to the shop on WhatsApp' : 'Order sent',
+        contactPhone ? 'Order recorded — send it to the shop on WhatsApp' : 'Order sent',
       );
     } catch (requestError) {
       const cause = (
@@ -196,7 +196,7 @@ export function CheckoutDialog({
             </ul>
             <p className="text-small text-muted-foreground">
               {waOrderLink
-                ? `${storeName} sees it immediately â€” send the order on WhatsApp.`
+                ? `${storeName} sees it immediately — send the order on WhatsApp.`
                 : `${storeName} has your order and will contact you to confirm.`}
             </p>
             {waOrderLink && (
@@ -311,7 +311,7 @@ export function CheckoutDialog({
                 rows={2}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="Size, colour, pickup timeâ€¦"
+                placeholder="Size, colour, pickup time…"
                 className="rounded-lg"
               />
             </div>
@@ -323,7 +323,7 @@ export function CheckoutDialog({
               className="h-11 rounded-md bg-highlight font-semibold text-highlight-foreground hover:bg-flame-600"
             >
               {busy && <Loader2 aria-hidden className="size-4 animate-spin" />}
-              {busy ? 'Placing orderâ€¦' : 'Place order'}
+              {busy ? 'Placing order…' : 'Place order'}
             </Button>
             {contactPhone && (
               <p className="text-center text-caption text-muted-foreground">

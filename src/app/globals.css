@@ -1,7 +1,7 @@
-/* Tilza theme scaffold. â€” the agent's ONLY authority here is the SEED inside
+/* Tilza theme scaffold. — the agent's ONLY authority here is the SEED inside
  * the `brand_tokens` slot. Everything else (the @theme namespaces, the
  * framework-DERIVED color block, @layer base/components) is FRAMEWORK
- * STRUCTURE â€” do not edit it.
+ * STRUCTURE — do not edit it.
  *
  * Tailwind 4 is CSS-first (no tailwind.config.js). Seed -> derived model: the
  * agent sets a handful of values in the slot (brand hue/chroma/lightness,
@@ -17,7 +17,7 @@
  *   ORANGE (`--flame-*`, `--highlight`) = ENERGY. Prices, badges, counts,
  *                                          active/selected affordances, the
  *                                          storefront's order action. It is
- *                                          never load-bearing structure â€” if
+ *                                          never load-bearing structure — if
  *                                          orange disappears the UI still
  *                                          works, it just stops shouting.
  * Neither ramp tints the neutrals. Surfaces are white or true grey, so both
@@ -57,7 +57,7 @@
   --color-ring: var(--ring);
 
   /* The energy layer. Same shape as the semantic roles above but a second,
-     independent colour â€” so `bg-highlight`, `text-highlight`,
+     independent colour — so `bg-highlight`, `text-highlight`,
      `border-highlight` and the full `flame-*` ramp are all real utilities. */
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
@@ -66,7 +66,7 @@
   --color-highlight-ink: var(--highlight-ink);
   --color-highlight-wash: var(--highlight-wash);
 
-  /* Full brand ramp (was holey â€” only 50/100/500/700/900 existed, so
+  /* Full brand ramp (was holey — only 50/100/500/700/900 existed, so
      bg-brand-600 / border-brand-200 compiled to nothing). */
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -102,7 +102,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 
-  /* Type scale â€” one class carries size + leading + weight + tracking, so the
+  /* Type scale — one class carries size + leading + weight + tracking, so the
      agent reaches for `text-h1` instead of guessing text-4xl/font-bold/tracking. */
   --text-display: 3.815rem;
   --text-display--line-height: 1.04;
@@ -132,7 +132,7 @@
   --text-caption--line-height: 1.4;
   --text-caption--letter-spacing: 0.01em;
 
-  /* Section rhythm â€” `py-section`, `px-gutter`, `max-w-[var(--container-page)]`. */
+  /* Section rhythm — `py-section`, `px-gutter`, `max-w-[var(--container-page)]`. */
   --spacing-stack: 0.75rem;
   --spacing-block: 1.5rem;
   --spacing-gutter: clamp(1rem, 5vw, 2rem);
@@ -140,7 +140,7 @@
   --spacing-section-lg: clamp(5rem, 11vw, 9rem);
   --container-page: 72rem;
 
-  /* Elevation â€” brand-tinted; depth becomes the default, not an afterthought. */
+  /* Elevation — brand-tinted; depth becomes the default, not an afterthought. */
   --shadow-xs: 0 1px 2px -1px var(--elevation-1);
   --shadow-sm: 0 1px 3px 0 var(--elevation-1), 0 1px 2px -1px var(--elevation-1);
   --shadow-md: 0 4px 12px -2px var(--elevation-2), 0 2px 6px -2px var(--elevation-1);
@@ -156,12 +156,12 @@
 }
 
 /* === BEGIN tilza:brand_tokens === */
-/* THE SEED â€” the only styling authority on this file. Two colours, one radius,
+/* THE SEED — the only styling authority on this file. Two colours, one radius,
    two fonts. Everything else on the platform is derived from these numbers.
 
    BLUE  = STRUCTURE. Hue 257 sits on a true, unpolluted blue (no violet cast).
-   The 600 step lands on #2563eb, so `--primary` â€” every button, link, focus
-   ring and selection edge â€” is that exact blue at 5.2:1 against white.
+   The 600 step lands on #2563eb, so `--primary` — every button, link, focus
+   ring and selection edge — is that exact blue at 5.2:1 against white.
 
    ORANGE = ENERGY. Hue 45 is a true orange, not amber and not red; chroma 0.21
    at lightness 0.62 puts `--highlight` on #f97316, a vivid tangerine that
@@ -170,29 +170,29 @@
    strip every orange element the product still works end to end.
 
    The neutrals are NOT derived from either hue. custom-style.css re-pins every
-   surface, border and ink to true grey or pure white â€” that separation is what
+   surface, border and ink to true grey or pure white — that separation is what
    lets a saturated orange and a saturated blue sit on one canvas without
    fighting, and it is what makes the page read as "pure" rather than tinted.
 */
 :root {
   /* ---- BLUE: structure ---- */
-  --brand-h: 257; /* oklch hue, 0â€“360 â€” a true blue, no violet lean */
-  --brand-c: 0.19; /* oklch chroma, 0â€“0.3 */
+  --brand-h: 257; /* oklch hue, 0–360 — a true blue, no violet lean */
+  --brand-c: 0.19; /* oklch chroma, 0–0.3 */
   --brand-l: 0.62; /* lightness of the brand-500 step */
 
   /* ---- ORANGE: energy ---- */
-  --flame-h: 45; /* oklch hue, 0â€“360 â€” true orange */
-  --flame-c: 0.21; /* oklch chroma, 0â€“0.3 */
+  --flame-h: 45; /* oklch hue, 0–360 — true orange */
+  --flame-c: 0.21; /* oklch chroma, 0–0.3 */
   --flame-l: 0.62; /* lightness of the flame-500 step */
 
-  /* 8px base: controls at 6â€“8px, cards and panels at 12px, overlays at 16px.
+  /* 8px base: controls at 6–8px, cards and panels at 12px, overlays at 16px.
      Tight enough that dense UI reads as instrument panels rather than toys. */
-  --radius: 0.5rem; /* corner roundness â€” cascades to every primitive */
+  --radius: 0.5rem; /* corner roundness — cascades to every primitive */
 
   /* Set by next/font on <html> (src/lib/fonts.ts). The stacks after the comma
      are the fallback when the webfont hasn't landed yet. One family, two roles:
      Inter is the UI voice and the heading voice. Hierarchy comes from the type
-     scale's size/weight/tracking steps, not from a novelty display face â€” a
+     scale's size/weight/tracking steps, not from a novelty display face — a
      second decorative font across every heading reads as template, not craft. */
   --font-display: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   --font-body: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
@@ -225,7 +225,7 @@
 }
 /* === END tilza:brand_tokens === */
 
-/* FRAMEWORK-DERIVED â€” NOT agent-editable (outside the slot). The full ramp,
+/* FRAMEWORK-DERIVED — NOT agent-editable (outside the slot). The full ramp,
    every semantic role, and dark mode are computed from the seed above. Neutrals
    carry a touch of the brand hue so one hue change reskins the whole surface. */
 :root {
@@ -329,7 +329,7 @@
   html,
   body {
     /* Rotated cards and decorative overflow must never make the page
-       horizontally draggable â€” clip it at the root (overflow-x: clip, not
+       horizontally draggable — clip it at the root (overflow-x: clip, not
        hidden, so position:sticky ancestors keep working). */
     overflow-x: clip;
   }
@@ -338,7 +338,7 @@
   }
   /* Buttons get the UA stylesheet's arrow cursor; restore the pointer so every
      interactive control matches the affordance an <a> gets for free. Lives in
-     `base` so `cursor-default`/`cursor-not-allowed` utilities still win â€” that
+     `base` so `cursor-default`/`cursor-not-allowed` utilities still win — that
      keeps shadcn's select and dropdown-menu items on the default arrow. */
   button:not(:disabled),
   [role="button"]:not(:disabled) {

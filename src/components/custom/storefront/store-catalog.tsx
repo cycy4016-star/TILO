@@ -1,10 +1,10 @@
 // The public storefront's catalogue grid.
 //
-// A client island so one basket can span every card on the page â€” the server
+// A client island so one basket can span every card on the page — the server
 // page hands over already-grouped shelves (label = category name, null =
 // uncategorised) and the storefront shell owns the search/basket state that
-// this grid renders against. Marketplace styling: roomy 2â†’3-up cards, square
-// photos, price-first type, one-tap add â€” with quick-view, WhatsApp and SMS
+// this grid renders against. Marketplace styling: roomy 2×3-up cards, square
+// photos, price-first type, one-tap add — with quick-view, WhatsApp and SMS
 // tucked behind the sheet so the card stays clean. A photo can be tapped
 // straight into a fullscreen lightbox (grid "View" pill or the quick-view
 // photo) so the whole, uncropped image is one tap away.
@@ -44,7 +44,7 @@ import { itemOrderWhatsApp } from '@/lib/whatsapp-templates';
 type CatalogItem = StorePublic['items'][number];
 
 // One shelf as the server hands it over. `label: null` is the uncategorised
-// bucket (or a shop with no categories at all) â€” those render without a heading
+// bucket (or a shop with no categories at all) — those render without a heading
 // so a shop that never sets one up looks exactly as it did before.
 export type CatalogGroup = {
   label: string | null;
@@ -122,7 +122,7 @@ export function StoreCatalog({
   groups: CatalogGroup[];
   promotions: PromotionSummary[];
   storeUrl: string;
-  /** Shop theme key â€” the quick-view sheet is portaled outside the themed
+  /** Shop theme key — the quick-view sheet is portaled outside the themed
    *  <main>, so it re-scopes the tokens on itself to stay in the shop's skin. */
   theme: string;
   query: string;
@@ -130,7 +130,7 @@ export function StoreCatalog({
   cart: Record<string, number>;
   onQuantityChange: (itemId: string, quantity: number) => void;
 }) {
-  // Filtering only hides cards â€” the basket always spans the whole catalogue,
+  // Filtering only hides cards — the basket always spans the whole catalogue,
   // so narrowing the view never drops what's already in it.
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [shareItem, setShareItem] = useState<CatalogItem | null>(null);
@@ -159,8 +159,8 @@ export function StoreCatalog({
 
   function emptyCopy() {
     const search = query.trim();
-    if (search && activeCategory) return `Nothing matches â€œ${search}â€ in ${activeCategory}.`;
-    if (search) return `Nothing matches â€œ${search}â€.`;
+    if (search && activeCategory) return `Nothing matches “${search}” in ${activeCategory}.`;
+    if (search) return `Nothing matches “${search}”.`;
     if (activeCategory) return `Nothing filed under ${activeCategory} yet.`;
     return 'Nothing matches those filters.';
   }
@@ -267,7 +267,7 @@ export function StoreCatalog({
           <div className="mt-3 pt-1">
             {soldOut ? (
               <p className="rounded-md border border-dashed border-border px-3 py-2.5 text-center text-caption text-muted-foreground">
-                Back soon â€” message the shop to reserve one.
+                Back soon — message the shop to reserve one.
               </p>
             ) : qty === 0 ? (
               <Button
@@ -471,7 +471,7 @@ export function StoreCatalog({
         )}
       </div>
 
-      {/* Quick view: the full product story without leaving the grid â€” photo,
+      {/* Quick view: the full product story without leaving the grid — photo,
           description, quantity, and the per-item WhatsApp/SMS order links. */}
       <Sheet
         open={quickView !== null}
@@ -515,8 +515,8 @@ export function StoreCatalog({
           onOpenChange={(next) => {
             if (!next) setShareItem(null);
           }}
-          title={`Share â€œ${shareItem.name}â€`}
-          description="Send this product anywhere â€” WhatsApp carries the price and link."
+          title={`Share “${shareItem.name}”`}
+          description="Send this product anywhere — WhatsApp carries the price and link."
           message={productShareMessage({
             storeName,
             itemName: shareItem.name,
@@ -669,7 +669,7 @@ function QuickViewBody({
 
       {soldOut ? (
         <p className="rounded-md border border-dashed border-border px-4 py-3 text-center text-small text-muted-foreground">
-          Back soon â€” message the shop to reserve one.
+          Back soon — message the shop to reserve one.
         </p>
       ) : (
         <div className="grid gap-2.5">

@@ -161,8 +161,8 @@ export async function GET(request: Request, context: RouteContext) {
         {photoSrc ? (
           <>
             {/* Autofit: the photo itself is never cropped. A dimmed full-bleed
-                copy fills the frame behind it, so any upload shape â€” portrait,
-                square, panorama â€” reads as intentional with no adjusting. */}
+                copy fills the frame behind it, so any upload shape — portrait,
+                square, panorama — reads as intentional with no adjusting. */}
             {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
             <img
               src={photoSrc}

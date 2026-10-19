@@ -186,7 +186,7 @@ export async function GET(request: Request, context: RouteContext) {
             {photoSrc ? (
               <>
                 {/* Autofit: dimmed full-bleed copy behind, uncropped photo in
-                    front â€” any upload shape fills the tile cleanly. */}
+                    front — any upload shape fills the tile cleanly. */}
                 {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
                 <img
                   src={photoSrc}
