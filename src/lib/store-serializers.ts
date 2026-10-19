@@ -42,6 +42,10 @@ export const ITEM_SELECT = {
   stock: true,
   createdAt: true,
   updatedAt: true,
+  images: {
+    orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true },
+  },
 } satisfies Prisma.StoreItemSelect;
 
 export const CATEGORY_SELECT = {
@@ -126,6 +130,7 @@ export type StoreItemRow = {
   stock: number | null;
   createdAt: Date;
   updatedAt: Date;
+  images: { id: string }[];
 };
 
 export type CategoryRow = {
@@ -193,7 +198,8 @@ export function serializeStoreItem(item: StoreItemRow) {
     sortOrder: item.sortOrder,
     active: item.active,
     stock: item.stock,
-    hasImage: item.imageMime != null,
+    hasImage: item.images.length > 0 || item.imageMime != null,
+    imageIds: item.images.map((image) => image.id),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   });

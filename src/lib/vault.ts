@@ -161,7 +161,17 @@ export async function collectWorld(): Promise<World> {
         updatedAt: true,
       },
     }),
-    prisma.storeItem.findMany({ select: { id: true, image: true } }),
+    prisma.storeItemImage.findMany({
+      select: {
+        id: true,
+        itemId: true,
+        position: true,
+        image: true,
+        imageMime: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
     prisma.promotion.findMany({
       select: {
         id: true,
@@ -297,7 +307,6 @@ export async function collectWorld(): Promise<World> {
 
   const storeImageById = new Map(storeImages.map((row) => [row.id, row]));
   const categoryImageById = new Map(categoryImages.map((row) => [row.id, row]));
-  const itemImageById = new Map(itemImages.map((row) => [row.id, row]));
   const promotionImageById = new Map(promotionImages.map((row) => [row.id, row]));
 
   const counts: VaultCounts = {
@@ -329,10 +338,10 @@ export async function collectWorld(): Promise<World> {
       const image = categoryImageById.get(row.id);
       return imagesIncluded ? { ...row, coverB64: base64(image?.cover) } : row;
     }),
-    items: items.map((row) => {
-      const image = itemImageById.get(row.id);
-      return imagesIncluded ? { ...row, imageB64: base64(image?.image) } : row;
-    }),
+    items,
+    itemGallery: itemImages.map(({ image, ...row }) =>
+      imagesIncluded ? { ...row, imageB64: base64(image) } : row,
+    ),
     promotions: promotions.map((row) => {
       const image = promotionImageById.get(row.id);
       return imagesIncluded ? { ...row, imageB64: base64(image?.image) } : row;

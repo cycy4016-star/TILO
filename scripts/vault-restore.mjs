@@ -40,6 +40,7 @@ const DATE_FIELDS = {
   stores: ['createdAt', 'updatedAt'],
   categories: ['createdAt', 'updatedAt'],
   items: ['createdAt', 'updatedAt'],
+  itemGallery: ['createdAt', 'updatedAt'],
   promotions: ['startsAt', 'endsAt', 'createdAt', 'updatedAt'],
   socials: ['createdAt', 'updatedAt'],
   customers: ['lastInquiryAt', 'createdAt', 'updatedAt'],
@@ -54,6 +55,7 @@ const BYTE_FIELDS = {
   stores: { logoB64: 'logo', bannerB64: 'banner' },
   categories: { coverB64: 'cover' },
   items: { imageB64: 'image' },
+  itemGallery: { imageB64: 'image' },
   promotions: { imageB64: 'image' },
 };
 
@@ -63,6 +65,7 @@ const TABLES = [
   { key: 'stores', model: 'store' },
   { key: 'categories', model: 'productCategory' },
   { key: 'items', model: 'storeItem' },
+  { key: 'itemGallery', model: 'storeItemImage' },
   { key: 'promotions', model: 'promotion' },
   { key: 'socials', model: 'socialAccount' },
   { key: 'customers', model: 'customer' },

@@ -34,6 +34,15 @@ minimum) is surfaced instead of silently charging full price. Codes are
 matched case-insensitively and respect expiry, minimum spend, and
 item/category targeting.
 
+Every catalogue item keeps a photo gallery (`StoreItemImage`; the lowest
+`position` is the cover). Owners add, promote and delete photos in the item
+dialog (`ItemGalleryEditor`); the storefront shows a photo-count badge on the
+card and a swipeable gallery with thumbnails in quick view, which opens the
+full-screen viewer at the photo on screen. The legacy single-photo routes
+still work by replacing/serving the cover row, with the old `StoreItem.image`
+columns kept as a fallback for pre-gallery rows. Vault snapshots carry
+`itemGallery`.
+
 ---
 
 ## 2. Production
@@ -128,8 +137,8 @@ Run all four before committing:
 
 ```powershell
 npm.cmd run typecheck
-npm.cmd run lint     # biome, 0 errors + 15 pre-existing warnings
-npm.cmd test         # vitest, 413 tests / 47 files
+npm.cmd run lint     # biome, 0 errors + warnings only
+npm.cmd test         # vitest, 420 tests / 48 files
 npm.cmd run build
 ```
 

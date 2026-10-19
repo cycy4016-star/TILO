@@ -126,9 +126,11 @@ export const StoreItemRecord = z.object({
   active: z.boolean(),
   // Stock on hand (null = untracked). The storefront hides the order button at 0.
   stock: z.number().int().nonnegative().nullable(),
-  // true when an uploaded photo exists (bytes live in the DB, served by
-  // /api/public/store/items/[itemId]/image).
+  // true when at least one uploaded photo exists (bytes live in the DB).
   hasImage: z.boolean(),
+  // Gallery photo ids in display order; the first one is the cover. The
+  // dashboard turns each id into /api/public/store/items/[itemId]/images/[id].
+  imageIds: z.array(z.string()),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -189,6 +191,9 @@ export const StorePublic = z.object({
       compareAtPricePesewas: z.number().int().nonnegative().nullable(),
       stock: z.number().int().nonnegative().nullable(),
       imageUrl: z.string().nullable(),
+      // Every gallery photo, cover first. `imageUrl` stays as the first entry
+      // so older clients keep working.
+      images: z.array(z.string()),
       // Listing time, so the storefront can offer "Newest first" without a
       // second round trip. Not sensitive: it is the shop's own publish date.
       createdAt: z.string().datetime(),

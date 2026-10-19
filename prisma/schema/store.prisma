@@ -144,7 +144,8 @@ model StoreItem {
   // order button on the storefront until restocked.
   stock                 Int?
   // Item photo, stored in Postgres so it survives Render's ephemeral disk.
-  // Served by /api/public/store/items/[itemId]/image.
+  // Served by /api/public/store/items/[itemId]/image. Kept as the cover mirror
+  // for older snapshots and clients; galleries live in StoreItemImage.
   image                 Bytes?
   imageMime             String?
   createdAt             DateTime         @default(now())
@@ -152,12 +153,29 @@ model StoreItem {
   store                 Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category              ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   orderLines            OrderLineItem[]
+  images                StoreItemImage[]
 
   // The storefront read: WHERE storeId + active, ORDER BY sortOrder, name.
   // The composite serves that whole path (storeId alone is the leftmost prefix,
   // so the dashboard's by-store listings still use it too).
   @@index([storeId, active, sortOrder])
   @@index([categoryId])
+}
+
+// One photo in an item's gallery. The lowest position is the cover; the
+// storefront shows the rest as thumbnails. Bytes live in Postgres so they
+// survive redeploys, matching the single-photo storage it replaces.
+model StoreItemImage {
+  id        String    @id @default(cuid())
+  itemId    String
+  position  Int       @default(0)
+  image     Bytes
+  imageMime String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  item      StoreItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, position])
 }
 
 // A sale or discount code the owner can switch on/off. Customers see live

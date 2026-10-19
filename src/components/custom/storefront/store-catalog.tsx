@@ -11,6 +11,8 @@
 'use client';
 
 import {
+  ChevronLeft,
+  ChevronRight,
   Heart,
   Maximize2,
   MessageCircle,
@@ -27,7 +29,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ShareSheet } from '@/components/custom/share-sheet';
 import { ImageLightbox } from '@/components/custom/storefront/image-lightbox';
 import { RecentlyViewed } from '@/components/custom/storefront/recently-viewed';
@@ -76,6 +78,12 @@ const RECENT_LIMIT = 8;
 
 type CatalogItem = StorePublic['items'][number];
 
+/** Gallery URLs in display order; falls back to the legacy single cover. */
+function itemPhotos(item: CatalogItem): string[] {
+  if (item.images.length > 0) return item.images;
+  return item.imageUrl ? [item.imageUrl] : [];
+}
+
 // One shelf as the server hands it over. `label: null` is the uncategorised
 // bucket (or a shop with no categories at all) — those render without a heading
 // so a shop that never sets one up looks exactly as it did before.
@@ -123,7 +131,136 @@ function CardMedia({ item }: { item: CatalogItem }) {
           )}
         </span>
       )}
+      {item.images.length > 1 ? (
+        <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/45 px-2 py-1 text-caption font-semibold text-white backdrop-blur">
+          {item.images.length} photos
+        </span>
+      ) : null}
     </span>
+  );
+}
+
+// Swipeable gallery for the quick-view sheet: one big photo, arrows, a page
+// counter, and thumbnails. Tapping the photo opens the fullscreen viewer at the
+// photo currently shown.
+function PhotoGallery({
+  item,
+  onImageClick,
+}: {
+  item: CatalogItem;
+  onImageClick: (index: number) => void;
+}) {
+  const photos = itemPhotos(item);
+  const [index, setIndex] = useState(0);
+  const touchX = useRef<number | null>(null);
+  const active = Math.min(index, Math.max(0, photos.length - 1));
+  const source = photos[active];
+
+  function step(delta: number) {
+    if (photos.length < 2) return;
+    setIndex((active + delta + photos.length) % photos.length);
+  }
+
+  if (!source) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-border bg-muted">
+        <span className="flex aspect-[4/3] w-full items-center justify-center bg-muted text-muted-foreground">
+          {item.kind === 'SERVICE' ? (
+            <Wrench aria-hidden className="size-10" />
+          ) : (
+            <Package aria-hidden className="size-10" />
+          )}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-2">
+      <div
+        className="relative overflow-hidden rounded-xl border border-border bg-muted"
+        onTouchStart={(event) => {
+          touchX.current = event.touches[0]?.clientX ?? null;
+        }}
+        onTouchEnd={(event) => {
+          const start = touchX.current;
+          touchX.current = null;
+          if (start == null) return;
+          const end = event.changedTouches[0]?.clientX ?? start;
+          if (Math.abs(end - start) > 40) step(end < start ? 1 : -1);
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onImageClick(active)}
+          aria-label={`View full image of ${item.name}`}
+          className="group/photo relative block w-full"
+        >
+          <Image
+            src={source}
+            alt={`${item.name} — photo ${active + 1} of ${photos.length}`}
+            width={1200}
+            height={900}
+            sizes="(max-width: 768px) 100vw, 640px"
+            className="aspect-[4/3] w-full object-cover"
+          />
+          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors group-hover/photo:bg-black/65">
+            <Maximize2 aria-hidden className="size-3.5" />
+            View
+          </span>
+        </button>
+        {photos.length > 1 ? (
+          <>
+            <button
+              type="button"
+              aria-label="Previous photo"
+              onClick={() => step(-1)}
+              className="absolute left-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+            >
+              <ChevronLeft aria-hidden className="size-4" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next photo"
+              onClick={() => step(1)}
+              className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+            >
+              <ChevronRight aria-hidden className="size-4" />
+            </button>
+            <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/45 px-2 py-1 text-caption font-semibold text-white backdrop-blur">
+              {active + 1} / {photos.length}
+            </span>
+          </>
+        ) : null}
+      </div>
+      {photos.length > 1 ? (
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {photos.map((photo, photoIndex) => (
+            <button
+              key={photo}
+              type="button"
+              aria-label={`Show photo ${photoIndex + 1} of ${photos.length}`}
+              aria-current={photoIndex === active}
+              onClick={() => setIndex(photoIndex)}
+              className={cn(
+                'relative size-14 shrink-0 overflow-hidden rounded-lg border-2 transition-opacity',
+                photoIndex === active
+                  ? 'border-primary'
+                  : 'border-transparent opacity-75 hover:opacity-100',
+              )}
+            >
+              <Image
+                src={photo}
+                alt=""
+                width={112}
+                height={112}
+                className="size-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -161,6 +298,7 @@ export function StoreCatalog({
   const [shareItem, setShareItem] = useState<CatalogItem | null>(null);
   const [quickView, setQuickView] = useState<CatalogItem | null>(null);
   const [lightbox, setLightbox] = useState<CatalogItem | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [sort, setSort] = useState<CatalogSort>('featured');
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -226,6 +364,11 @@ export function StoreCatalog({
     setRecentIds((current) =>
       [item.id, ...current.filter((id) => id !== item.id)].slice(0, RECENT_LIMIT),
     );
+  }
+
+  function openLightbox(item: CatalogItem, index: number) {
+    setLightboxIndex(index);
+    setLightbox(item);
   }
 
   function patchFilters(patch: Partial<CatalogFilters>) {
@@ -326,7 +469,7 @@ export function StoreCatalog({
           {item.imageUrl && (
             <button
               type="button"
-              onClick={() => setLightbox(item)}
+              onClick={() => openLightbox(item, 0)}
               aria-label={`View full image of ${item.name}`}
               className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors hover:bg-black/65"
             >
@@ -665,6 +808,7 @@ export function StoreCatalog({
               <SheetTitle>{quickView.name}</SheetTitle>
             </SheetHeader>
             <QuickViewBody
+              key={quickView.id}
               item={quickView}
               storeName={storeName}
               contactPhone={contactPhone}
@@ -677,8 +821,8 @@ export function StoreCatalog({
                 setShareItem(quickView);
                 setQuickView(null);
               }}
-              onImageClick={() => {
-                setLightbox(quickView);
+              onImageClick={(index) => {
+                openLightbox(quickView, index);
                 setQuickView(null);
               }}
             />
@@ -810,7 +954,7 @@ export function StoreCatalog({
         onOpenChange={(open) => {
           if (!open) setLightbox(null);
         }}
-        src={lightbox?.imageUrl ?? null}
+        src={lightbox ? (itemPhotos(lightbox)[lightboxIndex] ?? lightbox.imageUrl) : null}
         alt={lightbox?.name ?? ''}
       />
     </>
@@ -838,7 +982,7 @@ function QuickViewBody({
   onToggleSaved: () => void;
   onQuantityChange: (itemId: string, quantity: number) => void;
   onShare: () => void;
-  onImageClick: () => void;
+  onImageClick: (index: number) => void;
 }) {
   const discount = itemDiscountPercent(item);
   const promos = promosForItem(promotions, item);
@@ -874,37 +1018,7 @@ function QuickViewBody({
 
   return (
     <div className="grid gap-4">
-      {item.imageUrl ? (
-        <button
-          type="button"
-          onClick={onImageClick}
-          aria-label={`View full image of ${item.name}`}
-          className="group/photo relative block overflow-hidden rounded-xl border border-border bg-muted"
-        >
-          <Image
-            src={item.imageUrl}
-            alt={item.name}
-            width={1200}
-            height={900}
-            sizes="(max-width: 768px) 100vw, 640px"
-            className="aspect-[4/3] w-full object-cover"
-          />
-          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors group-hover/photo:bg-black/65">
-            <Maximize2 aria-hidden className="size-3.5" />
-            View
-          </span>
-        </button>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-muted">
-          <span className="flex aspect-[4/3] w-full items-center justify-center bg-muted text-muted-foreground">
-            {item.kind === 'SERVICE' ? (
-              <Wrench aria-hidden className="size-10" />
-            ) : (
-              <Package aria-hidden className="size-10" />
-            )}
-          </span>
-        </div>
-      )}
+      <PhotoGallery item={item} onImageClick={onImageClick} />
 
       <div>
         <div className="flex flex-wrap items-center gap-1.5">

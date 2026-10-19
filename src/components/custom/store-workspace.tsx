@@ -28,6 +28,7 @@ import {
   ImagePicker,
   type ImageSelection,
 } from '@/components/custom/image-picker';
+import { ItemGalleryEditor } from '@/components/custom/item-gallery-editor';
 import { ItemWizard } from '@/components/custom/item-wizard';
 import { PromoWizard } from '@/components/custom/promo-wizard';
 import { ShareSheet } from '@/components/custom/share-sheet';
@@ -542,12 +543,10 @@ function ItemForm({
   );
   const [stock, setStock] = useState(initial?.stock != null ? String(initial.stock) : '');
   const [image, setImage] = useState<ImageSelection>(emptyImageSelection);
+  const [galleryItem, setGalleryItem] = useState<StoreItemRecord | null>(initial);
   // Held outside react-hook-form like the price fields: the shelf is optional
   // and Radix Select refuses "" as an item value, so it needs a sentinel.
   const [categoryId, setCategoryId] = useState<string>(initial?.categoryId ?? NO_CATEGORY);
-  const imageUrl = initial?.hasImage
-    ? `/api/public/store/items/${initial.id}/image?t=${Date.parse(initial.updatedAt)}`
-    : null;
 
   const schema = initial ? StoreItemUpdate : StoreItemCreate;
   type SchemaInput = z.input<typeof schema>;
@@ -634,6 +633,7 @@ function ItemForm({
           schema: StoreItemSchema,
         });
       }
+      setGalleryItem(saved);
       onSaved(saved);
       toast.success(initial ? 'Item updated' : 'Item added to catalogue');
     } catch (error) {
@@ -797,12 +797,24 @@ function ItemForm({
           )}
         />
         <FormItem>
-          <Label>Photo</Label>
+          <Label>{initial ? 'Photos' : 'Photo'}</Label>
           <div>
-            <ImagePicker currentUrl={imageUrl} value={image} onChange={setImage} fit="contain" />
+            {initial ? (
+              <ItemGalleryEditor
+                item={galleryItem ?? initial}
+                onChanged={(saved) => {
+                  setGalleryItem(saved);
+                  onSaved(saved);
+                }}
+              />
+            ) : (
+              <ImagePicker currentUrl={null} value={image} onChange={setImage} fit="contain" />
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Photos help customers see what you offer — they appear on your public page.
+            {initial
+              ? 'Photos run in this order on the public page — the first is the cover.'
+              : 'Photos help customers see what you offer — you can add more after saving.'}
           </p>
         </FormItem>
         <FormField

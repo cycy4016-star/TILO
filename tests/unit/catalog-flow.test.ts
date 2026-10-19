@@ -54,6 +54,7 @@ function itemRow(overrides: Record<string, unknown> = {}) {
     active: true,
     stock: null as number | null,
     image: null,
+    images: [],
     createdAt: new Date('2026-10-07T00:00:00.000Z'),
     updatedAt: new Date('2026-10-07T00:00:00.000Z'),
     ...overrides,

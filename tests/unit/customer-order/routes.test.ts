@@ -390,6 +390,8 @@ describe('store routes', () => {
     sortOrder: 0,
     active: true,
     stock: null,
+    imageMime: null,
+    images: [],
     createdAt: new Date('2026-09-21T00:00:00.000Z'),
     updatedAt: new Date('2026-09-21T00:00:00.000Z'),
   };
@@ -530,7 +532,17 @@ describe('store routes', () => {
   });
 
   it('serves the public catalog only for live stores', async () => {
-    db.prisma.store.findFirst.mockResolvedValue({ ...store, items: [item], promotions: [] });
+    db.prisma.store.findFirst.mockResolvedValue({
+      ...store,
+      items: [
+        {
+          ...item,
+          imageMime: 'image/jpeg',
+          images: [{ id: 'img-1', updatedAt: new Date('2026-10-19T00:00:00.000Z') }],
+        },
+      ],
+      promotions: [],
+    });
     const { GET } = await import('@/app/api/public/store/[slug]/route');
     const response = await GET(new Request('http://test/api/public/store/amas-boutique'), {
       params: Promise.resolve({ slug: 'amas-boutique' }),
@@ -538,7 +550,14 @@ describe('store routes', () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       name: "Ama's Boutique",
-      items: [{ id: 'item-1', name: 'Branded apron' }],
+      items: [
+        {
+          id: 'item-1',
+          name: 'Branded apron',
+          imageUrl: expect.stringContaining('/api/public/store/items/item-1/images/img-1?t='),
+          images: [expect.stringContaining('/api/public/store/items/item-1/images/img-1?t=')],
+        },
+      ],
     });
 
     db.prisma.store.findFirst.mockResolvedValue(null);

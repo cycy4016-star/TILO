@@ -188,6 +188,7 @@ describe('item ↔ category tenancy', () => {
       active: true,
       stock: null,
       image: null,
+      images: [],
       createdAt: new Date('2026-10-01T00:00:00.000Z'),
       updatedAt: new Date('2026-10-01T00:00:00.000Z'),
     });

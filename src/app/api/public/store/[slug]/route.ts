@@ -67,6 +67,10 @@ export async function GET(request: Request, context: RouteContext) {
             createdAt: true,
             updatedAt: true,
             imageMime: true,
+            images: {
+              orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+              select: { id: true, updatedAt: true },
+            },
           },
         },
         promotions: {
@@ -125,21 +129,29 @@ export async function GET(request: Request, context: RouteContext) {
               ? `/api/public/store/categories/${category.id}/image?t=${category.updatedAt.getTime()}`
               : null,
         })),
-        items: store.items.map((item) => ({
-          id: item.id,
-          kind: item.kind,
-          name: item.name,
-          description: item.description,
-          categoryId: item.categoryId,
-          pricePesewas: item.pricePesewas,
-          compareAtPricePesewas: item.compareAtPricePesewas,
-          stock: item.stock,
-          createdAt: item.createdAt.toISOString(),
-          imageUrl:
-            item.imageMime != null
-              ? `/api/public/store/items/${item.id}/image?t=${item.updatedAt.getTime()}`
-              : null,
-        })),
+        items: store.items.map((item) => {
+          const images = item.images.map(
+            (image) =>
+              `/api/public/store/items/${item.id}/images/${image.id}?t=${image.updatedAt.getTime()}`,
+          );
+          // Fallback for a row whose photo predates the gallery migration.
+          if (images.length === 0 && item.imageMime != null) {
+            images.push(`/api/public/store/items/${item.id}/image?t=${item.updatedAt.getTime()}`);
+          }
+          return {
+            id: item.id,
+            kind: item.kind,
+            name: item.name,
+            description: item.description,
+            categoryId: item.categoryId,
+            pricePesewas: item.pricePesewas,
+            compareAtPricePesewas: item.compareAtPricePesewas,
+            stock: item.stock,
+            createdAt: item.createdAt.toISOString(),
+            imageUrl: images[0] ?? null,
+            images,
+          };
+        }),
         promotions: store.promotions.map((promotion) => ({
           name: promotion.name,
           code: promotion.code,
