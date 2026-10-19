@@ -1,0 +1,3 @@
+Drop a stray commit message file
+
+_commit2.txt was stageed by git add -A before it was deleted.
