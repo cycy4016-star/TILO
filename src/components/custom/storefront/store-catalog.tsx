@@ -11,6 +11,7 @@
 'use client';
 
 import {
+  Heart,
   Maximize2,
   MessageCircle,
   MessageSquareText,
@@ -21,6 +22,7 @@ import {
   Search,
   Share2,
   ShoppingCart,
+  SlidersHorizontal,
   Trash2,
   Wrench,
 } from 'lucide-react';
@@ -28,8 +30,33 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { ShareSheet } from '@/components/custom/share-sheet';
 import { ImageLightbox } from '@/components/custom/storefront/image-lightbox';
+import { RecentlyViewed } from '@/components/custom/storefront/recently-viewed';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import {
+  activeFilterCount,
+  type CatalogFilters,
+  type CatalogSort,
+  DEFAULT_FILTERS,
+  formatGhsInput,
+  limitGroups,
+  matchesFilters,
+  matchesQuery,
+  parseGhsInput,
+  priceBounds,
+  SORT_OPTIONS,
+  sortItems,
+} from '@/lib/catalog-view';
 import { CATEGORY_ICONS } from '@/lib/category-icons';
 import { formatGhs } from '@/lib/contracts/order';
 import type { PromotionSummary } from '@/lib/contracts/promotion';
@@ -40,6 +67,12 @@ import { productShareMessage } from '@/lib/share';
 import { orderRequestSms } from '@/lib/sms-templates';
 import { cn } from '@/lib/utils';
 import { itemOrderWhatsApp } from '@/lib/whatsapp-templates';
+
+// Cards mounted per page. Enough to fill a few screens on a phone, small
+// enough that a 500-item shop does not paint every image on first load.
+const PAGE_SIZE = 24;
+// How many "recently viewed" entries the device remembers.
+const RECENT_LIMIT = 8;
 
 type CatalogItem = StorePublic['items'][number];
 
@@ -57,17 +90,6 @@ const kindLabels: Record<'PRODUCT' | 'SERVICE', string> = {
   PRODUCT: 'Product',
   SERVICE: 'Service',
 };
-
-// Text search covers the item itself and the shelf it sits on, so typing a
-// category name brings back everything filed under it.
-function matches(item: CatalogItem, needle: string, category: string | null): boolean {
-  if (!needle) return true;
-  return (
-    item.name.toLowerCase().includes(needle) ||
-    (item.description ?? '').toLowerCase().includes(needle) ||
-    (category ?? '').toLowerCase().includes(needle)
-  );
-}
 
 // Photo with a shimmer underneath: the card keeps its shape on a slow network
 // and the image fades in over the skeleton instead of popping.
@@ -107,6 +129,7 @@ function CardMedia({ item }: { item: CatalogItem }) {
 
 export function StoreCatalog({
   storeName,
+  storeSlug,
   contactPhone,
   groups,
   promotions,
@@ -118,6 +141,8 @@ export function StoreCatalog({
   onQuantityChange,
 }: {
   storeName: string;
+  /** Device-local memory (saved items, recently viewed) is scoped per shop. */
+  storeSlug: string;
   contactPhone: string | null;
   groups: CatalogGroup[];
   promotions: PromotionSummary[];
@@ -136,6 +161,36 @@ export function StoreCatalog({
   const [shareItem, setShareItem] = useState<CatalogItem | null>(null);
   const [quickView, setQuickView] = useState<CatalogItem | null>(null);
   const [lightbox, setLightbox] = useState<CatalogItem | null>(null);
+  const [sort, setSort] = useState<CatalogSort>('featured');
+  const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  // Paging is keyed to the current result set. Deriving `limit` instead of
+  // resetting it in an effect means a new query renders from page one
+  // immediately, without a frame of the previous, deeper page.
+  const viewKey = [
+    query,
+    activeCategory ?? '',
+    sort,
+    filters.inStockOnly ? '1' : '0',
+    filters.onSaleOnly ? '1' : '0',
+    filters.savedOnly ? '1' : '0',
+    filters.minPesewas ?? '',
+    filters.maxPesewas ?? '',
+  ].join('\u0000');
+  const [paging, setPaging] = useState({ key: viewKey, limit: PAGE_SIZE });
+  const limit = paging.key === viewKey ? paging.limit : PAGE_SIZE;
+  const [savedIds, setSavedIds] = useLocalStorage<string[]>(`tilza:saved:${storeSlug}`, []);
+  const [recentIds, setRecentIds] = useLocalStorage<string[]>(`tilza:recent:${storeSlug}`, []);
+
+  const saved = new Set(savedIds);
+  const filterCount = activeFilterCount(filters);
+  const allItems = groups.flatMap((group) => group.items);
+  const itemsById = new Map(allItems.map((item) => [item.id, item]));
+  const recentItems = recentIds
+    .map((id) => itemsById.get(id))
+    .filter((item): item is CatalogItem => item != null)
+    .slice(0, RECENT_LIMIT);
+  const bounds = priceBounds(allItems);
 
   const categoryLabels = groups
     .map((group) => group.label)
@@ -145,23 +200,54 @@ export function StoreCatalog({
     .filter((group) => activeCategory === null || group.label === activeCategory)
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => matches(item, needle, group.label)),
+      items: sortItems(
+        group.items.filter(
+          (item) => matchesQuery(item, needle, group.label) && matchesFilters(item, filters, saved),
+        ),
+        sort,
+      ),
     }))
     .filter((group) => group.items.length > 0);
   const visibleCount = visibleGroups.reduce((sum, group) => sum + group.items.length, 0);
   const totalCount = groups.reduce((sum, group) => sum + group.items.length, 0);
-  const filtering = needle !== '' || activeCategory !== null;
+  const filtering = needle !== '' || activeCategory !== null || filterCount > 0;
+  const shownGroups = limitGroups(visibleGroups, limit);
+  const shownCount = shownGroups.reduce((sum, group) => sum + group.items.length, 0);
+
+  function toggleSaved(itemId: string) {
+    setSavedIds((current) =>
+      current.includes(itemId) ? current.filter((id) => id !== itemId) : [itemId, ...current],
+    );
+  }
+
+  function openQuickView(item: CatalogItem) {
+    setQuickView(item);
+    // Remember the visit even when the shopper only peeks at the card detail.
+    setRecentIds((current) =>
+      [item.id, ...current.filter((id) => id !== item.id)].slice(0, RECENT_LIMIT),
+    );
+  }
+
+  function patchFilters(patch: Partial<CatalogFilters>) {
+    setFilters((current) => ({ ...current, ...patch }));
+  }
 
   function clearFilters() {
     onQueryChange('');
     setActiveCategory(null);
+    setFilters(DEFAULT_FILTERS);
+    setSort('featured');
   }
 
   function emptyCopy() {
     const search = query.trim();
+    if (filters.savedOnly && savedIds.length === 0) {
+      return 'Nothing saved yet — tap the heart on an item to keep it here.';
+    }
     if (search && activeCategory) return `Nothing matches “${search}” in ${activeCategory}.`;
     if (search) return `Nothing matches “${search}”.`;
     if (activeCategory) return `Nothing filed under ${activeCategory} yet.`;
+    if (filterCount > 0) return 'Nothing matches those filters.';
     return 'Nothing matches those filters.';
   }
 
@@ -171,6 +257,7 @@ export function StoreCatalog({
     const soldOut = item.stock != null && item.stock <= 0;
     const maxQty = item.stock ?? 99;
     const qty = cart[item.id] ?? 0;
+    const isSaved = saved.has(item.id);
 
     return (
       <article
@@ -181,7 +268,7 @@ export function StoreCatalog({
         <div className="relative">
           <button
             type="button"
-            onClick={() => setQuickView(item)}
+            onClick={() => openQuickView(item)}
             aria-label={`Quick view ${item.name}`}
             className="block w-full"
           >
@@ -211,11 +298,28 @@ export function StoreCatalog({
               ))}
             </div>
           )}
+          {/* Save first, share beneath: the heart is the frequent, one-tap
+              action; sharing is deliberate. Both stay 32px so a thumb can hit
+              them over the photo. */}
+          <button
+            type="button"
+            onClick={() => toggleSaved(item.id)}
+            aria-label={isSaved ? `Remove ${item.name} from saved` : `Save ${item.name}`}
+            aria-pressed={isSaved}
+            className={cn(
+              'absolute right-2 top-2 grid size-8 place-items-center rounded-full backdrop-blur transition-colors',
+              isSaved
+                ? 'bg-white text-highlight shadow-sm'
+                : 'bg-black/35 text-white hover:bg-black/55',
+            )}
+          >
+            <Heart aria-hidden className={cn('size-3.5', isSaved && 'fill-current')} />
+          </button>
           <button
             type="button"
             onClick={() => setShareItem(item)}
             aria-label={`Share ${item.name}`}
-            className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-black/35 text-white backdrop-blur transition-colors hover:bg-black/55"
+            className="absolute right-2 top-12 grid size-8 place-items-center rounded-full bg-black/35 text-white backdrop-blur transition-colors hover:bg-black/55"
           >
             <Share2 aria-hidden className="size-3.5" />
           </button>
@@ -235,7 +339,7 @@ export function StoreCatalog({
         <div className="flex flex-1 flex-col p-3">
           <button
             type="button"
-            onClick={() => setQuickView(item)}
+            onClick={() => openQuickView(item)}
             className="text-left"
             aria-label={`Quick view ${item.name}`}
           >
@@ -318,7 +422,61 @@ export function StoreCatalog({
 
   return (
     <>
-      <div className="grid gap-8">
+      <div className="grid gap-6">
+        <RecentlyViewed items={recentItems} onOpen={openQuickView} />
+
+        {/* Toolbar: sort, filters and the saved view sit together above the
+            rail so a shopper can narrow the catalogue without leaving it. The
+            count on the right is the number of *matching* items, not the page. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={sort} onValueChange={(value) => setSort(value as CatalogSort)}>
+            <SelectTrigger className="h-9 w-[180px] rounded-md text-small" aria-label="Sort items">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setFiltersOpen(true)}
+            className="h-9 gap-2 rounded-md px-3 text-small font-semibold"
+          >
+            <SlidersHorizontal aria-hidden className="size-4" />
+            Filters
+            {filterCount > 0 && (
+              <span className="grid min-w-5 place-items-center rounded-full bg-primary px-1.5 text-caption font-bold text-primary-foreground">
+                {filterCount}
+              </span>
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant={filters.savedOnly ? 'default' : 'outline'}
+            aria-pressed={filters.savedOnly}
+            onClick={() => patchFilters({ savedOnly: !filters.savedOnly })}
+            className="h-9 gap-2 rounded-md px-3 text-small font-semibold"
+          >
+            <Heart aria-hidden className={cn('size-4', filters.savedOnly && 'fill-current')} />
+            Saved
+            {savedIds.length > 0 && (
+              <span className="text-caption font-medium opacity-80">{savedIds.length}</span>
+            )}
+          </Button>
+
+          <p className="ml-auto text-caption font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            {filtering ? `${visibleCount} of ${totalCount}` : totalCount}{' '}
+            {totalCount === 1 ? 'item' : 'items'}
+          </p>
+        </div>
+
         {/* Category rail: one chip per shelf with its cover, marketplace-style.
             Hidden when the shop has nothing to rail (zero or one shelf). */}
         {categoryLabels.length > 1 && (
@@ -430,44 +588,61 @@ export function StoreCatalog({
             </Button>
           </div>
         ) : (
-          visibleGroups.map((group) => {
-            const GroupIcon = group.icon ? (CATEGORY_ICONS[group.icon] ?? null) : null;
-            return (
-              <section key={group.label ?? '__uncategorised'}>
-                {group.label && (
-                  <div className="mb-4 flex items-end justify-between gap-4 border-b border-border pb-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      {group.coverUrl ? (
-                        <Image
-                          src={group.coverUrl}
-                          alt=""
-                          width={400}
-                          height={400}
-                          sizes="44px"
-                          className="size-11 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-xs"
-                        />
-                      ) : (
-                        GroupIcon && (
-                          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <GroupIcon aria-hidden className="size-5" />
-                          </span>
-                        )
-                      )}
-                      <h2 className="break-words font-display text-h2 tracking-tight">
-                        {group.label}
-                      </h2>
+          <>
+            {shownGroups.map((group) => {
+              const GroupIcon = group.icon ? (CATEGORY_ICONS[group.icon] ?? null) : null;
+              return (
+                <section key={group.label ?? '__uncategorised'}>
+                  {group.label && (
+                    <div className="mb-4 flex items-end justify-between gap-4 border-b border-border pb-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        {group.coverUrl ? (
+                          <Image
+                            src={group.coverUrl}
+                            alt=""
+                            width={400}
+                            height={400}
+                            sizes="44px"
+                            className="size-11 shrink-0 rounded-xl border border-border bg-muted object-cover shadow-xs"
+                          />
+                        ) : (
+                          GroupIcon && (
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <GroupIcon aria-hidden className="size-5" />
+                            </span>
+                          )
+                        )}
+                        <h2 className="break-words font-display text-h2 tracking-tight">
+                          {group.label}
+                        </h2>
+                      </div>
+                      <span className="shrink-0 text-caption font-semibold text-muted-foreground">
+                        {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
+                      </span>
                     </div>
-                    <span className="shrink-0 text-caption font-semibold text-muted-foreground">
-                      {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
-                    </span>
+                  )}
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                    {group.items.map((item) => renderItem(item))}
                   </div>
-                )}
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {group.items.map((item) => renderItem(item))}
-                </div>
-              </section>
-            );
-          })
+                </section>
+              );
+            })}
+
+            {/* Mount cards in pages. The count is what is *left*, so the
+                label stays honest after a filter shrinks the result set. */}
+            {shownCount < visibleCount && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPaging({ key: viewKey, limit: limit + PAGE_SIZE })}
+                  className="h-10 rounded-md px-6 text-small font-semibold"
+                >
+                  Load more ({visibleCount - shownCount} left)
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -495,6 +670,8 @@ export function StoreCatalog({
               contactPhone={contactPhone}
               promotions={promotions}
               qty={cart[quickView.id] ?? 0}
+              saved={saved.has(quickView.id)}
+              onToggleSaved={() => toggleSaved(quickView.id)}
               onQuantityChange={onQuantityChange}
               onShare={() => {
                 setShareItem(quickView);
@@ -507,6 +684,105 @@ export function StoreCatalog({
             />
           </SheetContent>
         )}
+      </Sheet>
+
+      {/* Filters: one sheet, four facets. Price is a free band rather than
+          preset buckets, because a shop's "cheap" is not another shop's. */}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent
+          side="bottom"
+          aria-describedby={undefined}
+          className="max-h-[88vh] overflow-y-auto rounded-t-2xl sm:max-w-md"
+        >
+          <SheetHeader>
+            <SheetTitle>Filter items</SheetTitle>
+          </SheetHeader>
+          <div className="grid gap-5 py-5">
+            {/* Radix's checkbox is a button, not a native input, so the label
+                is tied by id rather than by wrapping. */}
+            <div className="flex items-center justify-between gap-4">
+              <span id="filter-in-stock" className="text-small font-medium">
+                In stock only
+              </span>
+              <Checkbox
+                aria-labelledby="filter-in-stock"
+                checked={filters.inStockOnly}
+                onCheckedChange={(checked) => patchFilters({ inStockOnly: checked === true })}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span id="filter-on-sale" className="text-small font-medium">
+                On sale only
+              </span>
+              <Checkbox
+                aria-labelledby="filter-on-sale"
+                checked={filters.onSaleOnly}
+                onCheckedChange={(checked) => patchFilters({ onSaleOnly: checked === true })}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span id="filter-saved" className="text-small font-medium">
+                Saved only
+              </span>
+              <Checkbox
+                aria-labelledby="filter-saved"
+                checked={filters.savedOnly}
+                onCheckedChange={(checked) => patchFilters({ savedOnly: checked === true })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <p className="text-caption font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Price (GH₵)
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  placeholder={bounds ? formatGhsInput(bounds.min) : 'Min'}
+                  value={formatGhsInput(filters.minPesewas)}
+                  onChange={(event) =>
+                    patchFilters({ minPesewas: parseGhsInput(event.target.value) })
+                  }
+                  aria-label="Minimum price"
+                  className="h-10 rounded-md"
+                />
+                <span className="text-small text-muted-foreground">to</span>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  placeholder={bounds ? formatGhsInput(bounds.max) : 'Max'}
+                  value={formatGhsInput(filters.maxPesewas)}
+                  onChange={(event) =>
+                    patchFilters({ maxPesewas: parseGhsInput(event.target.value) })
+                  }
+                  aria-label="Maximum price"
+                  className="h-10 rounded-md"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pb-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={clearFilters}
+              className="h-10 flex-1 rounded-md text-small font-semibold"
+            >
+              Clear all
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              className="h-10 flex-[2] rounded-md text-small font-semibold"
+            >
+              Show {visibleCount} {visibleCount === 1 ? 'item' : 'items'}
+            </Button>
+          </div>
+        </SheetContent>
       </Sheet>
 
       {shareItem && (
@@ -547,6 +823,8 @@ function QuickViewBody({
   contactPhone,
   promotions,
   qty,
+  saved,
+  onToggleSaved,
   onQuantityChange,
   onShare,
   onImageClick,
@@ -556,6 +834,8 @@ function QuickViewBody({
   contactPhone: string | null;
   promotions: PromotionSummary[];
   qty: number;
+  saved: boolean;
+  onToggleSaved: () => void;
   onQuantityChange: (itemId: string, quantity: number) => void;
   onShare: () => void;
   onImageClick: () => void;
@@ -730,13 +1010,32 @@ function QuickViewBody({
               </a>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onShare}
-            className="inline-flex h-9 items-center justify-center gap-2 text-small font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <Share2 aria-hidden className="size-3.5" /> Share this product
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onToggleSaved}
+              aria-pressed={saved}
+              className={cn(
+                'inline-flex h-9 items-center justify-center gap-2 rounded-md border text-small font-medium transition-colors',
+                saved
+                  ? 'border-highlight/60 bg-highlight-wash text-foreground'
+                  : 'border-border text-muted-foreground hover:bg-muted hover:text-foreground',
+              )}
+            >
+              <Heart
+                aria-hidden
+                className={cn('size-3.5', saved && 'fill-current text-highlight')}
+              />
+              {saved ? 'Saved' : 'Save for later'}
+            </button>
+            <button
+              type="button"
+              onClick={onShare}
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border text-small font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Share2 aria-hidden className="size-3.5" /> Share
+            </button>
+          </div>
         </div>
       )}
     </div>

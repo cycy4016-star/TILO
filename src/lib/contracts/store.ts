@@ -189,6 +189,9 @@ export const StorePublic = z.object({
       compareAtPricePesewas: z.number().int().nonnegative().nullable(),
       stock: z.number().int().nonnegative().nullable(),
       imageUrl: z.string().nullable(),
+      // Listing time, so the storefront can offer "Newest first" without a
+      // second round trip. Not sensitive: it is the shop's own publish date.
+      createdAt: z.string().datetime(),
     }),
   ),
   promotions: z.array(PromotionSummary),

@@ -64,6 +64,7 @@ export async function GET(request: Request, context: RouteContext) {
             pricePesewas: true,
             compareAtPricePesewas: true,
             stock: true,
+            createdAt: true,
             updatedAt: true,
             imageMime: true,
           },
@@ -133,6 +134,7 @@ export async function GET(request: Request, context: RouteContext) {
           pricePesewas: item.pricePesewas,
           compareAtPricePesewas: item.compareAtPricePesewas,
           stock: item.stock,
+          createdAt: item.createdAt.toISOString(),
           imageUrl:
             item.imageMime != null
               ? `/api/public/store/items/${item.id}/image?t=${item.updatedAt.getTime()}`

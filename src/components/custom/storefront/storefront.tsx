@@ -23,6 +23,7 @@ import {
 import { type CatalogGroup, StoreCatalog } from '@/components/custom/storefront/store-catalog';
 import { StoreHeader } from '@/components/custom/storefront/store-header';
 import { TrustStrip } from '@/components/custom/storefront/trust-strip';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { StorePublic } from '@/lib/contracts/store';
 import { waMeLink, waMessageLink } from '@/lib/phone';
 import { formatPromoDate, promoHeadline, promoTerms } from '@/lib/promotions';
@@ -43,6 +44,27 @@ export function Storefront({
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<Record<string, number>>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // Recent searches are device-local and per shop: the header suggests them
+  // while the field is empty, so a returning shopper retypes nothing.
+  const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(
+    `tilza:search:${store.slug}`,
+    [],
+  );
+
+  function rememberSearch(term: string) {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    setRecentSearches((current) =>
+      [trimmed, ...current.filter((entry) => entry.toLowerCase() !== trimmed.toLowerCase())].slice(
+        0,
+        6,
+      ),
+    );
+  }
+
+  const searchSuggestions = groups
+    .filter((group): group is CatalogGroup & { label: string } => group.label !== null)
+    .map((group) => ({ label: group.label, count: group.items.length }));
 
   const allItems: CatalogItem[] = groups.flatMap((group) => group.items);
   const lines = allItems.filter((item) => (cart[item.id] ?? 0) > 0);
@@ -86,6 +108,10 @@ export function Storefront({
         logoUrl={store.logoUrl}
         query={query}
         onQueryChange={setQuery}
+        suggestions={searchSuggestions}
+        recentSearches={recentSearches}
+        onSubmitQuery={rememberSearch}
+        onClearRecent={() => setRecentSearches([])}
         cartCount={count}
         onCartOpen={openBasket}
       />
@@ -278,6 +304,7 @@ export function Storefront({
               </div>
               <StoreCatalog
                 storeName={store.name}
+                storeSlug={store.slug}
                 contactPhone={store.contactPhone}
                 groups={groups}
                 promotions={store.promotions}
