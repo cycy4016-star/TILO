@@ -53,7 +53,10 @@ export const OrderItem = z.object({
   customerId: z.string(),
   description: z.string(),
   status: OrderStatus,
+  // Already net of discountPesewas on storefront orders.
   amountPesewas: z.number().int().nonnegative().nullable(),
+  discountPesewas: z.number().int().nonnegative(),
+  promoCode: z.string().nullable(),
   paidAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

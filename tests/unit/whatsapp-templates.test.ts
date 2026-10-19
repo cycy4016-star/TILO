@@ -49,6 +49,21 @@ describe('whatsapp templates', () => {
     expect(message).toContain('Note: Please wrap it as a gift');
   });
 
+  it('spells out the coupon before the net total', () => {
+    const message = basketOrderWhatsApp({
+      storeName: 'Adom Fabrics',
+      orderNumber: 'TILZA-20261019-ABCD1234',
+      lines: [{ name: 'Kente Strip (1 yard)', quantity: 2, amount: 'GH₵ 240.00' }],
+      discountLabel: 'WEEKEND10',
+      discountAmount: 'GH₵ 24.00',
+      total: 'GH₵ 216.00',
+      customerName: 'Ama',
+      customerPhone: '0244999888',
+    });
+    expect(message).toContain('Discount (WEEKEND10): -GH₵ 24.00');
+    expect(message).toContain('Total: GH₵ 216.00');
+  });
+
   it('leaves the note line out when the shopper had nothing to add', () => {
     const message = basketOrderWhatsApp({
       storeName: 'Adom Fabrics',

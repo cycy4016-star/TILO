@@ -8,6 +8,7 @@ const db = vi.hoisted(() => ({
     store: { findFirst: vi.fn() },
     storeItem: { findMany: vi.fn(), findFirst: vi.fn() },
     order: { create: vi.fn() },
+    promotion: { findMany: vi.fn() },
     notification: {
       findMany: vi.fn(),
       count: vi.fn(),
@@ -44,6 +45,8 @@ const order = {
   description: '1x Branded apron',
   status: 'PENDING' as const,
   amountPesewas: null,
+  discountPesewas: 0,
+  promoCode: null,
   paidAt: null,
   createdAt: new Date('2026-09-22T00:00:00.000Z'),
   updatedAt: new Date('2026-09-22T00:00:00.000Z'),
@@ -204,6 +207,88 @@ describe('public order placement', () => {
       { params: Promise.resolve({ slug: 'test' }) },
     );
     expect(response.status).toBe(404);
+    expect(db.prisma.order.create).not.toHaveBeenCalled();
+  });
+
+  it('prices the coupon from the database and stores the net amount', async () => {
+    const apron = { ...item, pricePesewas: 4550, costPricePesewas: 2000 };
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([apron]);
+    db.prisma.customer.findFirst.mockResolvedValue(existingCustomer);
+    db.prisma.promotion.findMany.mockResolvedValue([
+      {
+        name: 'Weekend treat',
+        code: 'WEEKEND10',
+        kind: 'PERCENT',
+        value: 10,
+        minSubtotalPesewas: null,
+        active: true,
+        startsAt: null,
+        endsAt: null,
+        itemIds: [],
+        categoryIds: [],
+      },
+    ]);
+    db.prisma.order.create.mockResolvedValue({
+      ...order,
+      amountPesewas: 8190,
+      discountPesewas: 910,
+      promoCode: 'WEEKEND10',
+    });
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 2 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+          code: 'weekend10',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(201);
+    // 2 x 45.50 = 91.00; the code takes 10% off and the code is snapshotted.
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          amountPesewas: 8190,
+          discountPesewas: 910,
+          promoCode: 'WEEKEND10',
+        }),
+      }),
+    );
+  });
+
+  it('refuses a code the shop does not run', async () => {
+    const apron = { ...item, pricePesewas: 4550, costPricePesewas: 2000 };
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([apron]);
+    db.prisma.customer.findFirst.mockResolvedValue(existingCustomer);
+    db.prisma.promotion.findMany.mockResolvedValue([]);
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 1 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+          code: 'NOPE',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.errors.code).toBeTruthy();
     expect(db.prisma.order.create).not.toHaveBeenCalled();
   });
 

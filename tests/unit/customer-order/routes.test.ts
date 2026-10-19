@@ -49,6 +49,8 @@ const order = {
   description: '12 branded aprons',
   status: 'PENDING' as const,
   amountPesewas: 4550,
+  discountPesewas: 0,
+  promoCode: null,
   paidAt: null,
   createdAt: new Date('2026-09-18T00:00:00.000Z'),
   updatedAt: new Date('2026-09-18T00:00:00.000Z'),

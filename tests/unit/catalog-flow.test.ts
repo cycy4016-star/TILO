@@ -172,6 +172,8 @@ describe('checkout stock guard', () => {
       description: '2x Widget',
       status: 'PENDING',
       amountPesewas: 5000,
+      discountPesewas: 0,
+      promoCode: null,
       paidAt: null,
       createdAt: new Date('2026-10-07T00:00:00.000Z'),
       updatedAt: new Date('2026-10-07T00:00:00.000Z'),

@@ -17,6 +17,8 @@ const order = {
   description: 'Restock',
   status: 'PENDING' as const,
   amountPesewas: 4550,
+  discountPesewas: 0,
+  promoCode: null,
   paidAt: null,
   createdAt: '2026-09-18T00:00:00.000Z',
   updatedAt: '2026-09-18T00:00:00.000Z',

@@ -69,6 +69,8 @@ describe('OrderForm', () => {
         description: '2 branded aprons',
         status: 'PENDING',
         amountPesewas: 4550,
+        discountPesewas: 0,
+        promoCode: null,
         paidAt: null,
         createdAt: '2026-10-12T00:00:00.000Z',
         updatedAt: '2026-10-12T00:00:00.000Z',

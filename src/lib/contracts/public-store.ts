@@ -33,6 +33,10 @@ export const PublicOrderCreate = z
     customerName: z.string().trim().min(1, 'Your name is needed').max(120, 'Name is too long'),
     phone: phoneField,
     note: z.string().trim().max(300, 'Keep the note under 300 characters').optional(),
+    // Optional coupon typed in the basket. The server re-validates it against
+    // live promotions and prices the discount itself; the client preview is
+    // never trusted.
+    code: z.string().trim().max(40, 'Code is too long').optional(),
   })
   .superRefine((value, ctx) => {
     // Two lines for the same product would snapshot it twice in the order

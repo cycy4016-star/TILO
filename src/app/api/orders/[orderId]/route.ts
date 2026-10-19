@@ -61,6 +61,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         description: updated.description,
         status: updated.status,
         amountPesewas: updated.amountPesewas ?? null,
+        discountPesewas: updated.discountPesewas,
+        promoCode: updated.promoCode,
         paidAt: updated.paidAt ? updated.paidAt.toISOString() : null,
         createdAt: updated.createdAt.toISOString(),
         updatedAt: updated.updatedAt.toISOString(),

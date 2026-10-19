@@ -34,6 +34,8 @@ type OrderWithLines = {
   description: string;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
   amountPesewas: number | null;
+  discountPesewas: number;
+  promoCode: string | null;
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -72,6 +74,8 @@ function serializeOrder(order: OrderWithLines) {
     description: order.description,
     status: order.status,
     amountPesewas: order.amountPesewas ?? null,
+    discountPesewas: order.discountPesewas,
+    promoCode: order.promoCode,
     paidAt: order.paidAt ? order.paidAt.toISOString() : null,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),

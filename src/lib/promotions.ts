@@ -113,6 +113,140 @@ export function dateOnlyToDate(value: string | null | undefined): Date | null {
   return new Date(`${value}T00:00:00.000Z`);
 }
 
+type CouponPromo = {
+  name: string;
+  code: string | null;
+  kind: 'PERCENT' | 'FIXED';
+  value: number;
+  minSubtotalPesewas: number | null;
+  active?: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  itemIds: string[];
+  categoryIds: string[];
+};
+
+/** One basket line, priced for coupon eligibility. */
+export type CouponLine = {
+  itemId: string;
+  categoryId: string | null;
+  pricePesewas: number;
+  quantity: number;
+};
+
+export type CouponResult =
+  | {
+      ok: true;
+      code: string;
+      name: string;
+      subtotalPesewas: number;
+      eligibleSubtotalPesewas: number;
+      discountPesewas: number;
+    }
+  | { ok: false; reason: 'missing_code' | 'not_found' | 'paused' | 'upcoming' | 'expired' }
+  | { ok: false; reason: 'min_subtotal'; minSubtotalPesewas: number; subtotalPesewas: number }
+  | { ok: false; reason: 'no_eligible_items' };
+
+/**
+ * Validate a coupon code against the shop's promotions and price the discount
+ * for this basket. Pure and shared: the checkout dialog uses it for a live
+ * preview, and the order route runs the same function so the server never
+ * trusts a client-computed total.
+ *
+ * A code matching several live promos earns the best discount. Code-less
+ * promotions are deliberately not applied here — they stay "quote in chat"
+ * offers, because auto-stacking them would silently reprice the basket.
+ */
+export function couponDiscount<T extends CouponPromo>(
+  promos: readonly T[],
+  code: string,
+  lines: readonly CouponLine[],
+  now: Date = new Date(),
+): CouponResult {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return { ok: false, reason: 'missing_code' };
+
+  const named = promos.filter((promo) => promo.code?.trim().toUpperCase() === normalized);
+  if (named.length === 0) return { ok: false, reason: 'not_found' };
+
+  const states = named.map((promo) =>
+    promotionState({ ...promo, active: promo.active !== false }, now),
+  );
+  const live = named.filter((_, index) => states[index] === 'live');
+  if (live.length === 0) {
+    if (states.every((state) => state === 'paused')) return { ok: false, reason: 'paused' };
+    if (states.some((state) => state === 'upcoming')) return { ok: false, reason: 'upcoming' };
+    return { ok: false, reason: 'expired' };
+  }
+
+  const subtotalPesewas = lines.reduce((sum, line) => sum + line.pricePesewas * line.quantity, 0);
+  let best: { promo: T; discountPesewas: number; eligibleSubtotalPesewas: number } | null = null;
+  let minFailure: { minSubtotalPesewas: number; subtotalPesewas: number } | null = null;
+
+  for (const promo of live) {
+    if (promo.minSubtotalPesewas != null && subtotalPesewas < promo.minSubtotalPesewas) {
+      minFailure ??= { minSubtotalPesewas: promo.minSubtotalPesewas, subtotalPesewas };
+      continue;
+    }
+
+    const eligibleSubtotalPesewas = lines
+      .filter(
+        (line) =>
+          (promo.itemIds.length === 0 && promo.categoryIds.length === 0) ||
+          promo.itemIds.includes(line.itemId) ||
+          (line.categoryId != null && promo.categoryIds.includes(line.categoryId)),
+      )
+      .reduce((sum, line) => sum + line.pricePesewas * line.quantity, 0);
+
+    if (eligibleSubtotalPesewas <= 0) continue;
+
+    const raw =
+      promo.kind === 'PERCENT'
+        ? Math.floor((eligibleSubtotalPesewas * promo.value) / 100)
+        : promo.value;
+    const discountPesewas = Math.min(raw, eligibleSubtotalPesewas, subtotalPesewas);
+    if (discountPesewas > 0 && (!best || discountPesewas > best.discountPesewas)) {
+      best = { promo, discountPesewas, eligibleSubtotalPesewas };
+    }
+  }
+
+  if (!best) {
+    return minFailure
+      ? { ok: false, reason: 'min_subtotal', ...minFailure }
+      : { ok: false, reason: 'no_eligible_items' };
+  }
+
+  return {
+    ok: true,
+    code: normalized,
+    name: best.promo.name,
+    subtotalPesewas,
+    eligibleSubtotalPesewas: best.eligibleSubtotalPesewas,
+    discountPesewas: best.discountPesewas,
+  };
+}
+
+/** Human wording for a failed coupon check, safe to show at checkout. */
+export function couponErrorMessage(result: CouponResult): string {
+  if (result.ok) return '';
+  switch (result.reason) {
+    case 'missing_code':
+      return 'Enter a code';
+    case 'not_found':
+      return "That code isn't valid here";
+    case 'paused':
+      return 'That code is paused right now';
+    case 'upcoming':
+      return "That code isn't active yet";
+    case 'expired':
+      return 'That code has ended';
+    case 'min_subtotal':
+      return `Spend ${formatGhs(result.minSubtotalPesewas - result.subtotalPesewas)} more to use this code`;
+    case 'no_eligible_items':
+      return "That code doesn't apply to anything in your basket";
+  }
+}
+
 /** Auto-discount % for a sale item: null when there is no visible markdown. */
 export function itemDiscountPercent(item: {
   pricePesewas: number;

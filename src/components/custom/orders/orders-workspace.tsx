@@ -234,6 +234,12 @@ export function OrdersWorkspace() {
                           {formatGhs(order.amountPesewas)}
                         </span>
                       )}
+                      {order.discountPesewas > 0 && (
+                        <span className="font-mono text-caption font-medium text-primary">
+                          −{formatGhs(order.discountPesewas)}
+                          {order.promoCode ? ` · ${order.promoCode}` : ''}
+                        </span>
+                      )}
                       <span>Created {formatDate(order.createdAt)}</span>
                     </div>
                   </div>

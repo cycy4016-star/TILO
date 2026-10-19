@@ -77,7 +77,12 @@ model Order {
   description   String
   status        OrderStatus @default(PENDING)
   // Payment chasing: amount in GHS pesewas (no floats), paidAt set once money lands.
+  // Storefront coupon discounts are already netted out of this amount.
   amountPesewas Int?
+  // Coupon snapshot: money taken off and the code the shopper used. The code is
+  // denormalized (not a relation) so deleting a promotion never rewrites history.
+  discountPesewas Int      @default(0)
+  promoCode       String?
   paidAt        DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

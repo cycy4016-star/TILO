@@ -1,0 +1,12 @@
+Validate promo codes in the basket
+
+Shoppers can enter a code, see the discount before submitting, and the
+public order route recomputes the same discount server-side before it
+stores the order. Orders keep discountPesewas and promoCode, the
+dashboard shows the deduction, and the WhatsApp hand-off includes it.
+
+Coupons match code-insensitively against live promotions, respect
+minimum spend and item/category targeting, and reject expired or
+inactive codes. If a basket changes so the code no longer qualifies,
+the basket shows the shortfall and blocks the order instead of
+silently charging full price.

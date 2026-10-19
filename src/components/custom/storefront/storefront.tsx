@@ -361,6 +361,7 @@ export function Storefront({
         lines={lines}
         cart={cart}
         total={total}
+        promotions={store.promotions}
         onQuantityChange={setQuantity}
         onPlaced={() => setCart({})}
       />

@@ -10,6 +10,7 @@ import { OrderItem, type OrderStatus } from '@/lib/contracts/order';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import { prisma } from '@/lib/db';
 import { notify } from '@/lib/notify';
+import { couponDiscount, couponErrorMessage } from '@/lib/promotions';
 import { allow, ipOf } from '@/lib/rate-limit';
 import { buildOrderNumber, findOrCreateCustomer } from '@/lib/storefront';
 import { routeErrorResponse } from '@/lib/telemetry';
@@ -25,6 +26,8 @@ function serializeOrder(order: {
   description: string;
   status: z.infer<typeof OrderStatus>;
   amountPesewas: number | null;
+  discountPesewas: number;
+  promoCode: string | null;
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +39,8 @@ function serializeOrder(order: {
     description: order.description,
     status: order.status,
     amountPesewas: order.amountPesewas ?? null,
+    discountPesewas: order.discountPesewas,
+    promoCode: order.promoCode,
     paidAt: order.paidAt ? order.paidAt.toISOString() : null,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
@@ -89,6 +94,7 @@ export async function POST(request: Request, context: RouteContext) {
       select: {
         id: true,
         name: true,
+        categoryId: true,
         pricePesewas: true,
         costPricePesewas: true,
         stock: true,
@@ -140,10 +146,55 @@ export async function POST(request: Request, context: RouteContext) {
         );
       }
     }
-    const amountPesewas = lines.reduce(
+    const subtotalPesewas = lines.reduce(
       (total, line) => total + line.item.pricePesewas * line.quantity,
       0,
     );
+
+    // Coupon redemption. The dialog previews this same pure function against the
+    // public promo list, but the price charged here is recomputed from the
+    // database — a crafted request can quote any code but not its own discount.
+    let discountPesewas = 0;
+    let promoCode: string | null = null;
+    const submittedCode = parsed.data.code?.trim();
+    if (submittedCode) {
+      const promotions = await prisma.promotion.findMany({
+        where: { storeId: store.id, code: { equals: submittedCode, mode: 'insensitive' } },
+        select: {
+          name: true,
+          code: true,
+          kind: true,
+          value: true,
+          minSubtotalPesewas: true,
+          active: true,
+          startsAt: true,
+          endsAt: true,
+          itemIds: true,
+          categoryIds: true,
+        },
+      });
+      const coupon = couponDiscount(
+        promotions.map((promotion) => ({
+          ...promotion,
+          startsAt: promotion.startsAt ? promotion.startsAt.toISOString() : null,
+          endsAt: promotion.endsAt ? promotion.endsAt.toISOString() : null,
+        })),
+        submittedCode,
+        lines.map((line) => ({
+          itemId: line.item.id,
+          categoryId: line.item.categoryId,
+          pricePesewas: line.item.pricePesewas,
+          quantity: line.quantity,
+        })),
+      );
+      if (!coupon.ok) {
+        return NextResponse.json({ errors: { code: couponErrorMessage(coupon) } }, { status: 400 });
+      }
+      discountPesewas = coupon.discountPesewas;
+      promoCode = coupon.code;
+    }
+    const amountPesewas = subtotalPesewas - discountPesewas;
+
     const tracked = lines.filter((line) => line.item.stock != null);
     if (tracked.length > 0) {
       const decremented = await prisma.$transaction(
@@ -173,7 +224,10 @@ export async function POST(request: Request, context: RouteContext) {
         status: 'PENDING',
         // Real money is expected for storefront orders, so the amount is derived
         // from the item prices and every line is snapshotted into history.
+        // amountPesewas is already net of any coupon discount.
         amountPesewas,
+        discountPesewas,
+        promoCode,
         lines: {
           create: lines.map((line) => ({
             storeItemId: line.item.id,

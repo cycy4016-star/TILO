@@ -219,6 +219,8 @@ export async function collectWorld(): Promise<World> {
         description: true,
         status: true,
         amountPesewas: true,
+        discountPesewas: true,
+        promoCode: true,
         paidAt: true,
         createdAt: true,
         updatedAt: true,

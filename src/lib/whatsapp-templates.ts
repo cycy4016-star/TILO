@@ -30,7 +30,11 @@ export type BasketOrderContext = {
   storeName: string;
   orderNumber: string;
   lines: BasketLine[];
-  /** Basket total, pre-formatted. */
+  /** Coupon code carried on the order, when one was used. */
+  discountLabel?: string | null;
+  /** Money taken off, pre-formatted. Omitted when there was no coupon. */
+  discountAmount?: string | null;
+  /** Amount payable after the discount, pre-formatted. */
   total: string;
   customerName: string;
   customerPhone: string;
@@ -48,6 +52,13 @@ export function basketOrderWhatsApp(context: BasketOrderContext): string {
     `Order ${context.orderNumber}`,
     ...context.lines.map((line) => `${line.quantity}x ${line.name} — ${line.amount}`),
     '',
+    ...(context.discountAmount
+      ? [
+          context.discountLabel
+            ? `Discount (${context.discountLabel}): -${context.discountAmount}`
+            : `Discount: -${context.discountAmount}`,
+        ]
+      : []),
     `Total: ${context.total}`,
     `Name: ${context.customerName}`,
     `Phone: ${context.customerPhone}`,
