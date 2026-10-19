@@ -208,7 +208,9 @@ export function StoreHeader({
             </span>
           )}
           <span className="sr-only">
-            {cartCount > 0 ? `${cartCount} items in basket` : 'Basket is empty'}
+            {cartCount > 0
+              ? `${cartCount} ${cartCount === 1 ? 'item' : 'items'} in basket`
+              : 'Basket is empty'}
           </span>
         </button>
       </div>
