@@ -157,10 +157,10 @@ Node 24, then a Postgres integration job plus Playwright E2E.
 3. **`SESSION_SUMMARY.md` is historical** (Sep 2026, includes the removed
    SMS-OTP flow). Kept as a log, not as current documentation.
 4. **`/store/test`** was an empty "Test" shop created during deploy
-   verification. It is now `active: false`, so `/store/test` returns 404 and it
-   is absent from the sitemap and `llms.txt`. Restore with
-   `prisma.store.update({ where: { slug: 'test' }, data: { active: true } })`
-   or delete the row outright.
+   verification. The row has been deleted (the owner account was kept), so
+   `/store/test` returns 404 and it is absent from the sitemap and `llms.txt`.
+   The production database has no active shops, which is expected until the
+   first real owner signs up.
 5. **Secrets.** `.env.local` is gitignored and has never been committed; the
    only secret-shaped strings in history are placeholders in `.env.example`.
    No rotation is required for that reason alone, but rotate normally if the
