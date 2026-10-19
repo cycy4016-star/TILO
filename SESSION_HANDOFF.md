@@ -25,6 +25,15 @@ saved filters, a cedi price band, load-more paging, and a recently-viewed
 strip. Saved items, recent searches and recently viewed live in `localStorage`
 per shop; there are no shopper accounts yet.
 
+Promo codes are previewed in the basket against live promotions
+(`src/lib/promotions.ts`) and recomputed server-side in the public order
+route before the order is stored. Orders keep `discountPesewas` and
+`promoCode`; the dashboard and the WhatsApp hand-off both show the
+deduction. A code that stops qualifying (quantity dropped below the
+minimum) is surfaced instead of silently charging full price. Codes are
+matched case-insensitively and respect expiry, minimum spend, and
+item/category targeting.
+
 ---
 
 ## 2. Production
@@ -120,7 +129,7 @@ Run all four before committing:
 ```powershell
 npm.cmd run typecheck
 npm.cmd run lint     # biome, 0 errors + 15 pre-existing warnings
-npm.cmd test         # vitest, 399 tests / 47 files
+npm.cmd test         # vitest, 413 tests / 47 files
 npm.cmd run build
 ```
 
@@ -143,8 +152,13 @@ Node 24, then a Postgres integration job plus Playwright E2E.
   with Node.
 - **No ternary in PowerShell 5.1.** `utf8NoBOM` is not a valid `-Encoding`.
 - `git commit -m` mangles multi-line messages; use `git commit -F <file>`.
+  Keep that file in `$env:TEMP`, never in the repo: `git add -A` will stage it.
 - Bracket paths (`src/app/store/[slug]/...`) need `Get-Content -LiteralPath`.
 - CRLF phantom lint: keep `core.autocrlf false` / `core.eol lf`.
+- **Tailwind double negation:** `-translate-x-[-50%]` computes to `+50%`, so
+  fixed dialogs rendered shifted half their size down and right. Use
+  `-translate-x-1/2`. Verify dialog placement with `getBoundingClientRect()`,
+  not just a screenshot.
 - Never junction `node_modules` between clones (Turbopack panics).
 - `SKIP_ENV_VALIDATION=1` bypasses `src/lib/env.ts` for envless builds.
 - `seed()` in `src/lib/seed.ts` is a no-op called from `instrumentation.ts`.
