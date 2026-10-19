@@ -2,8 +2,10 @@
 //
 // Until an uploaded logo exists, the brand is set as type alone: "TILZA" in the
 // display face (Bricolage Grotesque), extra-bold, tightly tracked, with a small
-// primary-coloured accent dot. It draws in `currentColor`, so it inherits the
-// colour of whatever surface it sits on (slate header, dark CTA band, card…).
+// ORANGE accent dot. Orange is the platform's energy colour — the one thing on
+// screen that is allowed to shout — so the mark's only flourish is the one
+// colour that isn't structural. It draws in `currentColor`, so it inherits the
+// colour of whatever surface it sits on (header, CTA band, card…).
 //
 // Swapping in your own logo later needs no markup changes anywhere:
 //   1. Drop the file in /public (e.g. /public/logo.svg).
@@ -41,7 +43,7 @@ export function TilzaLogo({ className, withAccent = true }: TilzaLogoProps) {
     >
       <span aria-hidden>Tilza</span>
       {withAccent && (
-        <span aria-hidden className="text-primary">
+        <span aria-hidden className="text-highlight">
           .
         </span>
       )}

@@ -55,14 +55,6 @@ export function Hero({ shop }: { shop: SampleShop }) {
         }
       `}</style>
       <section aria-label="Introduction" className="relative overflow-hidden bg-background">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 18% 4%, color-mix(in oklab, var(--primary) 10%, transparent) 0, transparent 55%)',
-          }}
-        />
         <div className="container-page section relative">
           <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
             <div>
@@ -79,8 +71,9 @@ export function Hero({ shop }: { shop: SampleShop }) {
                 {LANDING.hero.titleA}{' '}
                 {/* One key phrase in the accent, flat. A gradient that fades
                     into muted-foreground greys the headline out — the accent
-                    has to hold contrast at every point of the string. */}
-                <span className="text-primary">{LANDING.hero.titleAccent}</span>
+                    has to hold contrast at every point of the string. Orange,
+                    because this is the one line that has to carry energy. */}
+                <span className="text-highlight-ink">{LANDING.hero.titleAccent}</span>
               </h1>
               <p
                 className={`${ENTRANCE} mt-6 max-w-[52ch] text-body-lg text-muted-foreground`}

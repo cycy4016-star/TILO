@@ -21,16 +21,8 @@ export function MerchantWorkspace() {
   return (
     <div className="grid gap-6">
       <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-xs sm:p-10">
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 82% 18%, color-mix(in oklab, var(--primary) 12%, transparent) 0, transparent 45%)',
-          }}
-        />
         <div className="relative flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-highlight-wash px-3 py-1 text-caption font-semibold text-highlight-ink">
             <BarChart3 className="size-3.5" aria-hidden /> Analytics
           </span>
         </div>

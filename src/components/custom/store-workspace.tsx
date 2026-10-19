@@ -88,7 +88,7 @@ import { applyServerErrors } from '@/lib/forms';
 import { fitImageFile, SLOT_HINT } from '@/lib/image';
 import { formatPromoDate, promoHeadline, promoTerms, promotionState } from '@/lib/promotions';
 import { productShareMessage } from '@/lib/share';
-import { normalizeTheme, THEME_PRESETS } from '@/lib/theme';
+import { normalizeTheme } from '@/lib/theme';
 import { uploadImageFile } from '@/lib/uploads';
 
 function getErrorBody(error: unknown): unknown {
@@ -324,49 +324,6 @@ function StoreForm({
                   className="rounded-md"
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="theme"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Shop colour</FormLabel>
-              <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <legend className="sr-only">Shop colour</legend>
-                {THEME_PRESETS.map((preset) => {
-                  const selected = field.value === preset.key;
-                  return (
-                    <button
-                      key={preset.key}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => field.onChange(preset.key)}
-                      className={`flex items-center gap-2 rounded-md border border-border px-2.5 py-2 text-left transition-colors ${
-                        selected
-                          ? 'bg-primary/5 ring-2 ring-ring ring-offset-2 ring-offset-background'
-                          : 'hover:bg-muted'
-                      }`}
-                    >
-                      <span
-                        aria-hidden
-                        className="size-6 shrink-0 rounded-md border border-border"
-                        style={{ backgroundColor: preset.accents[0] }}
-                      />
-                      <span className="min-w-0">
-                        <span className="block truncate text-caption font-medium">
-                          {preset.label}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </fieldset>
-              <p className="text-caption text-muted-foreground">
-                Recolours your public page instantly. Same catalogue, your brand.
-              </p>
               <FormMessage />
             </FormItem>
           )}

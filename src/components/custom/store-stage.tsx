@@ -139,7 +139,7 @@ export function PhoneMockup({
           />
           {/* Screen */}
           <div className="overflow-hidden rounded-[2.4rem] bg-card">
-            <div className="bg-gradient-to-br from-primary/25 via-primary/10 to-transparent px-4 pt-12 pb-4">
+            <div className="bg-highlight-wash px-4 pt-12 pb-4">
               <div className="flex items-center gap-3">
                 <span
                   aria-hidden

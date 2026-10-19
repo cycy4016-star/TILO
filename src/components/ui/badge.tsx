@@ -9,24 +9,23 @@ import { cn } from '@/lib/utils';
 //
 // These deliberately use the RAW palette rather than the derived --brand ramp:
 // success must read green and danger red whatever hue the shop has picked.
-// Tints (colour at ~12% over transparent) keep them quiet enough to repeat
-// down a table column without shouting.
+// The shape is a small rounded rect, not a pill: chips sit in table cells and
+// filter rows, where a pill starts to look like a button. Weight is medium, not
+// semibold — a chip is a label, and a label at 600 in a column of numbers reads
+// like an alert.
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1.5 rounded border px-1.5 py-0.5 text-caption font-medium whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
-        default:
-          'border-transparent bg-primary text-primary-foreground shadow-xs hover:bg-primary/80',
-        secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive:
-          'border-transparent bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/80',
-        outline: 'text-foreground',
-        success: 'border-transparent bg-emerald-500/12 text-emerald-700 dark:text-emerald-400',
-        warning: 'border-transparent bg-amber-500/12 text-amber-700 dark:text-amber-400',
-        info: 'border-transparent bg-sky-500/12 text-sky-700 dark:text-sky-400',
-        neutral: 'border-transparent bg-muted text-muted-foreground',
+        default: 'border-transparent bg-primary text-primary-foreground',
+        secondary: 'border-transparent bg-secondary text-secondary-foreground',
+        destructive: 'border-transparent bg-destructive text-white',
+        outline: 'border-border bg-card text-secondary-foreground',
+        success: 'border-[#b7e4c7] bg-[#eaf7ef] text-[#17663a]',
+        warning: 'border-[#f3d9a6] bg-[#fdf6e6] text-[#8a5a12]',
+        info: 'border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]',
+        neutral: 'border-transparent bg-secondary text-muted-foreground',
       },
       // A status dot before the label. Linear's status chips read this way and
       // it lets a screen-reader-scanned table stay legible at a glance.

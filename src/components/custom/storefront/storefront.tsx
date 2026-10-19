@@ -3,8 +3,9 @@
 // basket and one search box, which is why they live under a single stateful
 // owner instead of being stitched together across server/client boundaries.
 // The server page hands over the parsed store payload and its grouped
-// catalogue; everything visual is composed here, skinned by the shop's own
-// theme (data-theme on <main> recolours every token below it).
+// catalogue; everything visual is composed here. The shop wears the same
+// white + blue + orange system as the rest of the platform — a store no longer
+// picks its own palette, and the order button is the one orange moment.
 'use client';
 
 import { ChevronDown, MessageCircle, Tag } from 'lucide-react';
@@ -73,8 +74,8 @@ export function Storefront({
     <main
       id="top"
       // Mirrors the dashboard's data-platform="app": a stable hook CSS can
-      // scope to. The public shop is themed per-store (data-theme below), so
-      // platform-specific rules must not leak into the workspace or vice versa.
+      // scope to, so platform-specific rules can't leak between the public
+      // shop and the workspace.
       data-platform="store"
       data-theme={store.theme}
       data-appearance={store.appearance}
@@ -94,16 +95,15 @@ export function Storefront({
           count > 0 ? 'pb-28' : 'pb-16'
         }`}
       >
-        {/* Hero: the shop's identity on its own theme ramp — banner photo
-            behind, logo and name in front, one chat CTA and one jump to the
-            catalogue. */}
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--tl-950)] via-[var(--tl-900)] to-[var(--tl-700)] text-[var(--tl-50)] shadow-lg ring-1 ring-[var(--tl-950)]/30">
-          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -right-20 -top-24 size-64 rounded-full bg-[var(--tl-400)]/20 blur-3xl sm:size-96" />
-            <div className="absolute -bottom-32 -left-16 size-72 rounded-full bg-[var(--tl-500)]/15 blur-3xl sm:size-[28rem]" />
-          </div>
+        {/* Hero. A white card with a hairline border — the same surface rule
+            as every card in the product. It used to be a blue gradient with
+            blurred colour blobs behind it; on a pure-white platform a hero has
+            to earn its emphasis from the banner photo and the type, not from a
+            painted background. The banner (when a shop has one) is the only
+            large field of colour on the page. */}
+        <section className="overflow-hidden rounded-2xl border border-border bg-card">
           {store.bannerUrl && (
-            <div className="relative aspect-[2/1] w-full overflow-hidden bg-[var(--tl-950)] sm:aspect-[3/1]">
+            <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[3/1]">
               <Image
                 src={store.bannerUrl}
                 alt=""
@@ -111,10 +111,6 @@ export function Storefront({
                 priority
                 sizes="(max-width: 640px) 100vw, 1152px"
                 className="object-cover object-center"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--tl-950)] via-[var(--tl-950)]/45 to-transparent sm:h-28"
               />
             </div>
           )}
@@ -126,45 +122,47 @@ export function Storefront({
                 width={512}
                 height={512}
                 sizes="(max-width: 640px) 80px, 96px"
-                className={`relative bg-white object-contain p-1.5 shadow-xl ring-1 ring-black/5 ${
+                className={`relative bg-white object-contain p-1.5 ring-1 ring-border ${
                   store.bannerUrl
-                    ? '-mt-20 mb-4 size-20 sm:-mt-24 sm:size-24 rounded-2xl'
+                    ? '-mt-20 mb-4 size-20 rounded-2xl sm:-mt-24 sm:size-24'
                     : 'mb-4 size-16 rounded-2xl'
                 }`}
               />
             )}
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-caption font-semibold text-[var(--tl-100)] ring-1 ring-white/15 backdrop-blur">
-              <span aria-hidden className="size-1.5 rounded-full bg-emerald-400" />
+            <p className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-caption font-semibold text-foreground">
+              <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
               {store.items.length} {store.items.length === 1 ? 'item' : 'items'} · open for orders
             </p>
-            <h1 className="mt-4 break-words font-display text-h1 tracking-tight text-[var(--tl-50)]">
+            <h1 className="mt-4 break-words font-display text-h1 tracking-tight text-foreground">
               {store.name}
             </h1>
             {store.tagline && (
-              <p className="mt-3 max-w-2xl text-body-lg text-[var(--tl-200)]">{store.tagline}</p>
+              <p className="mt-3 max-w-2xl text-body-lg text-muted-foreground">{store.tagline}</p>
             )}
             {store.description && (
-              <p className="mt-1.5 max-w-2xl text-small text-[var(--tl-100)]/90">
+              <p className="mt-1.5 max-w-2xl text-small text-muted-foreground">
                 {store.description}
               </p>
             )}
+
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              {/* Deliberate exception to the accent rule: WhatsApp actions keep
-                  the platform's own green, because "this opens a chat" is a
-                  stronger signal than brand consistency. */}
+              {/* The shop's highest-intent action, and the one place the energy
+                  colour is load-bearing: orange fill, warm charcoal ink. The
+                  WhatsApp icon carries the channel recognition — the button
+                  itself stays inside the platform palette. */}
               {chat && (
                 <a
                   href={chat}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-md bg-emerald-500 px-6 text-small font-semibold text-white shadow-lg shadow-emerald-900/25 transition-colors hover:bg-emerald-400"
+                  className="inline-flex h-11 items-center gap-2 rounded-md bg-highlight px-6 text-small font-semibold text-highlight-foreground transition-colors hover:bg-flame-600"
                 >
                   <MessageCircle aria-hidden className="size-4" /> Chat with us
                 </a>
               )}
               <a
                 href="#catalogue"
-                className="inline-flex h-11 items-center gap-2 rounded-md bg-white/10 px-6 text-small font-semibold text-[var(--tl-50)] ring-1 ring-white/20 backdrop-blur transition-colors hover:bg-white/20"
+                className="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-background px-6 text-small font-semibold text-foreground transition-colors hover:bg-muted"
               >
                 Browse catalogue <ChevronDown aria-hidden className="size-4" />
               </a>
@@ -172,15 +170,15 @@ export function Storefront({
                 storeName={store.name}
                 tagline={store.tagline}
                 storeUrl={storeUrl}
-                className="border-white/25 bg-white/5 text-[var(--tl-50)] hover:bg-white/15 hover:text-white"
+                className="border-border bg-background text-foreground hover:bg-muted"
               />
             </div>
           </div>
         </section>
 
         {store.promoBanner && (
-          <section className="flex items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-center text-small font-semibold">
-            <Tag aria-hidden className="size-4 shrink-0 text-primary" />
+          <section className="flex items-center justify-center gap-2 rounded-xl border border-flame-200 bg-highlight-wash px-4 py-3 text-center text-small font-semibold text-foreground">
+            <Tag aria-hidden className="size-4 shrink-0 text-highlight" />
             <span>{store.promoBanner}</span>
           </section>
         )}

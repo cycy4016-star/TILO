@@ -1,16 +1,24 @@
 // Generated ad artwork for one listing: a photo-first card carrying the shop's
 // logo and name, the item, its price (with a sale badge) and a call to action,
-// painted in the shop's own brand colour. Rendered on demand in three formats
+// painted in Tilza's own blue and orange. Rendered on demand in three formats
 // so the Ad Studio can show and download a ready-to-post image with no object
 // storage. Mirrors the product share card, but bigger and format-aware.
 //
-// Layout is one deliberate composition per format: the photo fills the top (or
-// the left, in wide), the brand sits on a chip over the photo, and a
-// bottom-anchored panel carries the category, name, price and CTA. Every
-// colour that touches text is chosen from the brand accent's own luminance, so
-// a dark accent (slate) never paints dark-on-dark.
+// The card is WHITE, matching the storefront it advertises — blue carries the
+// CTA, orange carries the price. Layout is one deliberate composition per
+// format: the photo fills the top (or the left, in wide), the brand sits on a
+// chip over the photo, and a bottom-anchored panel carries the category, name,
+// price and CTA. Both accent colours are pinned literals whose contrast against
+// white is fixed at authoring time, so no runtime luminance check is needed.
 import { ImageResponse } from 'next/og';
-import { AD_INK, AD_PANEL, AD_PAPER, adPalette, clampText, nameFontSize } from '@/lib/ad-visuals';
+import {
+  AD_CARD,
+  AD_TEXT,
+  AD_TEXT_DIM,
+  adPalette,
+  clampText,
+  nameFontSize,
+} from '@/lib/ad-visuals';
 import { adFormat } from '@/lib/ads';
 import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
@@ -64,7 +72,7 @@ export async function GET(request: Request, context: RouteContext) {
     const discount = itemDiscountPercent(item);
     // Saturated accents read well on the dark card; the dark ones (slate, ocean,
     // violet) swap to their pale tint for the price so it never disappears.
-    const { accent, accentText, pillText } = adPalette(item.store.theme);
+    const { accent, tint, accentText, pillText } = adPalette(item.store.theme);
     const photoSrc = item.image != null ? toDataUrl(item.image, item.imageMime) : null;
     const logoSrc =
       item.store.logo != null ? toDataUrl(item.store.logo, item.store.logoMime) : null;
@@ -104,7 +112,7 @@ export async function GET(request: Request, context: RouteContext) {
             display: 'flex',
             fontSize: 30,
             fontWeight: 700,
-            color: AD_PAPER,
+            color: AD_TEXT,
             overflow: 'hidden',
           }}
         >
@@ -144,14 +152,17 @@ export async function GET(request: Request, context: RouteContext) {
           overflow: 'hidden',
           width,
           height,
-          backgroundImage: `linear-gradient(140deg, ${accent} 0%, ${AD_INK} 62%)`,
+          // Flat pale blue behind the photo. This used to be a 140° gradient
+          // from the accent into the old navy ink; on a white ad a wash would
+          // just tint the product, so the placeholder is a plain quiet field.
+          background: tint,
         }}
       >
         {photoSrc ? (
           <>
             {/* Autofit: the photo itself is never cropped. A dimmed full-bleed
-                copy fills the frame behind it, so any upload shape — portrait,
-                square, panorama — reads as intentional with no adjusting. */}
+                copy fills the frame behind it, so any upload shape â€” portrait,
+                square, panorama â€” reads as intentional with no adjusting. */}
             {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
             <img
               src={photoSrc}
@@ -190,18 +201,6 @@ export async function GET(request: Request, context: RouteContext) {
             {item.name.charAt(0).toUpperCase()}
           </div>
         )}
-        {/* Fade the foot of the photo into the panel so they read as one card. */}
-        <div
-          style={{
-            display: 'flex',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `linear-gradient(to bottom, rgba(16,26,46,0) 62%, ${AD_PANEL} 100%)`,
-          }}
-        />
         {brandChip}
         {discountRibbon}
       </div>
@@ -250,7 +249,7 @@ export async function GET(request: Request, context: RouteContext) {
             fontWeight: 800,
             lineHeight: 1.08,
             letterSpacing: -0.5,
-            color: AD_PAPER,
+            color: AD_TEXT,
           }}
         >
           {clampText(item.name, 64)}
@@ -271,7 +270,7 @@ export async function GET(request: Request, context: RouteContext) {
               style={{
                 display: 'flex',
                 fontSize: 30,
-                color: 'rgba(248,250,252,0.55)',
+                color: AD_TEXT_DIM,
                 textDecoration: 'line-through',
               }}
             >
@@ -306,7 +305,7 @@ export async function GET(request: Request, context: RouteContext) {
           flexDirection: 'row',
           width: '100%',
           height: '100%',
-          background: AD_PANEL,
+          background: AD_CARD,
         }}
       >
         {photo('100%', '52%')}
@@ -319,7 +318,7 @@ export async function GET(request: Request, context: RouteContext) {
           flexDirection: 'column',
           width: '100%',
           height: '100%',
-          background: AD_PANEL,
+          background: AD_CARD,
         }}
       >
         {photo(story ? 1060 : 580, '100%')}

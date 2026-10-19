@@ -13,7 +13,7 @@ import { signOut, useIsAdmin, useSession } from '@/lib/auth-client';
 import { QuickAccessPanel } from '../assistive-menu';
 import { NotificationBell } from '../notification-bell';
 import { TilzaLogo } from '../tilza-logo';
-import { AppearancePicker } from './appearance-picker';
+import { BrandMark } from './brand-mark';
 import { DashboardNav } from './dashboard-nav';
 import { TrialBanner } from './trial-banner';
 
@@ -97,7 +97,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <QuickAccessPanel onClose={() => setAssistiveOpen(false)} />
               </PopoverContent>
             </Popover>
-            <AppearancePicker />
+            <BrandMark />
             <NotificationBell />
             {/* The role chip is a status, so it wears the status primitive
                 rather than a one-off bordered pill. An operator owns no shop,

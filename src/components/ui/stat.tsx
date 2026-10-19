@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 type StatTone = 'good' | 'bad' | 'neutral';
 
 const TONE: Record<StatTone, string> = {
-  good: 'text-emerald-700 dark:text-emerald-400',
+  good: 'text-emerald-700',
   bad: 'text-destructive',
   neutral: 'text-muted-foreground',
 };
@@ -26,18 +26,20 @@ type StatProps = {
   className?: string;
 };
 
+// The value is the loudest thing in the tile and it is set in the mono face at
+// a tabular size so a row of metrics scans as a row of numbers. The label is
+// plain small secondary ink — uppercase-tracked labels turn a metric row into a
+// poster, and the eye stops being able to find the figure.
 export function Stat({ label, value, delta, className }: StatProps) {
   const tone = delta?.tone ?? 'neutral';
   const Arrow = delta ? ARROW[delta.direction] : null;
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <p className="text-caption font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </p>
-      <p className="font-display text-h3 tabular-nums">{value}</p>
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      <p className="text-caption text-muted-foreground">{label}</p>
+      <p className="text-h4 font-semibold tracking-tight text-foreground tabular-nums">{value}</p>
       {delta && Arrow ? (
-        <p className={cn('inline-flex items-center gap-1 text-small font-medium', TONE[tone])}>
+        <p className={cn('inline-flex items-center gap-1 text-caption font-medium', TONE[tone])}>
           <Arrow aria-hidden className="size-3.5" />
           {delta.label}
         </p>

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { AuthNav } from '@/components/custom/auth-nav';
-import { ThemeToggle } from '@/components/custom/theme-toggle';
+
 import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Button } from '@/components/ui/button';
 import {
@@ -261,8 +261,6 @@ export function SiteNav() {
             ))}
           </div>
 
-          {/* Always visible */}
-          <ThemeToggle />
           {/* Auth actions are desktop-only inline; the mobile sheet gets a stack */}
           <span className="hidden md:contents">
             <AuthNav />

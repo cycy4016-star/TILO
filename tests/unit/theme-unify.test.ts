@@ -1,28 +1,55 @@
-// Corporate unification tests: the platform defaults to a clean royal blue
-// and every stored appearance normalizes to the single corporate layout,
-// including legacy "vibrant" rows.
+// One-look tests. Tilza no longer offers a colour choice: the platform ships a
+// single white canvas with blue for structure and orange for energy, and every
+// stored theme key — including legacy rows from the nine-preset era — collapses
+// to that one look. The appearance value is likewise pinned, including the
+// legacy "vibrant" rows.
 import { describe, expect, it } from 'vitest';
 import {
   APPEARANCE_PRESETS,
   DEFAULT_APPEARANCE,
   DEFAULT_THEME,
   getThemePreset,
+  isKnownTheme,
   normalizeAppearance,
   normalizeTheme,
   THEME_PRESETS,
 } from '@/lib/theme';
 
-describe('corporate theme defaults', () => {
-  it('ships blue as the bright default', () => {
+describe('one Tilza look', () => {
+  it('ships the single default theme', () => {
     expect(DEFAULT_THEME).toBe('blue');
     expect(getThemePreset(undefined).key).toBe('blue');
+    expect(normalizeTheme(null)).toBe('blue');
+    expect(normalizeTheme(undefined)).toBe('blue');
     expect(normalizeTheme('nope')).toBe('blue');
-    expect(normalizeTheme('ocean')).toBe('ocean');
   });
 
-  it('lists blue first in the picker', () => {
-    expect(APPEARANCE_PRESETS.length).toBeGreaterThan(0);
+  // The behaviour that changed: a legacy key used to pass through and recolour
+  // the platform. It now resolves to the one look, because no [data-theme]
+  // selector exists to honour it and shipping a half-dead palette is worse than
+  // shipping none.
+  it('collapses every legacy theme key to the single look', () => {
+    expect(normalizeTheme('ocean')).toBe('blue');
+    expect(normalizeTheme('gold')).toBe('blue');
+    expect(normalizeTheme('rose')).toBe('blue');
+    expect(normalizeTheme('orange')).toBe('blue');
+    expect(normalizeTheme('blue')).toBe('blue');
+  });
+
+  it('still recognises legacy keys as valid DB values', () => {
+    // The column keeps its old enum so old rows parse and round-trip; they just
+    // no longer select a palette.
+    expect(isKnownTheme('ocean')).toBe(true);
+    expect(isKnownTheme('gold')).toBe(true);
+    expect(isKnownTheme('nope')).toBe(false);
+    expect(isKnownTheme(null)).toBe(false);
+  });
+
+  it('offers exactly one colour, and it carries both brand colours', () => {
+    expect(THEME_PRESETS).toHaveLength(1);
     expect(THEME_PRESETS[0]?.key).toBe('blue');
+    // [blue, orange] — the swatch must show the two colours the platform uses.
+    expect(THEME_PRESETS[0]?.accents).toEqual(['#2563eb', '#f97316']);
   });
 });
 

@@ -4,7 +4,6 @@ import { GlobalMounts } from '@/components/custom/global-mounts';
 import { HeadContent } from '@/components/custom/head-content';
 import { SiteFooter, SiteNav } from '@/components/custom/site-nav';
 import { AppProviders } from '@/components/providers';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { fontVariables } from '@/lib/fonts';
 import { locale } from '@/lib/locale';
@@ -41,28 +40,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
-    // Bright default: the whole tree ships blue-first (a modern royal blue for
-    // the platform's clean white-and-blue look). The dashboard AppearancePicker
-    // overwrites this with the user's saved theme on mount, and the storefront
-    // sets its own per-store theme on its <main>.
-    <html
-      lang={locale.lang}
-      dir={locale.dir}
-      data-theme="blue"
-      className={fontVariables}
-      suppressHydrationWarning
-    >
+    // One canvas, one look. Tilza ships a single white-and-blue-and-orange
+    // system, so <html> carries no theme attribute and no dark-mode class —
+    // there is nothing for a theme provider to toggle. `suppressHydrationWarning`
+    // stays because the browser extensions and next/font both mutate <html>
+    // outside React.
+    <html lang={locale.lang} dir={locale.dir} className={fontVariables} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-body text-foreground antialiased">
         <HeadContent nonce={nonce} />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} nonce={nonce}>
-          <AppProviders>
-            <SiteNav />
-            {children}
-            <SiteFooter />
-            <Toaster />
-            <GlobalMounts />
-          </AppProviders>
-        </ThemeProvider>
+        <AppProviders>
+          <SiteNav />
+          {children}
+          <SiteFooter />
+          <Toaster />
+          <GlobalMounts />
+        </AppProviders>
       </body>
     </html>
   );

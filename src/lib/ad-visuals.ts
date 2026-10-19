@@ -1,15 +1,23 @@
 // Shared visual tokens and text helpers for the generated ad artwork. Pure and
 // client-safe, so both the next/og routes (server) and the Ad Studio islands
-// reason about the same palette — a dark brand accent must never paint
-// dark-on-dark text, wherever the colour is chosen.
-import { getThemePreset } from '@/lib/theme';
-
-export const AD_INK = '#0f172a';
-export const AD_PANEL = '#101a2e';
-export const AD_PAPER = '#f8fafc';
+// reason about the same palette.
+//
+// THE AD IS A WHITE CARD. It used to be a dark navy panel with a gradient wash
+// behind the product photo; like the storefront hero, it now earns its
+// emphasis from the product itself and a hairline border. That means the
+// generated artwork matches the shop a merchant is looking at — white page,
+// white ad — instead of advertising in a colour that exists nowhere else.
+//
+// The two brand colours keep the same jobs they have everywhere else: BLUE is
+// structural (the CTA pill), ORANGE is energy (the price). The price is the
+// single thing a passer-by reads from three metres away, so it is the one
+// element allowed to shout.
+export const AD_CARD = '#ffffff'; // the ad's body
+export const AD_TEXT = '#0a0a0a'; // primary ink on the card
+export const AD_TEXT_DIM = 'rgba(10,10,10,0.55)'; // struck-through price, captions
 // Product tiles (multi-product ad): card body + its caption strip.
-export const AD_TILE = '#1c2942';
-export const AD_TILE_FOOT = '#111c33';
+export const AD_TILE = '#f4f4f4';
+export const AD_TILE_FOOT = '#e8e8e8';
 
 /** Relative luminance of a #rrggbb colour (WCAG). */
 export function luminance(hex: string): number {
@@ -22,23 +30,29 @@ export function luminance(hex: string): number {
 }
 
 export type AdPalette = {
+  /** Blue — the CTA pill fill, and the brand chip. */
   accent: string;
+  /** Pale blue — the chip's quiet fill and the brand rule. */
   tint: string;
-  /** Accent colour to use for text on the dark card. */
+  /** Orange ink — the price, because the price is the message. */
   accentText: string;
-  /** Text colour to use on top of an accent-filled pill. */
+  /** Text colour on top of an accent-filled pill. */
   pillText: string;
 };
 
-export function adPalette(theme: string | null | undefined): AdPalette {
-  const preset = getThemePreset(theme);
-  const accent = preset.accents[0];
-  const tint = preset.accents[1];
+/**
+ * The ad palette. It takes a theme key only for call-site compatibility —
+ * there is one look now, so every shop gets the same blue and orange. The
+ * luminance-based branches are gone: the colours are pinned literals, so their
+ * contrast is known at authoring time (blue #2563eb under white text is 5.2:1;
+ * orange #9a3412 on white is 7.3:1) rather than measured at render time.
+ */
+export function adPalette(_theme: string | null | undefined): AdPalette {
   return {
-    accent,
-    tint,
-    accentText: luminance(accent) < 0.16 ? tint : accent,
-    pillText: luminance(accent) < 0.5 ? AD_PAPER : AD_INK,
+    accent: '#2563eb',
+    tint: '#dbeafe',
+    accentText: '#9a3412',
+    pillText: '#ffffff',
   };
 }
 

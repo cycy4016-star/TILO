@@ -1,18 +1,11 @@
 // Multi-product ad artwork: one image that shows several of a shop's live
-// listings at once, painted in the shop's brand colour. Query picks the
+// listings at once, painted in Tilza's blue and orange. Query picks the
 // listings (?ids=a,b,c) and the shape (?format=square|story|wide); the order of
 // `ids` is preserved so the owner can steer the layout. Like the single-item
-// ad, this renders on demand with no object storage.
+// ad, this renders on demand with no object storage, on a white card so the
+// artwork matches the storefront it advertises.
 import { ImageResponse } from 'next/og';
-import {
-  AD_INK,
-  AD_PANEL,
-  AD_PAPER,
-  AD_TILE,
-  AD_TILE_FOOT,
-  adPalette,
-  clampText,
-} from '@/lib/ad-visuals';
+import { AD_CARD, AD_TEXT, AD_TILE, AD_TILE_FOOT, adPalette, clampText } from '@/lib/ad-visuals';
 import { adFormat, CAROUSEL_MAX } from '@/lib/ads';
 import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
@@ -154,7 +147,7 @@ export async function GET(request: Request, context: RouteContext) {
     const notModifiedResponse = notModified(request, updatedAt, CACHE_CONTROL);
     if (notModifiedResponse) return notModifiedResponse;
 
-    const { accent, accentText, pillText } = adPalette(store.theme);
+    const { accent, tint, accentText, pillText } = adPalette(store.theme);
     const { pad, gap, cols, nameSize, priceSize, tilePad } = LAYOUT[format.key];
     const logoSrc = store.logo != null ? toDataUrl(store.logo, store.logoMime) : null;
     const cta = store.contactPhone ? 'Order on WhatsApp' : 'Order from our shop';
@@ -185,13 +178,15 @@ export async function GET(request: Request, context: RouteContext) {
               flexGrow: 1,
               minHeight: 0,
               overflow: 'hidden',
-              backgroundImage: `linear-gradient(140deg, ${accent} 0%, ${AD_INK} 70%)`,
+              // Flat pale blue placeholder — the tile used to carry a 140°
+              // gradient into a dark ink, which tinted every product photo.
+              background: tint,
             }}
           >
             {photoSrc ? (
               <>
                 {/* Autofit: dimmed full-bleed copy behind, uncropped photo in
-                    front — any upload shape fills the tile cleanly. */}
+                    front â€” any upload shape fills the tile cleanly. */}
                 {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
                 <img
                   src={photoSrc}
@@ -246,7 +241,7 @@ export async function GET(request: Request, context: RouteContext) {
                 fontSize: nameSize,
                 fontWeight: 700,
                 lineHeight: 1.12,
-                color: AD_PAPER,
+                color: AD_TEXT,
                 overflow: 'hidden',
               }}
             >
@@ -271,7 +266,7 @@ export async function GET(request: Request, context: RouteContext) {
           height: '100%',
           padding: pad,
           gap,
-          background: AD_PANEL,
+          background: AD_CARD,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -291,7 +286,7 @@ export async function GET(request: Request, context: RouteContext) {
                 display: 'flex',
                 fontSize: LAYOUT[format.key].title,
                 fontWeight: 800,
-                color: AD_PAPER,
+                color: AD_TEXT,
                 overflow: 'hidden',
               }}
             >

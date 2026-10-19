@@ -11,16 +11,17 @@ export const siteDescription =
 export const brandLogo: string | null = null;
 
 // PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
-// readable here) — set to match the corporate slate default.
+// readable here) — set to match the white + blue + orange system in
+// custom-style.css.
 export const brandVisual = {
-  /** PWA browser-UI / status-bar color. */
-  themeColor: '#475569',
-  /** PWA splash + install background. */
-  backgroundColor: '#f8fafc',
+  /** PWA browser-UI / status-bar color. The blue — structure. */
+  themeColor: '#2563eb',
+  /** PWA splash + install background. Pure white canvas. */
+  backgroundColor: '#ffffff',
   /** Social-share (OG/Twitter) image. */
   og: {
-    background: '#0f172a',
-    foreground: '#f8fafc',
+    background: '#ffffff',
+    foreground: '#0a0a0a',
     /** Second line under the site name; '' hides it. */
     tagline: 'Chat on WhatsApp. Run on Tilza.',
   },

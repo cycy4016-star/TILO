@@ -21,7 +21,7 @@ export function BasketBar({
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
       <div className="pointer-events-auto mx-auto flex w-full max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 p-2.5 pl-4 shadow-xl backdrop-blur">
         <span className="flex min-w-0 items-center gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[var(--tl-cta)] font-display text-h4 text-white">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-highlight font-display text-h4 text-highlight-foreground">
             {count}
           </span>
           <span className="min-w-0">
@@ -34,7 +34,7 @@ export function BasketBar({
         <Button
           type="button"
           onClick={onCheckout}
-          className="h-11 shrink-0 items-center gap-2 rounded-md bg-[var(--tl-cta)] px-5 font-semibold text-white shadow-sm transition-transform hover:bg-[var(--tl-cta)]/90 active:scale-[0.98]"
+          className="h-11 shrink-0 items-center gap-2 rounded-md bg-highlight px-5 font-semibold text-highlight-foreground shadow-sm transition-transform hover:bg-flame-600 active:scale-[0.98]"
         >
           <ShoppingCart aria-hidden className="size-4" /> Checkout
         </Button>

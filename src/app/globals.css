@@ -1,15 +1,30 @@
-/* Tilza theme scaffold. — the agent's ONLY authority here is the SEED inside
+/* Tilza theme scaffold. â€” the agent's ONLY authority here is the SEED inside
  * the `brand_tokens` slot. Everything else (the @theme namespaces, the
- * framework-DERIVED color block, @layer base/components, @custom-variant dark)
- * is FRAMEWORK STRUCTURE — do not edit it.
+ * framework-DERIVED color block, @layer base/components) is FRAMEWORK
+ * STRUCTURE â€” do not edit it.
  *
  * Tailwind 4 is CSS-first (no tailwind.config.js). Seed -> derived model: the
  * agent sets a handful of values in the slot (brand hue/chroma/lightness,
- * radius, fonts); the framework DERIVES the full --brand-50..900 ramp + every
- * semantic role (background/foreground/card/primary/border/...) + dark mode
- * from that seed via oklch(). So editing ONE value (--brand-h) recolors the
- * WHOLE site coherently. Out-of-range seed values are rejected at commit time.
- * Dark mode is class-based: next-themes toggles `.dark` on <html>.
+ * flame hue/chroma/lightness, radius, fonts); the framework DERIVES the full
+ * --brand-50..900 AND --flame-50..900 ramps plus every semantic role
+ * (background/foreground/card/primary/highlight/border/...) from those seeds
+ * via oklch(). So editing ONE value recolors the WHOLE site coherently.
+ *
+ * TILZA HAS TWO COLOURS, NOT ONE.
+ *   BLUE  (`--brand-*`, `--primary`)    = STRUCTURE. Buttons, links, focus
+ *                                          rings, selection, live state. It is
+ *                                          the skeleton of the interface.
+ *   ORANGE (`--flame-*`, `--highlight`) = ENERGY. Prices, badges, counts,
+ *                                          active/selected affordances, the
+ *                                          storefront's order action. It is
+ *                                          never load-bearing structure â€” if
+ *                                          orange disappears the UI still
+ *                                          works, it just stops shouting.
+ * Neither ramp tints the neutrals. Surfaces are white or true grey, so both
+ * colours land on a clean canvas and neither one muddies the other.
+ *
+ * There is no dark mode. `.dark` is gone and the ThemeProvider is not mounted;
+ * this file has exactly one canvas.
  *
  * Derivation runs at runtime via oklch(calc()) (evergreen browsers). If wider
  * support is needed, pre-compute the derived block to literal oklch at install.
@@ -19,8 +34,6 @@
 @import "tw-animate-css";
 /* Custom global CSS entrypoint. */
 @import "./custom-style.css";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   /* Semantic roles -> CSS vars (resolved at runtime from the derived block). */
@@ -43,7 +56,17 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Full brand ramp (was holey — only 50/100/500/700/900 existed, so
+  /* The energy layer. Same shape as the semantic roles above but a second,
+     independent colour â€” so `bg-highlight`, `text-highlight`,
+     `border-highlight` and the full `flame-*` ramp are all real utilities. */
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-strong: var(--highlight-strong);
+  --color-highlight-strong-foreground: var(--highlight-strong-foreground);
+  --color-highlight-ink: var(--highlight-ink);
+  --color-highlight-wash: var(--highlight-wash);
+
+  /* Full brand ramp (was holey â€” only 50/100/500/700/900 existed, so
      bg-brand-600 / border-brand-200 compiled to nothing). */
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -56,6 +79,19 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
 
+  /* The orange ramp. Mirrors --brand-* exactly so the two colours are used
+     with the same muscle memory: `flame-500` answers to `brand-500`. */
+  --color-flame-50: var(--flame-50);
+  --color-flame-100: var(--flame-100);
+  --color-flame-200: var(--flame-200);
+  --color-flame-300: var(--flame-300);
+  --color-flame-400: var(--flame-400);
+  --color-flame-500: var(--flame-500);
+  --color-flame-600: var(--flame-600);
+  --color-flame-700: var(--flame-700);
+  --color-flame-800: var(--flame-800);
+  --color-flame-900: var(--flame-900);
+
   --font-display: var(--font-display);
   --font-body: var(--font-body);
 
@@ -66,7 +102,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 
-  /* Type scale — one class carries size + leading + weight + tracking, so the
+  /* Type scale â€” one class carries size + leading + weight + tracking, so the
      agent reaches for `text-h1` instead of guessing text-4xl/font-bold/tracking. */
   --text-display: 3.815rem;
   --text-display--line-height: 1.04;
@@ -96,7 +132,7 @@
   --text-caption--line-height: 1.4;
   --text-caption--letter-spacing: 0.01em;
 
-  /* Section rhythm — `py-section`, `px-gutter`, `max-w-[var(--container-page)]`. */
+  /* Section rhythm â€” `py-section`, `px-gutter`, `max-w-[var(--container-page)]`. */
   --spacing-stack: 0.75rem;
   --spacing-block: 1.5rem;
   --spacing-gutter: clamp(1rem, 5vw, 2rem);
@@ -104,7 +140,7 @@
   --spacing-section-lg: clamp(5rem, 11vw, 9rem);
   --container-page: 72rem;
 
-  /* Elevation — brand-tinted; depth becomes the default, not an afterthought. */
+  /* Elevation â€” brand-tinted; depth becomes the default, not an afterthought. */
   --shadow-xs: 0 1px 2px -1px var(--elevation-1);
   --shadow-sm: 0 1px 3px 0 var(--elevation-1), 0 1px 2px -1px var(--elevation-1);
   --shadow-md: 0 4px 12px -2px var(--elevation-2), 0 2px 6px -2px var(--elevation-1);
@@ -112,6 +148,7 @@
   --shadow-xl: 0 24px 48px -12px var(--elevation-3);
   --shadow-2xl: 0 40px 80px -20px var(--elevation-3);
   --shadow-brand: 0 8px 30px -6px var(--shadow-brand-color);
+  --shadow-highlight: 0 8px 30px -6px var(--shadow-highlight-color);
 
   /* Motion. */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -119,40 +156,64 @@
 }
 
 /* === BEGIN tilza:brand_tokens === */
-/* THE SEED — the agent's only styling authority on this file.
-   Set the brand HUE (and optionally chroma/lightness), the radius, and the
-   fonts. The framework derives the full --brand ramp + every surface/text/
-   border role + dark mode from these (see the derived block below), so editing
-   --brand-h ALONE recolors the entire site. Keep values in range. */
+/* THE SEED â€” the only styling authority on this file. Two colours, one radius,
+   two fonts. Everything else on the platform is derived from these numbers.
+
+   BLUE  = STRUCTURE. Hue 257 sits on a true, unpolluted blue (no violet cast).
+   The 600 step lands on #2563eb, so `--primary` â€” every button, link, focus
+   ring and selection edge â€” is that exact blue at 5.2:1 against white.
+
+   ORANGE = ENERGY. Hue 45 is a true orange, not amber and not red; chroma 0.21
+   at lightness 0.62 puts `--highlight` on #f97316, a vivid tangerine that
+   survives on pure white without glowing. Orange never carries structure: it
+   marks prices, badges, counts and the storefront's order action, so if you
+   strip every orange element the product still works end to end.
+
+   The neutrals are NOT derived from either hue. custom-style.css re-pins every
+   surface, border and ink to true grey or pure white â€” that separation is what
+   lets a saturated orange and a saturated blue sit on one canvas without
+   fighting, and it is what makes the page read as "pure" rather than tinted.
+*/
 :root {
-  --brand-h: 263; /* brand hue, 0–360 (oklch royal blue — the Tilza colour) */
-  /* Chroma 0.23 / lightness 0.63 places brand-600 exactly on #2563eb — the
-     classic modern SaaS blue — so buttons and links land on the intended
-     royal blue, while the 500 step above it stays a bright sky tone. Because
-     the neutrals derive from the same hue, one number cools every surface. */
-  --brand-c: 0.23; /* brand chroma (saturation), 0–0.3 */
-  --brand-l: 0.63; /* lightness of the brand-500 step */
-  /* 10px: buttons sit at 8px, cards at 14px — the crisp modern scale, replacing
-      the poster-round 1.1rem the template shipped with. */
-  --radius: 0.625rem; /* corner roundness — cascades to every primitive */
+  /* ---- BLUE: structure ---- */
+  --brand-h: 257; /* oklch hue, 0â€“360 â€” a true blue, no violet lean */
+  --brand-c: 0.19; /* oklch chroma, 0â€“0.3 */
+  --brand-l: 0.62; /* lightness of the brand-500 step */
+
+  /* ---- ORANGE: energy ---- */
+  --flame-h: 45; /* oklch hue, 0â€“360 â€” true orange */
+  --flame-c: 0.21; /* oklch chroma, 0â€“0.3 */
+  --flame-l: 0.62; /* lightness of the flame-500 step */
+
+  /* 8px base: controls at 6â€“8px, cards and panels at 12px, overlays at 16px.
+     Tight enough that dense UI reads as instrument panels rather than toys. */
+  --radius: 0.5rem; /* corner roundness â€” cascades to every primitive */
 
   /* Set by next/font on <html> (src/lib/fonts.ts). The stacks after the comma
-     are the fallback when the webfont hasn't landed yet. Display is Bricolage
-     Grotesque — a characterful variable grotesque that makes headlines read as
-     designed type; body is Inter, which stays invisible at UI sizes. */
-  --font-display: var(--font-display-face, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
+     are the fallback when the webfont hasn't landed yet. One family, two roles:
+     Inter is the UI voice and the heading voice. Hierarchy comes from the type
+     scale's size/weight/tracking steps, not from a novelty display face â€” a
+     second decorative font across every heading reads as template, not craft. */
+  --font-display: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   --font-body: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
+  /* Reserved for data: prices, quantities, timestamps, IDs, hashes. */
+  --font-mono: var(--font-mono-face, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
 
-  /* Interface chrome ramp consumed by the storefront + dashboard via
-      arbitrary-value classes (bg-[var(--tl-950)] etc.). These are the BLUE
-      theme's own values: the standard modern blue ramp (Tailwind's blue
-      scale), giving the public shop page a clean, trustworthy gradient.
-      Every other [data-theme] overrides them alongside the derived --brand
-      ramp above. */
-  --tl-950: #172554;
-  --tl-900: #1e3a8a;
-  --tl-800: #1e40af;
-  --tl-700: #1d4ed8;
+  /* Storefront chrome ramp. The public shop page is the one surface where a
+     merchant's brand colour used to take over entirely; it no longer does —
+     these tokens are the SAME blue the dashboard uses, so a shopper moving
+     between the shop and the workspace sees one product.
+
+     The shop's orange moments (the order button, the order badge) do NOT come
+     from this ramp — they use the platform's own `--highlight` / `flame-*`
+     tokens, so the energy colour is literally the same orange everywhere. Only
+     the deep blues survive here, for the photo labels and wells that need a
+     dark field to sit on. Consumed via arbitrary-value classes
+     (bg-[var(--tl-950)] etc.) by the storefront only. */
+  --tl-950: #0c2a6b;
+  --tl-900: #143d9c;
+  --tl-800: #1c50c9;
+  --tl-700: #2563eb;
   --tl-600: #2563eb;
   --tl-500: #3b82f6;
   --tl-400: #60a5fa;
@@ -160,181 +221,11 @@
   --tl-200: #bfdbfe;
   --tl-100: #dbeafe;
   --tl-50: #eff6ff;
-  --tl-cta: #2563eb;
-  --tl-cta-border: #60a5fa;
-  --tl-banner: #eff6ff;
-}
-
-/* Theme presets. Setting [data-theme="key"] on <html> (or any ancestor)
-   recomputes the whole derived brand ramp + every semantic token, so one
-   attribute recolors the workspace and storefront coherently. */
-/* Royal blue — the platform default. Named explicitly so a persisted "blue"
-   from the picker resolves to exactly the root seed; the chrome ramp is
-   inherited from :root unchanged. */
-[data-theme="blue"] {
-  --brand-h: 263;
-  --brand-c: 0.23;
-  --brand-l: 0.63;
-}
-/* Original golden seed + warm espresso chrome ramp, preserved for stores and
-   accounts that chose Gold before blue became the platform default. */
-[data-theme="gold"] {
-  --brand-h: 84;
-  --brand-c: 0.21;
-  --brand-l: 0.58;
-  --tl-950: #191308;
-  --tl-900: #2d2312;
-  --tl-800: #463518;
-  --tl-700: #6a5020;
-  --tl-600: #9a7428;
-  --tl-500: #c08f2f;
-  --tl-400: #dcb257;
-  --tl-300: #eed18f;
-  --tl-200: #f6e6bd;
-  --tl-100: #fbf3dd;
-  --tl-50: #fdfaf1;
-  --tl-cta: #8a6620;
-  --tl-cta-border: #d8b45e;
-  --tl-banner: #fdfaf1;
-}
-/* Orange — bright golden-orange ("Sunrise"): a sunny, high-energy amber with a
-   vivid commerce ramp, kept for merchants who want the warm marketplace look. */
-[data-theme="orange"] {
-  --brand-h: 70;
-  --brand-c: 0.19;
-  --brand-l: 0.72;
-  --tl-950: #78350f;
-  --tl-900: #92400e;
-  --tl-800: #b45309;
-  --tl-700: #d97706;
-  --tl-600: #f59e0b;
-  --tl-500: #f5a623;
-  --tl-400: #fbbf24;
-  --tl-300: #fcd34d;
-  --tl-200: #fde68a;
-  --tl-100: #fef3c7;
-  --tl-50: #fffbeb;
-  --tl-cta: #f59e0b;
-  --tl-cta-border: #fbbf24;
-  --tl-banner: #fffbeb;
-}
-[data-theme="emerald"] {
-  --brand-h: 160;
-  --brand-c: 0.2;
-  --brand-l: 0.48;
-  --tl-950: #022c22;
-  --tl-900: #064e3b;
-  --tl-800: #065f46;
-  --tl-700: #047857;
-  --tl-600: #059669;
-  --tl-500: #10b981;
-  --tl-400: #34d399;
-  --tl-300: #6ee7b7;
-  --tl-200: #a7f3d0;
-  --tl-100: #d1fae5;
-  --tl-50: #ecfdf5;
-  --tl-cta: #059669;
-  --tl-cta-border: #34d399;
-  --tl-banner: #ecfdf5;
-}
-[data-theme="ocean"] {
-  --brand-h: 205;
-  --brand-c: 0.22;
-  --brand-l: 0.5;
-  --tl-950: #082f49;
-  --tl-900: #0c4a6e;
-  --tl-800: #075985;
-  --tl-700: #0369a1;
-  --tl-600: #0284c7;
-  --tl-500: #0ea5e9;
-  --tl-400: #38bdf8;
-  --tl-300: #7dd3fc;
-  --tl-200: #bae6fd;
-  --tl-100: #e0f2fe;
-  --tl-50: #f0f9ff;
-  --tl-cta: #0284c7;
-  --tl-cta-border: #38bdf8;
-  --tl-banner: #f0f9ff;
-}
-[data-theme="violet"] {
-  --brand-h: 268;
-  --brand-c: 0.2;
-  --brand-l: 0.5;
-  --tl-950: #2e1065;
-  --tl-900: #4c1d95;
-  --tl-800: #5b21b6;
-  --tl-700: #6d28d9;
-  --tl-600: #7c3aed;
-  --tl-500: #8b5cf6;
-  --tl-400: #a78bfa;
-  --tl-300: #c4b5fd;
-  --tl-200: #ddd6fe;
-  --tl-100: #ede9fe;
-  --tl-50: #f5f3ff;
-  --tl-cta: #7c3aed;
-  --tl-cta-border: #a78bfa;
-  --tl-banner: #f5f3ff;
-}
-[data-theme="rose"] {
-  --brand-h: 352;
-  --brand-c: 0.2;
-  --brand-l: 0.55;
-  --tl-950: #4c0519;
-  --tl-900: #881337;
-  --tl-800: #9f1239;
-  --tl-700: #be123c;
-  --tl-600: #e11d48;
-  --tl-500: #f43f5e;
-  --tl-400: #fb7185;
-  --tl-300: #fda4af;
-  --tl-200: #fecdd3;
-  --tl-100: #ffe4e6;
-  --tl-50: #fff1f2;
-  --tl-cta: #e11d48;
-  --tl-cta-border: #fb7185;
-  --tl-banner: #fff1f2;
-}
-[data-theme="slate"] {
-  --brand-h: 250;
-  --brand-c: 0.02;
-  --brand-l: 0.5;
-  --tl-950: #020617;
-  --tl-900: #0f172a;
-  --tl-800: #1e293b;
-  --tl-700: #334155;
-  --tl-600: #475569;
-  --tl-500: #64748b;
-  --tl-400: #94a3b8;
-  --tl-300: #cbd5e1;
-  --tl-200: #e2e8f0;
-  --tl-100: #f1f5f9;
-  --tl-50: #f8fafc;
-  --tl-cta: #475569;
-  --tl-cta-border: #94a3b8;
-  --tl-banner: #f8fafc;
-}
-[data-theme="ember"] {
-  --brand-h: 45;
-  --brand-c: 0.2;
-  --brand-l: 0.53;
-  --tl-950: #1c1006;
-  --tl-900: #33200d;
-  --tl-800: #4f3112;
-  --tl-700: #744a18;
-  --tl-600: #9c5f1a;
-  --tl-500: #c97a24;
-  --tl-400: #e09a4e;
-  --tl-300: #f0bc7f;
-  --tl-200: #f8dcc0;
-  --tl-100: #fcefe0;
-  --tl-50: #fffaf3;
-  --tl-cta: #b45f16;
-  --tl-cta-border: #e09a4e;
-  --tl-banner: #fffaf3;
+  --tl-banner: #f97316;
 }
 /* === END tilza:brand_tokens === */
 
-/* FRAMEWORK-DERIVED — NOT agent-editable (outside the slot). The full ramp,
+/* FRAMEWORK-DERIVED â€” NOT agent-editable (outside the slot). The full ramp,
    every semantic role, and dark mode are computed from the seed above. Neutrals
    carry a touch of the brand hue so one hue change reskins the whole surface. */
 :root {
@@ -348,6 +239,20 @@
   --brand-700: oklch(calc(var(--brand-l) - 0.16) calc(var(--brand-c) * 0.9) var(--brand-h));
   --brand-800: oklch(calc(var(--brand-l) - 0.24) calc(var(--brand-c) * 0.75) var(--brand-h));
   --brand-900: oklch(calc(var(--brand-l) - 0.32) calc(var(--brand-c) * 0.55) var(--brand-h));
+
+  /* The orange ramp, derived exactly like the blue one from --flame-h/c/l.
+     Two independent ramps means orange can be used at the same depth as blue
+     without either being washed out to fit the other. */
+  --flame-50: oklch(0.97 calc(var(--flame-c) * 0.25) var(--flame-h));
+  --flame-100: oklch(0.93 calc(var(--flame-c) * 0.4) var(--flame-h));
+  --flame-200: oklch(0.87 calc(var(--flame-c) * 0.6) var(--flame-h));
+  --flame-300: oklch(0.78 calc(var(--flame-c) * 0.8) var(--flame-h));
+  --flame-400: oklch(0.67 var(--flame-c) var(--flame-h));
+  --flame-500: oklch(var(--flame-l) var(--flame-c) var(--flame-h));
+  --flame-600: oklch(calc(var(--flame-l) - 0.08) var(--flame-c) var(--flame-h));
+  --flame-700: oklch(calc(var(--flame-l) - 0.16) calc(var(--flame-c) * 0.9) var(--flame-h));
+  --flame-800: oklch(calc(var(--flame-l) - 0.24) calc(var(--flame-c) * 0.75) var(--flame-h));
+  --flame-900: oklch(calc(var(--flame-l) - 0.32) calc(var(--flame-c) * 0.55) var(--flame-h));
 
   /* Surfaces. These three lines sit outside the seed slot because no dial can
      reach them: the original formulas pinned --border to chroma 0.008 and
@@ -373,45 +278,30 @@
   --input: oklch(0.875 0.022 var(--brand-h));
   --ring: var(--brand-500);
 
+  /* THE ENERGY LAYER. Four roles, because one orange cannot serve a badge, a
+     price, a selected tab and a filled button — they need different depths and
+     different inks. custom-style.css pins these to literal hex; the values here
+     are the hue-derived fallback so the roles still resolve if that file is
+     ever unloaded.
+
+       --highlight          the pure orange fill (badges, dots, active marks)
+       --highlight-foreground  warm charcoal on that fill — see custom-style.css
+                            for why this is not white
+       --highlight-strong   a deeper orange that DOES carry white text (flame-700)
+       --highlight-ink      orange as TEXT on white (flame-800)
+       --highlight-wash     a quiet orange background for selected/highlighted rows */
+  --highlight: var(--flame-500);
+  --highlight-foreground: oklch(0.18 0.01 var(--flame-h));
+  --highlight-strong: var(--flame-700);
+  --highlight-strong-foreground: oklch(1 0 0);
+  --highlight-ink: var(--flame-800);
+  --highlight-wash: oklch(0.965 calc(var(--flame-c) * 0.28) var(--flame-h));
+
   --elevation-1: oklch(0.2 0.03 var(--brand-h) / 0.06);
   --elevation-2: oklch(0.2 0.04 var(--brand-h) / 0.1);
   --elevation-3: oklch(0.2 0.05 var(--brand-h) / 0.14);
   --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
-}
-
-/* The gold and golden-orange fills are bright, so their buttons carry near-black
-   text instead of the default white (a bright warm fill + white washes out).
-   Applied to the gold and orange themes only — every other theme, including the
-   blue default, keeps white on its darker primary. */
-[data-theme="gold"],
-[data-theme="orange"] {
-  --primary-foreground: oklch(0.24 0.04 70);
-}
-
-.dark {
-  --background: oklch(0.16 0.012 var(--brand-h));
-  --foreground: oklch(0.96 0.006 var(--brand-h));
-  --card: oklch(0.2 0.014 var(--brand-h));
-  --card-foreground: var(--foreground);
-  --popover: var(--card);
-  --popover-foreground: var(--foreground);
-  --primary: var(--brand-400);
-  --primary-foreground: oklch(0.18 0.02 var(--brand-h));
-  --secondary: oklch(0.26 0.014 var(--brand-h));
-  --secondary-foreground: var(--foreground);
-  --muted: oklch(0.26 0.014 var(--brand-h));
-  --muted-foreground: oklch(0.7 0.02 var(--brand-h));
-  --accent: oklch(0.26 0.014 var(--brand-h));
-  --accent-foreground: var(--foreground);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--brand-500);
-
-  --elevation-1: oklch(0 0 0 / 0.4);
-  --elevation-2: oklch(0 0 0 / 0.5);
-  --elevation-3: oklch(0 0 0 / 0.6);
-  --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.45);
+  --shadow-highlight-color: oklch(var(--flame-l) var(--flame-c) var(--flame-h) / 0.3);
 }
 
 @layer components {
@@ -439,7 +329,7 @@
   html,
   body {
     /* Rotated cards and decorative overflow must never make the page
-       horizontally draggable — clip it at the root (overflow-x: clip, not
+       horizontally draggable â€” clip it at the root (overflow-x: clip, not
        hidden, so position:sticky ancestors keep working). */
     overflow-x: clip;
   }
@@ -448,7 +338,7 @@
   }
   /* Buttons get the UA stylesheet's arrow cursor; restore the pointer so every
      interactive control matches the affordance an <a> gets for free. Lives in
-     `base` so `cursor-default`/`cursor-not-allowed` utilities still win — that
+     `base` so `cursor-default`/`cursor-not-allowed` utilities still win â€” that
      keeps shadcn's select and dropdown-menu items on the default arrow. */
   button:not(:disabled),
   [role="button"]:not(:disabled) {

@@ -1,23 +1,25 @@
 // Tilza type system.
 //
-// Both faces are self-hosted by next/font: Next downloads them at build time
+// Two faces, both self-hosted by next/font: Next downloads them at build time
 // and serves them from /_next/static, so the browser never talks to Google and
 // the strict CSP in src/lib/csp.ts stays happy (next/font hosts are allowlisted
 // there only as a build-time safety net).
 //
-// Each font exports a `variable` naming the CSS custom property it sets on
-// <html>. src/app/globals.css then maps those onto the seed's two knobs:
-//   --font-inter      -> --font-body   (UI, running text, form labels)
-//   --font-display-face -> --font-display (headlines, section titles, wordmark)
+//   --font-inter -> --font-body and --font-display (ONE family, two roles)
+//   --font-mono  -> tabular data, codes, IDs, money
 //
-// Pairing rationale: Inter is the invisible workhorse — neutral, high-legibility,
-// perfect at 14px in a form label. Bricolage Grotesque is its opposite on
-// purpose: a contemporary variable grotesque with slightly quirky curves and a
-// tall x-height, so a headline reads as *display* — designed, a bit playful —
-// instead of oversized body copy. That contrast is what makes the hierarchy
-// feel intentional. Both are variable-weight, so the type scale's 600–720
-// steps land on real optical weights rather than synthetic bolding.
-import { Bricolage_Grotesque, Inter } from 'next/font/google';
+// Inter is the whole voice. Hierarchy comes from size, weight and tracking on a
+// single family — not from a novelty display face. A second decorative face
+// applied across every heading is the single loudest "template" signal in a
+// product UI; it fights the body text instead of framing it, and it stops
+// looking deliberate the moment a heading wraps. Where a large heading needs
+// presence, it gets tighter tracking and more weight (see the type scale in
+// src/app/globals.css), which is how real product typography handles emphasis.
+//
+// JetBrains Mono is reserved for data that benefits from column alignment:
+// prices, quantities, timestamps, IDs, hashes. Using it for UI text would be
+// noise, so it stays opt-in via `font-mono` at call sites.
+import { Inter, JetBrains_Mono } from 'next/font/google';
 
 export const inter = Inter({
   subsets: ['latin'],
@@ -26,12 +28,12 @@ export const inter = Inter({
   fallback: ['system-ui', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
 });
 
-export const displayFace = Bricolage_Grotesque({
+export const mono = JetBrains_Mono({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-display-face',
-  fallback: ['system-ui', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
+  variable: '--font-mono-face',
+  fallback: ['ui-monospace', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'monospace'],
 });
 
-/** Class for <html> so both custom properties are in scope for the whole tree. */
-export const fontVariables = [inter.variable, displayFace.variable].join(' ');
+/** Class for <html> so every custom property is in scope for the whole tree. */
+export const fontVariables = [inter.variable, mono.variable].join(' ');

@@ -50,15 +50,10 @@ export function AssistiveTouch() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'group relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-brand ring-4 ring-background transition-transform duration-300 ease-out-expo motion-safe:animate-tilza-float hover:scale-105 active:scale-95',
-          open && 'scale-105',
+          'group relative flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg transition-colors duration-140 hover:bg-accent',
+          open && 'bg-accent',
         )}
       >
-        {/* Breathing ring — a gold halo so the orb reads as tappable. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-full bg-primary/40 motion-safe:animate-tilza-ping"
-        />
         <span
           className={cn(
             'pointer-events-none absolute right-full mr-2 hidden items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-caption font-medium text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 md:flex',
@@ -70,7 +65,7 @@ export function AssistiveTouch() {
         </span>
         <Menu
           aria-hidden
-          className="size-6 transition-transform duration-300 group-hover:rotate-90"
+          className="size-5 text-muted-foreground transition-colors group-hover:text-foreground"
         />
       </button>
     </div>

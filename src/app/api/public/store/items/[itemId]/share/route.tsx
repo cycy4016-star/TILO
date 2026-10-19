@@ -63,7 +63,7 @@ export async function GET(_request: Request, context: RouteContext) {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', fontSize: 64, fontWeight: 800 }}>{item.name}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 12 }}>
-            <div style={{ display: 'flex', fontSize: 56, fontWeight: 800, color: '#fbbf24' }}>
+            <div style={{ display: 'flex', fontSize: 56, fontWeight: 800, color: '#9a3412' }}>
               {formatGhs(item.pricePesewas)}
             </div>
             {discount != null ? (
