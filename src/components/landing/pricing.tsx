@@ -19,11 +19,11 @@ export function Pricing() {
         <Reveal>
           <p className="text-eyebrow">Pricing</p>
           <h2 className="mt-3 break-words text-balance font-display text-h2">
-            Start free for 14 days, <span className="text-primary">pay when it pays</span>
+            Start free. Pick a plan when you&apos;re ready.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-body-lg text-muted-foreground">
+          <p className="mt-4 max-w-[60ch] text-body text-muted-foreground">
             Every new shop gets the full toolkit free for 14 days — no card, no charge. When the
-            trial ends, pick the plan that fits. Your shop and data always stay safe.
+            trial ends, choose the plan that fits. Your shop and data stay safe either way.
           </p>
         </Reveal>
 
@@ -48,17 +48,17 @@ export function Pricing() {
               <Reveal key={plan.id} delay={index * 90} className="h-full">
                 <article
                   className={cn(
-                    'flex h-full flex-col rounded-2xl border bg-card p-6 shadow-sm sm:p-7',
+                    'flex h-full flex-col rounded-lg border bg-card p-5 sm:p-6',
                     plan.highlighted
-                      ? 'border-primary/50 shadow-xl shadow-primary/10'
+                      ? 'border-primary shadow-lg shadow-primary/10'
                       : 'border-border',
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="font-display text-h4">{plan.name}</h3>
                     {plan.highlighted && (
-                      <span className="rounded-full bg-primary px-2.5 py-1 text-caption font-semibold text-primary-foreground shadow-xs">
-                        Recommended
+                      <span className="rounded bg-highlight px-2.5 py-1 text-caption font-bold text-highlight-foreground">
+                        Most popular
                       </span>
                     )}
                   </div>

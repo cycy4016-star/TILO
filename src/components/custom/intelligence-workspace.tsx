@@ -39,7 +39,7 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
     return (
       <div className="grid gap-4 md:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-44 animate-pulse rounded-xl border border-border bg-card" />
+          <div key={i} className="h-44 animate-pulse rounded-lg border border-border bg-card" />
         ))}
       </div>
     );
@@ -47,7 +47,7 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
 
   if (error || !data) {
     return (
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+      <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
         <p className="text-small text-destructive">
           We could not load your summary. Please try again.
         </p>
@@ -58,9 +58,9 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
   return (
     <div className="grid gap-6">
       {!hideIntro && (
-        <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium uppercase tracking-wide text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium uppercase tracking-wide text-highlight-ink">
               <BrainCircuit aria-hidden className="size-3.5" /> Intelligence
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium uppercase tracking-wide text-muted-foreground">
@@ -75,38 +75,38 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
       )}
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <article className="rounded-lg border border-border bg-card p-6">
+          <span className="inline-flex size-11 items-center justify-center rounded-md bg-highlight-wash text-highlight-ink">
             <Coins aria-hidden className="size-5" />
           </span>
           <p className="mt-4 text-caption font-medium text-muted-foreground">Money in (month)</p>
-          <p className="mt-1 text-h3 font-display text-foreground">
+          <p className="mt-1 text-h3 font-display text-primary">
             {formatGhs(data.moneyInMonthPesewas)}
           </p>
           <p className="mt-2 text-small text-muted-foreground">
             {data.moneyInMonthCount} paid {data.moneyInMonthCount === 1 ? 'order' : 'orders'}
           </p>
         </article>
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <article className="rounded-lg border border-border bg-card p-6">
+          <span className="inline-flex size-11 items-center justify-center rounded-md bg-highlight-wash text-highlight-ink">
             <TrendingUp aria-hidden className="size-5" />
           </span>
           <p className="mt-4 text-caption font-medium text-muted-foreground">Outstanding balance</p>
-          <p className="mt-1 text-h3 font-display text-foreground">
+          <p className="mt-1 text-h3 font-display text-primary">
             {formatGhs(data.outstandingPesewas)}
           </p>
           <p className="mt-2 text-small text-muted-foreground">
             {data.outstandingCount} open {data.outstandingCount === 1 ? 'order' : 'orders'}
           </p>
         </article>
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <article className="rounded-lg border border-border bg-card p-6">
+          <span className="inline-flex size-11 items-center justify-center rounded-md bg-highlight-wash text-highlight-ink">
             <Package aria-hidden className="size-5" />
           </span>
           <p className="mt-4 text-caption font-medium text-muted-foreground">
             Catalogue value at retail
           </p>
-          <p className="mt-1 text-h3 font-display text-foreground">
+          <p className="mt-1 text-h3 font-display text-primary">
             {formatGhs(data.catalogSellPesewas)}
           </p>
           <p className="mt-2 text-small text-muted-foreground">
@@ -116,7 +116,7 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
+        <article className="rounded-lg border border-border bg-card p-6 sm:p-7">
           <h2 className="flex items-center gap-2 text-h3 font-display">
             <Scale aria-hidden className="size-5 text-primary" /> Catalogue economics
           </h2>
@@ -163,7 +163,7 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
             </div>
           </div>
           {data.itemsMissingCost > 0 && (
-            <div className="mt-5 rounded-xl border border-border bg-muted/40 px-4 py-3 text-small text-muted-foreground">
+            <div className="mt-5 rounded-lg border border-border bg-muted/40 px-4 py-3 text-small text-muted-foreground">
               {data.itemsMissingCost} {data.itemsMissingCost === 1 ? 'item has' : 'items have'} no
               cost price, {data.itemsMissingCost === 1 ? 'so it' : 'so they'} can&apos;t count its
               margin. Add cost prices in your catalogue to sharpen these numbers.
@@ -178,14 +178,14 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
           </div>
         </article>
 
-        <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
+        <article className="rounded-lg border border-border bg-card p-6 sm:p-7">
           <h2 className="flex items-center gap-2 text-h3 font-display text-primary">
             <TrendingUp aria-hidden className="size-5" /> Realized margins
           </h2>
           <p className="mt-1 text-small text-muted-foreground">
             From actual sold orders, once costs are taken out.
           </p>
-          <p className="mt-5 text-h2 font-display text-foreground">
+          <p className="mt-5 text-h2 font-display text-primary">
             {formatGhs(data.realizedProfitPesewas)}
           </p>
           <p className="mt-2 text-small font-medium text-foreground">
@@ -203,13 +203,13 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
 
       <section
         id="biggest-earners"
-        className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
+        className="scroll-mt-24 rounded-lg border border-border bg-card p-6 sm:p-7"
       >
         <h2 className="flex items-center gap-2 text-h3 font-display">
           <Package aria-hidden className="size-5 text-primary" /> Biggest earners
         </h2>
         {data.topItems.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-border bg-muted/40 p-6 text-center">
+          <div className="mt-4 rounded-lg border border-border bg-muted/40 p-6 text-center">
             <p className="text-h4 font-display">No ranked items yet</p>
             <p className="mt-1 text-small text-muted-foreground">
               Products with sold line items will line up here by profit.
@@ -226,7 +226,7 @@ export function IntelligenceWorkspace({ hideIntro = false }: { hideIntro?: boole
                     {item.marginPercent != null ? `${item.marginPercent}% margin` : 'no cost set'}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-primary">
+                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium uppercase tracking-wide text-highlight-ink">
                   {formatGhs(item.profitPesewas)} earned
                 </span>
               </div>

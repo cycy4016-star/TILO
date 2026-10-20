@@ -10,18 +10,18 @@
  * (background/foreground/card/primary/highlight/border/...) from those seeds
  * via oklch(). So editing ONE value recolors the WHOLE site coherently.
  *
- * TILZA HAS TWO COLOURS, NOT ONE.
- *   BLUE  (`--brand-*`, `--primary`)    = STRUCTURE. Buttons, links, focus
+ * TILZA RUNS ONE WARM MARKETPLACE FAMILY.
+ *   ORANGE (`--brand-*`, `--primary`)   = STRUCTURE. Buttons, links, focus
  *                                          rings, selection, live state. It is
  *                                          the skeleton of the interface.
  *   ORANGE (`--flame-*`, `--highlight`) = ENERGY. Prices, badges, counts,
- *                                          active/selected affordances, the
- *                                          storefront's order action. It is
- *                                          never load-bearing structure — if
- *                                          orange disappears the UI still
- *                                          works, it just stops shouting.
- * Neither ramp tints the neutrals. Surfaces are white or true grey, so both
- * colours land on a clean canvas and neither one muddies the other.
+ *                                          promo bands, the storefront's order
+ *                                          action. Brighter and louder than
+ *                                          primary, it never carries structure.
+ * Red (`--destructive`) is the only other accent: discounts, low stock and
+ * destructive actions. Neither ramp tints the neutrals. Surfaces are white or
+ * true grey, so the orange lands on a clean canvas and photographic product
+ * images do the colour work.
  *
  * There is no dark mode. `.dark` is gone and the ThemeProvider is not mounted;
  * this file has exactly one canvas.
@@ -102,43 +102,45 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 
-  /* Type scale — one class carries size + leading + weight + tracking, so the
-     agent reaches for `text-h1` instead of guessing text-4xl/font-bold/tracking. */
-  --text-display: 3.815rem;
-  --text-display--line-height: 1.04;
-  --text-display--font-weight: 720;
-  --text-display--letter-spacing: -0.022em;
-  --text-h1: 3.052rem;
-  --text-h1--line-height: 1.08;
-  --text-h1--font-weight: 700;
-  --text-h1--letter-spacing: -0.02em;
-  --text-h2: 2.441rem;
-  --text-h2--line-height: 1.14;
-  --text-h2--font-weight: 680;
-  --text-h2--letter-spacing: -0.016em;
-  --text-h3: 1.953rem;
-  --text-h3--line-height: 1.2;
-  --text-h3--font-weight: 640;
-  --text-h4: 1.563rem;
-  --text-h4--line-height: 1.28;
-  --text-h4--font-weight: 600;
-  --text-body-lg: 1.25rem;
+  /* Type scale — one class carries size + leading + weight + tracking. The
+     marketplace runs a little tighter and larger than the old product scale:
+     prices and card titles need to read first, headings second. */
+  --text-display: 4rem;
+  --text-display--line-height: 1.02;
+  --text-display--font-weight: 760;
+  --text-display--letter-spacing: -0.03em;
+  --text-h1: 3.25rem;
+  --text-h1--line-height: 1.06;
+  --text-h1--font-weight: 740;
+  --text-h1--letter-spacing: -0.026em;
+  --text-h2: 2.5rem;
+  --text-h2--line-height: 1.1;
+  --text-h2--font-weight: 720;
+  --text-h2--letter-spacing: -0.022em;
+  --text-h3: 1.875rem;
+  --text-h3--line-height: 1.18;
+  --text-h3--font-weight: 680;
+  --text-h3--letter-spacing: -0.014em;
+  --text-h4: 1.5rem;
+  --text-h4--line-height: 1.25;
+  --text-h4--font-weight: 640;
+  --text-body-lg: 1.125rem;
   --text-body-lg--line-height: 1.6;
   --text-body: 1rem;
-  --text-body--line-height: 1.65;
+  --text-body--line-height: 1.6;
   --text-small: 0.875rem;
   --text-small--line-height: 1.5;
-  --text-caption: 0.78rem;
-  --text-caption--line-height: 1.4;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.35;
   --text-caption--letter-spacing: 0.01em;
 
   /* Section rhythm — `py-section`, `px-gutter`, `max-w-[var(--container-page)]`. */
   --spacing-stack: 0.75rem;
   --spacing-block: 1.5rem;
   --spacing-gutter: clamp(1rem, 5vw, 2rem);
-  --spacing-section: clamp(3.5rem, 7vw, 6rem);
-  --spacing-section-lg: clamp(5rem, 11vw, 9rem);
-  --container-page: 72rem;
+  --spacing-section: clamp(3rem, 6vw, 4.75rem);
+  --spacing-section-lg: clamp(4rem, 9vw, 7rem);
+  --container-page: 80rem;
 
   /* Elevation — brand-tinted; depth becomes the default, not an afterthought. */
   --shadow-xs: 0 1px 2px -1px var(--elevation-1);
@@ -156,72 +158,44 @@
 }
 
 /* === BEGIN tilza:brand_tokens === */
-/* THE SEED — the only styling authority on this file. Two colours, one radius,
-   two fonts. Everything else on the platform is derived from these numbers.
-
-   BLUE  = STRUCTURE. Hue 257 sits on a true, unpolluted blue (no violet cast).
-   The 600 step lands on #2563eb, so `--primary` — every button, link, focus
-   ring and selection edge — is that exact blue at 5.2:1 against white.
-
-   ORANGE = ENERGY. Hue 45 is a true orange, not amber and not red; chroma 0.21
-   at lightness 0.62 puts `--highlight` on #f97316, a vivid tangerine that
-   survives on pure white without glowing. Orange never carries structure: it
-   marks prices, badges, counts and the storefront's order action, so if you
-   strip every orange element the product still works end to end.
-
-   The neutrals are NOT derived from either hue. custom-style.css re-pins every
-   surface, border and ink to true grey or pure white — that separation is what
-   lets a saturated orange and a saturated blue sit on one canvas without
-   fighting, and it is what makes the page read as "pure" rather than tinted.
-*/
+/* THE SEED. The marketplace runs on one warm orange, a near-black ink and a
+   light grey canvas. Orange is both structure and energy — buttons, links,
+   prices, badges and active states all belong to the same family — while red
+   is reserved for discounts, urgency and destructive actions. */
 :root {
-  /* ---- BLUE: structure ---- */
-  --brand-h: 257; /* oklch hue, 0–360 — a true blue, no violet lean */
-  --brand-c: 0.19; /* oklch chroma, 0–0.3 */
-  --brand-l: 0.62; /* lightness of the brand-500 step */
+  /* ---- ORANGE: the brand ---- */
+  --brand-h: 48; /* oklch hue — a true marketplace orange */
+  --brand-c: 0.19; /* oklch chroma */
+  --brand-l: 0.64; /* lightness of the brand-500 step */
 
-  /* ---- ORANGE: energy ---- */
-  --flame-h: 45; /* oklch hue, 0–360 — true orange */
-  --flame-c: 0.21; /* oklch chroma, 0–0.3 */
-  --flame-l: 0.62; /* lightness of the flame-500 step */
+  /* ---- RED-ORANGE: urgency ---- */
+  --flame-h: 32;
+  --flame-c: 0.22;
+  --flame-l: 0.58;
 
-  /* 8px base: controls at 6–8px, cards and panels at 12px, overlays at 16px.
-     Tight enough that dense UI reads as instrument panels rather than toys. */
-  --radius: 0.5rem; /* corner roundness — cascades to every primitive */
+  /* Tight, practical corners: cards at 8px, overlays at 12–16px. */
+  --radius: 0.5rem;
 
-  /* Set by next/font on <html> (src/lib/fonts.ts). The stacks after the comma
-     are the fallback when the webfont hasn't landed yet. One family, two roles:
-     Inter is the UI voice and the heading voice. Hierarchy comes from the type
-     scale's size/weight/tracking steps, not from a novelty display face — a
-     second decorative font across every heading reads as template, not craft. */
+  /* Set by next/font on <html> (src/lib/fonts.ts). Inter carries both body and
+     display; hierarchy comes from weight, size and tracking. */
   --font-display: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   --font-body: var(--font-inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   /* Reserved for data: prices, quantities, timestamps, IDs, hashes. */
   --font-mono: var(--font-mono-face, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
 
-  /* Storefront chrome ramp. The public shop page is the one surface where a
-     merchant's brand colour used to take over entirely; it no longer does —
-     these tokens are the SAME blue the dashboard uses, so a shopper moving
-     between the shop and the workspace sees one product.
-
-     The shop's orange moments (the order button, the order badge) do NOT come
-     from this ramp — they use the platform's own `--highlight` / `flame-*`
-     tokens, so the energy colour is literally the same orange everywhere. Only
-     the deep blues survive here, for the photo labels and wells that need a
-     dark field to sit on. Consumed via arbitrary-value classes
-     (bg-[var(--tl-950)] etc.) by the storefront only. */
-  --tl-950: #0c2a6b;
-  --tl-900: #143d9c;
-  --tl-800: #1c50c9;
-  --tl-700: #2563eb;
-  --tl-600: #2563eb;
-  --tl-500: #3b82f6;
-  --tl-400: #60a5fa;
-  --tl-300: #93c5fd;
-  --tl-200: #bfdbfe;
-  --tl-100: #dbeafe;
-  --tl-50: #eff6ff;
-  --tl-banner: #f97316;
+  /* Warm dark ramp used by storefront photo labels and wells. */
+  --tl-950: #4a1600;
+  --tl-900: #6b2400;
+  --tl-800: #8f3300;
+  --tl-700: #a63d00;
+  --tl-600: #cf4a00;
+  --tl-500: #fb7701;
+  --tl-400: #fd9a3c;
+  --tl-300: #fec38a;
+  --tl-200: #ffe0bd;
+  --tl-100: #fff0e2;
+  --tl-50: #fff8f2;
+  --tl-banner: #fb7701;
 }
 /* === END tilza:brand_tokens === */
 
@@ -240,9 +214,10 @@
   --brand-800: oklch(calc(var(--brand-l) - 0.24) calc(var(--brand-c) * 0.75) var(--brand-h));
   --brand-900: oklch(calc(var(--brand-l) - 0.32) calc(var(--brand-c) * 0.55) var(--brand-h));
 
-  /* The orange ramp, derived exactly like the blue one from --flame-h/c/l.
-     Two independent ramps means orange can be used at the same depth as blue
-     without either being washed out to fit the other. */
+  /* The promotional ramp, derived exactly like the brand one from --flame-h/c/l.
+     Two independent ramps mean the bright promo orange can be used at the same
+     depth as the structural brand orange without either being washed out to fit
+     the other. */
   --flame-50: oklch(0.97 calc(var(--flame-c) * 0.25) var(--flame-h));
   --flame-100: oklch(0.93 calc(var(--flame-c) * 0.4) var(--flame-h));
   --flame-200: oklch(0.87 calc(var(--flame-c) * 0.6) var(--flame-h));

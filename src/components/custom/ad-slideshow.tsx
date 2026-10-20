@@ -133,7 +133,7 @@ export function AdSlideshow({
         </DialogDescription>
 
         <div className="flex flex-wrap items-center gap-2 pr-9">
-          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-caption font-semibold text-primary">
+          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-caption font-semibold text-highlight-ink">
             {ad.angle}
           </span>
           <div className="ml-auto flex gap-1">
@@ -145,7 +145,7 @@ export function AdSlideshow({
                 aria-pressed={entry.key === format.key}
                 className={
                   entry.key === format.key
-                    ? 'rounded-md border border-primary bg-primary/10 px-2.5 py-1 text-caption font-semibold text-primary'
+                    ? 'rounded-md border border-primary bg-primary/10 px-2.5 py-1 text-caption font-semibold text-highlight-ink'
                     : 'rounded-md border border-border px-2.5 py-1 text-caption font-medium text-muted-foreground transition-colors hover:text-foreground'
                 }
               >

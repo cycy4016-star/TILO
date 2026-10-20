@@ -17,18 +17,18 @@ import { SocialProof } from '@/components/landing/social-proof';
 import { siteDescription, siteName, siteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: { absolute: `${siteName} — Turn your bio link into a shop` },
+  title: { absolute: `${siteName} — Your shop. One link. Open for orders.` },
   description: siteDescription,
   alternates: { canonical: '/' },
   openGraph: {
-    title: `${siteName} — Turn your bio link into a shop`,
+    title: `${siteName} — Your shop. One link. Open for orders.`,
     description: siteDescription,
     url: '/',
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: siteName }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${siteName} — Turn your bio link into a shop`,
+    title: `${siteName} — Your shop. One link. Open for orders.`,
     description: siteDescription,
     images: ['/opengraph-image'],
   },
@@ -346,15 +346,15 @@ export default async function TilzaHome() {
             <Reveal>
               <p className="text-eyebrow">Showcase</p>
               <h2 className="mt-3 max-w-2xl break-words text-balance font-display text-h2">
-                See what stores <span className="text-primary">look like</span>
+                See what a Tilza shop looks like
               </h2>
-              <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">
-                Real sample shelves — photos, sale prices and order buttons, exactly as your
-                customers will see them.
+              <p className="mt-4 max-w-[60ch] text-body text-muted-foreground">
+                Product photos, clear prices and a basket customers fill themselves. This is the
+                same shop page your customers will use.
               </p>
             </Reveal>
             <Reveal delay={120}>
-              <div className="mx-auto mt-10 max-w-2xl">
+              <div className="mx-auto mt-8 max-w-2xl">
                 <SampleSlideshow slides={HERO_SLIDES} />
               </div>
             </Reveal>
@@ -362,15 +362,16 @@ export default async function TilzaHome() {
         </section>
 
         {/* STORE STAGE */}
-        <section aria-label="Sample shops" className="bg-muted/40">
+        <section aria-label="Sample shops" className="bg-card">
           <div className="container-page section">
             <Reveal>
               <p className="text-eyebrow">Sample shops</p>
               <h2 className="mt-3 max-w-2xl break-words text-balance font-display text-h2">
-                Three trades, <span className="text-primary">one pattern</span>
+                Three trades, one simple setup
               </h2>
-              <p className="mt-5 max-w-[60ch] text-body-lg text-muted-foreground">
-                Every shop below runs on shelves, photos and a basket — compare them side by side.
+              <p className="mt-4 max-w-[60ch] text-body text-muted-foreground">
+                A phone shop, a fashion shop and a bakery — all built with the same shelves, photos
+                and basket.
               </p>
             </Reveal>
             <StorePhones shops={SAMPLE_STORES} />

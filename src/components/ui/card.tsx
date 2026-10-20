@@ -2,16 +2,13 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-// A card is a white panel on the grey canvas with a hairline border and NO
-// shadow. Shadow belongs to things that float above the page; a card is a
-// surface, and surfaces read through contrast against the ground, not through
-// a drop shadow. Cards that are meant to feel selected get an accent border or
-// a tint, never a heavier shadow.
+// A card is a white panel on the light grey canvas with a hairline border and
+// no default shadow. Selected cards get an orange border or wash.
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('rounded-xl border border-border bg-card text-card-foreground', className)}
+      className={cn('rounded-lg border border-border bg-card text-card-foreground', className)}
       {...props}
     />
   ),

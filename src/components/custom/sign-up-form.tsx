@@ -32,10 +32,9 @@ export function SignUpForm() {
     <div className="space-y-4">
       <Button
         type="button"
-        variant="outline"
         disabled={pending || !googleEnabled}
         onClick={() => void handleGoogle()}
-        className="h-11 w-full rounded-md"
+        className="h-11 w-full rounded-md font-semibold"
       >
         {pending ? 'Opening Google…' : 'Continue with Google'}
       </Button>

@@ -44,7 +44,7 @@ export function MoneyToChaseCard() {
     return (
       <section className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(220px,0.8fr)]">
         {[0, 1].map((i) => (
-          <div key={i} className="h-40 animate-pulse rounded-xl border border-border bg-card" />
+          <div key={i} className="h-40 animate-pulse rounded-lg border border-border bg-card" />
         ))}
       </section>
     );
@@ -52,7 +52,7 @@ export function MoneyToChaseCard() {
 
   if (error || !overview) {
     return (
-      <section className="rounded-xl border border-border bg-card p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <p className="text-small font-medium text-foreground">
           Couldn&apos;t load finances — try again.
         </p>
@@ -64,9 +64,9 @@ export function MoneyToChaseCard() {
 
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(240px,0.75fr)]">
-      <article className="relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm sm:p-7">
+      <article className="relative overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-highlight-ink">
             <Swords aria-hidden className="size-3.5" /> Money to chase
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-caption font-medium text-muted-foreground">
@@ -84,7 +84,7 @@ export function MoneyToChaseCard() {
           </div>
         ) : (
           <>
-            <p className="mt-5 min-w-0 font-display text-[clamp(2.25rem,9vw,3.75rem)] font-semibold leading-none tracking-tight text-foreground">
+            <p className="mt-5 min-w-0 font-display text-[clamp(2.25rem,9vw,3.75rem)] font-bold leading-none tracking-tight text-primary">
               {formatGhs(overview.outstandingPesewas)}
             </p>
             <p className="mt-2 text-small text-muted-foreground">
@@ -109,7 +109,7 @@ export function MoneyToChaseCard() {
                     <span className="truncate font-medium text-foreground">
                       {chase.customerName}
                     </span>
-                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-highlight-ink">
                       {statusLabels[chase.status]}
                     </span>
                   </span>
@@ -148,12 +148,12 @@ export function MoneyToChaseCard() {
         </div>
       </article>
 
-      <article className="rounded-xl border border-border bg-card p-6 sm:p-7">
+      <article className="rounded-lg border border-border bg-card p-6 sm:p-7">
         <h2 className="flex items-center gap-2 text-h4 font-display text-foreground">
           <Wallet aria-hidden className="size-5 text-primary" /> Collected
         </h2>
         <p className="mt-1 text-small text-muted-foreground">Cash that landed this month.</p>
-        <p className="mt-5 font-display text-h2 leading-none text-foreground">
+        <p className="mt-5 font-display text-h2 leading-none text-primary">
           {formatGhs(overview.recoveredMonthPesewas)}
         </p>
         <p className="mt-2 text-small text-muted-foreground">

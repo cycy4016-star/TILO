@@ -11,7 +11,7 @@ import { FAQS } from '@/lib/landing-content';
 
 export function Faq() {
   return (
-    <section id="faq" aria-label="Frequently asked questions" className="scroll-mt-20 bg-muted/40">
+    <section id="faq" aria-label="Frequently asked questions" className="scroll-mt-20 bg-card">
       <div className="container-page section">
         <div className="mx-auto max-w-2xl">
           <Reveal>
@@ -22,7 +22,7 @@ export function Faq() {
             <Accordion
               type="single"
               collapsible
-              className="mt-7 rounded-2xl border border-border bg-card px-5 py-1 shadow-sm sm:px-6"
+              className="mt-6 rounded-lg border border-border bg-card px-5 py-1 sm:px-6"
             >
               {FAQS.map((faq) => (
                 <AccordionItem key={faq.q} value={faq.q}>

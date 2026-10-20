@@ -139,7 +139,7 @@ export function PromoWizard({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-h3">New sale</DialogTitle>
           <DialogDescription>

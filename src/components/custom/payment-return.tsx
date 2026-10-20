@@ -59,7 +59,7 @@ function PaymentReturnBody() {
 
   if (outcome.state === 'checking') {
     return (
-      <Card className="rounded-2xl border border-border bg-card shadow-sm">
+      <Card className="rounded-lg border border-border bg-card shadow-sm">
         <CardContent className="flex items-center justify-center gap-3 py-16 text-body text-muted-foreground">
           <Loader2 aria-hidden className="size-5 animate-spin" />
           Confirming payment…
@@ -70,9 +70,9 @@ function PaymentReturnBody() {
 
   if (outcome.state === 'success') {
     return (
-      <Card className="rounded-2xl border border-border bg-card text-center shadow-sm">
+      <Card className="rounded-lg border border-border bg-card text-center shadow-sm">
         <CardHeader className="pb-2 pt-8 text-center">
-          <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-highlight-ink">
             <CheckCircle2 aria-hidden className="size-7" />
           </span>
           <CardTitle className="mt-4 text-h2 font-display">Payment confirmed</CardTitle>
@@ -91,11 +91,11 @@ function PaymentReturnBody() {
 
   const pending = outcome.state === 'pending';
   return (
-    <Card className="rounded-2xl border border-border bg-card text-center shadow-sm">
+    <Card className="rounded-lg border border-border bg-card text-center shadow-sm">
       <CardHeader className="pb-2 pt-8 text-center">
         <span
           className={`mx-auto flex size-12 items-center justify-center rounded-xl ${
-            pending ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
+            pending ? 'bg-primary/10 text-highlight-ink' : 'bg-destructive/10 text-destructive'
           }`}
         >
           <RotateCcw aria-hidden className="size-6" />
@@ -133,7 +133,7 @@ export function PaymentReturn() {
   return (
     <Suspense
       fallback={
-        <Card className="rounded-2xl border border-border bg-card shadow-sm">
+        <Card className="rounded-lg border border-border bg-card shadow-sm">
           <CardContent className="flex items-center justify-center gap-3 py-16 text-body text-muted-foreground">
             <Loader2 aria-hidden className="size-5 animate-spin" />
             Confirming payment…

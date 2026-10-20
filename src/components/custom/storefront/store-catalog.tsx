@@ -84,6 +84,31 @@ function itemPhotos(item: CatalogItem): string[] {
   return item.imageUrl ? [item.imageUrl] : [];
 }
 
+// The card's icon-only add affordance: a vector cart with a down arrow
+// dropping into the basket. Drawn by hand so the arrow nests inside the same
+// cart outline the rest of the storefront uses (lucide's geometry).
+function CartArrowDown({ className }: { className?: string }) {
+  return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: decorative glyph; the button carries the label.
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className={className}
+    >
+      <circle cx="8" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+      <path d="M13 8.5v4" />
+      <path d="M11 10.5 13 12.5 15 10.5" />
+    </svg>
+  );
+}
+
 // One shelf as the server hands it over. `label: null` is the uncategorised
 // bucket (or a shop with no categories at all) — those render without a heading
 // so a shop that never sets one up looks exactly as it did before.
@@ -115,7 +140,7 @@ function CardMedia({ item }: { item: CatalogItem }) {
           src={item.imageUrl}
           alt={item.name}
           fill
-          sizes="(max-width: 767px) 50vw, 33vw"
+          sizes="(max-width: 767px) 50vw, (max-width: 1279px) 33vw, 25vw"
           onLoad={() => setLoaded(true)}
           className={cn(
             'object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105',
@@ -204,7 +229,7 @@ function PhotoGallery({
             sizes="(max-width: 768px) 100vw, 640px"
             className="aspect-[4/3] w-full object-cover"
           />
-          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors group-hover/photo:bg-black/65">
+          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/70 py-1.5 pl-2 pr-2.5 text-caption font-semibold text-white backdrop-blur transition-colors group-hover/photo:bg-black/80">
             <Maximize2 aria-hidden className="size-3.5" />
             View
           </span>
@@ -215,7 +240,7 @@ function PhotoGallery({
               type="button"
               aria-label="Previous photo"
               onClick={() => step(-1)}
-              className="absolute left-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+              className="absolute left-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-black/65 text-white backdrop-blur transition-colors hover:bg-black/75"
             >
               <ChevronLeft aria-hidden className="size-4" />
             </button>
@@ -223,11 +248,11 @@ function PhotoGallery({
               type="button"
               aria-label="Next photo"
               onClick={() => step(1)}
-              className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+              className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-black/65 text-white backdrop-blur transition-colors hover:bg-black/75"
             >
               <ChevronRight aria-hidden className="size-4" />
             </button>
-            <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/45 px-2 py-1 text-caption font-semibold text-white backdrop-blur">
+            <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/70 px-2 py-1 text-caption font-semibold text-white backdrop-blur">
               {active + 1} / {photos.length}
             </span>
           </>
@@ -406,9 +431,9 @@ export function StoreCatalog({
       <article
         key={item.id}
         id={item.id}
-        className="group flex scroll-mt-36 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xs transition-shadow hover:shadow-md"
+        className="group relative flex scroll-mt-36 flex-col rounded-lg border border-border bg-card transition-shadow hover:shadow-md"
       >
-        <div className="relative">
+        <div className="relative overflow-hidden rounded-t-[7px]">
           <button
             type="button"
             onClick={() => openQuickView(item)}
@@ -452,7 +477,7 @@ export function StoreCatalog({
             className={cn(
               'absolute right-2 top-2 grid size-8 place-items-center rounded-full backdrop-blur transition-colors',
               isSaved
-                ? 'bg-white text-highlight shadow-sm'
+                ? 'bg-white text-primary shadow-sm'
                 : 'bg-black/35 text-white hover:bg-black/55',
             )}
           >
@@ -517,13 +542,20 @@ export function StoreCatalog({
                 Back soon — message the shop to reserve one.
               </p>
             ) : qty === 0 ? (
-              <Button
-                type="button"
-                onClick={() => onQuantityChange(item.id, 1)}
-                className="h-10 w-full items-center gap-2 rounded-md bg-highlight px-3 font-semibold text-highlight-foreground shadow-sm hover:bg-flame-600 active:scale-[0.98]"
-              >
-                <ShoppingCart aria-hidden className="size-4" /> Add to basket
-              </Button>
+              <>
+                {/* The icon-only add button straddles the card's bottom edge:
+                    half sits on the card, half hangs into the row gap. The
+                    spacer keeps the card as tall as the stepper state. */}
+                <div aria-hidden className="h-10" />
+                <button
+                  type="button"
+                  onClick={() => onQuantityChange(item.id, 1)}
+                  aria-label={`Add ${item.name} to basket`}
+                  className="absolute bottom-0 left-1/2 z-10 grid size-11 -translate-x-1/2 translate-y-1/2 place-items-center rounded-full bg-highlight text-highlight-foreground shadow-lg transition-colors hover:bg-flame-600"
+                >
+                  <CartArrowDown className="size-5" />
+                </button>
+              </>
             ) : (
               <div className="flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-1 py-1">
                 <Button
@@ -647,7 +679,9 @@ export function StoreCatalog({
                           aria-hidden
                           className={cn(
                             'grid size-7 shrink-0 place-items-center rounded-full',
-                            active ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary',
+                            active
+                              ? 'bg-highlight-foreground/15 text-highlight-foreground'
+                              : 'bg-primary/10 text-highlight-ink',
                           )}
                         >
                           <Search className="size-3.5" />
@@ -666,7 +700,9 @@ export function StoreCatalog({
                           aria-hidden
                           className={cn(
                             'grid size-7 shrink-0 place-items-center rounded-full',
-                            active ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary',
+                            active
+                              ? 'bg-highlight-foreground/15 text-highlight-foreground'
+                              : 'bg-primary/10 text-highlight-ink',
                           )}
                         >
                           <GroupIcon className="size-3.5" />
@@ -676,7 +712,9 @@ export function StoreCatalog({
                           aria-hidden
                           className={cn(
                             'grid size-7 shrink-0 place-items-center rounded-full',
-                            active ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground',
+                            active
+                              ? 'bg-highlight-foreground/15 text-highlight-foreground'
+                              : 'bg-muted text-muted-foreground',
                           )}
                         >
                           <Package className="size-3.5" />
@@ -686,7 +724,7 @@ export function StoreCatalog({
                       <span
                         className={cn(
                           'text-caption font-medium',
-                          active ? 'text-white/80' : 'text-muted-foreground',
+                          active ? 'text-highlight-foreground/70' : 'text-muted-foreground',
                         )}
                       >
                         {label === null ? totalCount : (group?.items.length ?? 0)}
@@ -716,7 +754,7 @@ export function StoreCatalog({
 
         {visibleGroups.length === 0 ? (
           <div className="rounded-xl border border-border bg-card px-5 py-16 text-center shadow-xs">
-            <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-highlight-ink">
               <Search aria-hidden className="size-5" />
             </span>
             <p className="mt-4 font-display text-h3 tracking-tight">No matches</p>
@@ -750,7 +788,7 @@ export function StoreCatalog({
                           />
                         ) : (
                           GroupIcon && (
-                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-highlight-ink">
                               <GroupIcon aria-hidden className="size-5" />
                             </span>
                           )
@@ -764,7 +802,7 @@ export function StoreCatalog({
                       </span>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-7 md:grid-cols-3 xl:grid-cols-4">
                     {group.items.map((item) => renderItem(item))}
                   </div>
                 </section>
@@ -802,7 +840,7 @@ export function StoreCatalog({
             side="bottom"
             data-theme={theme}
             aria-describedby={undefined}
-            className="max-h-[90vh] overflow-y-auto rounded-t-2xl sm:max-w-lg"
+            className="max-h-[90vh] overflow-y-auto rounded-t-lg sm:mx-auto sm:w-[32rem]"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>{quickView.name}</SheetTitle>
@@ -836,7 +874,7 @@ export function StoreCatalog({
         <SheetContent
           side="bottom"
           aria-describedby={undefined}
-          className="max-h-[88vh] overflow-y-auto rounded-t-2xl sm:max-w-md"
+          className="max-h-[88vh] overflow-y-auto rounded-t-lg sm:mx-auto sm:w-[28rem]"
         >
           <SheetHeader>
             <SheetTitle>Filter items</SheetTitle>

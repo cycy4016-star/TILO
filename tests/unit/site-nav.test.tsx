@@ -41,7 +41,7 @@ describe('marketing navigation alongside the dashboard shell', () => {
     },
   );
 
-  it.each(['/', '/pricing', '/login', '/dashboard-other', '/dashboards', '/blog/dashboard'])(
+  it.each(['/pricing', '/login', '/dashboard-other', '/dashboards', '/blog/dashboard'])(
     'keeps the marketing header and footer on %s',
     (pathname) => {
       route.pathname = pathname;
@@ -52,6 +52,14 @@ describe('marketing navigation alongside the dashboard shell', () => {
       expect(html).toContain('href="/privacy"');
     },
   );
+
+  it('keeps the marketing header but defers the footer to the landing page on /', () => {
+    route.pathname = '/';
+    const html = renderToStaticMarkup(<Navigation />);
+    expect(html).toContain('<header');
+    expect(html).not.toContain('<footer');
+    expect(html).toContain('href="/pricing"');
+  });
 
   it('updates both components when navigating into and out of the dashboard', async () => {
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
@@ -69,7 +77,10 @@ describe('marketing navigation alongside the dashboard shell', () => {
         await act(async () => root.render(<Navigation />));
         const isPublicPage = ['/', '/pricing', '/dashboard-other'].includes(pathname);
         expect(container.querySelectorAll('header')).toHaveLength(isPublicPage ? 1 : 0);
-        expect(container.querySelectorAll('footer')).toHaveLength(isPublicPage ? 1 : 0);
+        // The landing page ships its own footer, so the global one steps aside.
+        expect(container.querySelectorAll('footer')).toHaveLength(
+          pathname === '/' ? 0 : isPublicPage ? 1 : 0,
+        );
         expect(container.querySelector('main')?.textContent).toBe('Page content');
       }
     } finally {

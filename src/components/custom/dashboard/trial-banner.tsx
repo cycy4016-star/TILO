@@ -23,7 +23,7 @@ export function TrialBanner() {
       className={cn(
         'flex items-center gap-2 border-b px-4 py-2 text-small sm:px-6',
         active
-          ? 'border-primary/20 bg-primary/10 text-foreground'
+          ? 'border-highlight/25 bg-highlight-wash text-foreground'
           : 'border-border bg-muted text-muted-foreground',
       )}
     >

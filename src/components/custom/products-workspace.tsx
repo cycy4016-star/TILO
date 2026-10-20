@@ -31,12 +31,12 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
   }, [load]);
 
   if (loading) {
-    return <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />;
+    return <div className="h-64 animate-pulse rounded-lg border border-border bg-card" />;
   }
 
   if (error || !data) {
     return (
-      <section className="grid gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
+      <section className="grid gap-3 rounded-lg border border-border bg-muted/40 p-6 text-center">
         <p className="text-small font-medium text-destructive">
           We could not load your product performance. Please try again.
         </p>
@@ -58,9 +58,9 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
   return (
     <div className="grid gap-6">
       {!hideIntro && (
-        <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-highlight-ink">
               <Package aria-hidden className="size-3.5" /> Products
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-caption font-medium text-muted-foreground">
@@ -77,24 +77,24 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
       )}
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <article className="rounded-lg border border-border bg-card p-6">
           <p className="text-caption font-medium text-muted-foreground">Total sold</p>
           <p className="mt-1 font-display text-h3 text-foreground">{totalUnits}</p>
           <p className="mt-2 text-small text-muted-foreground">
             across {data.items.length} items ranked
           </p>
         </article>
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <article className="rounded-lg border border-border bg-card p-6">
           <p className="text-caption font-medium text-muted-foreground">Revenue</p>
-          <p className="mt-1 font-display text-h3 text-foreground">{formatGhs(totalRevenue)}</p>
+          <p className="mt-1 font-display text-h3 text-primary">{formatGhs(totalRevenue)}</p>
         </article>
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <article className="rounded-lg border border-border bg-card p-6">
           <p className="text-caption font-medium text-muted-foreground">Profit after cost</p>
           <p className="mt-1 font-display text-h3 text-primary">{formatGhs(totalProfit)}</p>
         </article>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <section className="overflow-hidden rounded-lg border border-border bg-card">
         {data.items.length === 0 ? (
           <div className="bg-muted/40 px-6 py-12 text-center">
             <PackageX aria-hidden className="mx-auto size-10 text-muted-foreground" />
@@ -125,7 +125,7 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
               {data.items.map((item) => (
                 <li
                   key={`${item.name}-${item.currentPricePesewas}`}
-                  className="rounded-xl border border-border bg-card p-4"
+                  className="rounded-lg border border-border bg-card p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -137,7 +137,7 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
                       </p>
                     </div>
                     {item.marginPercent != null ? (
-                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
+                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-highlight-ink">
                         {item.marginPercent}%
                       </span>
                     ) : (
@@ -228,7 +228,7 @@ export function ProductsWorkspace({ hideIntro = false }: { hideIntro?: boolean }
                       </td>
                       <td className="px-5 py-3">
                         {item.marginPercent != null ? (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-highlight-ink">
                             {item.marginPercent}%
                           </span>
                         ) : (

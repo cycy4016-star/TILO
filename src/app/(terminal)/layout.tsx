@@ -7,6 +7,6 @@ import type { ReactNode } from 'react';
 
 export default function TerminalLayout({ children }: { children: ReactNode }) {
   // Matches the terminal's own --t-bg (custom-style.css): the wrapper can show
-  // through on overscroll, so it sits in the same light console blue-grey.
-  return <div className="min-h-dvh bg-[#f4f6fb]">{children}</div>;
+  // through on overscroll, so it sits on the same warm canvas.
+  return <div className="min-h-dvh bg-background">{children}</div>;
 }

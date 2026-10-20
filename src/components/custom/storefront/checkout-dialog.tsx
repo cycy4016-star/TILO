@@ -220,7 +220,7 @@ export function CheckoutDialog({
     <Dialog open={open} onOpenChange={(value) => (value ? undefined : close())}>
       <DialogContent
         data-theme={theme}
-        className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-md"
+        className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-md"
       >
         <DialogHeader>
           <DialogTitle className="font-display text-h3 tracking-tight">Your basket</DialogTitle>
@@ -233,14 +233,14 @@ export function CheckoutDialog({
 
         {receipt ? (
           <div className="grid gap-4 py-2 text-center">
-            <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-lg bg-primary/10 text-highlight-ink">
               <Check aria-hidden className="size-6" />
             </span>
             <div>
               <p className="font-display text-h4">Order recorded</p>
               <p className="font-mono text-small text-muted-foreground">#{receipt.orderNumber}</p>
             </div>
-            <ul className="grid gap-1.5 rounded-xl border border-border p-3 text-left">
+            <ul className="grid gap-1.5 rounded-lg border border-border p-3 text-left">
               {receipt.lines.map((line, index) => (
                 <li
                   key={`${index}-${line.name}`}
@@ -254,7 +254,7 @@ export function CheckoutDialog({
                 </li>
               ))}
             </ul>
-            <div className="grid gap-1.5 rounded-xl border border-border p-3 text-left text-small">
+            <div className="grid gap-1.5 rounded-lg border border-border p-3 text-left text-small">
               {receipt.discount && (
                 <p className="flex items-baseline justify-between gap-3 text-primary">
                   <span>Subtotal</span>
@@ -306,7 +306,7 @@ export function CheckoutDialog({
               {lines.map((item) => (
                 <li
                   key={item.id}
-                  className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3"
+                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
                 >
                   {item.imageUrl ? (
                     <Image
@@ -361,7 +361,7 @@ export function CheckoutDialog({
                 </li>
               ))}
             </ul>
-            <div className="grid gap-2 rounded-xl border border-border p-3">
+            <div className="grid gap-2 rounded-lg border border-border p-3">
               <Label htmlFor="basket-code" className="text-small font-semibold">
                 Promo code <span className="font-normal text-muted-foreground">(optional)</span>
               </Label>
@@ -392,7 +392,7 @@ export function CheckoutDialog({
                     onChange={(event) => setCodeInput(event.target.value)}
                     placeholder="WEEKEND10"
                     autoComplete="off"
-                    className="rounded-lg font-mono uppercase"
+                    className="rounded-md font-mono uppercase"
                   />
                   <Button
                     type="button"
@@ -417,7 +417,7 @@ export function CheckoutDialog({
             </div>
 
             {discountPesewas > 0 ? (
-              <div className="grid gap-1.5 rounded-xl bg-muted/60 px-3 py-2 text-small">
+              <div className="grid gap-1.5 rounded-md bg-highlight-wash px-3 py-2 text-small">
                 <p className="flex items-center justify-between">
                   <span>Subtotal</span>
                   <span className="font-mono">{formatGhs(total)}</span>
@@ -432,7 +432,7 @@ export function CheckoutDialog({
                 </p>
               </div>
             ) : (
-              <p className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2 text-small font-semibold">
+              <p className="flex items-center justify-between rounded-md bg-highlight-wash px-3 py-2 text-small font-semibold">
                 <span>Total</span>
                 <span className="font-mono">{formatGhs(total)}</span>
               </p>
@@ -444,7 +444,7 @@ export function CheckoutDialog({
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Ama"
-                className="rounded-lg"
+                className="rounded-md"
               />
             </div>
             <div className="grid gap-2">
@@ -455,7 +455,7 @@ export function CheckoutDialog({
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="024 000 0000"
-                className="rounded-lg"
+                className="rounded-md"
               />
             </div>
             <div className="grid gap-2">
@@ -466,7 +466,7 @@ export function CheckoutDialog({
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Size, colour, pickup time…"
-                className="rounded-lg"
+                className="rounded-md"
               />
             </div>
             {error && <p className="text-small font-medium text-destructive">{error}</p>}
@@ -474,7 +474,7 @@ export function CheckoutDialog({
               type="button"
               disabled={busy}
               onClick={() => void submit()}
-              className="h-11 rounded-md bg-highlight font-semibold text-highlight-foreground hover:bg-flame-600"
+              className="h-11 rounded-md bg-primary font-bold text-primary-foreground hover:bg-primary/90"
             >
               {busy && <Loader2 aria-hidden className="size-4 animate-spin" />}
               {busy ? 'Placing order…' : 'Place order'}

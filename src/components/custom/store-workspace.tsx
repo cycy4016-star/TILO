@@ -333,7 +333,7 @@ function StoreForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
+            <FormItem className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Storefront open</FormLabel>
                 <p className="text-caption text-muted-foreground">
@@ -483,7 +483,7 @@ function CategoryForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
+            <FormItem className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Show on the public page</FormLabel>
                 <p className="text-xs text-muted-foreground">
@@ -821,7 +821,7 @@ function ItemForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
+            <FormItem className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Available</FormLabel>
                 <p className="text-xs text-muted-foreground">
@@ -1165,7 +1165,7 @@ function PromoForm({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
+            <FormItem className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
               <div>
                 <FormLabel className="!mt-0">Promo live</FormLabel>
                 <p className="text-xs text-muted-foreground">
@@ -1419,7 +1419,7 @@ export function StoreWorkspace() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center">
+      <div className="mx-auto max-w-xl rounded-lg border border-border bg-card p-8 text-center">
         <p className="text-h4 font-display">Store unavailable</p>
         <p className="mt-2 text-sm text-muted-foreground">
           We could not load your store. Please try again.
@@ -1441,7 +1441,7 @@ export function StoreWorkspace() {
     return (
       <div
         key={item.id}
-        className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
+        className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
       >
         {item.hasImage ? (
           <span className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -1452,7 +1452,7 @@ export function StoreWorkspace() {
             />
           </span>
         ) : (
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-highlight-ink">
             {item.kind === 'SERVICE' ? (
               <Wrench aria-hidden className="size-5" />
             ) : (
@@ -1470,7 +1470,7 @@ export function StoreWorkspace() {
             )}
           </p>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-highlight-ink">
               {kindLabels[item.kind]}
             </span>
             <span className="font-mono text-sm font-semibold text-foreground">
@@ -1530,24 +1530,54 @@ export function StoreWorkspace() {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
-      <section className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-8">
-        <p className="text-eyebrow">The storefront</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
+      <section className="relative overflow-hidden rounded-lg bg-highlight p-5 text-highlight-foreground sm:p-7">
+        <span
+          aria-hidden
+          className="absolute -right-12 -top-16 size-44 rounded-full border-[20px] border-white/20"
+        />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-h2 font-display">{store ? store.name : 'Your shop window'}</h1>
-            <p className="mt-2 max-w-lg text-small text-muted-foreground">
+            <p className="inline-flex rounded bg-[#241205] px-2.5 py-1 text-caption font-bold uppercase tracking-[0.08em] text-white">
+              The storefront
+            </p>
+            <h1 className="mt-3 break-words font-display text-h2">
+              {store ? store.name : 'Your shop window'}
+            </h1>
+            <p className="mt-2 max-w-lg text-small font-medium text-[#3d1f0d]">
               {store
                 ? 'Customers see this page — browse it, then order items straight to your WhatsApp.'
                 : 'Give yourself a public page: name it, add your items and prices, share the link.'}
             </p>
           </div>
+          {store && (
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {storefrontUrl && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-10 border-[#241205]/25 bg-transparent font-bold text-[#241205] hover:border-[#241205]/50 hover:bg-white/20 hover:text-[#241205]"
+                >
+                  <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink aria-hidden className="size-4" /> View shop
+                  </a>
+                </Button>
+              )}
+              <Button
+                type="button"
+                onClick={() => setItemWizardOpen(true)}
+                className="h-10 bg-white font-bold text-[#241205] hover:bg-[#fff7ef]"
+              >
+                <Plus aria-hidden className="size-4" /> Add item
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
         <section
           id="store-details"
-          className="min-w-0 scroll-mt-24 rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
+          className="min-w-0 scroll-mt-24 rounded-lg border border-border bg-card p-6 shadow-xs sm:p-7"
         >
           <h2 className="flex items-center gap-2 text-h3 font-display">
             <StoreIcon aria-hidden className="size-5 text-primary" /> Store details
@@ -1570,7 +1600,7 @@ export function StoreWorkspace() {
 
         <div className="grid min-w-0 content-start gap-6 lg:sticky lg:top-4 lg:self-start">
           {store ? (
-            <section className="rounded-xl border border-border bg-muted/40 p-6 shadow-xs">
+            <section className="rounded-lg border border-highlight/25 bg-highlight-wash p-6">
               <h2 className="flex items-center gap-2 text-h4 font-display">
                 <ExternalLink aria-hidden className="size-5 text-primary" /> Share this page
               </h2>
@@ -1600,7 +1630,7 @@ export function StoreWorkspace() {
               </div>
             </section>
           ) : (
-            <section className="rounded-xl border border-border bg-muted/40 p-6 text-small text-muted-foreground shadow-xs">
+            <section className="rounded-lg border border-border bg-muted/40 p-6 text-small text-muted-foreground shadow-xs">
               <p className="text-h4 font-display text-foreground">Not live yet</p>
               <p className="mt-1">
                 Save the store details first — you&apos;ll get a shareable link here.
@@ -1613,7 +1643,7 @@ export function StoreWorkspace() {
       {store && (
         <section
           id="categories"
-          className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
+          className="rounded-lg border border-border bg-card p-6 shadow-xs sm:p-7"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -1633,7 +1663,7 @@ export function StoreWorkspace() {
           </div>
 
           {store.categories.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+            <div className="mt-5 rounded-lg border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
               <p className="text-h4 font-display text-foreground">No categories yet</p>
               <p className="mt-1">
                 Optional — but shelves are what keep a long catalogue browsable.
@@ -1644,7 +1674,7 @@ export function StoreWorkspace() {
               {store.categories.map((category) => (
                 <li
                   key={category.id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
+                  className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2">
@@ -1694,7 +1724,7 @@ export function StoreWorkspace() {
       {store && (
         <section
           id="the-shelf"
-          className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
+          className="rounded-lg border border-border bg-card p-6 shadow-xs sm:p-7"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -1713,7 +1743,7 @@ export function StoreWorkspace() {
           </div>
 
           {store.items.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+            <div className="mt-5 rounded-lg border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
               <p className="text-h4 font-display text-foreground">Empty catalogue</p>
               <p className="mt-1">
                 Add your first product or service — it appears on the public page right away.
@@ -1765,7 +1795,7 @@ export function StoreWorkspace() {
       {store && (
         <section
           id="sales-and-promos"
-          className="rounded-xl border border-border bg-card p-6 shadow-xs sm:p-7"
+          className="rounded-lg border border-border bg-card p-6 shadow-xs sm:p-7"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -1785,11 +1815,11 @@ export function StoreWorkspace() {
           </div>
 
           {promotions === null ? (
-            <div className="mt-4 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+            <div className="mt-4 rounded-lg border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
               <p className="font-medium text-foreground">Loading promos…</p>
             </div>
           ) : promotions.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
+            <div className="mt-5 rounded-lg border border-border bg-muted/40 p-6 text-center text-small text-muted-foreground">
               <p className="text-h4 font-display text-foreground">No promos yet</p>
               <p className="mt-1">
                 Add a sale or a discount code and your page becomes a deal customers share.
@@ -1803,7 +1833,7 @@ export function StoreWorkspace() {
                   state === 'live'
                     ? {
                         label: 'Live now',
-                        className: 'bg-primary/10 text-primary',
+                        className: 'bg-primary/10 text-highlight-ink',
                       }
                     : state === 'upcoming'
                       ? {
@@ -1830,7 +1860,7 @@ export function StoreWorkspace() {
                 return (
                   <div
                     key={promo.id}
-                    className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 ${
+                    className={`flex items-center gap-4 rounded-lg border border-border bg-card p-4 ${
                       state !== 'live' ? 'opacity-75' : ''
                     }`}
                   >
@@ -1843,7 +1873,7 @@ export function StoreWorkspace() {
                         />
                       </span>
                     ) : (
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-highlight-ink">
                         <Percent aria-hidden className="size-5" />
                       </span>
                     )}
@@ -1861,7 +1891,7 @@ export function StoreWorkspace() {
                           {promoHeadline(promo)}
                         </span>
                         {promo.code ? (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-caption font-medium text-highlight-ink">
                             CODE {promo.code}
                           </span>
                         ) : (
@@ -1964,7 +1994,7 @@ export function StoreWorkspace() {
         open={itemDialog.open}
         onOpenChange={(open) => setItemDialog({ open, editing: null })}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-h3">Edit the item</DialogTitle>
             <DialogDescription>Update the name, price or description.</DialogDescription>
@@ -1996,7 +2026,7 @@ export function StoreWorkspace() {
         open={promoDialog.open}
         onOpenChange={(open) => setPromoDialog({ open, editing: null })}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-h3">Edit the promo</DialogTitle>
             <DialogDescription>
@@ -2021,7 +2051,7 @@ export function StoreWorkspace() {
         open={categoryDialog.open}
         onOpenChange={(open) => setCategoryDialog({ open, editing: null })}
       >
-        <DialogContent className="rounded-xl sm:max-w-md">
+        <DialogContent className="rounded-lg sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-h3">Edit the category</DialogTitle>
             <DialogDescription>Rename the shelf or hide it from the public page.</DialogDescription>

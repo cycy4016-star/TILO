@@ -2,9 +2,6 @@
 // no state: the search text and basket count are lifted to the storefront shell
 // so the header, the grid and the basket bar always agree. The only local state
 // is whether the search suggestions panel is open.
-//
-// The bar paints with the shop's own theme ramp (--tl-*), so every preset
-// re-skins the chrome without a theme-specific class anywhere.
 'use client';
 
 import { Clock, Search, ShoppingCart, X } from 'lucide-react';
@@ -85,7 +82,7 @@ export function StoreHeader({
           placeholder={`Search ${storeName}…`}
           aria-label={`Search ${storeName}`}
           autoComplete="off"
-          className="h-10 w-full rounded-lg border bg-background pl-9 pr-9 text-small text-foreground shadow-xs outline-none ring-1 ring-border transition placeholder:text-muted-foreground focus:ring-2 focus:ring-highlight"
+          className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-9 text-small text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         {query ? (
           <button
@@ -166,11 +163,10 @@ export function StoreHeader({
   );
 
   return (
-    // White with a hairline, not a dark blue bar. On a pure-white page a dark
-    // masthead was the only remaining painted surface, and it fought the banner
-    // photo directly beneath it. The basket button stays orange — it is the
-    // shop's one persistent energy moment.
-    <header className="sticky top-0 z-50 border-b border-border bg-background">
+    // A solid white masthead keeps the product imagery and offer colours
+    // dominant. The basket stays bright orange — it is the one persistent
+    // action on the page.
+    <header className="sticky top-0 z-50 border-b border-border bg-card">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:h-16">
         <a href="#top" className="flex min-w-0 items-center gap-2.5">
           {logoUrl ? (
@@ -180,10 +176,10 @@ export function StoreHeader({
               width={64}
               height={64}
               sizes="(max-width: 640px) 32px, 36px"
-              className="size-8 shrink-0 rounded-lg bg-white object-contain p-0.5 ring-1 ring-border sm:size-9"
+              className="size-8 shrink-0 rounded-md bg-white object-contain p-0.5 ring-1 ring-border sm:size-9"
             />
           ) : (
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-highlight font-display text-small font-bold text-highlight-foreground sm:size-9">
+            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-highlight font-display text-small font-bold text-highlight-foreground sm:size-9">
               {initial}
             </span>
           )}
@@ -198,7 +194,7 @@ export function StoreHeader({
         <button
           type="button"
           onClick={onCartOpen}
-          className="ml-auto flex h-10 shrink-0 items-center gap-2 rounded-lg bg-highlight px-3.5 text-small font-semibold text-highlight-foreground transition-transform active:scale-[0.98] sm:ml-0 sm:px-4"
+          className="ml-auto flex h-10 shrink-0 items-center gap-2 rounded-md bg-highlight px-3.5 text-small font-bold text-highlight-foreground transition-transform active:scale-[0.98] sm:ml-0 sm:px-4"
         >
           <ShoppingCart aria-hidden className="size-4.5" />
           <span className="hidden sm:inline">Basket</span>

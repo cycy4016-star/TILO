@@ -1,8 +1,10 @@
-# Tilza design system — "Refined & premium"
+# Tilza design system — marketplace energy
 
-Direction: **quiet surfaces, one confident accent, real typographic hierarchy.**
-Think Linear/Stripe, not a poster. The gold is Tilza's signature, so it is used
-precisely rather than in floods.
+Direction: **warm orange, white product surfaces, dense but calm selling.**
+Think a friendly marketplace, not a corporate landing page: product photos and
+prices lead, promotions are bright, everything else is quiet. The orange is the
+signature — use it for actions and offer bands, not as a background wash over
+every section.
 
 This document is the contract for UI work. The tokens below already exist —
 reach for them instead of hand-rolling values.
@@ -11,16 +13,18 @@ reach for them instead of hand-rolling values.
 
 ## 1. Typography (the biggest single upgrade)
 
-Two faces, loaded by `src/lib/fonts.ts`:
+One family, two roles, loaded by `src/lib/fonts.ts`:
 
 | Role | Font | CSS |
 | --- | --- | --- |
-| Display — headings, wordmark | **Bricolage Grotesque** | `font-display` |
+| Display — headings, wordmark | **Inter 700–760**, tight tracking | `font-display` |
 | Body — UI, running text | **Inter** | `font-body` (default on `<body>`) |
 
-Both are self-hosted by `next/font` at build time, so they are CSP-safe and
-there is no layout shift on load. `h1`–`h6` already default to the display
-face via the base rule in `custom-style.css`; `CardTitle` does too.
+Inter is self-hosted by `next/font` at build time, so it is CSP-safe and there
+is no layout shift on load. Both roles resolve to Inter: hierarchy comes from
+the type scale's size, weight and tracking, not a second novelty face.
+`h1`–`h6` already default to the display role via the base rule in
+`custom-style.css`; `CardTitle` does too.
 
 **Use the type scale.** One class carries size + line-height + weight + tracking,
 so never compose `text-4xl font-bold leading-tight tracking-tight` by hand:
@@ -35,70 +39,90 @@ so never compose `text-4xl font-bold leading-tight tracking-tight` by hand:
 | `text-body-lg` | Lead paragraph under a heading |
 | `text-body` | Default copy |
 | `text-small` | Supporting copy |
-| `text-caption` | Meta, labels |
+| `text-caption` | Meta, labels, price fine print |
 
 Rules:
 - Headings get `font-display` (they already default to it via `--font-display`,
   but add it explicitly when overriding). **Body copy never gets `font-display`.**
-- **Remove every `font-black`.** That's the Arial Black poster era. The scale
-  already carries the right weight (720/700/680/640/600).
-- **Remove `uppercase tracking-[0.25em]` / `tracking-[0.18em]` label blocks.**
-  Replace with the `.text-eyebrow` utility (caption + semibold + `0.08em` +
-  `text-brand-600`). It is already defined in `globals.css`.
+- The display face already carries the weight. Avoid `font-black`.
+- Eyebrows use `.text-eyebrow` (caption + semibold + letter spacing). Do not
+  invent new letter-spaced label recipes.
 - Body copy: `font-medium` at most for emphasis. Drop `font-bold`/`font-semibold`
-  used on sentences.
+  used on sentences; weights are for prices, counts and actions.
 - Long prose: cap at `max-w-[60ch]`.
 
 ## 2. Colour
 
-The platform ships **neutral corporate**: slate-first surfaces, one restrained
-accent, quiet backgrounds. The gold/ember ramps still exist as user picks in
-the platform look picker, but no default surface may depend on them.
+The platform ships **one warm marketplace look**: an off-white canvas, white
+cards, near-black ink and two oranges. There is no user-facing theme picker.
 
-- ✅ `text-primary` for **one** key phrase per section, eyebrows, links, focus.
-- ✅ `bg-primary text-primary-foreground` for the single primary CTA in a view.
-- ❌ No gold-flooded panels, no `bg-primary/10` icon-tile farms repeated 6×.
-- Surfaces do the layout work: `bg-card` on `bg-background`, hairline `border-border`.
-- **Remove rainbow icon tiles** (`bg-sky-600`, `bg-emerald-600`, `bg-violet-600`).
-  Use `bg-primary/10 text-primary`, or a neutral `bg-muted text-foreground`.
-- **Remove hard-coded `dark:` literals** (`dark:bg-stone-950`, `dark:border-stone-800`,
-  `dark:bg-stone-900`). They bypass the token system and break every `[data-theme]`
-  preset. Use `bg-background`, `border-border`, `bg-card`, `text-muted-foreground`.
-- **No `amber-*` literals anywhere.** The loud storefront branch is retired —
-  every surface is corporate now.
+| Token | Approx. | Meaning |
+| --- | --- | --- |
+| `--primary` | `#cf4a00` | Actions, links, focus, active nav |
+| `--primary-foreground` | white | Text on primary (4.5:1+) |
+| `--highlight` | `#fb7701` | Promo bands, sale CTAs, badges |
+| `--highlight-foreground` | `#241205` | Text on highlight (7:1+) |
+| `--highlight-ink` | dark ember | Orange text on light surfaces |
+| `--highlight-wash` | `#fff5ec` | Quiet orange tint for icon tiles/cards |
+| `--background` | warm off-white | Page canvas |
+| `--foreground` | `#171717` | Primary ink |
+| `--destructive` | red | Discounts, urgency, destructive actions |
+
+Rules:
+- ✅ `text-primary` for links, prices, counts, active states and eyebrows.
+- ✅ `bg-primary text-primary-foreground` for the main action in a view.
+- ✅ `bg-highlight text-highlight-foreground` for promo strips and high-energy
+  CTAs. Keep the dark ink; white on bright orange does not pass.
+- ✅ `bg-highlight-wash text-primary` for icon tiles and small feature accents.
+- ❌ Do not flood whole pages with orange. One promo/hero band per screen is the
+  budget; the rest is white cards on the canvas.
+- Surfaces do the layout work: `bg-card` on `bg-background`, hairline
+  `border-border`.
+- Status colours use the raw palette (emerald/amber/sky/red) so success always
+  reads green and errors read red, regardless of the orange brand.
+- No gradients beyond the deliberate terminal scanline; no dark mode.
+- Legacy `[data-theme]` / `--tl-*` variables stay for stored shop keys, but every
+  preset renders this same warm ramp.
 
 ## 3. Radius & elevation
 
-Base radius is `0.625rem`, so:
-`rounded-md` = 8px (buttons), `rounded-lg` = 10px, `rounded-xl` = 14px (cards),
-`rounded-2xl` = 18px (large panels).
+Base radius is `0.5rem`:
 
+- `rounded-md` = 6px (buttons, inputs, small controls)
+- `rounded-lg` = 8px (cards, dialogs, panels)
+- `rounded-xl` = 12px (large marketing/auth panels only)
+
+Rules:
 - Buttons: `rounded-md` by default — **do not override radius on buttons**.
-- Cards: `rounded-xl` (14px).
+- Cards: `rounded-lg`, white, hairline border. Avoid stacked drop shadows.
 - Clickable cards: add `.lift` (shared hover elevation) rather than a bespoke
   `hover:shadow-*` + `hover:-translate-y-*` pair.
-- Shadows: `shadow-xs` … `shadow-2xl`, plus `shadow-brand`. Prefer
-  `shadow-sm`/`shadow-md`; reserve `shadow-lg`+ for genuinely floating surfaces
-  (dialogs, popovers get them free from the UI primitives).
+- Shadows: flat by default. `shadow-sm` only for genuinely floating surfaces
+  (dialogs, popovers, sticky bars) and `shadow-lg` for the mobile basket bar.
+- Product images take the top corners: `rounded-t-[7px]` inside a `rounded-lg`
+  card so the hairline border stays crisp.
 
 ## 4. Layout & rhythm
 
 Available utilities:
-- `.container-page` — centred, `max-w-72rem`, gutter padding.
+- `.container-page` — centred, `max-w-80rem`, gutter padding.
 - `.section` — `py-section px-gutter`.
 - `.section-lg` — the big vertical breathing room.
 - `py-section`, `px-gutter`, `--container-page`.
 - `.text-eyebrow`, `.lift`.
 
 Rules:
-- **Alternate section tone** (`bg-background` → `bg-muted/40` → `bg-background`)
-  instead of stacking `border-y` on every section.
-- Section heading block: `.text-eyebrow` → `text-h2` → `text-body-lg` lead, left
+- **Alternate section tone**: `bg-background` → `bg-card` → `bg-background`.
+  Avoid stacking `border-y` on every section.
+- Section heading block: `.text-eyebrow` → `text-h2` → `text-body` lead, left
   aligned, `max-w-[60ch]`.
-- Dense UI gaps `gap-4`; marketing gaps `gap-6`/`gap-8`.
-- Give one section `section-lg` for contrast — rhythm should not be uniform.
-- Heading above cards sits on a row with the cards' top edge aligned, not floated
-  arbitrarily.
+- Dense merchant UI gaps `gap-4`; marketing gaps `gap-6`/`gap-8`.
+- Landing heroes can split copy and a 2×2 product preview; keep the preview
+  inside the content column at every width.
+- Product grids: 2 columns on phones, 3 from `md`, 4 from `xl`; keep prices and
+  discount badges visible without hover.
+- Merchant dashboards use compact page headers (eyebrow + `text-h2` + one
+  action), then data cards.
 
 ## 5. Motion
 
@@ -106,15 +130,10 @@ Rules:
 - Enter with `tw-animate-css` (`animate-in fade-in slide-in-from-bottom-4
   duration-500`) only where it clarifies hierarchy — not on every element.
 - Always `motion-safe:` for decorative animation; respect reduced motion.
-- Decorative noise to remove: floating blurred blobs, `animate-tilza-sheen`
-  light sweeps, and multi-stop radial-gradient backgrounds behind heroes. At most
-  **one** restrained radial accent, and only if it earns its place.
+- Product cards may lift or scale their image on hover; do not animate prices,
+  counts or status chips.
 
 ## 6. Retired poster-era markup (remove on sight, everywhere)
-
-The loud storefront branch is retired — none of this may appear on any
-surface anymore (it survives only as dead branches behind the always-true
-`pro` flag until cleanup, and must not be reintroduced):
 
 - `shadow-[3px_3px_0_0_…]`, `shadow-[4px…]`, `shadow-[5px…]`, `shadow-[6px…]`, `shadow-[8px…]`
 - `rotate-[0.5deg]`, `-rotate-[0.5deg]`, `rotate-1`, `rotate-2`, `rotate-3`, `rotate-6`
@@ -122,35 +141,41 @@ surface anymore (it survives only as dead branches behind the always-true
 - `border-2`, `border-b-4`, `border-t-4` (use `border` = 1px)
 - `border-amber-950`, `border-amber-700`
 - `font-black`, `text-outline-cream`, `animate-marquee`
+- Blue/indigo/slate brand literals (`bg-blue-600`, `text-slate-500`)
 
 ## 7. Primitives (`src/components/ui/`)
 
-shadcn base (new-york style) plus four refinements that carry most of the
-"this looks funded" weight. Reach for these before hand-rolling markup:
-
 | Primitive | Notes |
 | --- | --- |
-| `Button` | Every variant has hover **and** an active press (`motion-safe:active:scale-[0.98]`), a 2px focus ring with offset, and `shadow-xs`. Sizes: `sm` `default` `lg` `xl` `icon`. **`xl` is for marketing CTAs only** — an oversized button inside a dense toolbar reads as a bug. |
-| `Badge` | Adds `success` / `warning` / `info` / `neutral` status variants and a `dot` prop. Order, incident and feedback states all use these — do not invent a fifth colour recipe. |
-| `Card` | `rounded-xl border shadow-sm`. `CardTitle` is set in `font-display`. |
-| `EmptyState` | Icon + title + one line + the action that fills the void. Use it for **every** zero row — a bare "No results" is the fastest way to look unfinished. |
+| `Button` | Semibold by default; hover **and** an active press, 2px focus ring with offset. Variants: `default`, `highlight` (bright orange, dark ink), `outline`, `secondary`, `ghost`, `destructive`, `link`. Sizes: `sm` `default` `lg` `xl` `icon`. **`xl` is for marketing/product CTAs only** — an oversized button inside a dense toolbar reads as a bug. |
+| `Badge` | Status variants `success` / `warning` / `info` / `sale` / `neutral` and a `dot` prop. Use these rather than inventing a fifth colour recipe. |
+| `Input` | `h-10`, `rounded-md`, orange focus border + soft ring. |
+| `Card` | `rounded-lg border bg-card`; no shadow by default. `CardTitle` uses the display face. |
+| `EmptyState` | Icon + title + one line + the action that fills the void. Use it for **every** zero row. |
 | `Stat` | Metric tile: label, value, optional delta. `delta.tone` is chosen by the caller — "up" is not universally good. |
+| `Dialog` / `Sheet` | `rounded-lg`, `bg-black/60` overlay, no double shadows. |
 
 Rules:
-- Status colours use the **raw palette** (emerald/amber/sky), not the derived
-  `--brand` ramp: success reads green whatever shop theme is active. Tints at
-  ~12% opacity so a column of chips stays quiet.
+- Status colours use the **raw palette** (emerald/amber/sky/red): success reads
+  green whatever the surface. Tints at ~10–12% so a column of chips stays quiet.
 - Never build a one-off empty state, metric tile or status chip inline.
 
-## 8. Hard constraints
+## 8. Terminal exception
 
-- **Do not edit** `src/app/globals.css` or `src/app/custom-style.css` — the
-  foundation is set. If you think a token is wrong, say so in your report instead.
+`/dashboard/admin/*` keeps its own dense ops-console skin, driven by the `--t-*`
+vars in `custom-style.css`. It is still warm ink-on-white with orange structural
+accents, monospace type and square corners. Do not apply marketing spacing or
+rounded marketing panels there.
+
+## 9. Hard constraints
+
+- **Do not edit** `src/app/globals.css` or `src/app/custom-style.css` unless the
+  task is explicitly a foundation change. If a token is wrong, say so in your
+  report instead.
 - **No new dependencies.** `lucide-react` icons only (already installed).
 - **Do not change** data fetching, props, contracts, state, `id` anchors, route
   paths, `aria-*` labels, or user-facing copy (a heading may change only if the
   layout genuinely requires it — say so in your report).
-- **Only edit the files assigned to you.**
-- Gate with `npm.cmd run typecheck` and `npm.cmd run lint` (both must pass;
-  note a pre-existing `noImgElement` warning in `store-catalog.tsx` is not yours
+- Gate with `npm.cmd run typecheck` and `npm.cmd run lint` (both must pass; a
+  pre-existing `noImgElement` warning in `item-gallery-editor.tsx` is not yours
   to fix unless your brief says otherwise).

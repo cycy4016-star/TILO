@@ -104,9 +104,8 @@ function isStorePath(pathname: string) {
 // the active item reads as chosen rather than hovered. `size` stays at the
 // default h-9 — `size="sm"` would add `text-xs`, which the compiler emits after
 // `text-small` and would win, shrinking the nav type.
-const navLinkClasses =
-  'h-9 px-3 text-small font-medium text-muted-foreground hover:text-foreground';
-const navLinkActiveClasses = 'bg-accent text-accent-foreground text-foreground';
+const navLinkClasses = 'h-10 px-3 text-small font-semibold text-foreground hover:text-primary';
+const navLinkActiveClasses = 'bg-accent text-accent-foreground';
 
 export function SiteNav() {
   const isAuthenticated = useIsAuthenticated();
@@ -134,13 +133,16 @@ export function SiteNav() {
     slot.type === 'link' ? isActive(slot.item.href) : slot.items.some((i) => isActive(i.href));
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-card">
+      <p className="bg-highlight px-4 py-1.5 text-center text-caption font-semibold text-highlight-foreground">
+        Free for 14 days · No card needed · Your shop is live in minutes
+      </p>
       <nav
         aria-label="Primary"
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
         <Link href="/" className="mr-2 flex min-w-0 items-center">
-          <TilzaLogo className="text-xl" />
+          <TilzaLogo className="text-xl text-primary" />
         </Link>
 
         {/* Desktop (md+): inline slots — direct links + `menu` dropdowns */}
@@ -248,11 +250,14 @@ export function SiteNav() {
         <div className="ml-auto flex items-center gap-1.5">
           {/* Desktop secondary buttons */}
           <div className="hidden items-center gap-1.5 md:flex">
-            {secondary.map((item) => (
+            {secondary.map((item, index) => (
               <Button
                 key={item.href}
                 asChild
-                className="rounded-full bg-primary px-4 text-small font-semibold text-primary-foreground hover:bg-primary/90"
+                variant={
+                  secondary.length > 1 && index === secondary.length - 1 ? 'highlight' : 'outline'
+                }
+                className="px-4"
               >
                 <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
                   {item.label}
@@ -334,11 +339,15 @@ export function SiteNav() {
                   )}
                   {secondary.length > 0 && (
                     <div className="mt-2 flex flex-col gap-1 border-t border-border pt-4">
-                      {secondary.map((item) => (
+                      {secondary.map((item, index) => (
                         <Button
                           key={item.href}
                           asChild
-                          variant="secondary"
+                          variant={
+                            secondary.length > 1 && index === secondary.length - 1
+                              ? 'highlight'
+                              : 'secondary'
+                          }
                           className="h-11 w-full justify-start text-small font-medium"
                         >
                           <Link
@@ -368,13 +377,14 @@ export function SiteNav() {
 export function SiteFooter() {
   const isAuthenticated = useIsAuthenticated();
   const pathname = usePathname();
-  if (isDashboardPath(pathname) || isStorePath(pathname)) return null;
+  // The landing page ships its own richer footer; keep a single contentinfo.
+  if (pathname === '/' || isDashboardPath(pathname) || isStorePath(pathname)) return null;
 
   const footer = visibleItems('footer', isAuthenticated);
   if (footer.length === 0) return null;
 
   return (
-    <footer className="border-t border-border bg-background text-muted-foreground">
+    <footer className="border-t border-border bg-card text-muted-foreground">
       <div className="container-page flex flex-col gap-4 py-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:pb-8">
         <p className="text-foreground">
           <TilzaLogo className="text-h4" />

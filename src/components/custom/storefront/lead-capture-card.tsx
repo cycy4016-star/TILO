@@ -59,8 +59,8 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
 
   if (done) {
     return (
-      <section className="mt-8 rounded-xl border border-border bg-card p-6 text-center shadow-sm sm:p-8">
-        <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <section className="mt-8 rounded-lg border border-border bg-card p-6 text-center shadow-sm sm:p-8">
+        <span className="mx-auto flex size-12 items-center justify-center rounded-lg bg-primary/10 text-highlight-ink">
           <Check aria-hidden className="size-6" />
         </span>
         <p className="mt-3 font-display text-h4">You&apos;re on the list</p>
@@ -72,7 +72,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
   }
 
   return (
-    <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+    <section className="mt-8 rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8">
       <p className="flex items-center gap-2 font-display text-h4">
         <Sparkles aria-hidden className="size-4 text-primary" />
         Leave your details
@@ -88,7 +88,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Ama"
-            className="rounded-lg"
+            className="rounded-md"
           />
         </div>
         <div className="grid gap-2">
@@ -99,7 +99,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="024 000 0000"
-            className="rounded-lg"
+            className="rounded-md"
           />
         </div>
         <div className="grid gap-2">
@@ -109,7 +109,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={town}
             onChange={(event) => setTown(event.target.value)}
             placeholder="Legon"
-            className="rounded-lg"
+            className="rounded-md"
           />
         </div>
         <div className="grid gap-2">
@@ -120,7 +120,7 @@ export function LeadCaptureCard({ storeName, slug }: { storeName: string; slug: 
             value={note}
             onChange={(event) => setNote(event.target.value)}
             placeholder="Branded aprons for an event…"
-            className="rounded-lg"
+            className="rounded-md"
           />
         </div>
       </div>

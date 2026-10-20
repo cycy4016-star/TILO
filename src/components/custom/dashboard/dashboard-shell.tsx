@@ -74,10 +74,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
       data-platform="app"
       className="flex h-dvh flex-col overflow-hidden bg-background text-foreground"
     >
-      <header className="shrink-0 border-b border-border bg-background">
+      <header className="shrink-0 border-b border-border bg-card">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
           <Link href="/dashboard" className="flex min-w-0 flex-1 items-center sm:flex-none">
-            <TilzaLogo className="text-xl text-foreground" />
+            <TilzaLogo className="text-xl text-primary" />
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Popover open={assistiveOpen} onOpenChange={setAssistiveOpen}>
@@ -135,19 +135,28 @@ export function DashboardShell({ children }: DashboardShellProps) {
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-0 px-4 py-4 sm:px-6 sm:py-6 lg:flex-row lg:gap-8">
         <nav
           aria-label="Dashboard sections"
-          className="sticky top-0 z-10 -mx-4 shrink-0 border-b border-border bg-background/95 px-4 py-2 backdrop-blur lg:hidden"
+          className="sticky top-0 z-10 -mx-4 shrink-0 border-b border-border bg-card px-4 py-2 lg:hidden"
         >
           <DashboardNav mobile />
         </nav>
-        <aside className="hidden w-56 shrink-0 lg:block">
-          {/* Sidebar header: the account line is a label, and it needs to
-              separate from the nav below it — a hairline does that without
-              adding a card. */}
-          <p className="truncate border-b border-border px-3 pb-3 text-caption font-medium text-muted-foreground">
-            {session.user.email ?? session.user.name ?? 'Account'}
-          </p>
-          <div className="pt-3">
-            <DashboardNav />
+        <aside className="hidden w-60 shrink-0 lg:block">
+          <div className="rounded-xl border border-border bg-card p-3">
+            <div className="flex items-center gap-2.5 border-b border-border px-1 pb-3">
+              <span className="grid size-8 shrink-0 place-items-center rounded-md bg-highlight font-display text-small font-bold text-highlight-foreground">
+                {(session.user.name ?? session.user.email ?? 'A').trim().charAt(0).toUpperCase()}
+              </span>
+              <p className="min-w-0">
+                <span className="block truncate text-small font-semibold">
+                  {session.user.name ?? 'Your shop'}
+                </span>
+                <span className="block truncate text-caption text-muted-foreground">
+                  {session.user.email ?? 'Seller account'}
+                </span>
+              </p>
+            </div>
+            <div className="pt-2">
+              <DashboardNav />
+            </div>
           </div>
         </aside>
 

@@ -142,7 +142,7 @@ export function NotificationBell() {
                       className={`relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md ${
                         item.kind === 'SMS_FAILED'
                           ? 'bg-destructive/10 text-destructive'
-                          : 'bg-primary/10 text-primary'
+                          : 'bg-primary/10 text-highlight-ink'
                       }`}
                     >
                       <Icon aria-hidden className="size-4" />

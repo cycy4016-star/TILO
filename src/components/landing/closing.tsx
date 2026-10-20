@@ -12,27 +12,29 @@ export function Closing() {
     <section id="start" aria-label="Get started" className="scroll-mt-20 bg-background">
       <div className="container-page section">
         <Reveal>
-          <div className="overflow-hidden rounded-2xl bg-foreground px-6 py-12 text-center text-background shadow-2xl sm:px-10 sm:py-14">
-            <p className="text-eyebrow text-background/70">Your turn</p>
+          <div className="overflow-hidden rounded-xl bg-[#171717] px-6 py-12 text-center text-white sm:px-10 sm:py-14">
+            <p className="text-caption font-bold uppercase tracking-[0.1em] text-[#ffb27a]">
+              Your turn
+            </p>
             <h2 className="mx-auto mt-3 max-w-2xl break-words text-balance font-display text-h2 sm:text-display">
-              Put your shop up this afternoon.
+              Put your shop online today.
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-body-lg text-background/70">
-              Add your products, share one link, and take orders that arrive already priced,
-              itemised and totalled.
+            <p className="mx-auto mt-4 max-w-xl text-body text-white/70">
+              Add your products, share one link, and take orders that arrive priced, itemised and
+              ready to confirm.
             </p>
             <div className="mt-7 flex justify-center">
               <Button
                 asChild
                 size="xl"
-                className="font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+                className="bg-highlight font-bold text-highlight-foreground hover:bg-highlight/90"
               >
                 <Link href={LANDING.hero.primary.href}>
                   {LANDING.hero.primary.label} <ArrowRight aria-hidden />
                 </Link>
               </Button>
             </div>
-            <p className="mt-5 text-caption text-background/60">No card needed.</p>
+            <p className="mt-5 text-caption text-white/60">No card needed.</p>
           </div>
         </Reveal>
       </div>
@@ -40,10 +42,10 @@ export function Closing() {
   );
 }
 
-/** Rich site footer — a labelled region (the slim global footer keeps the contentinfo landmark). */
+/** Rich landing footer; the global slim footer steps aside on the home page. */
 export function LandingFooter() {
   return (
-    <section aria-label="Site footer" className="border-t border-border bg-muted/40">
+    <footer className="border-t border-border bg-muted/40">
       <div className="container-page section">
         <div className="grid gap-10 md:grid-cols-[1.2fr_repeat(3,1fr)]">
           <div>
@@ -51,7 +53,8 @@ export function LandingFooter() {
               <TilzaLogo className="text-xl" />
             </p>
             <p className="mt-3 max-w-xs text-small text-muted-foreground">
-              A shareable shop page for your products — made for growing African businesses.
+              One link for your products, your prices and your orders — built for growing
+              businesses.
             </p>
             <ul className="mt-4 flex flex-wrap gap-2">
               {SOCIALS.map((social) => (
@@ -93,6 +96,6 @@ export function LandingFooter() {
           © {new Date().getFullYear()} {siteName}. All rights reserved.
         </p>
       </div>
-    </section>
+    </footer>
   );
 }

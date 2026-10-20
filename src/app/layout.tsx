@@ -40,8 +40,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
-    // One canvas, one look. Tilza ships a single white-and-blue-and-orange
-    // system, so <html> carries no theme attribute and no dark-mode class —
+    // One canvas, one look. Tilza ships a single warm marketplace system, so
+    // <html> carries no theme attribute and no dark-mode class —
     // there is nothing for a theme provider to toggle. `suppressHydrationWarning`
     // stays because the browser extensions and next/font both mutate <html>
     // outside React.

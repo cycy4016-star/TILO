@@ -58,7 +58,7 @@ export function AdChannelPreview({
               aria-pressed={channel === tab.key}
               className={`rounded-md border px-2.5 py-1 text-caption font-semibold transition-colors ${
                 channel === tab.key
-                  ? 'border-primary bg-primary/10 text-primary'
+                  ? 'border-primary bg-primary/10 text-highlight-ink'
                   : 'border-border text-muted-foreground hover:text-foreground'
               }`}
             >

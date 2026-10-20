@@ -7,16 +7,16 @@ import { TRIAL_DAYS } from '@/lib/trial';
 
 export const LANDING = {
   hero: {
-    eyebrow: 'For boutiques, food vendors, makers & more',
-    titleA: 'Turn your bio link into a shop',
-    titleAccent: 'that sells for you.',
-    sub: 'Shelves, photos and prices on one page — customers fill a basket themselves, and orders land in your dashboard, confirmed on WhatsApp.',
-    primary: { label: 'Start your free trial', href: '/signup' },
-    secondary: { label: 'See live examples', href: '#showcase' },
-    reassurance: `${TRIAL_DAYS} days free · No card needed · Live in minutes`,
+    eyebrow: 'Online shops for small businesses',
+    titleA: 'Your shop. One link.',
+    titleAccent: 'Open for orders.',
+    sub: 'Add your products, set your prices and share one link. Customers browse and fill a basket — every order arrives in your dashboard and on WhatsApp.',
+    primary: { label: `Start free for ${TRIAL_DAYS} days`, href: '/signup' },
+    secondary: { label: 'See sample shops', href: '#showcase' },
+    reassurance: 'No card needed · Set up in minutes · Cancel anytime',
   },
   proof: {
-    line: `${TRIAL_DAYS} days free — the whole toolkit, no card needed`,
+    line: `Start selling free for ${TRIAL_DAYS} days — no card needed`,
     // Honest stats only: no shop/order counts until they are real.
     stats: [
       { value: TRIAL_DAYS, suffix: ' days', label: 'free, then a small monthly plan' },
@@ -39,54 +39,54 @@ export type Feature = {
 export const FEATURES: Feature[] = [
   {
     icon: 'boxes',
-    title: 'A catalogue in minutes',
-    body: 'Name, price, one photo each — then drop products onto shelves you name yourself. No site builder, no code.',
+    title: 'Add products in minutes',
+    body: 'Upload a photo, add a name and price, and publish. Group products into shelves customers can browse.',
     span: 2,
   },
   {
     icon: 'link',
-    title: 'One link for every bio',
-    body: 'tilza.org/store/yourname works in bios, statuses, flyers and replies.',
+    title: 'Share one link',
+    body: 'Your shop link works in your bio, status, flyers and replies.',
     span: 1,
   },
   {
     icon: 'tag',
-    title: 'Discounts & promos',
-    body: 'Percentage or fixed-amount codes with live windows — customers see them as “Today’s offers” and quote the code in chat.',
+    title: 'Run discounts',
+    body: 'Create percentage or fixed-amount promo codes with clear start and end dates.',
     span: 1,
   },
   {
     icon: 'palette',
-    title: 'Themes & brand colours',
-    body: 'Seven colour themes and two layouts. Your shop looks like you, not like a template.',
+    title: 'Make it your shop',
+    body: 'Add your logo, banner and contact details so customers know exactly who they are buying from.',
     span: 2,
   },
   {
     icon: 'chat',
-    title: 'Orders on WhatsApp',
-    body: 'The basket checks out into a pre-filled chat carrying every line, the total and the customer’s note.',
+    title: 'Take orders on WhatsApp',
+    body: 'Every checkout arrives itemised and totalled, then opens a pre-filled WhatsApp chat with the basket and customer note.',
     span: 2,
   },
   {
     icon: 'qr',
     title: 'Share anywhere',
-    body: 'Copy the link for bios, statuses, flyers and replies — plus WhatsApp, Facebook, X and Telegram sharing on every product.',
+    body: 'Send your shop on WhatsApp, Facebook, X or Telegram, or copy the link and post it anywhere.',
     span: 1,
   },
 ];
 
 export const STEPS: { title: string; body: string }[] = [
   {
-    title: 'Create your store',
-    body: 'Name it, pick a link word, add your WhatsApp number. Your page exists immediately.',
+    title: 'Create your shop',
+    body: 'Add your shop name, link and WhatsApp number. Your page is ready immediately.',
   },
   {
-    title: 'Add products',
-    body: 'Products and services with photos, prices and sale badges, grouped on shelves.',
+    title: 'Add your products',
+    body: 'Upload photos, set prices and stock, and organise products into shelves.',
   },
   {
-    title: 'Share your link',
-    body: 'One link for every bio and status. Orders arrive priced, itemised and totalled.',
+    title: 'Share and sell',
+    body: 'Post your link. Orders arrive priced, itemised and totalled.',
   },
 ];
 
@@ -109,14 +109,14 @@ export const PLANS: Plan[] = [
   {
     id: 'trial',
     name: 'Free trial',
-    tagline: 'The whole shop, free for 14 days.',
+    tagline: 'The full shop, free for 14 days.',
     monthly: 0,
     yearly: 0,
     cta: 'Start free trial',
     href: '/signup',
     highlighted: false,
     features: [
-      'Everything, unlocked for 14 days',
+      'Everything unlocked for 14 days',
       'Unlimited products & shelves',
       'WhatsApp ordering & share link',
       'No card needed to start',
@@ -125,24 +125,24 @@ export const PLANS: Plan[] = [
   {
     id: 'shop',
     name: 'Shop',
-    tagline: 'For businesses taking daily orders.',
+    tagline: 'For shops taking orders every day.',
     monthly: 45,
     yearly: 450,
-    cta: 'Grow with Shop',
+    cta: 'Choose Shop',
     href: '/signup',
     highlighted: true,
     features: [
       'Everything in the trial',
       'Unlimited products & shelves',
       'Sales analytics & reports',
-      'Themes & brand colours',
+      'Logo and shop branding',
       'Discount codes & promos',
     ],
   },
   {
     id: 'studio',
     name: 'Studio',
-    tagline: 'For teams and high volume.',
+    tagline: 'For teams and high-volume shops.',
     monthly: 120,
     yearly: 1200,
     cta: 'Talk to us',
@@ -191,8 +191,8 @@ export const FAQS: { q: string; a: string }[] = [
     a: 'Every checkout lands itemised and totalled in your dashboard and opens a pre-filled WhatsApp chat with the whole basket, so you confirm it in conversation.',
   },
   {
-    q: 'Can I use my own photos and colours?',
-    a: 'Yes. Upload product photos and your logo, then pick from the colour themes to match your brand.',
+    q: 'Can I use my own photos and logo?',
+    a: 'Yes. Upload product photos, add your logo and banner, and set the contact details customers should see.',
   },
   {
     q: 'How do customers pay?',

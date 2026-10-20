@@ -1,4 +1,4 @@
-// Presentation primitives for the Tilza Terminal: the blue-on-white building
+// Presentation primitives for the Tilza Terminal: the warm ink-on-white building
 // blocks every ops panel is assembled from. They are pure — no data fetching,
 // no hooks except LivePill — so they stay reusable across sections.
 'use client';

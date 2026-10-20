@@ -14,17 +14,18 @@ import { cn } from '@/lib/utils';
 // semibold — a chip is a label, and a label at 600 in a column of numbers reads
 // like an alert.
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded border px-1.5 py-0.5 text-caption font-medium whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1.5 rounded border px-1.5 py-0.5 text-caption font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
         default: 'border-transparent bg-primary text-primary-foreground',
+        sale: 'border-transparent bg-highlight text-highlight-foreground',
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
         destructive: 'border-transparent bg-destructive text-white',
         outline: 'border-border bg-card text-secondary-foreground',
         success: 'border-[#b7e4c7] bg-[#eaf7ef] text-[#17663a]',
         warning: 'border-[#f3d9a6] bg-[#fdf6e6] text-[#8a5a12]',
-        info: 'border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]',
+        info: 'border-[#ffd9bd] bg-[#fff4ea] text-[#a63d00]',
         neutral: 'border-transparent bg-secondary text-muted-foreground',
       },
       // A status dot before the label. Linear's status chips read this way and

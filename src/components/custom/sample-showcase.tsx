@@ -51,7 +51,7 @@ export function SampleSlideshow({ slides }: { slides: ShowcaseSlide[] }) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl"
+      className="overflow-hidden rounded-lg border border-border bg-card shadow-xl"
     >
       <div className="flex h-9 items-center gap-2 border-b border-border bg-muted/50 px-4">
         <span className="size-2 rounded-full bg-border" aria-hidden />

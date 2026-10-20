@@ -3,12 +3,12 @@
 // basket and one search box, which is why they live under a single stateful
 // owner instead of being stitched together across server/client boundaries.
 // The server page hands over the parsed store payload and its grouped
-// catalogue; everything visual is composed here. The shop wears the same
-// white + blue + orange system as the rest of the platform — a store no longer
-// picks its own palette, and the order button is the one orange moment.
+// catalogue; everything visual is composed here. The shop wears the platform's
+// warm marketplace system — white surfaces, orange prices and one bright
+// add-to-basket moment.
 'use client';
 
-import { ChevronDown, MessageCircle, Tag } from 'lucide-react';
+import { BadgeCheck, Boxes, ChevronDown, MessageCircle, Tag } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { BasketBar } from '@/components/custom/storefront/basket-bar';
@@ -121,13 +121,10 @@ export function Storefront({
           count > 0 ? 'pb-28' : 'pb-16'
         }`}
       >
-        {/* Hero. A white card with a hairline border — the same surface rule
-            as every card in the product. It used to be a blue gradient with
-            blurred colour blobs behind it; on a pure-white platform a hero has
-            to earn its emphasis from the banner photo and the type, not from a
-            painted background. The banner (when a shop has one) is the only
-            large field of colour on the page. */}
-        <section className="overflow-hidden rounded-2xl border border-border bg-card">
+        {/* Shop front. A banner when the owner has one, then a compact identity
+            block with the shop's name, what it sells and the one high-intent
+            action. Kept tight so products are visible on the first screen. */}
+        <section className="overflow-hidden rounded-xl border border-border bg-card">
           {store.bannerUrl && (
             <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[3/1]">
               <Image
@@ -140,71 +137,75 @@ export function Storefront({
               />
             </div>
           )}
-          <div className="relative p-6 sm:p-10">
-            {store.logoUrl && (
-              <Image
-                src={store.logoUrl}
-                alt=""
-                width={512}
-                height={512}
-                sizes="(max-width: 640px) 80px, 96px"
-                className={`relative bg-white object-contain p-1.5 ring-1 ring-border ${
-                  store.bannerUrl
-                    ? '-mt-20 mb-4 size-20 rounded-2xl sm:-mt-24 sm:size-24'
-                    : 'mb-4 size-16 rounded-2xl'
-                }`}
-              />
-            )}
-            <p className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-caption font-semibold text-foreground">
-              <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
-              {store.items.length} {store.items.length === 1 ? 'item' : 'items'} · open for orders
-            </p>
-            <h1 className="mt-4 break-words font-display text-h1 tracking-tight text-foreground">
-              {store.name}
-            </h1>
-            {store.tagline && (
-              <p className="mt-3 max-w-2xl text-body-lg text-muted-foreground">{store.tagline}</p>
-            )}
+          <div className="p-4 sm:p-6">
+            <div className="flex items-start gap-3.5 sm:gap-5">
+              {store.logoUrl ? (
+                <Image
+                  src={store.logoUrl}
+                  alt=""
+                  width={512}
+                  height={512}
+                  sizes="(max-width: 640px) 64px, 80px"
+                  className="size-16 shrink-0 rounded-lg bg-white object-contain p-1 ring-1 ring-border sm:size-20"
+                />
+              ) : (
+                <span className="grid size-16 shrink-0 place-items-center rounded-lg bg-highlight font-display text-h2 font-bold text-highlight-foreground sm:size-20">
+                  {store.name.trim().charAt(0).toUpperCase() || 'S'}
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="inline-flex items-center gap-1.5 rounded bg-highlight-wash px-2 py-1 text-caption font-bold text-highlight-ink">
+                  <BadgeCheck aria-hidden className="size-3.5" />
+                  Open for orders
+                </p>
+                <h1 className="mt-2 break-words font-display text-h2 tracking-tight text-foreground sm:text-h1">
+                  {store.name}
+                </h1>
+                {store.tagline && (
+                  <p className="mt-1 line-clamp-2 text-small font-medium text-muted-foreground sm:text-body">
+                    {store.tagline}
+                  </p>
+                )}
+              </div>
+            </div>
+
             {store.description && (
-              <p className="mt-1.5 max-w-2xl text-small text-muted-foreground">
+              <p className="mt-3 max-w-3xl text-small text-muted-foreground sm:mt-4">
                 {store.description}
               </p>
             )}
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              {/* The shop's highest-intent action, and the one place the energy
-                  colour is load-bearing: orange fill, warm charcoal ink. The
-                  WhatsApp icon carries the channel recognition — the button
-                  itself stays inside the platform palette. */}
+            <div className="mt-4 flex flex-wrap items-center gap-2.5">
               {chat && (
                 <a
                   href={chat}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-md bg-highlight px-6 text-small font-semibold text-highlight-foreground transition-colors hover:bg-flame-600"
+                  className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-5 text-small font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                   <MessageCircle aria-hidden className="size-4" /> Chat with us
                 </a>
               )}
               <a
                 href="#catalogue"
-                className="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-background px-6 text-small font-semibold text-foreground transition-colors hover:bg-muted"
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-card px-4 text-small font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
               >
-                Browse catalogue <ChevronDown aria-hidden className="size-4" />
+                <Boxes aria-hidden className="size-4" /> Shop all
+                <ChevronDown aria-hidden className="size-3.5" />
               </a>
               <StoreShareButton
                 storeName={store.name}
                 tagline={store.tagline}
                 storeUrl={storeUrl}
-                className="border-border bg-background text-foreground hover:bg-muted"
+                className="border-border bg-card text-foreground hover:bg-muted"
               />
             </div>
           </div>
         </section>
 
         {store.promoBanner && (
-          <section className="flex items-center justify-center gap-2 rounded-xl border border-flame-200 bg-highlight-wash px-4 py-3 text-center text-small font-semibold text-foreground">
-            <Tag aria-hidden className="size-4 shrink-0 text-highlight" />
+          <section className="flex items-center justify-center gap-2 rounded-lg bg-highlight px-4 py-3 text-center text-small font-bold text-highlight-foreground">
+            <Tag aria-hidden className="size-4 shrink-0" />
             <span>{store.promoBanner}</span>
           </section>
         )}
@@ -218,19 +219,24 @@ export function Storefront({
               storeUrl={storeUrl}
               storeName={store.name}
             />
-            <div>
-              <p className="text-eyebrow">Limited time</p>
-              <h2 className="mt-1 break-words font-display text-h2 tracking-tight">
-                Today&apos;s offers
-              </h2>
+            <div className="flex items-end justify-between gap-3 border-b border-border pb-2">
+              <div>
+                <p className="text-eyebrow">Limited time</p>
+                <h2 className="mt-1 break-words font-display text-h2 tracking-tight">
+                  Today&apos;s offers
+                </h2>
+              </div>
+              <span className="shrink-0 rounded bg-destructive/10 px-2 py-1 text-caption font-bold text-destructive">
+                Save more
+              </span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {store.promotions.map((promo) => {
                 const terms = promoTerms(promo);
                 return (
                   <article
                     key={`${promo.name}-${promo.code ?? 'any'}`}
-                    className="lift flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xs"
+                    className="lift flex flex-col overflow-hidden rounded-lg border border-border bg-card"
                   >
                     {promo.imageUrl && (
                       <Image
@@ -252,11 +258,11 @@ export function Storefront({
                       )}
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         {promo.code ? (
-                          <span className="rounded-full bg-primary/10 px-3 py-1 font-mono text-caption font-medium text-primary">
+                          <span className="rounded bg-highlight-wash px-2.5 py-1 font-mono text-caption font-bold text-highlight-ink">
                             CODE {promo.code}
                           </span>
                         ) : (
-                          <span className="rounded-full bg-primary/10 px-3 py-1 text-caption font-medium text-primary">
+                          <span className="rounded bg-highlight-wash px-2.5 py-1 text-caption font-bold text-highlight-ink">
                             No code needed
                           </span>
                         )}
@@ -295,12 +301,15 @@ export function Storefront({
               </p>
             </div>
           ) : (
-            <div className="grid gap-8">
-              <div>
-                <p className="text-eyebrow">Catalogue</p>
-                <h2 className="mt-1 break-words font-display text-h2 tracking-tight">
-                  Everything on sale
-                </h2>
+            <div className="grid gap-5">
+              <div className="flex items-end justify-between gap-3 border-b border-border pb-2">
+                <div>
+                  <p className="text-eyebrow">Catalogue</p>
+                  <h2 className="mt-1 break-words font-display text-h2 tracking-tight">Shop all</h2>
+                </div>
+                <span className="shrink-0 text-caption font-semibold text-muted-foreground">
+                  {allItems.length} {allItems.length === 1 ? 'item' : 'items'}
+                </span>
               </div>
               <StoreCatalog
                 storeName={store.name}
@@ -322,9 +331,9 @@ export function Storefront({
         <LeadCaptureCard storeName={store.name} slug={store.slug} />
 
         {store.contactPhone && waMeLink(store.contactPhone) && (
-          <p className="flex items-center justify-center gap-2 text-center text-eyebrow">
-            <MessageCircle aria-hidden className="size-3.5" /> Orders land straight in the shop —
-            WhatsApp, SMS or right here
+          <p className="flex items-center justify-center gap-2 text-center text-caption font-semibold text-muted-foreground">
+            <MessageCircle aria-hidden className="size-3.5 text-primary" /> Orders land straight in
+            the shop — WhatsApp, SMS or right here
           </p>
         )}
 
@@ -334,7 +343,7 @@ export function Storefront({
           <p className="font-display text-h4">{store.name}</p>
           <p className="mt-1 text-caption text-muted-foreground">
             Powered by{' '}
-            <a href="/" className="font-medium text-primary underline underline-offset-2">
+            <a href="/" className="font-medium text-highlight-ink underline underline-offset-2">
               Tilza
             </a>{' '}
             ·{' '}

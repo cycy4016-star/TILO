@@ -1,5 +1,5 @@
 // The Tilza Terminal: the ops console's shell — operator-only, a dense
-// white-and-blue console with a live ticker, a command line and function-key nav.
+// ink-and-orange console with a live ticker, a command line and function-key nav.
 //
 // This is the single choke point for every /dashboard/admin/* route — the same
 // pattern the dashboard layout uses (guard once in the layout, not on every

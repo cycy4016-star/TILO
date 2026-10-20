@@ -34,9 +34,9 @@ const statusLabels: Record<OrderStatusValue, string> = {
 };
 
 const statusStyles: Record<OrderStatusValue, string> = {
-  PENDING: 'bg-muted text-muted-foreground',
-  PROCESSING: 'bg-primary/10 text-primary',
-  COMPLETED: 'bg-muted text-foreground',
+  PENDING: 'bg-highlight-wash text-highlight-ink',
+  PROCESSING: 'bg-primary/10 text-highlight-ink',
+  COMPLETED: 'bg-emerald-50 text-emerald-700',
   CANCELLED: 'border border-border bg-background text-muted-foreground',
 };
 
@@ -107,10 +107,12 @@ export function OrdersWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-9">
-        <p className="relative text-eyebrow">Order queue</p>
-        <div className="relative mt-2 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="min-w-0 flex-1 break-words text-h1 font-display">Orders</h1>
+      <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-eyebrow">Order queue</p>
+            <h1 className="mt-1 break-words text-h2 font-display">Orders</h1>
+          </div>
           <Button
             type="button"
             variant="outline"
@@ -120,7 +122,7 @@ export function OrdersWorkspace() {
             <RefreshCcw aria-hidden className="size-4" /> Reload
           </Button>
         </div>
-        <div className="relative mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <form
             className="relative w-full"
             onSubmit={(event) => {
@@ -164,11 +166,11 @@ export function OrdersWorkspace() {
       </section>
 
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center rounded-xl border border-border bg-muted/40 px-6 text-small text-muted-foreground">
+        <div className="flex min-h-48 items-center justify-center rounded-lg border border-border bg-muted/40 px-6 text-small text-muted-foreground">
           Loading…
         </div>
       ) : error ? (
-        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-muted/40 p-6 text-center">
           <p role="alert" className="text-small font-medium text-foreground">
             {error}
           </p>
@@ -181,8 +183,8 @@ export function OrdersWorkspace() {
           </Button>
         </div>
       ) : orders.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
-          <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-muted/40 p-6 text-center">
+          <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-highlight-ink">
             <Flame aria-hidden className="size-6" />
           </span>
           <p className="text-h4 font-display">
@@ -199,7 +201,7 @@ export function OrdersWorkspace() {
           {orders.map((order) => {
             const paid = order.paidAt != null;
             return (
-              <li key={order.id} className="rounded-xl border border-border bg-card p-4 sm:p-6">
+              <li key={order.id} className="rounded-lg border border-border bg-card p-4 sm:p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -212,7 +214,7 @@ export function OrdersWorkspace() {
                         {statusLabels[order.status]}
                       </span>
                       {paid ? (
-                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-caption font-medium text-primary">
+                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-caption font-medium text-highlight-ink">
                           Paid
                         </span>
                       ) : null}

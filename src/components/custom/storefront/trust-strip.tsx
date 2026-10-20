@@ -12,15 +12,18 @@ const PROMISES = [
 
 export function TrustStrip() {
   return (
-    <ul aria-label="Why shop here" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <ul
+      aria-label="Why shop here"
+      className="grid grid-cols-2 divide-x divide-y divide-border overflow-hidden rounded-lg border border-border bg-card sm:grid-cols-4 sm:divide-y-0"
+    >
       {PROMISES.map(({ icon: Icon, label }) => (
         <li
           key={label}
-          className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3.5 py-3 text-small font-medium shadow-xs"
+          className="flex items-center gap-2.5 px-3 py-3 text-small font-medium sm:px-4"
         >
           <span
             aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"
+            className="grid size-8 shrink-0 place-items-center rounded-md bg-highlight-wash text-highlight-ink"
           >
             <Icon className="size-4" />
           </span>

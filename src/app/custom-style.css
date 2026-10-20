@@ -1,34 +1,17 @@
 /* Tilza's design layer.
  *
- * Owns every decision the token seed cannot express: the neutral palette, the
- * elevation policy, motion, focus treatment and the small set of typography
- * rules. The theme seed in globals.css stays exactly what it is — the two
- * hues, radius, fonts, the storefront chrome ramp — and the framework keeps
- * deriving its ramps from those seeds.
+ * A marketplace surface: warm orange brand, near-black ink, white cards on a
+ * light grey canvas, red for discounts and urgency. Density is deliberate —
+ * two-up product grids on phones, compact controls, bold prices — but touch
+ * targets and focus states stay generous.
  *
- * THE CANVAS IS PURE WHITE. The seed derives its surfaces by mixing a brand hue
- * into every grey, which is fine for a landing page and wrong for a product: a
- * tinted grey reads as "washed out" once a screen fills with cards, and it makes
- * every hover state a colour decision. So this file re-pins every neutral to
- * true grey or literal white. Nothing on the page is tinted — the only chroma
- * on screen belongs to the two brand colours, which is what makes them read as
- * pure rather than decorative.
+ * Orange carries structure and energy. Red is the only other accent and means
+ * sale / low stock / destructive. Neutrals are true grey, never tinted, so the
+ * orange stays clean and photographic product images do the colour work.
  *
- * TWO COLOURS, TWO JOBS.
- *   Blue (`--primary`)   is STRUCTURE: buttons, links, focus, selection. It is
- *                        the skeleton and it never changes meaning.
- *   Orange (`--highlight`) is ENERGY: prices, badges, counts, active state, the
- *                        shop's order action. It is the only warm thing in the
- *                        interface, so it carries the eye on purpose — used
- *                        everywhere it would mean nothing.
- *
- * THE ELEVATION POLICY IS ONE LINE: flat surfaces, hairline borders, and
- * shadow reserved for things that float above the page — menus, dialogs,
- * toasts, sticky bars. Cards do not have shadows. Cards have 1px borders and a
- * white fill, and when a card is meant to look selected it gets an accent
- * border, not a bigger shadow. With a pure-white canvas the hairline is the
- * ONLY thing separating a card from the page, so it is a real design element,
- * not a default to be softened.
+ * Cards are flat white panels with a hairline border. Shadow is reserved for
+ * things that float above the page: menus, dialogs, sheets, toasts and the
+ * sticky basket bar. A selected card gets an orange border, not a heavy shadow.
  */
 
 /* ============================================================
@@ -37,77 +20,61 @@
    `html:root` rather than `:root` so these outrank the framework's
    hue-derived block in globals.css without editing it. Values are
    picked for contrast on the surfaces they sit on:
-   - body ink on canvas: 19.8:1
-   - secondary ink on canvas: 7.3:1
-   - tertiary ink on canvas: 4.6:1 (metadata only)
-   - white on --primary (blue): 5.2:1
-   - white on --highlight-strong: 5.2:1
-   - --highlight-ink on canvas: 7.3:1
+   - body ink on canvas: 17.4:1
+   - secondary ink on canvas: 6.3:1
+   - white on --primary (#cf4a00): 4.5:1
+   - dark ink on --highlight (#fb7701): 7.3:1
+   - --highlight-ink on white: 5.9:1
    ============================================================ */
 html:root {
-  --background: #ffffff; /* THE canvas — literal white, no step below */
-  --foreground: #0a0a0a; /* primary ink, near-black */
+  --background: #f5f5f5; /* marketplace canvas — white cards need contrast */
+  --foreground: #171717; /* primary ink, near-black */
   --card: #ffffff;
   --card-foreground: var(--foreground);
   --popover: #ffffff;
   --popover-foreground: var(--foreground);
-  --primary: #2563eb; /* TRUE blue — buttons, links, focus, selection */
+  --primary: #cf4a00; /* brand orange — buttons, links, focus, selection */
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5; /* quiet fills: table heads, inactive segments */
+  --secondary: #f0f0f0; /* quiet fills: table heads, inactive segments */
   --secondary-foreground: #262626;
-  --muted: #f5f5f5;
-  --muted-foreground: #595959; /* secondary ink — labels, helper text */
-  --accent: #eff4fe; /* hover fill on secondary surfaces — a whisper of blue */
-  --accent-foreground: #0a0a0a;
-  --destructive: #dc2626;
-  --border: #e4e4e4; /* hairline: the primary tool for structure */
+  --muted: #f0f0f0;
+  --muted-foreground: #5f5f5f; /* secondary ink — labels, helper text */
+  --accent: #fff0e4; /* hover fill on secondary surfaces — warm wash */
+  --accent-foreground: #7a2b00;
+  --destructive: #c81e1e;
+  --border: #e5e5e5; /* hairline: the primary tool for structure */
   --input: #d4d4d4; /* input borders sit one step stronger so fields read as fields */
-  --ring: #2563eb;
+  --ring: #cf4a00;
 
-  /* THE ENERGY LAYER, pinned to literals rather than derived. Orange is the
-     one colour a user will judge the brand on, so it is specified by hex, not
-     by a chroma/hue pair that happens to land nearby.
+  /* The brighter promotional orange. Filled badges and the storefront's order
+     actions use this with dark ink so they stay loud and accessible.
 
-       --highlight               #f97316 — the pure orange.
-       --highlight-foreground    #1c1917 — ink ON that fill, 6.2:1. Warm
-                                 charcoal, not white and not black: pure
-                                 white on a saturated orange measures 2.8:1 and
-                                 washes out, while pure black vibrates
-                                 against it. This is why orange buttons on
-                                 this platform carry dark text — it is the one
-                                 place the light-on-fill rule is inverted,
-                                 and it reads as deliberate, not broken.
-       --highlight-strong        #c2410c — 5.2:1 vs white, for the rare case
-                                 that genuinely needs white on orange.
-       --highlight-ink          #9a3412 — orange as TEXT on white, 7.3:1.
-                                 Prices, totals, "money owed".
-       --highlight-wash         #fff7ed — a quiet orange background for selected
-                                 and highlighted rows. */
-  --highlight: #f97316;
-  --highlight-foreground: #1c1917;
+       --highlight               #fb7701 — Temu-adjacent orange.
+       --highlight-foreground    #241205 — ink ON that fill, 7.3:1.
+       --highlight-strong        #c2410c — deeper orange with white, 5.2:1.
+       --highlight-ink           #b83d00 — orange as TEXT on white, 5.9:1.
+       --highlight-wash          #fff3e8 — quiet orange background. */
+  --highlight: #fb7701;
+  --highlight-foreground: #241205;
   --highlight-strong: #c2410c;
   --highlight-strong-foreground: #ffffff;
-  --highlight-ink: #9a3412;
-  --highlight-wash: #fff7ed;
+  --highlight-ink: #b83d00;
+  --highlight-wash: #fff3e8;
 
   /* Elevation, as a policy rather than a scale of decoration: neutral ink at
      low alpha, used by floating surfaces only. */
-  --elevation-1: rgb(10 10 10 / 0.06);
-  --elevation-2: rgb(10 10 10 / 0.1);
-  --elevation-3: rgb(10 10 10 / 0.16);
-  --shadow-brand-color: rgb(37 99 235 / 0.24);
-  --shadow-highlight-color: rgb(249 115 22 / 0.26);
+  --elevation-1: rgb(23 23 23 / 0.06);
+  --elevation-2: rgb(23 23 23 / 0.1);
+  --elevation-3: rgb(23 23 23 / 0.16);
+  --shadow-brand-color: rgb(207 74 0 / 0.24);
+  --shadow-highlight-color: rgb(251 119 1 / 0.28);
 
-  /* Motion: 140ms on colour and opacity is the house speed. Anything slower
-     feels laggy in a dense tool; anything faster flickers. */
+  /* Motion: 150ms on colour and opacity is the house speed. */
   --ease-out-expo: cubic-bezier(0.2, 0, 0, 1);
   --ease-spring: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* There is no dark mode. This block used to re-pin every role for `.dark`;
-   the class is never set any more (next-themes is unmounted) and the platform
-   ships exactly one canvas — pure white. If dark is ever wanted back it has to
-   be designed from scratch, not restored from this diff. */
+/* There is no dark mode. One canvas, one look. */
 
 /* ============================================================
    Typography
@@ -184,23 +151,18 @@ p {
 }
 
 ::selection {
-  background: #dbe6fd;
-  color: #0a0a0a;
+  background: #ffe0c2;
+  color: #171717;
 }
 
-/* The eyebrow is a small label sitting above a heading. As shipped it was
-   uppercase, wide-tracked and accent-coloured — the marketing tell. At UI
-   density it wants to be a quiet line of secondary ink in sentence case: the
-   heading below it carries the emphasis, the label just says what the section
-   is. Overridden here (rather than in globals.css's component layer) so all
-   twenty-odd call sites are corrected in one place. */
+/* Small promotional labels above headings and section titles. */
 .text-eyebrow {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--muted-foreground);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--highlight-ink);
 }
 
 /* ============================================================
@@ -229,20 +191,20 @@ p {
   animation: tilza-progress 4.5s linear forwards;
 }
 
-/* A single, restrained hover affordance for clickable cards: the border
-   strengthens and the fill lifts by a hair. No translate, no growing shadow —
-   cards that float on hover stop being a surface and become a picture of one. */
+/* Marketplace hover: a small lift, a warmer border and a soft shadow. */
 .lift {
   transition:
-    border-color 140ms var(--ease-out-expo),
-    background-color 140ms var(--ease-out-expo),
-    box-shadow 140ms var(--ease-out-expo);
+    transform 150ms var(--ease-out-expo),
+    border-color 150ms var(--ease-out-expo),
+    background-color 150ms var(--ease-out-expo),
+    box-shadow 150ms var(--ease-out-expo);
 }
 
 @media (hover: hover) {
   .lift:hover {
-    border-color: color-mix(in oklab, var(--foreground) 22%, var(--border));
-    box-shadow: 0 1px 2px 0 var(--elevation-1);
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    box-shadow: 0 10px 24px -14px rgb(23 23 23 / 0.28);
   }
 }
 
@@ -279,32 +241,28 @@ p {
    independently and nothing else on the app inherits it. Everything is scoped
    under `.tlz-terminal`, so it applies to one subtree and no further.
 
-   HISTORY: this was a phosphor-on-black CRT surface (amber/green/red on pure
-   black, monospace). It is now a white console matching the platform. The
-   `--t-amber*` names survive from the CRT era and now mean BLUE (the console's
-   structural accent); ORANGE arrives as `--t-flame` and is used the same way
-   the platform uses orange — for the things that matter right now: the alarm
-   counters, a fault row, the money column, a pending action.
+   The console now shares the marketplace palette: warm orange structural
+   accent, red for alarms and faults, white panels on a light grey canvas.
    ============================================================ */
 .tlz-terminal {
-  --t-bg: #fafafa; /* console canvas — true white's one step down, so panels read */
+  --t-bg: #f5f5f5; /* console canvas */
   --t-panel: #ffffff;
   --t-card: #ffffff;
   --t-card-hi: #f5f5f5;
-  --t-border: #e4e4e4;
-  --t-grid: #ededed;
-  --t-amber: #2563eb; /* structural accent — keys, focus, live rows */
-  --t-amber-dim: #1d4ed8;
-  --t-flame: #f97316; /* energy — alarms, faults, money */
-  --t-flame-dim: #c2410c;
-  --t-flame-wash: #fff7ed;
+  --t-border: #e5e5e5;
+  --t-grid: #eeeeee;
+  --t-amber: #cf4a00; /* structural accent — keys, focus, live rows */
+  --t-amber-dim: #a63d00;
+  --t-flame: #e02b20; /* urgency — alarms, faults, money */
+  --t-flame-dim: #b42318;
+  --t-flame-wash: #fff1ee;
   --t-green: #15803d;
   --t-red: #dc2626;
   --t-cyan: #0e7490;
   --t-text: #404040;
-  --t-bright: #0a0a0a;
-  --t-dim: #595959;
-  --t-faint: #8c8c8c;
+  --t-bright: #171717;
+  --t-dim: #5f5f5f;
+  --t-faint: #6b6b6b;
   /* Inset wells (log blocks, expanded rows) and form fields. */
   --t-well: #f5f5f5;
   --t-input: #ffffff;
@@ -319,14 +277,12 @@ p {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The scanline grid. Kept because the console's density reads better with a
-   measurable substrate — but it is a flat 3% blue wash on white, not a
-   gradient: one uniform tint, no falloff, nothing to catch the eye. */
+/* The scanline grid — a flat warm wash, not a gradient. */
 .tlz-scan {
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(37, 99, 235, 0.03) 0px,
-    rgba(37, 99, 235, 0.03) 1px,
+    rgba(207, 74, 0, 0.03) 0px,
+    rgba(207, 74, 0, 0.03) 1px,
     transparent 1px,
     transparent 4px
   );
@@ -368,7 +324,7 @@ p {
   text-wrap: wrap;
 }
 
-/* Blue scrollbars so even the scroll chrome belongs to the console. */
+/* Neutral scrollbars so even the scroll chrome belongs to the console. */
 .tlz-terminal ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
@@ -422,9 +378,9 @@ p {
     --t-card-hi: #f2f2f2;
     --t-border: #9a9a9a;
     --t-grid: #c9c9c9;
-    --t-amber: #1d4ed8;
-    --t-amber-dim: #475569;
-    --t-flame: #9a3412;
+    --t-amber: #a63d00;
+    --t-amber-dim: #57534e;
+    --t-flame: #9a1b12;
     --t-flame-dim: #6b7280;
     --t-flame-wash: #f3f4f6;
     --t-green: #0a6e3c;
@@ -436,7 +392,7 @@ p {
     --t-faint: #5c5c5c;
     --t-well: #f3f4f6;
     --t-input: #ffffff;
-    --t-on-accent: #1d4ed8;
+    --t-on-accent: #ffffff;
     font-size: 11px;
   }
 

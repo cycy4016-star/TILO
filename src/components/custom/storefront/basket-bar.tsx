@@ -19,22 +19,22 @@ export function BasketBar({
   if (count <= 0) return null;
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 p-2.5 pl-4 shadow-xl backdrop-blur">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-6xl items-center justify-between gap-3 rounded-lg border border-border bg-card/95 p-2.5 pl-4 shadow-xl backdrop-blur">
         <span className="flex min-w-0 items-center gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-highlight font-display text-h4 text-highlight-foreground">
+          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-highlight font-display text-h4 font-bold text-highlight-foreground">
             {count}
           </span>
           <span className="min-w-0">
             <span className="block truncate text-caption font-semibold text-muted-foreground">
               {count === 1 ? 'item' : 'items'} in your basket
             </span>
-            <span className="block font-display text-h4">{formatGhs(total)}</span>
+            <span className="block font-display text-h4 font-bold">{formatGhs(total)}</span>
           </span>
         </span>
         <Button
           type="button"
           onClick={onCheckout}
-          className="h-11 shrink-0 items-center gap-2 rounded-md bg-highlight px-5 font-semibold text-highlight-foreground shadow-sm transition-transform hover:bg-flame-600 active:scale-[0.98]"
+          className="h-11 shrink-0 items-center gap-2 rounded-md bg-primary px-5 font-bold text-primary-foreground shadow-sm transition-transform hover:bg-primary/90 active:scale-[0.98]"
         >
           <ShoppingCart aria-hidden className="size-4" /> Checkout
         </Button>

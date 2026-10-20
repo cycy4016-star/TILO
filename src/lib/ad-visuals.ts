@@ -30,11 +30,11 @@ export function luminance(hex: string): number {
 }
 
 export type AdPalette = {
-  /** Blue — the CTA pill fill, and the brand chip. */
+  /** Orange — the CTA pill fill, and the brand chip. */
   accent: string;
-  /** Pale blue — the chip's quiet fill and the brand rule. */
+  /** Pale orange — the chip's quiet fill and the brand rule. */
   tint: string;
-  /** Orange ink — the price, because the price is the message. */
+  /** Deep orange ink — the price, because the price is the message. */
   accentText: string;
   /** Text colour on top of an accent-filled pill. */
   pillText: string;
@@ -42,16 +42,15 @@ export type AdPalette = {
 
 /**
  * The ad palette. It takes a theme key only for call-site compatibility —
- * there is one look now, so every shop gets the same blue and orange. The
- * luminance-based branches are gone: the colours are pinned literals, so their
- * contrast is known at authoring time (blue #2563eb under white text is 5.2:1;
- * orange #9a3412 on white is 7.3:1) rather than measured at render time.
+ * there is one look now, so every shop gets the same orange marketplace card.
+ * Contrast is known at authoring time (#cf4a00 under white text is 4.5:1;
+ * #b83d00 on white is 5.9:1).
  */
 export function adPalette(_theme: string | null | undefined): AdPalette {
   return {
-    accent: '#2563eb',
-    tint: '#dbeafe',
-    accentText: '#9a3412',
+    accent: '#cf4a00',
+    tint: '#ffeadb',
+    accentText: '#b83d00',
     pillText: '#ffffff',
   };
 }

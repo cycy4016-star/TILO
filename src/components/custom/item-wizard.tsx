@@ -221,9 +221,9 @@ export function ItemWizard({
         key={label}
         type="button"
         onClick={() => goStep(target)}
-        className="flex w-full items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-left transition-colors hover:bg-muted"
+        className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-2.5 text-left transition-colors hover:bg-muted"
       >
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-highlight-ink">
           <Check aria-hidden className="size-3.5" />
         </span>
         <span className="min-w-0 flex-1 truncate text-small">
@@ -327,7 +327,7 @@ export function ItemWizard({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-xl">
         <style>{`
           @keyframes wizard-pop {
             0% { transform: scale(0.4); opacity: 0; }
@@ -364,7 +364,7 @@ export function ItemWizard({
 
         {celebrate ? (
           <div className="grid place-items-center gap-3 py-10 text-center">
-            <span className="wizard-pop motion-safe:[animation:wizard-pop_0.5s_ease-out] flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span className="wizard-pop motion-safe:[animation:wizard-pop_0.5s_ease-out] flex size-16 items-center justify-center rounded-full bg-primary/10 text-highlight-ink">
               <Check aria-hidden className="size-8" />
             </span>
             <p className="font-display text-h3">On the shelf!</p>
@@ -394,7 +394,7 @@ export function ItemWizard({
 
             <div
               key={step}
-              className="grid gap-4 rounded-xl border border-border bg-card p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300 sm:p-5"
+              className="grid gap-4 rounded-lg border border-border bg-card p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300 sm:p-5"
             >
               {step === 0 && (
                 <>
@@ -434,7 +434,7 @@ export function ItemWizard({
                     <span className="font-normal text-muted-foreground">(optional)</span>
                   </Label>
                   {state.photoPreview ? (
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-muted">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted">
                       {state.photoBlur && (
                         <img
                           src={state.photoBlur}
@@ -463,7 +463,7 @@ export function ItemWizard({
                   ) : (
                     <label
                       htmlFor="wiz-photo"
-                      className="grid min-h-36 cursor-pointer place-items-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 p-6 text-center"
+                      className="grid min-h-36 cursor-pointer place-items-center gap-2 rounded-lg border border-dashed border-border bg-muted/40 p-6 text-center"
                     >
                       <ImagePlus aria-hidden className="size-8 text-primary" />
                       <span className="text-small font-semibold">Tap to add a photo</span>
@@ -522,7 +522,7 @@ export function ItemWizard({
                     </Button>
                   </div>
                   {state.categoryId === NEW_CATEGORY && (
-                    <div className="grid gap-2 rounded-xl border border-border p-3">
+                    <div className="grid gap-2 rounded-lg border border-border p-3">
                       <Label htmlFor="wiz-newcat">New shelf name</Label>
                       <Input
                         id="wiz-newcat"
@@ -696,7 +696,7 @@ export function ItemWizard({
 
               {step === lastStep && (
                 <div className="grid gap-3">
-                  <div className="overflow-hidden rounded-xl border border-border">
+                  <div className="overflow-hidden rounded-lg border border-border">
                     {state.photoPreview ? (
                       <div className="relative aspect-[4/3] bg-muted">
                         <img

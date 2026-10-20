@@ -20,25 +20,33 @@ export function MerchantWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-xs sm:p-10">
-        <div className="relative flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-highlight-wash px-3 py-1 text-caption font-semibold text-highlight-ink">
-            <BarChart3 className="size-3.5" aria-hidden /> Analytics
-          </span>
+      <section className="relative overflow-hidden rounded-xl bg-highlight p-5 text-highlight-foreground sm:p-7">
+        <span
+          aria-hidden
+          className="absolute -right-10 -top-16 size-44 rounded-full border-[20px] border-white/20"
+        />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded bg-[#241205] px-2.5 py-1 text-caption font-bold uppercase tracking-[0.08em] text-white">
+              <BarChart3 className="size-3.5" aria-hidden /> Seller centre
+            </span>
+            <h1 className="mt-3 break-words font-display text-h2 sm:text-h1">
+              Good to see you, {name}.
+            </h1>
+            <p className="mt-2 max-w-[48ch] text-small font-medium text-[#3d1f0d] sm:text-body">
+              Check what you are owed, what is selling and what needs attention today.
+            </p>
+          </div>
+          <Button
+            asChild
+            className="h-11 w-full shrink-0 rounded-md bg-white px-5 font-bold text-[#241205] hover:bg-[#fff7ef] sm:w-auto"
+          >
+            <Link href="/dashboard/store">
+              <Store aria-hidden className="size-4" /> Open the catalogue
+              <ArrowUpRight aria-hidden />
+            </Link>
+          </Button>
         </div>
-        <h1 className="relative mt-5 break-words text-h1 font-display">Good to see you, {name}.</h1>
-        <p className="relative mt-3 max-w-[46ch] text-body-lg text-muted-foreground">
-          Money owed, what the catalogue is worth, and what actually earns — one screen.
-        </p>
-        <Button
-          asChild
-          className="relative mt-6 h-11 w-full rounded-md px-6 font-semibold sm:w-auto"
-        >
-          <Link href="/dashboard/store">
-            <Store aria-hidden className="size-4" /> Open the catalogue
-            <ArrowUpRight aria-hidden />
-          </Link>
-        </Button>
       </section>
 
       <div id="money-to-chase" className="scroll-mt-24">
@@ -77,11 +85,11 @@ export function MerchantWorkspace() {
             cta: 'Open directory',
           },
         ].map((tile) => (
-          <article key={tile.title} className="lift rounded-xl border border-border bg-card p-6">
-            <span className="inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <article key={tile.title} className="lift rounded-lg border border-border bg-card p-5">
+            <span className="inline-flex size-10 items-center justify-center rounded-md bg-highlight-wash text-highlight-ink">
               <tile.icon className="size-5" aria-hidden />
             </span>
-            <h2 className="mt-4 text-h4 font-display">{tile.title}</h2>
+            <h2 className="mt-3 text-h4 font-display">{tile.title}</h2>
             <p className="mt-1 text-small text-muted-foreground">{tile.body}</p>
             <Button
               asChild

@@ -90,7 +90,7 @@ export default function ProfilePage() {
               className="size-16 shrink-0 rounded-lg object-cover"
             />
           ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-h3 text-primary">
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-h3 text-highlight-ink">
               {session.user.name?.charAt(0).toUpperCase() ?? '?'}
             </div>
           )}

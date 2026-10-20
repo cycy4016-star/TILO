@@ -57,7 +57,7 @@ export function FlashStrip({
 }) {
   if (!promo || !promo.endsAt) return null;
   return (
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/[0.06] px-5 py-3.5">
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/[0.06] px-4 py-3">
       <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         <span className="rounded-full bg-destructive px-2.5 py-1 text-caption font-bold uppercase tracking-wider text-white">
           Flash sale

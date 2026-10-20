@@ -371,7 +371,7 @@ export function OnboardingWizard() {
             </div>
           ))}
         </div>
-        <div className="mt-6 rounded-xl border border-border bg-card p-5 shadow-xs sm:p-8">
+        <div className="mt-6 rounded-lg border border-border bg-card p-5 sm:p-8">
           <div className="grid gap-4">
             <div className="h-4 w-24 rounded bg-muted" />
             <div className="h-11 rounded-md bg-muted" />
@@ -464,7 +464,7 @@ export function OnboardingWizard() {
                 index < step
                   ? 'bg-primary text-primary-foreground'
                   : index === step
-                    ? 'border border-primary/50 bg-primary/10 text-primary'
+                    ? 'border border-primary/50 bg-primary/10 text-highlight-ink'
                     : 'border border-border text-muted-foreground'
               }`}
             >
@@ -490,7 +490,7 @@ export function OnboardingWizard() {
       </ol>
 
       <form
-        className="mt-6 rounded-xl border border-border bg-card p-5 shadow-xs sm:p-8"
+        className="mt-6 rounded-lg border border-border bg-card p-5 sm:p-8"
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
@@ -606,7 +606,7 @@ export function OnboardingWizard() {
               hold up your page.
             </p>
             {SOCIAL_PLATFORM_DEFS.map((entry: SocialPlatformDef) => (
-              <div key={entry.value} className="grid gap-2 rounded-xl border border-border p-4">
+              <div key={entry.value} className="grid gap-2 rounded-lg border border-border p-4">
                 <p className="text-caption font-semibold">{entry.label}</p>
                 <p className="text-caption text-muted-foreground">{entry.hint}</p>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -678,15 +678,15 @@ export function OnboardingWizard() {
 
         {step === 3 && store && (
           <div className="grid gap-4">
-            <div className="flex items-center gap-4 rounded-xl border border-border bg-muted/40 p-4">
+            <div className="flex items-center gap-4 rounded-lg border border-border bg-muted/40 p-4">
               {store.hasLogo ? (
                 <img
                   src={`/api/public/store/${store.slug}/logo?t=${Date.parse(store.updatedAt)}`}
                   alt=""
-                  className="size-14 shrink-0 rounded-xl bg-white object-contain p-1 ring-1 ring-black/5"
+                  className="size-14 shrink-0 rounded-lg bg-white object-contain p-1 ring-1 ring-black/5"
                 />
               ) : (
-                <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-display text-h3 text-primary">
+                <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-h3 text-highlight-ink">
                   {store.name.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -741,7 +741,9 @@ export function OnboardingWizard() {
                 <li key={entry.label} className="flex items-center gap-2">
                   <span
                     className={`flex size-6 items-center justify-center rounded-full ${
-                      entry.done ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                      entry.done
+                        ? 'bg-primary/10 text-highlight-ink'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {entry.done ? (

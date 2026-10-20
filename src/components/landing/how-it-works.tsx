@@ -46,7 +46,7 @@ export function HowItWorks() {
       id="how-it-works"
       ref={sectionRef}
       aria-label="How it works"
-      className="scroll-mt-20 bg-muted/40"
+      className="scroll-mt-20 bg-card"
     >
       <div className="container-page section">
         <Reveal>

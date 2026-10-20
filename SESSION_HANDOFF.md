@@ -94,25 +94,28 @@ railway service tilo
 
 ## 3. Design system: one look
 
-White canvas, blue structure, orange energy. No gradients, no dark mode, no
-theme presets.
+Warm off-white canvas, white product surfaces, orange actions and promo bands,
+dark ink. No gradients, no dark mode, no user-selectable theme presets.
 
-| Token | Value | Meaning |
+| Token | Approx. | Meaning |
 |---|---|---|
-| `--primary` | `#2563eb` | Structure: links, focus, primary UI |
-| `--highlight` | `#f97316` | Energy: the one action per screen |
-| `--highlight-foreground` | `#1c1917` | Text on orange (white is 2.8:1, too low) |
-| `--highlight-strong` | `#c2410c` | Orange that passes with white text (5.2:1) |
-| `--highlight-ink` | `#9a3412` | Orange as text on white |
-| `--highlight-wash` | `#fff7ed` | Tinted surface |
-| `--background` | `#ffffff` | Pure white |
-| `--border` | `#e4e4e4` | Hairline |
-| `--brand-h` / `--brand-c` / `--brand-l` | `257 / 0.19 / 0.62` | Blue seed |
-| `--flame-h` / `--flame-c` / `--flame-l` | `45 / 0.21 / 0.62` | Orange seed |
+| `--primary` | `#cf4a00` | Actions, links, focus, active nav (white text 4.5:1+) |
+| `--primary-foreground` | white | Text on primary |
+| `--highlight` | `#fb7701` | Promo strips, sale CTAs, high-energy badges |
+| `--highlight-foreground` | `#241205` | Text on highlight (7:1+; never white) |
+| `--highlight-strong` | dark ember | Stronger orange that passes with white text |
+| `--highlight-ink` | dark ember | Orange as text on light surfaces |
+| `--highlight-wash` | `#fff5ec` | Quiet orange-tinted surface |
+| `--background` | warm off-white | Page canvas |
+| `--foreground` | `#171717` | Primary ink |
+| `--border` | warm hairline | Card and control borders |
+| `--brand-h` / `--brand-c` / `--brand-l` | `48 / 0.19 / 0.64` | Marketplace orange seed |
+| `--flame-h` / `--flame-c` / `--flame-l` | `32 / 0.22 / 0.58` | Bright promo orange seed |
 
 - `src/lib/theme.ts` has a single `THEME_PRESETS` entry; `normalizeTheme()`
-  collapses every legacy key to `'blue'`. The `Store.theme` column is kept.
-- Dark mode is gone: no `next-themes`, no `.dark` block, no `data-theme` attr.
+  collapses every legacy key to `'blue'`. The `Store.theme` column is kept and
+  legacy `[data-theme]` / `--tl-*` vars still render the same warm ramp.
+- Dark mode is gone: no `next-themes`, no `.dark` block.
 - The one surviving `repeating-linear-gradient` is `.tlz-scan` in
   `custom-style.css` (deliberate terminal texture).
 - Logo slot: `brandLogo` in `src/lib/brand.ts:11`. Drop a file in `/public` and

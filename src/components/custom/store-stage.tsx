@@ -153,7 +153,7 @@ export function PhoneMockup({
                     tilza.org/store/{shop.slug}
                   </p>
                 </div>
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-semibold text-primary">
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-semibold text-highlight-ink">
                   <span className="relative flex size-1.5">
                     <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
                     <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
@@ -289,7 +289,7 @@ export function StoreCompareTable({ shops }: { shops: SampleShop[] }) {
           .compare-table.is-visible tbody tr { animation: none; }
         }
       `}</style>
-      <div className="compare-scroll overflow-x-auto rounded-2xl border border-border bg-card/80 shadow-xl backdrop-blur">
+      <div className="compare-scroll overflow-x-auto rounded-lg border border-border bg-card/80 shadow-xl backdrop-blur">
         <table
           className={`compare-table w-full min-w-[560px] border-collapse text-left sm:min-w-[640px] ${ready ? 'is-visible' : ''}`}
         >
@@ -333,7 +333,7 @@ export function StoreCompareTable({ shops }: { shops: SampleShop[] }) {
                 {row.values.map((value, valueIndex) => (
                   <td key={`${row.label}-${valueIndex}`} className="px-4 py-3 text-small">
                     {row.label === 'Status' ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-semibold text-primary">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-semibold text-highlight-ink">
                         <span className="size-1.5 rounded-full bg-primary" aria-hidden />
                         {value}
                       </span>

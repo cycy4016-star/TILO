@@ -1,8 +1,8 @@
 // One-look tests. Tilza no longer offers a colour choice: the platform ships a
-// single white canvas with blue for structure and orange for energy, and every
-// stored theme key — including legacy rows from the nine-preset era — collapses
-// to that one look. The appearance value is likewise pinned, including the
-// legacy "vibrant" rows.
+// single orange marketplace palette on a light canvas, and every stored theme
+// key — including legacy rows from the nine-preset era — collapses to that one
+// look. The appearance value is likewise pinned, including legacy "vibrant"
+// rows.
 import { describe, expect, it } from 'vitest';
 import {
   APPEARANCE_PRESETS,
@@ -48,8 +48,8 @@ describe('one Tilza look', () => {
   it('offers exactly one colour, and it carries both brand colours', () => {
     expect(THEME_PRESETS).toHaveLength(1);
     expect(THEME_PRESETS[0]?.key).toBe('blue');
-    // [blue, orange] — the swatch must show the two colours the platform uses.
-    expect(THEME_PRESETS[0]?.accents).toEqual(['#2563eb', '#f97316']);
+    // [primary orange, promo orange] — the swatch shows the platform palette.
+    expect(THEME_PRESETS[0]?.accents).toEqual(['#cf4a00', '#fb7701']);
   });
 });
 

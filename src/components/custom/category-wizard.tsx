@@ -94,7 +94,7 @@ export function CategoryWizard({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-h3">New shelf</DialogTitle>
           <DialogDescription>

@@ -1,5 +1,5 @@
-// Features: server-rendered, motion-safe visuals. Clean grid with better
-// rhythm, consistent card elevation and tighter vertical spacing. Copy unchanged.
+// Features: server-rendered, motion-safe visuals. Clean grid with consistent
+// card elevation and tighter vertical spacing.
 
 import { Boxes, Link2, type LucideIcon, MessageCircle, Palette, QrCode, Tag } from 'lucide-react';
 import { Reveal } from '@/components/custom/sample-showcase';
@@ -72,15 +72,26 @@ function Visual({ icon }: { icon: FeatureIcon }) {
   }
   if (icon === 'palette') {
     return (
-      <div aria-hidden className="flex items-center gap-2">
-        {['bg-primary', 'bg-emerald-500', 'bg-sky-500', 'bg-violet-500', 'bg-rose-500'].map(
-          (swatch) => (
-            <span
-              key={swatch}
-              className={cn('size-7 rounded-full border border-border/70 shadow-xs', swatch)}
-            />
-          ),
-        )}
+      <div
+        aria-hidden
+        className="w-full max-w-xs overflow-hidden rounded-lg border border-border bg-background shadow-xs"
+      >
+        <div className="relative h-14 bg-highlight">
+          <span className="absolute right-2 top-2 rounded bg-white/85 px-2 py-0.5 text-caption font-semibold text-foreground">
+            Banner
+          </span>
+        </div>
+        <div className="flex items-center gap-2 px-3 pb-3">
+          <span className="-mt-4 grid size-9 shrink-0 place-items-center rounded-md border border-border bg-foreground text-caption font-bold text-background">
+            TK
+          </span>
+          <span className="min-w-0 pt-0.5">
+            <span className="block truncate text-caption font-semibold text-foreground">
+              Your shop name
+            </span>
+            <span className="block text-caption text-muted-foreground">Open for orders</span>
+          </span>
+        </div>
       </div>
     );
   }
@@ -88,7 +99,7 @@ function Visual({ icon }: { icon: FeatureIcon }) {
     return (
       <div
         aria-hidden
-        className="max-w-xs rounded-2xl rounded-bl-md border border-border bg-background/95 px-4 py-2.5 text-small shadow-xs"
+        className="max-w-xs rounded-lg rounded-bl-md border border-border bg-background/95 px-4 py-2.5 text-small shadow-xs"
       >
         2 items · GH₵ 205.00 — send as WhatsApp message?
         <span className="ml-2 inline-flex size-2 rounded-full bg-primary motion-safe:animate-ping" />
@@ -112,10 +123,14 @@ export function Features() {
     <section id="features" aria-label="Features" className="scroll-mt-20 bg-background">
       <div className="container-page section">
         <Reveal>
-          <p className="text-eyebrow">The toolkit</p>
+          <p className="text-eyebrow">Everything you need</p>
           <h2 className="mt-3 break-words text-balance font-display text-h2">
-            Six tools that run the business
+            Everything you need to sell online
           </h2>
+          <p className="mt-4 max-w-[58ch] text-body text-muted-foreground">
+            No website builder, no code and no complicated setup. Add your products and start taking
+            orders.
+          </p>
         </Reveal>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, index) => {
@@ -123,16 +138,16 @@ export function Features() {
             return (
               <Reveal
                 key={feature.title}
-                delay={(index % 3) * 90}
+                delay={(index % 3) * 80}
                 className={feature.span === 2 ? 'sm:col-span-2 lg:col-span-2' : ''}
               >
-                <article className="lift flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">
-                  <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <article className="lift flex h-full flex-col rounded-lg border border-border bg-card p-5 sm:p-6">
+                  <span className="inline-flex size-10 items-center justify-center rounded-md bg-highlight-wash text-highlight-ink">
                     <Icon className="size-5" aria-hidden />
                   </span>
-                  <h3 className="mt-4 font-display text-h4">{feature.title}</h3>
-                  <p className="mt-2 text-small text-muted-foreground">{feature.body}</p>
-                  <div className="mt-auto pt-6">
+                  <h3 className="mt-3 font-display text-h4">{feature.title}</h3>
+                  <p className="mt-1.5 text-small text-muted-foreground">{feature.body}</p>
+                  <div className="mt-auto pt-5">
                     <Visual icon={feature.icon} />
                   </div>
                 </article>

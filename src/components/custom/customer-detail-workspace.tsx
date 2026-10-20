@@ -34,7 +34,7 @@ const statusLabels: Record<OrderRecord['status'], string> = {
 
 const statusStyles: Record<OrderRecord['status'], string> = {
   PENDING: 'bg-muted text-muted-foreground',
-  PROCESSING: 'bg-primary/10 text-primary',
+  PROCESSING: 'bg-primary/10 text-highlight-ink',
   COMPLETED: 'bg-muted text-foreground',
   CANCELLED: 'border border-border bg-background text-muted-foreground',
 };
@@ -168,7 +168,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
 
   if (notFound) {
     return (
-      <div className="mx-auto max-w-xl rounded-xl border border-border bg-muted/40 p-6 text-center">
+      <div className="mx-auto max-w-xl rounded-lg border border-border bg-muted/40 p-6 text-center">
         <p className="text-h4 font-display">Customer not found</p>
         <p className="mt-2 text-small text-muted-foreground">
           This customer may have moved on or the link is stale.
@@ -182,7 +182,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
 
   if (error || !customer) {
     return (
-      <div className="mx-auto max-w-xl rounded-xl border border-border bg-muted/40 p-6 text-center">
+      <div className="mx-auto max-w-xl rounded-lg border border-border bg-muted/40 p-6 text-center">
         <p className="text-h4 font-display">Couldn&apos;t load customer</p>
         <p className="mt-2 text-small text-muted-foreground">
           {error ?? 'Something went wrong while fetching this customer.'}
@@ -206,7 +206,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
             <ArrowLeft aria-hidden className="size-4" /> Customers
           </Link>
         </Button>
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-9">
+        <div className="relative overflow-hidden rounded-lg border border-border bg-card p-5 sm:p-9">
           <span
             aria-hidden
             className="pointer-events-none absolute -bottom-8 -right-4 hidden font-display text-[9rem] font-semibold leading-none text-primary/10 min-[420px]:block"
@@ -216,7 +216,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
           <p className="relative text-eyebrow">
             Customer · {customer.orderCount} order{customer.orderCount === 1 ? '' : 's'}
           </p>
-          <h1 className="relative mt-2 break-words text-h1 font-display">{customer.name}</h1>
+          <h1 className="relative mt-2 break-words text-h2 font-display">{customer.name}</h1>
           {customer.company && (
             <p className="relative mt-2 font-medium text-muted-foreground">{customer.company}</p>
           )}
@@ -249,7 +249,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                     href={chat}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-background px-5 font-medium text-foreground transition-colors hover:bg-muted"
+                    className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     <MessageCircle aria-hidden className="size-4" /> Chat on WhatsApp
                   </a>
@@ -260,11 +260,11 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-        <section className="rounded-xl border border-border bg-card p-6 sm:p-7">
+        <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
           <h2 className="text-h3 font-display">Orders</h2>
           <p className="mt-1 text-small text-muted-foreground">Every order for {customer.name}.</p>
           {customer.orders.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-6 text-center">
+            <div className="mt-5 rounded-lg border border-border bg-muted/40 p-6 text-center">
               <p className="text-h4 font-display">No orders yet</p>
               <p className="mt-1 text-small text-muted-foreground">
                 Place the first order from the panel.
@@ -281,7 +281,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                     aria-hidden
                     className={`absolute left-0 top-1.5 size-4 rounded-full border-4 border-card ${statusDots[order.status]}`}
                   />
-                  <div className="rounded-xl bg-muted/60 p-4 sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4">
+                  <div className="rounded-lg bg-muted/60 p-4 sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-caption font-semibold text-primary">
@@ -303,7 +303,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                           </span>
                         )}
                         {order.paidAt ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-medium text-primary">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-caption font-medium text-highlight-ink">
                             Paid {formatDate(order.paidAt)}
                           </span>
                         ) : order.amountPesewas != null ? (
@@ -363,7 +363,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
         <div className="grid content-start gap-6">
           <section
             id="fresh-order"
-            className="scroll-mt-24 rounded-xl border border-border bg-card p-6 sm:p-7"
+            className="scroll-mt-24 rounded-lg border border-border bg-card p-6 sm:p-7"
           >
             <h2 className="flex items-center gap-2 text-h4 font-display">
               <Flame className="size-5 text-primary" aria-hidden /> New order

@@ -3,26 +3,25 @@
 
 export const siteName = 'Tilza';
 export const siteDescription =
-  'A shareable shop page for your products — categories, photos and prices, a basket customers fill themselves, and orders that land itemised in your dashboard.';
+  'Put your products online, share one link, and take orders. Customers browse your shop and fill a basket; every order lands in your dashboard and on WhatsApp.';
 
 // Uploaded logo. Drop your file in /public (e.g. /public/logo.svg) and set this
 // to its path (e.g. '/logo.svg'). While it is null, the app renders its built-in
 // "TILZA" wordmark instead — see src/components/custom/tilza-logo.tsx.
 export const brandLogo: string | null = null;
 
-// PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
-// readable here) — set to match the white + blue + orange system in
-// custom-style.css.
+// PWA + social-share colors. HEX only — set to match the orange marketplace
+// palette in custom-style.css.
 export const brandVisual = {
-  /** PWA browser-UI / status-bar color. The blue — structure. */
-  themeColor: '#2563eb',
-  /** PWA splash + install background. Pure white canvas. */
-  backgroundColor: '#ffffff',
+  /** PWA browser-UI / status-bar color. The brand orange. */
+  themeColor: '#cf4a00',
+  /** PWA splash + install background. Light grey canvas. */
+  backgroundColor: '#f5f5f5',
   /** Social-share (OG/Twitter) image. */
   og: {
     background: '#ffffff',
-    foreground: '#0a0a0a',
+    foreground: '#171717',
     /** Second line under the site name; '' hides it. */
-    tagline: 'Chat on WhatsApp. Run on Tilza.',
+    tagline: 'Your shop. One link. Orders on WhatsApp.',
   },
 } as const;

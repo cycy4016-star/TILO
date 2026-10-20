@@ -124,22 +124,22 @@ export function AdStudio() {
 
   return (
     <div className="grid gap-8">
-      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded bg-highlight-wash px-2.5 py-1 text-caption font-bold text-highlight-ink">
             <Megaphone aria-hidden className="size-3.5" /> Ad Studio
           </span>
           {feed && <FreshnessNote dayKey={feed.dayKey} />}
         </div>
-        <h1 className="mt-5 text-h1 font-display">
+        <h1 className="mt-2 text-h2 font-display">
           Today&apos;s <span className="text-primary">ads.</span>
         </h1>
-        <p className="mt-2 max-w-lg text-small text-muted-foreground">
+        <p className="mt-1.5 max-w-lg text-small text-muted-foreground">
           A fresh ad for every listing, written and designed for you. Pick a look, hit post, and
           choose where it goes — new angles arrive every night at midnight UTC.
         </p>
         {feed && feed.ads.length > 0 && (
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
               type="button"
               onClick={() => setStageIndex(0)}
@@ -180,7 +180,7 @@ export function AdStudio() {
                 type="button"
                 onClick={() => setFormat(entry.key)}
                 aria-pressed={selected}
-                className={`rounded-xl border p-4 text-left transition-colors ${
+                className={`rounded-lg border p-4 text-left transition-colors ${
                   selected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
                     : 'border-border bg-card hover:border-foreground/20'
@@ -188,7 +188,7 @@ export function AdStudio() {
               >
                 <span
                   className={`block text-small font-semibold ${
-                    selected ? 'text-primary' : 'text-foreground'
+                    selected ? 'text-highlight-ink' : 'text-foreground'
                   }`}
                 >
                   {entry.label}
@@ -208,7 +208,7 @@ export function AdStudio() {
             <h2 className="text-h4 font-display">Multi-product ad</h2>
             <p className="text-caption text-muted-foreground">One post, several listings.</p>
           </div>
-          <div className="grid gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-center">
+          <div className="grid gap-6 rounded-lg border border-border bg-card p-6 sm:p-8 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-center">
             <div className="mx-auto w-full max-w-xs">
               <AdCarousel
                 slug={feed.storeSlug}
@@ -217,7 +217,7 @@ export function AdStudio() {
                 orderHref={storeOrder?.href ?? '#'}
                 orderLabel={storeOrder?.label ?? 'Order'}
                 size="stage"
-                className="rounded-xl"
+                className="rounded-lg"
               />
             </div>
             <div className="grid gap-3">
@@ -268,14 +268,11 @@ export function AdStudio() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {['a', 'b', 'c'].map((key) => (
-            <div
-              key={key}
-              className="h-96 animate-pulse rounded-2xl border border-border bg-card"
-            />
+            <div key={key} className="h-96 animate-pulse rounded-lg border border-border bg-card" />
           ))}
         </div>
       ) : error || !feed ? (
-        <section className="grid gap-3 rounded-2xl border border-border bg-muted/40 p-8 text-center">
+        <section className="grid gap-3 rounded-lg border border-border bg-muted/40 p-8 text-center">
           <p className="text-small font-medium text-destructive">
             We could not build your ads. Please try again.
           </p>
@@ -288,7 +285,7 @@ export function AdStudio() {
           </Button>
         </section>
       ) : feed.ads.length === 0 ? (
-        <section className="grid gap-3 rounded-2xl border border-border bg-muted/40 p-8 text-center">
+        <section className="grid gap-3 rounded-lg border border-border bg-muted/40 p-8 text-center">
           <Store aria-hidden className="mx-auto size-10 text-muted-foreground" />
           <p className="text-h4 font-display">No listings to advertise yet</p>
           <p className="mx-auto max-w-sm text-small text-muted-foreground">
@@ -317,7 +314,7 @@ export function AdStudio() {
             return (
               <article
                 key={ad.itemId}
-                className="lift group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+                className="lift group flex flex-col overflow-hidden rounded-lg border border-border bg-card"
               >
                 <AdArtwork
                   itemId={ad.itemId}
@@ -329,10 +326,10 @@ export function AdStudio() {
                 />
                 <div className="flex flex-1 flex-col gap-3 p-5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-caption font-semibold text-primary">
+                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-caption font-semibold text-highlight-ink">
                       {ad.angle}
                     </span>
-                    <span className="font-mono text-caption font-semibold text-foreground">
+                    <span className="font-mono text-caption font-bold text-primary">
                       {formatGhs(ad.pricePesewas)}
                     </span>
                     {ad.discountPercent != null ? (

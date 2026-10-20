@@ -105,16 +105,16 @@ export function SettingsWorkspace() {
   }
 
   if (loading) {
-    return <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />;
+    return <div className="h-64 animate-pulse rounded-lg border border-border bg-card" />;
   }
 
   return (
     <div className="grid gap-6">
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-caption font-semibold text-primary">
+      <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+        <p className="flex items-center gap-1.5 text-eyebrow">
           <Share2 aria-hidden className="size-3.5" /> Settings
-        </span>
-        <h1 className="mt-5 text-h1 font-display">
+        </p>
+        <h1 className="mt-1 text-h2 font-display">
           Where customers <span className="text-primary">find you.</span>
         </h1>
         <p className="mt-2 max-w-md text-small text-muted-foreground">
@@ -122,7 +122,7 @@ export function SettingsWorkspace() {
         </p>
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-7">
+      <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-h3 font-display">Social links</h2>
@@ -144,7 +144,7 @@ export function SettingsWorkspace() {
             return (
               <div
                 key={entry.value}
-                className={`grid gap-3 rounded-xl border p-4 ${
+                className={`grid gap-3 rounded-lg border p-4 ${
                   filled ? 'border-primary/40 bg-primary/[0.04]' : 'border-border'
                 }`}
               >
@@ -154,7 +154,7 @@ export function SettingsWorkspace() {
                     <p className="text-xs text-muted-foreground">{entry.hint}</p>
                   </div>
                   {filled && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-caption font-semibold text-primary">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-caption font-semibold text-highlight-ink">
                       <Check aria-hidden className="size-3" /> Connected
                     </span>
                   )}
@@ -211,7 +211,7 @@ export function SettingsWorkspace() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-7">
+      <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
         <h2 className="text-h3 font-display">Your page</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           The link customers open to browse and order.
@@ -248,7 +248,7 @@ export function SettingsWorkspace() {
         )}
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-6 sm:p-7">
+      <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
         <h2 className="text-h3 font-display">Account</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Your name, phone, password and profile picture.

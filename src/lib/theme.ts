@@ -1,9 +1,10 @@
 // Tilza's single look.
 //
 // TILZA HAS ONE APPEARANCE. There is no theme picker and no per-account colour
-// choice: the platform ships a single white canvas with two brand colours —
-// blue for structure, orange for energy — and every surface in the product
-// (marketing site, storefront, dashboard, ops console) renders that same system.
+// choice: the platform ships one orange marketplace palette — light grey
+// canvas, white cards, orange for actions and prices, red for discounts — and
+// every surface in the product (marketing site, storefront, dashboard, ops
+// console) renders that same system.
 //
 // WHY THIS FILE STILL EXISTS. `Store.theme`, `AppearancePreference.theme` and
 // `Store.appearance` are real columns with real rows. They are NOT deleted here,
@@ -22,9 +23,9 @@ export type ThemePreset = {
   key: ThemeKeyValue;
   label: string;
   tagline: string;
-  // Two preview colours for the swatch chip: the blue and the orange. Hardcoded
-  // because these mirror the pinned literals in custom-style.css, not the
-  // oklch seed, and a swatch that drifts from the real fill is worse than none.
+  // Two preview colours for the swatch chip: the primary orange and the
+  // brighter promo orange. Hardcoded because these mirror the pinned literals
+  // in custom-style.css, not the oklch seed.
   accents: [string, string];
   seed: { h: number; c: number; l: number };
   flame: { h: number; c: number; l: number };
@@ -35,10 +36,10 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: 'blue',
     label: 'Tilza',
-    tagline: 'White canvas · blue structure · orange energy',
-    accents: ['#2563eb', '#f97316'],
-    seed: { h: 257, c: 0.19, l: 0.62 },
-    flame: { h: 45, c: 0.21, l: 0.62 },
+    tagline: 'Light canvas · orange marketplace · red for deals',
+    accents: ['#cf4a00', '#fb7701'],
+    seed: { h: 48, c: 0.19, l: 0.64 },
+    flame: { h: 32, c: 0.22, l: 0.58 },
   },
 ];
 

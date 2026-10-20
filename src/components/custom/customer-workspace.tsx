@@ -184,18 +184,27 @@ export function CustomerWorkspace() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-9">
-        <p className="relative text-eyebrow">Customer directory</p>
-        <div className="relative mt-2 flex flex-wrap items-start justify-between gap-4">
-          <h1 className="min-w-0 flex-1 text-h1 font-display break-words">Customers</h1>
+      <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-eyebrow">Customer directory</p>
+            <h1 className="mt-1 min-w-0 break-words text-h2 font-display">
+              Customers
+              {customers.length > 0 && (
+                <span className="ml-2 align-middle text-caption font-semibold text-muted-foreground">
+                  {customers.length}
+                </span>
+              )}
+            </h1>
+          </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="h-11 w-full rounded-md bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto">
+              <Button className="h-10 w-full rounded-md bg-primary px-4 font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto">
                 <Plus aria-hidden className="size-4" />
                 Add customer
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle className="text-h4 font-display">Add a customer</DialogTitle>
                 <DialogDescription>
@@ -207,7 +216,7 @@ export function CustomerWorkspace() {
           </Dialog>
         </div>
         <form
-          className="relative mt-6 flex w-full gap-2 sm:max-w-md"
+          className="mt-4 flex w-full gap-2 sm:max-w-md"
           onSubmit={(event) => {
             event.preventDefault();
             const next = searchInput.trim();
@@ -239,11 +248,11 @@ export function CustomerWorkspace() {
       </section>
 
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center rounded-xl border border-border bg-muted/40 px-6 text-small text-muted-foreground">
+        <div className="flex min-h-48 items-center justify-center rounded-lg border border-border bg-muted/40 px-6 text-small text-muted-foreground">
           Loading…
         </div>
       ) : error ? (
-        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-muted/40 p-6 text-center">
           <p role="alert" className="text-small font-medium text-foreground">
             {error}
           </p>
@@ -256,8 +265,8 @@ export function CustomerWorkspace() {
           </Button>
         </div>
       ) : customers.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/40 p-6 text-center">
-          <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-muted/40 p-6 text-center">
+          <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-highlight-ink">
             <Users aria-hidden className="size-6" />
           </span>
           <p className="text-h4 font-display">
@@ -283,13 +292,13 @@ export function CustomerWorkspace() {
           {customers.map((customer) => (
             <div
               key={customer.id}
-              className="group lift flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="group lift flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm sm:p-4 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               <Link
                 href={`/dashboard/customers/${customer.id}`}
                 className="flex min-w-0 flex-1 items-center gap-4"
               >
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-lg font-semibold text-primary">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-lg font-semibold text-highlight-ink">
                   {customer.name.charAt(0).toUpperCase()}
                 </span>
                 <span className="min-w-0 max-w-full flex-1">
@@ -331,7 +340,7 @@ export function CustomerWorkspace() {
                       </a>
                     ) : null;
                   })()}
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-caption font-medium text-highlight-ink">
                   <Flame aria-hidden className="size-3" />
                   {customer.orderCount}
                 </span>
