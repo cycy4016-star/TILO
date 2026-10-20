@@ -3,6 +3,7 @@ import { BadgeCheck, BarChart3, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { SignInForm } from '@/components/custom/sign-in-form';
 import { TilzaLogo } from '@/components/custom/tilza-logo';
+import { TRIAL_DAYS } from '@/lib/trial';
 
 const BENEFITS = [
   { Icon: ShoppingBag, text: 'Add products and take orders' },
@@ -38,7 +39,7 @@ export default function LoginPage() {
             </ul>
           </div>
           <p className="text-caption font-semibold text-[#3d1f0d]">
-            14 days free · No card needed · Cancel anytime
+            {TRIAL_DAYS} days free · No card needed · Cancel anytime
           </p>
         </aside>
 

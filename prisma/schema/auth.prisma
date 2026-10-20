@@ -31,7 +31,7 @@ model User {
   // src/lib/auth.ts). Stored as E.164 (+233...) and unique across users.
   phoneNumber         String?   @unique
   phoneNumberVerified Boolean?  @default(false)
-  // End of the free trial. Every new account gets TRIAL_DAYS (14) of the full
+  // End of the free trial. Every new account gets TRIAL_DAYS (30) of the full
   // toolkit; this is stamped at account creation by the user.create.before hook
   // in src/lib/auth.ts and backfilled from createdAt for pre-existing rows (see
   // the add_trial_ends_at migration). Null on rows created outside the sign-up

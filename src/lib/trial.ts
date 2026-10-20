@@ -5,7 +5,7 @@
 // dashboard banner (client) import the same numbers.
 
 /** Length of the free trial, in days. Used at account creation and in copy. */
-export const TRIAL_DAYS = 14;
+export const TRIAL_DAYS = 30;
 
 /** When a trial started at `from` ends. */
 export function trialEndsAtFrom(from: Date, days: number = TRIAL_DAYS): Date {

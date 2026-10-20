@@ -1,11 +1,11 @@
-// Free-trial policy: the 14-day window stamped at sign-up and the state the
+// Free-trial policy: the 30-day window stamped at sign-up and the state the
 // dashboard banner renders from it.
 import { describe, expect, it } from 'vitest';
 import { TRIAL_DAYS, trialEndsAtFrom, trialState } from '@/lib/trial';
 
 describe('trial policy', () => {
-  it('is a 14-day window', () => {
-    expect(TRIAL_DAYS).toBe(14);
+  it('is a 30-day window', () => {
+    expect(TRIAL_DAYS).toBe(30);
   });
 
   it('ends exactly TRIAL_DAYS after the start', () => {

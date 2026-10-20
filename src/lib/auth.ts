@@ -107,7 +107,7 @@ export const auth = betterAuth({
               // `userId` ownership columns; this only marks the operator who
               // may read the cross-account admin monitor.
               role: resolveRole(base.email),
-              // Free trial: 14 days of the full toolkit from account creation.
+              // Free trial: 30 days of the full toolkit from account creation.
               // Kept if a value already arrived (e.g. a pre-seeded backfill),
               // so this only stamps genuinely new accounts.
               trialEndsAt: base.trialEndsAt ?? trialEndsAtFrom(new Date()),

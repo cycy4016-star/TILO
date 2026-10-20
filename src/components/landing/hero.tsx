@@ -1,5 +1,5 @@
 // Landing hero: a marketplace storefront preview rather than a floating phone.
-// The orange promo panel carries the offer, the product tile grid shows what a
+// A quiet warm panel carries the offer, the product tile grid shows what a
 // customer actually sees, and the sticky mobile CTA appears once the hero has
 // scrolled away.
 'use client';
@@ -56,19 +56,19 @@ export function Hero({ shop }: { shop: SampleShop }) {
       <section aria-label="Introduction" className="border-b border-border bg-card">
         <div className="container-page py-5 sm:py-7">
           <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr] lg:gap-5">
-            <div className="relative overflow-hidden rounded-xl bg-highlight p-6 text-highlight-foreground sm:p-9">
+            <div className="relative overflow-hidden rounded-xl border border-primary/10 bg-highlight-wash p-6 text-foreground sm:p-9">
               <span
                 aria-hidden
-                className="absolute -right-16 -top-16 size-48 rounded-full border-[22px] border-white/20"
+                className="absolute -right-16 -top-16 size-48 rounded-full border-[22px] border-primary/10"
               />
               <span
                 aria-hidden
-                className="absolute -bottom-20 right-16 size-40 rounded-full bg-white/15"
+                className="absolute -bottom-20 right-16 size-40 rounded-full bg-primary/5"
               />
 
-              <div className="relative">
+              <div className="relative flex h-full flex-col">
                 <p
-                  className={`${ENTRANCE} inline-flex items-center gap-2 rounded-md bg-[#241205] px-3 py-1.5 text-caption font-bold uppercase tracking-[0.08em] text-white`}
+                  className={`${ENTRANCE} inline-flex w-fit items-center gap-2 rounded-md bg-foreground px-3 py-1.5 text-caption font-bold uppercase tracking-[0.08em] text-background`}
                   style={{ animationDelay: '0ms' }}
                 >
                   {LANDING.hero.eyebrow}
@@ -78,12 +78,12 @@ export function Hero({ shop }: { shop: SampleShop }) {
                   style={{ animationDelay: '80ms' }}
                 >
                   {LANDING.hero.titleA}{' '}
-                  <span className="block underline decoration-[#241205]/30 decoration-4 underline-offset-[6px]">
+                  <span className="block underline decoration-primary/35 decoration-4 underline-offset-[6px]">
                     {LANDING.hero.titleAccent}
                   </span>
                 </h1>
                 <p
-                  className={`${ENTRANCE} mt-5 max-w-[48ch] text-body text-[#3d1f0d]`}
+                  className={`${ENTRANCE} mt-5 max-w-[48ch] text-body text-muted-foreground`}
                   style={{ animationDelay: '160ms' }}
                 >
                   {LANDING.hero.sub}
@@ -95,7 +95,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
                   <Button
                     asChild
                     size="xl"
-                    className="w-full bg-white font-bold text-[#241205] hover:bg-[#fff7ef] sm:w-auto"
+                    className="w-full font-bold shadow-sm shadow-primary/15 sm:w-auto"
                   >
                     <Link href={LANDING.hero.primary.href}>
                       {LANDING.hero.primary.label} <ArrowRight aria-hidden />
@@ -105,22 +105,22 @@ export function Hero({ shop }: { shop: SampleShop }) {
                     asChild
                     variant="outline"
                     size="xl"
-                    className="w-full border-[#241205]/25 bg-transparent font-bold text-[#241205] hover:border-[#241205]/50 hover:bg-white/20 hover:text-[#241205] sm:w-auto"
+                    className="w-full border-border bg-transparent font-bold text-foreground hover:border-primary/40 hover:bg-card hover:text-foreground sm:w-auto"
                   >
                     <Link href={LANDING.hero.secondary.href}>{LANDING.hero.secondary.label}</Link>
                   </Button>
                 </div>
                 <p
-                  className={`${ENTRANCE} mt-4 text-caption font-semibold text-[#3d1f0d]`}
+                  className={`${ENTRANCE} mt-4 text-caption font-semibold text-muted-foreground`}
                   style={{ animationDelay: '300ms' }}
                 >
                   {LANDING.hero.reassurance}
                 </p>
-                <ul className="relative mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-[#241205]/15 pt-4">
+                <ul className="relative mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4 lg:mt-auto lg:pt-6">
                   {PROMISES.map(({ Icon, label }) => (
                     <li
                       key={label}
-                      className="flex items-center gap-1.5 text-caption font-semibold text-[#3d1f0d]"
+                      className="flex items-center gap-1.5 text-caption font-semibold text-muted-foreground"
                     >
                       <Icon aria-hidden className="size-4" /> {label}
                     </li>
@@ -138,7 +138,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
                   key={product.name}
                   className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card"
                 >
-                  <div className="relative aspect-square overflow-hidden bg-muted">
+                  <div className="relative aspect-square overflow-hidden bg-muted lg:aspect-[4/3]">
                     <Image
                       src={product.image}
                       alt={product.name}
@@ -151,7 +151,7 @@ export function Hero({ shop }: { shop: SampleShop }) {
                         {product.badge}
                       </span>
                     ) : null}
-                    <span className="absolute bottom-2 right-2 grid size-8 place-items-center rounded-full bg-highlight text-highlight-foreground shadow-sm">
+                    <span className="absolute bottom-2 right-2 grid size-8 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-sm backdrop-blur-sm">
                       <ShoppingCart aria-hidden className="size-4" />
                     </span>
                   </div>

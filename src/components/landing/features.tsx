@@ -76,7 +76,7 @@ function Visual({ icon }: { icon: FeatureIcon }) {
         aria-hidden
         className="w-full max-w-xs overflow-hidden rounded-lg border border-border bg-background shadow-xs"
       >
-        <div className="relative h-14 bg-highlight">
+        <div className="relative h-14 border-b border-border bg-muted">
           <span className="absolute right-2 top-2 rounded bg-white/85 px-2 py-0.5 text-caption font-semibold text-foreground">
             Banner
           </span>

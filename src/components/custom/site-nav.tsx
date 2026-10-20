@@ -23,6 +23,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useSession } from '@/lib/auth-client';
 import { type NavGroup, type NavItem, navItems } from '@/lib/nav';
 import { siteName } from '@/lib/site';
+import { TRIAL_DAYS } from '@/lib/trial';
 import { cn } from '@/lib/utils';
 
 // Session seam: `requiresAuth` nav items render only when a session exists.
@@ -134,8 +135,10 @@ export function SiteNav() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-card">
-      <p className="bg-highlight px-4 py-1.5 text-center text-caption font-semibold text-highlight-foreground">
-        Free for 14 days · No card needed · Your shop is live in minutes
+      <p className="border-b border-border bg-muted/60 px-4 py-1.5 text-center text-caption font-medium text-muted-foreground">
+        <span className="font-bold text-highlight-ink">Free for {TRIAL_DAYS} days</span>
+        <span> · No card needed</span>
+        <span className="hidden sm:inline"> · Your shop is live in minutes</span>
       </p>
       <nav
         aria-label="Primary"

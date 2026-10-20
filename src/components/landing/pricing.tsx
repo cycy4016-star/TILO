@@ -7,6 +7,7 @@ import { Reveal } from '@/components/custom/sample-showcase';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { type BillingCycle, billingPrice, PLANS } from '@/lib/landing-content';
+import { TRIAL_DAYS } from '@/lib/trial';
 import { cn } from '@/lib/utils';
 
 export function Pricing() {
@@ -22,8 +23,8 @@ export function Pricing() {
             Start free. Pick a plan when you&apos;re ready.
           </h2>
           <p className="mt-4 max-w-[60ch] text-body text-muted-foreground">
-            Every new shop gets the full toolkit free for 14 days — no card, no charge. When the
-            trial ends, choose the plan that fits. Your shop and data stay safe either way.
+            Every new shop gets the full toolkit free for {TRIAL_DAYS} days — no card, no charge.
+            When the trial ends, choose the plan that fits. Your shop and data stay safe either way.
           </p>
         </Reveal>
 
@@ -75,7 +76,7 @@ export function Pricing() {
                   <p className="mt-1 min-h-5 text-caption text-muted-foreground">
                     {plan.monthly > 0 ? (
                       <span className="font-semibold text-primary">
-                        14 days free, then GH₵ {plan.monthly.toLocaleString('en-GH')}/mo
+                        {TRIAL_DAYS} days free, then GH₵ {plan.monthly.toLocaleString('en-GH')}/mo
                       </span>
                     ) : (
                       price.note

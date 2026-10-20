@@ -109,14 +109,14 @@ export const PLANS: Plan[] = [
   {
     id: 'trial',
     name: 'Free trial',
-    tagline: 'The full shop, free for 14 days.',
+    tagline: `The full shop, free for ${TRIAL_DAYS} days.`,
     monthly: 0,
     yearly: 0,
     cta: 'Start free trial',
     href: '/signup',
     highlighted: false,
     features: [
-      'Everything unlocked for 14 days',
+      `Everything unlocked for ${TRIAL_DAYS} days`,
       'Unlimited products & shelves',
       'WhatsApp ordering & share link',
       'No card needed to start',

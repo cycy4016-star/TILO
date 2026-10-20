@@ -3,6 +3,7 @@ import { MessageCircle, PackagePlus, Store } from 'lucide-react';
 import Link from 'next/link';
 import { SignUpForm } from '@/components/custom/sign-up-form';
 import { TilzaLogo } from '@/components/custom/tilza-logo';
+import { TRIAL_DAYS } from '@/lib/trial';
 
 const BENEFITS = [
   { Icon: Store, text: 'Create your shop page in minutes' },
@@ -20,7 +21,7 @@ export default function SignupPage() {
           </Link>
           <div>
             <p className="inline-flex rounded bg-[#241205] px-3 py-1.5 text-caption font-bold uppercase tracking-[0.08em] text-white">
-              Free for 14 days
+              Free for {TRIAL_DAYS} days
             </p>
             <h1 className="mt-5 max-w-[10ch] font-display text-h1">Start selling today.</h1>
             <p className="mt-4 max-w-[34ch] text-body text-[#3d1f0d]">
@@ -50,7 +51,7 @@ export default function SignupPage() {
             <p className="text-eyebrow">New here</p>
             <h1 className="mt-2 font-display text-h2">Create your account</h1>
             <p className="mt-1.5 text-small text-muted-foreground">
-              14 days free. No card. Set up in minutes.
+              {TRIAL_DAYS} days free. No card. Set up in minutes.
             </p>
             <div className="mt-6">
               <SignUpForm />

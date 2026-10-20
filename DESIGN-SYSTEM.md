@@ -71,11 +71,14 @@ cards, near-black ink and two oranges. There is no user-facing theme picker.
 Rules:
 - ✅ `text-primary` for links, prices, counts, active states and eyebrows.
 - ✅ `bg-primary text-primary-foreground` for the main action in a view.
-- ✅ `bg-highlight text-highlight-foreground` for promo strips and high-energy
-  CTAs. Keep the dark ink; white on bright orange does not pass.
+- ✅ `bg-highlight text-highlight-foreground` for small promo strips, badges and
+  high-energy CTAs. Keep the dark ink; white on bright orange does not pass.
+- ✅ `bg-highlight-wash` for large hero/promo panels; keep big surfaces quiet and
+  ink-first.
 - ✅ `bg-highlight-wash text-primary` for icon tiles and small feature accents.
-- ❌ Do not flood whole pages with orange. One promo/hero band per screen is the
-  budget; the rest is white cards on the canvas.
+- ❌ Do not flood whole pages with orange. Solid `highlight` is for small
+  accents; large panels stay wash or white, and the rest is white cards on the
+  canvas.
 - Surfaces do the layout work: `bg-card` on `bg-background`, hairline
   `border-border`.
 - Status colours use the raw palette (emerald/amber/sky/red) so success always

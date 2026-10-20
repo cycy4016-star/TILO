@@ -40,14 +40,14 @@ describe('pricing toggle math', () => {
     expect(yearlySavingsPct(shop)).toBe(17);
   });
 
-  it('treats the trial plan as a 14-day free window on either cycle', () => {
+  it('treats the trial plan as a 30-day free window on either cycle', () => {
     const trial = PLANS.find((plan) => plan.id === 'trial');
     expect(trial).toBeDefined();
     if (!trial) return;
     expect(yearlySavingsPct(trial)).toBeNull();
     expect(billingPrice(trial, 'monthly').note).toBe('No card needed');
     expect(billingPrice(trial, 'yearly').note).toBe('No card needed');
-    expect(billingPrice(trial, 'monthly').per).toContain('14 days');
+    expect(billingPrice(trial, 'monthly').per).toContain('30 days');
   });
 });
 

@@ -36,7 +36,7 @@ export function SocialProof() {
             {LANDING.proof.stats.map((stat, index) => (
               <Reveal key={stat.label} delay={index * 80}>
                 <div className="px-3 py-4 text-center sm:px-4">
-                  <p className="font-display text-h4 font-bold text-primary">
+                  <p className="font-display text-h4 font-bold text-foreground">
                     <CountUp
                       to={stat.value}
                       suffix={stat.suffix}
