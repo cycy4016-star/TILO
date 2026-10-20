@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #d9d4cf; }
+  body { font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .ad {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    color: #171717;
+    background: #fff7ef;
+  }
+  .logo {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1.8px;
+    line-height: 1;
+  }
+  .logo span { color: #cf4a00; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 8px;
+    background: #171717;
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: #cf4a00;
+    color: #fff;
+    border-radius: 10px;
+    padding: 20px 30px;
+    font-size: 26px;
+    font-weight: 700;
+    box-shadow: 0 14px 32px rgba(207, 74, 0, .22);
+  }
+  .cta i { font-style: normal; font-size: 30px; line-height: 1; }
+  .fine {
+    font-size: 18px;
+    font-weight: 600;
+    color: #6b6b6b;
+    letter-spacing: .1px;
+  }
+  .url {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e2ddd8;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .68);
+    padding: 10px 16px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #4f4a46;
+  }
+  .url b { color: #171717; }
+  .blob { position: absolute; border-radius: 50%; pointer-events: none; }
+
+  /* ---------- Ad 1: brand ---------- */
+  .ad1 { background: linear-gradient(135deg, #fffaf5 0%, #fff3e8 58%, #ffe9d7 100%); }
+  .ad1 .b1 { width: 430px; height: 430px; right: -160px; top: -170px; border: 34px solid rgba(207, 74, 0, .10); }
+  .ad1 .b2 { width: 300px; height: 300px; right: 250px; bottom: -190px; background: rgba(207, 74, 0, .055); }
+  .ad1 .logo { position: absolute; left: 64px; top: 56px; }
+  .ad1 .eyebrow { position: absolute; left: 64px; top: 142px; }
+  .ad1 h1 {
+    position: absolute;
+    left: 60px;
+    top: 198px;
+    width: 590px;
+    font-size: 94px;
+    line-height: .92;
+    letter-spacing: -4.6px;
+    font-weight: 800;
+  }
+  .ad1 h1 .accent {
+    display: inline-block;
+    border-bottom: 8px solid rgba(207, 74, 0, .32);
+    padding-bottom: 2px;
+  }
+  .ad1 .sub {
+    position: absolute;
+    left: 64px;
+    top: 578px;
+    width: 550px;
+    font-size: 26px;
+    line-height: 1.42;
+    font-weight: 500;
+    color: #5f5f5f;
+  }
+  .ad1 .cta { position: absolute; left: 64px; top: 730px; }
+  .ad1 .fine { position: absolute; left: 66px; top: 826px; }
+  .ad1 .url { position: absolute; left: 64px; bottom: 52px; }
+  .ad1 .proof {
+    position: absolute;
+    left: 64px;
+    bottom: 116px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b6b6b;
+  }
+  .ad1 .proof b { color: #171717; }
+
+  .pcard {
+    position: absolute;
+    border-radius: 18px;
+    background: #fff;
+    color: #171717;
+    border: 1px solid #e7e1da;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(59, 38, 24, .14);
+  }
+  .pcard img { display: block; width: 100%; object-fit: cover; background: #f0f0f0; }
+  .pmeta { padding: 13px 15px 16px; }
+  .pmeta small { display: block; font-size: 12px; font-weight: 600; color: #77716c; }
+  .pmeta strong { display: block; margin-top: 2px; font-size: 17px; line-height: 1.15; }
+  .pmeta em { display: block; margin-top: 6px; font-style: normal; font-size: 16px; font-weight: 700; color: #cf4a00; }
+
+  .ad1 .pc1 { right: 76px; top: 132px; width: 304px; transform: rotate(-3deg); }
+  .ad1 .pc1 img { height: 236px; }
+  .ad1 .pc2 { right: 38px; top: 492px; width: 258px; transform: rotate(3deg); }
+  .ad1 .pc2 img { height: 172px; }
+  .ad1 .order {
+    position: absolute;
+    right: 54px;
+    top: 784px;
+    width: 338px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: #171717;
+    color: #fff;
+    box-shadow: 0 20px 40px rgba(23, 23, 23, .22);
+  }
+  .ad1 .order .dot { width: 38px; height: 38px; border-radius: 50%; background: #e4f6ea; display: grid; place-items: center; color: #1f7a4d; font-size: 20px; font-weight: 800; flex: 0 0 auto; }
+  .ad1 .order strong { display: block; font-size: 17px; }
+  .ad1 .order small { display: block; margin-top: 3px; font-size: 14px; color: rgba(255, 255, 255, .64); }
+
+  /* ---------- Ad 2: WhatsApp pain ---------- */
+  .ad2 { background: #171717; color: #fff; }
+  .ad2 .b1 { width: 500px; height: 500px; right: -180px; top: -200px; background: rgba(251, 119, 1, .10); }
+  .ad2 .b2 { width: 260px; height: 260px; left: -120px; bottom: -80px; border: 28px solid rgba(255, 255, 255, .06); }
+  .ad2 .logo { position: absolute; left: 64px; top: 56px; color: #fff; }
+  .ad2 .kick {
+    position: absolute;
+    left: 64px;
+    top: 152px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+    color: #ffb27a;
+  }
+  .ad2 h1 {
+    position: absolute;
+    left: 64px;
+    top: 204px;
+    width: 620px;
+    font-size: 80px;
+    line-height: .95;
+    letter-spacing: -3.2px;
+    font-weight: 800;
+  }
+  .ad2 h1 .accent {
+    display: block;
+    width: fit-content;
+    margin-top: 8px;
+    border-bottom: 8px solid rgba(251, 119, 1, .55);
+    padding-bottom: 3px;
+  }
+  .ad2 .sub {
+    position: absolute;
+    left: 64px;
+    top: 560px;
+    width: 580px;
+    font-size: 25px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, .66);
+    font-weight: 500;
+  }
+  .ad2 .cta { position: absolute; left: 64px; top: 712px; }
+  .ad2 .fine { position: absolute; left: 66px; top: 808px; color: rgba(255, 255, 255, .48); }
+  .ad2 .url { position: absolute; left: 64px; bottom: 52px; background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .18); color: rgba(255, 255, 255, .72); }
+  .ad2 .url b { color: #fff; }
+
+  .ad2 .chat {
+    position: absolute;
+    right: 54px;
+    top: 214px;
+    width: 348px;
+    border-radius: 18px;
+    background: #fff;
+    color: #171717;
+    padding: 18px;
+    box-shadow: 0 28px 60px rgba(0, 0, 0, .32);
+  }
+  .ad2 .chat .row { display: flex; align-items: center; gap: 12px; }
+  .ad2 .chat img { width: 74px; height: 74px; border-radius: 12px; object-fit: cover; background: #f0f0f0; }
+  .ad2 .chat small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .6px; color: #1f7a4d; text-transform: uppercase; }
+  .ad2 .chat strong { display: block; margin-top: 3px; font-size: 17px; line-height: 1.25; }
+  .ad2 .chat p { margin-top: 14px; padding: 13px 14px; border-radius: 12px 12px 12px 4px; background: #e8f6ee; color: #154d32; font-size: 15px; line-height: 1.4; font-weight: 600; }
+  .ad2 .chat .total { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; color: #6b6b6b; font-weight: 600; }
+  .ad2 .chat .total b { color: #171717; font-size: 16px; }
+  .ad2 .pc1 { right: 34px; top: 560px; width: 286px; transform: rotate(3deg); }
+  .ad2 .pc1 img { height: 200px; }
+  .ad2 .pc1 .pmeta em { color: #171717; }
+  .ad2 .share {
+    position: absolute;
+    right: 62px;
+    top: 864px;
+    display: flex;
+    gap: 8px;
+  }
+  .ad2 .share span {
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, .7);
+  }
+
+  /* ---------- Ad 3: offer ---------- */
+  .ad3 { background: linear-gradient(160deg, #fffaf5 0%, #fff3e8 100%); }
+  .ad3 .b1 { width: 520px; height: 520px; right: -220px; bottom: -240px; background: rgba(207, 74, 0, .06); }
+  .ad3 .logo { position: absolute; left: 64px; top: 56px; }
+  .ad3 .eyebrow { position: absolute; left: 64px; top: 148px; }
+  .ad3 h1 {
+    position: absolute;
+    left: 64px;
+    top: 210px;
+    width: 560px;
+    font-size: 92px;
+    line-height: .94;
+    letter-spacing: -4.5px;
+    font-weight: 800;
+  }
+  .ad3 h1 .orange { color: #cf4a00; }
+  .ad3 .sub {
+    position: absolute;
+    left: 66px;
+    top: 590px;
+    width: 510px;
+    font-size: 25px;
+    line-height: 1.42;
+    font-weight: 500;
+    color: #5f5f5f;
+  }
+  .ad3 .cta { position: absolute; left: 64px; top: 748px; }
+  .ad3 .fine { position: absolute; left: 66px; top: 844px; }
+  .ad3 .url { position: absolute; left: 64px; bottom: 52px; }
+  .ad3 .grid {
+    position: absolute;
+    right: 52px;
+    top: 168px;
+    width: 402px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .ad3 .pcard { position: relative; border-radius: 14px; box-shadow: 0 14px 30px rgba(59, 38, 24, .09); }
+  .ad3 .pcard img { height: 150px; }
+  .ad3 .pmeta { padding: 10px 12px 12px; }
+  .ad3 .pmeta strong { font-size: 14px; }
+  .ad3 .pmeta em { font-size: 14px; margin-top: 4px; }
+  .ad3 .pmeta small { font-size: 11px; }
+  .ad3 .stamp {
+    position: absolute;
+    right: 60px;
+    top: 708px;
+    width: 380px;
+    border-radius: 16px;
+    background: #171717;
+    color: #fff;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 20px 40px rgba(23, 23, 23, .18);
+  }
+  .ad3 .stamp .big { font-size: 44px; font-weight: 800; letter-spacing: -2px; color: #ffb27a; line-height: 1; }
+  .ad3 .stamp p { font-size: 15px; line-height: 1.35; color: rgba(255, 255, 255, .72); }
+  .ad3 .stamp b { color: #fff; }
+
+  /* ---------- Ad 4: Ad Studio ---------- */
+  .ad4 { background: linear-gradient(140deg, #fffaf5 0%, #fff3e8 55%, #ffe8d5 100%); }
+  .ad4 .b1 { width: 460px; height: 460px; right: -170px; top: -180px; border: 34px solid rgba(207, 74, 0, .10); }
+  .ad4 .b2 { width: 300px; height: 300px; left: -150px; bottom: -160px; background: rgba(207, 74, 0, .05); }
+  .ad4 .logo { position: absolute; left: 64px; top: 56px; }
+  .ad4 .eyebrow { position: absolute; left: 64px; top: 142px; }
+  .ad4 h1 {
+    position: absolute;
+    left: 60px;
+    top: 206px;
+    width: 545px;
+    font-size: 84px;
+    line-height: .94;
+    letter-spacing: -4.2px;
+    font-weight: 800;
+  }
+  .ad4 h1 .accent { display: inline-block; border-bottom: 8px solid rgba(207, 74, 0, .32); padding-bottom: 2px; }
+  .ad4 .sub {
+    position: absolute;
+    left: 64px;
+    top: 548px;
+    width: 520px;
+    font-size: 25px;
+    line-height: 1.45;
+    font-weight: 500;
+    color: #5f5f5f;
+  }
+  .ad4 .cta { position: absolute; left: 64px; top: 712px; }
+  .ad4 .fine { position: absolute; left: 66px; top: 808px; }
+  .ad4 .channels {
+    position: absolute;
+    left: 64px;
+    top: 856px;
+    width: 530px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ad4 .channels span {
+    border: 1px solid #e2ddd8;
+    background: rgba(255, 255, 255, .74);
+    border-radius: 999px;
+    padding: 9px 15px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #4f4a46;
+  }
+  .ad4 .sheet {
+    position: absolute;
+    right: 54px;
+    top: 128px;
+    width: 432px;
+    border-radius: 20px;
+    background: #fff;
+    color: #171717;
+    padding: 22px;
+    border: 1px solid #e7e1da;
+    box-shadow: 0 28px 56px rgba(59, 38, 24, .16);
+  }
+  .ad4 .sheet h2 { font-size: 20px; font-weight: 800; letter-spacing: -.4px; }
+  .ad4 .sheet .thumb { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+  .ad4 .sheet .thumb img { width: 78px; height: 78px; border-radius: 12px; object-fit: cover; background: #f0f0f0; }
+  .ad4 .sheet .thumb strong { display: block; font-size: 17px; }
+  .ad4 .sheet .thumb small { display: block; margin-top: 3px; font-size: 13px; color: #77716c; }
+  .ad4 .sheet .caption {
+    margin-top: 16px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 13px 15px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #4f4a46;
+  }
+  .ad4 .sheet .rows { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+  .ad4 .sheet .rows div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #eee9e3;
+    padding-top: 9px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .ad4 .sheet .rows em { font-style: normal; font-size: 12px; font-weight: 600; color: #77716c; }
+  .ad4 .stamp {
+    position: absolute;
+    right: 54px;
+    bottom: 58px;
+    width: 432px;
+    border-radius: 16px;
+    background: #171717;
+    color: rgba(255, 255, 255, .72);
+    padding: 18px 20px;
+    font-size: 15px;
+    line-height: 1.42;
+    font-weight: 500;
+    box-shadow: 0 20px 40px rgba(23, 23, 23, .18);
+  }
+  .ad4 .stamp b { color: #fff; }
+
+  /* ---------- Story 1080x1920 ---------- */
+  .story {
+    width: 1080px;
+    height: 1920px;
+    position: relative;
+    overflow: hidden;
+    color: #171717;
+    background: linear-gradient(150deg, #fffaf5 0%, #fff3e8 52%, #ffe7d3 100%);
+  }
+  .story .b1 { width: 560px; height: 560px; right: -230px; top: -200px; border: 38px solid rgba(207, 74, 0, .10); }
+  .story .b2 { width: 340px; height: 340px; left: -160px; top: 760px; background: rgba(207, 74, 0, .05); }
+  .story .logo { position: absolute; left: 78px; top: 84px; font-size: 42px; }
+  .story .eyebrow { position: absolute; left: 78px; top: 220px; }
+  .story h1 {
+    position: absolute;
+    left: 74px;
+    top: 300px;
+    width: 900px;
+    font-size: 126px;
+    line-height: .92;
+    letter-spacing: -6px;
+    font-weight: 800;
+  }
+  .story h1 .accent { display: inline-block; border-bottom: 10px solid rgba(207, 74, 0, .32); padding-bottom: 4px; }
+  .story .sub {
+    position: absolute;
+    left: 78px;
+    top: 820px;
+    width: 780px;
+    font-size: 30px;
+    line-height: 1.42;
+    font-weight: 500;
+    color: #5f5f5f;
+  }
+  .story .cta { position: absolute; left: 78px; top: 1010px; font-size: 30px; padding: 23px 34px; }
+  .story .fine { position: absolute; left: 80px; top: 1120px; font-size: 20px; }
+  .story .cards { position: absolute; left: 78px; right: 78px; top: 1290px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .story .channels {
+    position: absolute;
+    left: 78px;
+    top: 1180px;
+    display: flex;
+    gap: 10px;
+  }
+  .story .channels span {
+    border: 1px solid rgba(207, 74, 0, .2);
+    background: rgba(255, 255, 255, .8);
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-size: 19px;
+    font-weight: 700;
+    color: #4f4a46;
+  }
+  .story .pcard { position: relative; border-radius: 20px; }
+  .story .pcard img { height: 330px; }
+  .story .pmeta { padding: 16px 18px 20px; }
+  .story .pmeta strong { font-size: 19px; }
+  .story .pmeta em { font-size: 18px; }
+  .story .url { position: absolute; left: 78px; bottom: 84px; }
+  .story .order {
+    position: absolute;
+    right: 78px;
+    bottom: 80px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #6b6b6b;
+  }
+  .story .order b { color: #171717; }
+</style>
+</head>
+<body>
+
+<!-- AD 1 -->
+<div class="ad ad1" id="ad1" data-export="tilza-brand-square-1080.png">
+  <span class="blob b1"></span><span class="blob b2"></span>
+  <div class="logo">TILZA<span>.</span></div>
+  <div class="eyebrow">Online shops for small businesses</div>
+  <h1>Your shop.<br>One link.<br><span class="accent">Open for orders.</span></h1>
+  <p class="sub">Add your products, set your prices and share one link. Customers browse and fill a basket — every order arrives on WhatsApp.</p>
+  <div class="cta">Start free for 30 days <i>→</i></div>
+  <p class="fine">No card needed · Set up in minutes</p>
+  <div class="proof"><b>Ready-to-post ads</b> <span>·</span> <span>WhatsApp Status, TikTok, Facebook</span></div>
+  <div class="url">Orders arrive on <b>WhatsApp</b></div>
+
+  <div class="pcard pc1">
+    <img src="http://localhost:3000/samples/phone-nova.jpg" alt="">
+    <div class="pmeta"><small>Phones</small><strong>Nova X5, 128GB</strong><em>GH₵ 2,450.00</em></div>
+  </div>
+  <div class="pcard pc2">
+    <img src="http://localhost:3000/samples/headphones.jpg" alt="">
+    <div class="pmeta"><small>Audio</small><strong>Bass headphones</strong><em>GH₵ 550.00</em></div>
+  </div>
+  <div class="order">
+    <span class="dot">✓</span>
+    <div><strong>New order</strong><small>2 items · GH₵ 3,000.00</small></div>
+  </div>
+</div>
+
+<!-- AD 2 -->
+<div class="ad ad2" id="ad2" data-export="tilza-whatsapp-square-1080.png">
+  <span class="blob b1"></span><span class="blob b2"></span>
+  <div class="logo">TILZA<span>.</span></div>
+  <p class="kick">For WhatsApp-first shops</p>
+  <h1>Your WhatsApp<br>is already a shop.<span class="accent">Give it a link.</span></h1>
+  <p class="sub">Let customers browse your products, fill a basket and send the order straight to your WhatsApp — itemised and totalled.</p>
+  <div class="cta">Start free for 30 days <i>→</i></div>
+  <p class="fine">No card needed · Set up in minutes</p>
+  <div class="url">We make the ads · <b>you just post</b></div>
+
+  <div class="chat">
+    <div class="row">
+      <img src="http://localhost:3000/samples/phone-nova.jpg" alt="">
+      <div><small>New order</small><strong>Nova X5, 128GB<br>1 × GH₵ 2,450.00</strong></div>
+    </div>
+    <p>1 item · GH₵ 2,450.00 — send as WhatsApp message?</p>
+    <div class="total"><span>Delivery · Accra</span><b>GH₵ 2,450.00</b></div>
+  </div>
+
+  <div class="pcard pc1">
+    <img src="http://localhost:3000/samples/backpack.jpg" alt="">
+    <div class="pmeta"><small>Bags</small><strong>Everyday backpack</strong><em>GH₵ 320.00</em></div>
+  </div>
+  <div class="share"><span>WhatsApp Status</span><span>TikTok</span><span>Facebook</span><span>Instagram</span></div>
+</div>
+
+<!-- AD 3 -->
+<div class="ad ad3" id="ad3" data-export="tilza-offer-square-1080.png">
+  <span class="blob b1"></span>
+  <div class="logo">TILZA<span>.</span></div>
+  <div class="eyebrow">Free trial</div>
+  <h1><span class="orange">30</span> days free.<br>No card.<br>No website.</h1>
+  <p class="sub">Put your products, prices and shop link online in minutes. Orders arrive in your dashboard and on WhatsApp.</p>
+  <div class="cta">Open your shop <i>→</i></div>
+  <p class="fine">No card needed · Cancel anytime</p>
+  <div class="url">Ads included · <b>ready to post</b></div>
+
+  <div class="grid">
+    <div class="pcard">
+      <img src="http://localhost:3000/samples/headphones.jpg" alt="">
+      <div class="pmeta"><small>Audio</small><strong>Bass headphones</strong><em>GH₵ 550.00</em></div>
+    </div>
+    <div class="pcard">
+      <img src="http://localhost:3000/samples/frames.jpg" alt="">
+      <div class="pmeta"><small>Home</small><strong>Gallery frames</strong><em>GH₵ 180.00</em></div>
+    </div>
+    <div class="pcard">
+      <img src="http://localhost:3000/samples/cupcakes.jpg" alt="">
+      <div class="pmeta"><small>Bakes</small><strong>Cupcakes, 6</strong><em>GH₵ 90.00</em></div>
+    </div>
+    <div class="pcard">
+      <img src="http://localhost:3000/samples/backpack.jpg" alt="">
+      <div class="pmeta"><small>Bags</small><strong>Everyday backpack</strong><em>GH₵ 320.00</em></div>
+    </div>
+  </div>
+  <div class="stamp">
+    <div class="big">30</div>
+    <p><b>days free.</b> Then pick a plan when you’re ready — nothing is charged automatically.</p>
+  </div>
+</div>
+
+<!-- AD 4 -->
+<div class="ad ad4" id="ad4" data-export="tilza-adstudio-square-1080.png">
+  <span class="blob b1"></span><span class="blob b2"></span>
+  <div class="logo">TILZA<span>.</span></div>
+  <div class="eyebrow">Tilza Ad Studio</div>
+  <h1>We make<br>the ads.<br><span class="accent">You sell more.</span></h1>
+  <p class="sub">Every product in your shop gets a ready-to-post ad — the image and the caption, written for you. One tap and it’s ready for WhatsApp Status, TikTok, Facebook or Instagram.</p>
+  <div class="cta">Start free for 30 days <i>→</i></div>
+  <p class="fine">No card needed · Set up in minutes</p>
+  <div class="channels"><span>WhatsApp Status</span><span>TikTok</span><span>Facebook</span><span>Instagram</span></div>
+
+  <div class="sheet">
+    <h2>Ready to post</h2>
+    <div class="thumb">
+      <img src="http://localhost:3000/samples/headphones.jpg" alt="">
+      <div><strong>Bass headphones</strong><small>GH₵ 550.00 · Audio</small></div>
+    </div>
+    <div class="caption">Bass headphones for GH₵ 550.00 — order on WhatsApp and we’ll deliver to Accra.</div>
+    <div class="rows">
+      <div><span>WhatsApp Status</span><em>caption ready</em></div>
+      <div><span>TikTok</span><em>image + caption saved</em></div>
+      <div><span>Facebook</span><em>image + caption saved</em></div>
+      <div><span>Instagram</span><em>image + caption saved</em></div>
+    </div>
+  </div>
+  <div class="stamp"><b>A new ad every day.</b> Tilza writes the image and the caption from your catalogue — you just post it.</div>
+</div>
+
+<!-- STORY -->
+<div class="story" id="story" data-export="tilza-brand-story-1080x1920.png">
+  <span class="blob b1"></span><span class="blob b2"></span>
+  <div class="logo">TILZA<span>.</span></div>
+  <div class="eyebrow">Tilza Ad Studio</div>
+  <h1>We make<br>the ads.<br><span class="accent">You sell more.</span></h1>
+  <p class="sub">Every product in your shop gets a ready-to-post ad — the image and the caption, written for you. One tap and it’s ready for WhatsApp Status, TikTok, Facebook or Instagram.</p>
+  <div class="cta">Start free for 30 days <i>→</i></div>
+  <p class="fine">No card needed · Set up in minutes</p>
+
+  <div class="channels"><span>WhatsApp Status</span><span>TikTok</span><span>Facebook</span><span>Instagram</span></div>
+
+  <div class="cards">
+    <div class="pcard">
+      <img src="http://localhost:3000/samples/phone-nova.jpg" alt="">
+      <div class="pmeta"><small>Phones</small><strong>Nova X5, 128GB</strong><em>GH₵ 2,450.00</em></div>
+    </div>
+    <div class="pcard">
+      <img src="http://localhost:3000/samples/backpack.jpg" alt="">
+      <div class="pmeta"><small>Bags</small><strong>Everyday backpack</strong><em>GH₵ 320.00</em></div>
+    </div>
+  </div>
+  <div class="url">Start free · <b>link in bio</b></div>
+  <div class="order"><b>Ads made daily.</b> You just post.</div>
+</div>
+
+</body>
+</html>
