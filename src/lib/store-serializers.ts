@@ -93,6 +93,9 @@ export const STORE_SELECT = {
   description: true,
   promoBanner: true,
   contactPhone: true,
+  address: true,
+  lat: true,
+  lng: true,
   active: true,
   theme: true,
   appearance: true,
@@ -155,6 +158,9 @@ export type StoreRow = {
   description: string | null;
   promoBanner: string | null;
   contactPhone: string | null;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
   active: boolean;
   theme: string;
   appearance: string;
@@ -254,6 +260,9 @@ export function serializeStore(store: StoreRow) {
     description: store.description,
     promoBanner: store.promoBanner,
     contactPhone: store.contactPhone,
+    address: store.address,
+    lat: store.lat,
+    lng: store.lng,
     active: store.active,
     theme,
     appearance,

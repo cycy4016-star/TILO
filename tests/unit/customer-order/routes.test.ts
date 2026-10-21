@@ -51,6 +51,12 @@ const order = {
   amountPesewas: 4550,
   discountPesewas: 0,
   promoCode: null,
+  fulfillmentMethod: 'DIRECT_PICKUP' as const,
+  deliveryStatus: 'NOT_APPLICABLE' as const,
+  customerLat: null,
+  customerLng: null,
+  deliveryFeePesewas: 0,
+  riderId: null,
   paidAt: null,
   createdAt: new Date('2026-09-18T00:00:00.000Z'),
   updatedAt: new Date('2026-09-18T00:00:00.000Z'),
@@ -306,6 +312,52 @@ describe('order routes', () => {
     });
   });
 
+  it('refuses to broadcast a pickup order to riders', async () => {
+    db.prisma.order.findFirst.mockResolvedValue(order);
+    const { PATCH } = await import('@/app/api/orders/[orderId]/route');
+    const response = await PATCH(
+      new Request('http://test/api/orders/order-1', {
+        method: 'PATCH',
+        body: JSON.stringify({ deliveryStatus: 'PENDING_DISPATCH' }),
+      }),
+      { params: Promise.resolve({ orderId: 'order-1' }) },
+    );
+    expect(response.status).toBe(400);
+    expect(db.prisma.order.update).not.toHaveBeenCalled();
+  });
+
+  it('broadcasts a local delivery order to the rider queue', async () => {
+    const deliveryOrder = {
+      ...order,
+      fulfillmentMethod: 'LOCAL_DELIVERY' as const,
+      customerLat: 5.556,
+      customerLng: -0.1969,
+      deliveryFeePesewas: 1700,
+    };
+    db.prisma.order.findFirst.mockResolvedValue(deliveryOrder);
+    db.prisma.order.update.mockResolvedValue({
+      ...deliveryOrder,
+      deliveryStatus: 'PENDING_DISPATCH' as const,
+    });
+    const { PATCH } = await import('@/app/api/orders/[orderId]/route');
+    const response = await PATCH(
+      new Request('http://test/api/orders/order-1', {
+        method: 'PATCH',
+        body: JSON.stringify({ deliveryStatus: 'PENDING_DISPATCH' }),
+      }),
+      { params: Promise.resolve({ orderId: 'order-1' }) },
+    );
+    expect(response.status).toBe(200);
+    expect(db.prisma.order.update).toHaveBeenCalledWith({
+      where: { id: 'order-1', userId: 'staff-1' },
+      data: { deliveryStatus: 'PENDING_DISPATCH' },
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      deliveryStatus: 'PENDING_DISPATCH',
+      deliveryFeePesewas: 1700,
+    });
+  });
+
   it("refuses to mutate another shop's order", async () => {
     db.prisma.order.findFirst.mockResolvedValue(null);
     const { PATCH } = await import('@/app/api/orders/[orderId]/route');
@@ -366,6 +418,9 @@ describe('store routes', () => {
     description: null,
     promoBanner: null,
     contactPhone: '024 000 0000',
+    address: '12 High Street, Accra',
+    lat: 5.556,
+    lng: -0.1969,
     active: true,
     theme: 'gold',
     appearance: 'professional',
@@ -550,6 +605,9 @@ describe('store routes', () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       name: "Ama's Boutique",
+      address: '12 High Street, Accra',
+      lat: 5.556,
+      lng: -0.1969,
       items: [
         {
           id: 'item-1',

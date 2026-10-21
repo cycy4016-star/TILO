@@ -13,6 +13,24 @@ enum OrderStatus {
   CANCELLED
 }
 
+// How the customer wants the order handed over. DIRECT_PICKUP keeps the total
+// exactly at the catalog sum (less coupons); LOCAL_DELIVERY adds a server-priced
+// distance fee and requires customer coordinates.
+enum FulfillmentMethod {
+  DIRECT_PICKUP
+  LOCAL_DELIVERY
+}
+
+// Last-mile lifecycle. NOT_APPLICABLE for pickup orders; LOCAL_DELIVERY orders
+// start PENDING_DISPATCH once the merchant broadcasts the rider job.
+enum DeliveryStatus {
+  NOT_APPLICABLE
+  PENDING_DISPATCH
+  RIDER_ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+}
+
 // How this person first entered the shop. The storefront capture routes and
 // the owner-side customers route both write Customer rows, and without this
 // marker an inbound enquiry is indistinguishable from a contact the owner
@@ -29,29 +47,29 @@ enum CustomerSource {
 }
 
 model Customer {
-  id        String   @id @default(cuid())
+  id            String         @id @default(cuid())
   // Owning account. Set on create; every read/write filters on it.
-  userId    String
-  name      String
-  company   String?
-  email     String?
-  phone     String?
-  address   String?
+  userId        String
+  name          String
+  company       String?
+  email         String?
+  phone         String?
+  address       String?
   // Where this person came from — see CustomerSource.
-  source    CustomerSource @default(UNKNOWN)
+  source        CustomerSource @default(UNKNOWN)
   // Free-text note captured with a storefront enquiry (dropped on the floor
   // before this column existed; the owner still gets it in the bell).
-  note      String?
+  note          String?
   // Storefront captures only: how many times this person re-submitted their
   // details, and when they last did. Owner-added rows stay at 0/null.
-  inquiryCount   Int      @default(0)
-  lastInquiryAt  DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders    Order[]
+  inquiryCount  Int            @default(0)
+  lastInquiryAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders        Order[]
   notifications Notification[]
-  feedback  Feedback[]
+  feedback      Feedback[]
 
   @@index([userId])
   @@index([userId, name])
@@ -68,29 +86,39 @@ model Customer {
 }
 
 model Order {
-  id            String      @id @default(cuid())
+  id                 String               @id @default(cuid())
   // Owning account — mirrors the customer's owner, denormalized for the
   // dashboard aggregates.
-  userId        String
-  orderNumber   String
-  customerId    String
-  description   String
-  status        OrderStatus @default(PENDING)
+  userId             String
+  orderNumber        String
+  customerId         String
+  description        String
+  status             OrderStatus          @default(PENDING)
   // Payment chasing: amount in GHS pesewas (no floats), paidAt set once money lands.
   // Storefront coupon discounts are already netted out of this amount.
-  amountPesewas Int?
+  amountPesewas      Int?
   // Coupon snapshot: money taken off and the code the shopper used. The code is
   // denormalized (not a relation) so deleting a promotion never rewrites history.
-  discountPesewas Int      @default(0)
-  promoCode       String?
-  paidAt        DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  payments      PaymentTransaction[]
-  notifications Notification[]
-  lines         OrderLineItem[]
+  discountPesewas    Int                  @default(0)
+  promoCode          String?
+  // Fulfillment: pickup is the default and never carries a fee or coordinates.
+  // Local delivery stores the customer's pinned entrance plus the fee the server
+  // computed from the shop's live coordinates (never the client preview).
+  fulfillmentMethod  FulfillmentMethod    @default(DIRECT_PICKUP)
+  deliveryStatus     DeliveryStatus       @default(NOT_APPLICABLE)
+  customerLat        Float?
+  customerLng        Float?
+  deliveryFeePesewas Int                  @default(0)
+  // Rider identity (phone/name) captured when the public gig link is accepted.
+  riderId            String?
+  paidAt             DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer           Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payments           PaymentTransaction[]
+  notifications      Notification[]
+  lines              OrderLineItem[]
 
   @@index([userId])
   @@index([userId, status])
@@ -100,6 +128,9 @@ model Order {
   @@index([status])
   @@index([orderNumber])
   @@index([paidAt])
+  // The public rider queue resolves a gig by order number and filters on the
+  // broadcast state.
+  @@index([deliveryStatus])
   // Global time ranges (admin overview's "orders this month") filter on bare
   // createdAt — the per-user variants above cannot serve those.
   @@index([createdAt])
@@ -111,18 +142,18 @@ model Order {
 // deleted (storeItemId then goes null while the snapshots remain). The
 // owner's Intelligence + Products dashboards read these.
 model OrderLineItem {
-  id             String    @id @default(cuid())
-  orderId        String
+  id               String     @id @default(cuid())
+  orderId          String
   // Null once the linked StoreItem is deleted — the snapshots still tell the story.
-  storeItemId    String?
-  name           String
+  storeItemId      String?
+  name             String
   unitPricePesewas Int
   // Cost per unit at sale time (copied from costPricePesewas). Null if unset.
-  unitCostPesewas Int?
-  quantity       Int       @default(1)
-  createdAt      DateTime  @default(now())
-  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  storeItem      StoreItem? @relation(fields: [storeItemId], references: [id], onDelete: SetNull)
+  unitCostPesewas  Int?
+  quantity         Int        @default(1)
+  createdAt        DateTime   @default(now())
+  order            Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeItem        StoreItem? @relation(fields: [storeItemId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([storeItemId])

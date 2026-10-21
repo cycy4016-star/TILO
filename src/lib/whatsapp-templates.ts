@@ -34,7 +34,11 @@ export type BasketOrderContext = {
   discountLabel?: string | null;
   /** Money taken off, pre-formatted. Omitted when there was no coupon. */
   discountAmount?: string | null;
-  /** Amount payable after the discount, pre-formatted. */
+  /** Local-delivery fee, pre-formatted. Omitted for pickup orders. */
+  deliveryFee?: string | null;
+  /** Google Maps pin for the customer's delivery entrance. */
+  deliveryLocationUrl?: string | null;
+  /** Amount payable after the discount and delivery fee, pre-formatted. */
   total: string;
   customerName: string;
   customerPhone: string;
@@ -59,11 +63,15 @@ export function basketOrderWhatsApp(context: BasketOrderContext): string {
             : `Discount: -${context.discountAmount}`,
         ]
       : []),
+    ...(context.deliveryFee ? [`Delivery Fee (Local Dispatch) - ${context.deliveryFee}`] : []),
     `Total: ${context.total}`,
     `Name: ${context.customerName}`,
     `Phone: ${context.customerPhone}`,
   ];
   if (context.note) parts.push(`Note: ${context.note}`);
+  if (context.deliveryLocationUrl) {
+    parts.push('', `Delivery Location Link: ${context.deliveryLocationUrl}`);
+  }
   parts.push('', 'Please confirm. Thank you!');
   return parts.join('\n');
 }

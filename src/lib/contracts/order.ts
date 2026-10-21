@@ -3,6 +3,21 @@ import { z } from 'zod';
 
 export const OrderStatus = z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED']);
 
+// Fulfillment branch chosen at checkout. DIRECT_PICKUP never carries a delivery
+// fee; LOCAL_DELIVERY requires the customer's pinned coordinates.
+export const FulfillmentMethod = z.enum(['DIRECT_PICKUP', 'LOCAL_DELIVERY']);
+export type FulfillmentMethodValue = z.infer<typeof FulfillmentMethod>;
+
+// Last-mile lifecycle, mirrored from the Prisma enum.
+export const DeliveryStatus = z.enum([
+  'NOT_APPLICABLE',
+  'PENDING_DISPATCH',
+  'RIDER_ASSIGNED',
+  'IN_TRANSIT',
+  'DELIVERED',
+]);
+export type DeliveryStatusValue = z.infer<typeof DeliveryStatus>;
+
 // Amounts travel as whole cedis in forms and pesewas on the wire? No — keep one
 // unit everywhere: pesewas (ints). The UI shows GHS via formatGhs().
 
@@ -43,6 +58,9 @@ export const OrderUpdate = z.object({
     .max(100_000_000, 'Amount too large')
     .optional(),
   paidAt: z.string().datetime().nullable().optional(),
+  // Merchant dispatch action: broadcast a LOCAL_DELIVERY order to riders, or
+  // advance the lifecycle once a rider is on the road.
+  deliveryStatus: DeliveryStatus.optional(),
 });
 
 export const OrderStatusUpdate = z.object({ status: OrderStatus });
@@ -57,6 +75,15 @@ export const OrderItem = z.object({
   amountPesewas: z.number().int().nonnegative().nullable(),
   discountPesewas: z.number().int().nonnegative(),
   promoCode: z.string().nullable(),
+  // Fulfillment + spatial snapshot. Pickup orders keep null coordinates and a
+  // zero fee; local-delivery orders carry the pinned entrance and the fee the
+  // server computed from the shop's live coordinates.
+  fulfillmentMethod: FulfillmentMethod,
+  deliveryStatus: DeliveryStatus,
+  customerLat: z.number().nullable(),
+  customerLng: z.number().nullable(),
+  deliveryFeePesewas: z.number().int().nonnegative(),
+  riderId: z.string().nullable(),
   paidAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

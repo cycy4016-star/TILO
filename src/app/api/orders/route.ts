@@ -5,6 +5,7 @@ import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { captureAdminAlert } from '@/lib/admin-alerts';
 import {
+  type DeliveryStatusValue,
   OrderCreate,
   OrderItem,
   OrderLineItem,
@@ -36,6 +37,12 @@ type OrderWithLines = {
   amountPesewas: number | null;
   discountPesewas: number;
   promoCode: string | null;
+  fulfillmentMethod: 'DIRECT_PICKUP' | 'LOCAL_DELIVERY';
+  deliveryStatus: DeliveryStatusValue;
+  customerLat: number | null;
+  customerLng: number | null;
+  deliveryFeePesewas: number;
+  riderId: string | null;
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -76,6 +83,12 @@ function serializeOrder(order: OrderWithLines) {
     amountPesewas: order.amountPesewas ?? null,
     discountPesewas: order.discountPesewas,
     promoCode: order.promoCode,
+    fulfillmentMethod: order.fulfillmentMethod,
+    deliveryStatus: order.deliveryStatus,
+    customerLat: order.customerLat,
+    customerLng: order.customerLng,
+    deliveryFeePesewas: order.deliveryFeePesewas,
+    riderId: order.riderId,
     paidAt: order.paidAt ? order.paidAt.toISOString() : null,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),

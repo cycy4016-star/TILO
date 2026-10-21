@@ -41,11 +41,35 @@ export async function PATCH(request: Request, context: RouteContext) {
       status?: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
       amountPesewas?: number | null;
       paidAt?: Date | null;
+      deliveryStatus?:
+        | 'NOT_APPLICABLE'
+        | 'PENDING_DISPATCH'
+        | 'RIDER_ASSIGNED'
+        | 'IN_TRANSIT'
+        | 'DELIVERED';
     } = {};
     if (parsed.data.status !== undefined) data.status = parsed.data.status;
     if (parsed.data.amountPesewas !== undefined) data.amountPesewas = parsed.data.amountPesewas;
     if (parsed.data.paidAt !== undefined)
       data.paidAt = parsed.data.paidAt ? new Date(parsed.data.paidAt) : null;
+    if (parsed.data.deliveryStatus !== undefined) {
+      // Dispatch only exists for local-delivery orders. A pickup order must
+      // stay NOT_APPLICABLE so the rider queue never sees it.
+      if (
+        existing.fulfillmentMethod !== 'LOCAL_DELIVERY' &&
+        parsed.data.deliveryStatus !== 'NOT_APPLICABLE'
+      ) {
+        return NextResponse.json(
+          {
+            errors: {
+              deliveryStatus: 'This order is for pickup — there is no delivery to dispatch.',
+            },
+          },
+          { status: 400 },
+        );
+      }
+      data.deliveryStatus = parsed.data.deliveryStatus;
+    }
 
     const updated = await prisma.order.update({
       // Update by (id, userId) rather than bare id, so the write itself is
@@ -63,6 +87,12 @@ export async function PATCH(request: Request, context: RouteContext) {
         amountPesewas: updated.amountPesewas ?? null,
         discountPesewas: updated.discountPesewas,
         promoCode: updated.promoCode,
+        fulfillmentMethod: updated.fulfillmentMethod,
+        deliveryStatus: updated.deliveryStatus,
+        customerLat: updated.customerLat,
+        customerLng: updated.customerLng,
+        deliveryFeePesewas: updated.deliveryFeePesewas,
+        riderId: updated.riderId,
         paidAt: updated.paidAt ? updated.paidAt.toISOString() : null,
         createdAt: updated.createdAt.toISOString(),
         updatedAt: updated.updatedAt.toISOString(),

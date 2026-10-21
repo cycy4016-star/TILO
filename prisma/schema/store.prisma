@@ -35,6 +35,12 @@ model Store {
   description  String?
   // Number the WhatsApp order buttons deep-link to. Local Ghana format.
   contactPhone String?
+  // Physical pickup address shown when a shopper chooses DIRECT_PICKUP.
+  address      String?
+  // Shop coordinates captured at onboarding/settings with a pin drop. Used as
+  // the origin of the server-side Haversine delivery-fee calculation.
+  lat          Float?
+  lng          Float?
   active       Boolean           @default(true)
   // Announcement headline shown above the catalog on the storefront
   // (e.g. "Mid-sem sale — use code STUDENT10"). Empty = no banner.
@@ -196,8 +202,8 @@ model Promotion {
   minSubtotalPesewas Int?
   // Targeting: item and category ids this promo applies to. Both empty =
   // store-wide (the code, if any, is quoted in chat).
-  itemIds            String[]         @default([])
-  categoryIds        String[]         @default([])
+  itemIds            String[]      @default([])
+  categoryIds        String[]      @default([])
   active             Boolean       @default(true)
   startsAt           DateTime?
   endsAt             DateTime?

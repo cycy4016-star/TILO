@@ -2,7 +2,7 @@
 // place orders on Tilza or leave their details, both landing straight in the
 // owner's customers list with a live notification.
 import { z } from 'zod';
-import { OrderItem } from '@/lib/contracts/order';
+import { FulfillmentMethod, OrderItem } from '@/lib/contracts/order';
 
 // One line in a storefront basket. The basket is a list of these, so a visitor
 // can push several products into one order instead of starting over each time.
@@ -37,6 +37,12 @@ export const PublicOrderCreate = z
     // live promotions and prices the discount itself; the client preview is
     // never trusted.
     code: z.string().trim().max(40, 'Code is too long').optional(),
+    // Fulfillment branch. The client previews the delivery fee, but the order
+    // route recomputes it from the shop's live coordinates before charging.
+    fulfillmentMethod: FulfillmentMethod.default('DIRECT_PICKUP'),
+    // Exact pinned entrance for LOCAL_DELIVERY. Pickup orders never need these.
+    customerLat: z.number().finite().min(-90).max(90).optional(),
+    customerLng: z.number().finite().min(-180).max(180).optional(),
   })
   .superRefine((value, ctx) => {
     // Two lines for the same product would snapshot it twice in the order
@@ -53,6 +59,23 @@ export const PublicOrderCreate = z
         });
       }
       seen.add(line.itemId);
+    }
+
+    if (value.fulfillmentMethod === 'LOCAL_DELIVERY') {
+      if (value.customerLat === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['customerLat'],
+          message: 'Allow location access so we can price the delivery.',
+        });
+      }
+      if (value.customerLng === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['customerLng'],
+          message: 'Allow location access so we can price the delivery.',
+        });
+      }
     }
   });
 

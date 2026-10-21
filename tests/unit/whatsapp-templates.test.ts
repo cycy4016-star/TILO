@@ -64,6 +64,24 @@ describe('whatsapp templates', () => {
     expect(message).toContain('Total: GH₵ 216.00');
   });
 
+  it('itemizes local delivery and the pinned entrance link', () => {
+    const message = basketOrderWhatsApp({
+      storeName: 'Adom Fabrics',
+      orderNumber: 'TILZA-20261021-DEL12345',
+      lines: [{ name: 'Branded Sneaker', quantity: 1, amount: 'GH₵ 450.00' }],
+      deliveryFee: 'GH₵ 19.00',
+      deliveryLocationUrl: 'https://www.google.com/maps/search/?api=1&query=5.6,-0.2',
+      total: 'GH₵ 469.00',
+      customerName: 'Ama',
+      customerPhone: '0244999888',
+    });
+    expect(message).toContain('Delivery Fee (Local Dispatch) - GH₵ 19.00');
+    expect(message).toContain('Total: GH₵ 469.00');
+    expect(message).toContain(
+      'Delivery Location Link: https://www.google.com/maps/search/?api=1&query=5.6,-0.2',
+    );
+  });
+
   it('leaves the note line out when the shopper had nothing to add', () => {
     const message = basketOrderWhatsApp({
       storeName: 'Adom Fabrics',

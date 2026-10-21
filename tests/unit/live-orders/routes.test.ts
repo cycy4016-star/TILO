@@ -28,6 +28,9 @@ const store = {
   userId: 'owner-1',
   name: 'Kente Kitchen',
   slug: 'test',
+  address: '12 High Street, Accra',
+  lat: 5.556,
+  lng: -0.1969,
   active: true,
 };
 const item = {
@@ -47,6 +50,12 @@ const order = {
   amountPesewas: null,
   discountPesewas: 0,
   promoCode: null,
+  fulfillmentMethod: 'DIRECT_PICKUP' as const,
+  deliveryStatus: 'NOT_APPLICABLE' as const,
+  customerLat: null,
+  customerLng: null,
+  deliveryFeePesewas: 0,
+  riderId: null,
   paidAt: null,
   createdAt: new Date('2026-09-22T00:00:00.000Z'),
   updatedAt: new Date('2026-09-22T00:00:00.000Z'),
@@ -359,6 +368,86 @@ describe('public order placement', () => {
         }),
       }),
     );
+  });
+
+  it('prices a local delivery from the shop pin and snapshots the drop-off', async () => {
+    const apron = { ...item, pricePesewas: 4550, costPricePesewas: 2000 };
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([apron]);
+    db.prisma.customer.findFirst.mockResolvedValue(existingCustomer);
+    db.prisma.order.create.mockResolvedValue({
+      ...order,
+      amountPesewas: 6250,
+      fulfillmentMethod: 'LOCAL_DELIVERY',
+      customerLat: 5.556,
+      customerLng: -0.1969,
+      deliveryFeePesewas: 1700,
+    });
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 1 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+          fulfillmentMethod: 'LOCAL_DELIVERY',
+          customerLat: 5.556,
+          customerLng: -0.1969,
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          // 45.50 item + 17.00 base/convenience fee (same pin, inside 3km).
+          amountPesewas: 6250,
+          fulfillmentMethod: 'LOCAL_DELIVERY',
+          deliveryStatus: 'NOT_APPLICABLE',
+          customerLat: 5.556,
+          customerLng: -0.1969,
+          deliveryFeePesewas: 1700,
+        }),
+      }),
+    );
+    expect(db.prisma.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          message: expect.stringContaining('local delivery'),
+        }),
+      }),
+    );
+  });
+
+  it('refuses delivery before touching customers when the shop has no pin', async () => {
+    db.prisma.store.findFirst.mockResolvedValue({ ...store, lat: null, lng: null });
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 1 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+          fulfillmentMethod: 'LOCAL_DELIVERY',
+          customerLat: 5.556,
+          customerLng: -0.1969,
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(409);
+    expect(db.prisma.customer.findFirst).not.toHaveBeenCalled();
+    expect(db.prisma.customer.create).not.toHaveBeenCalled();
+    expect(db.prisma.order.create).not.toHaveBeenCalled();
   });
 });
 

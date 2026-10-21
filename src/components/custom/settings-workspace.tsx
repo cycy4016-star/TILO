@@ -3,16 +3,28 @@
 // onboarding, so this screen is where a skipped step gets filled in later.
 'use client';
 
-import { Check, Copy, ExternalLink, Loader2, Save, Share2, UserRound } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Save,
+  Share2,
+  UserRound,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { DeliveryMap } from '@/components/custom/delivery-map';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
 import { SocialAccountList } from '@/lib/contracts/social';
 import { StorePayload, type StorePayload as StoreRecord } from '@/lib/contracts/store';
+import { deliveryLocationUrl } from '@/lib/delivery';
 import { SOCIAL_PLATFORM_DEFS, type SocialPlatformDef } from '@/lib/social';
 
 type SocialRow = { platform: string; handle: string; url: string };
@@ -26,6 +38,12 @@ export function SettingsWorkspace() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupLat, setPickupLat] = useState<number | null>(null);
+  const [pickupLng, setPickupLng] = useState<number | null>(null);
+  const [savingPickup, setSavingPickup] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [pickupError, setPickupError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -33,7 +51,12 @@ export function SettingsWorkspace() {
       apiFetch('/api/store', { schema: StorePayload }).catch(() => null),
       apiFetch('/api/store/socials', { schema: SocialAccountList }).catch(() => null),
     ]);
-    if (storeResult) setStore(storeResult);
+    if (storeResult) {
+      setStore(storeResult);
+      setPickupAddress(storeResult.address ?? '');
+      setPickupLat(storeResult.lat);
+      setPickupLng(storeResult.lng);
+    }
     if (socialResult) {
       const byPlatform = new Map(socialResult.items.map((item) => [item.platform, item]));
       setRows(
@@ -101,6 +124,59 @@ export function SettingsWorkspace() {
       toast.error('Could not save the socials — check the links are complete URLs');
     } finally {
       setSaving(false);
+    }
+  }
+
+  function requestPickupLocation() {
+    if (!('geolocation' in navigator)) {
+      setPickupError('This browser cannot share a location. Drop the pin another way.');
+      return;
+    }
+    setLocating(true);
+    setPickupError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setPickupLat(position.coords.latitude);
+        setPickupLng(position.coords.longitude);
+        setLocating(false);
+      },
+      () => {
+        setPickupError('Could not read your location. Allow permission and try again.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 0 },
+    );
+  }
+
+  async function savePickup() {
+    if (!store) return;
+    setSavingPickup(true);
+    setPickupError(null);
+    try {
+      const updated = await apiFetch('/api/store', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: store.name,
+          slug: store.slug,
+          tagline: store.tagline ?? undefined,
+          description: store.description ?? undefined,
+          promoBanner: store.promoBanner ?? undefined,
+          contactPhone: store.contactPhone ?? undefined,
+          address: pickupAddress.trim() || null,
+          lat: pickupLat,
+          lng: pickupLng,
+          active: store.active,
+          theme: store.theme,
+          appearance: store.appearance,
+        }),
+        schema: StorePayload,
+      });
+      setStore(updated);
+      toast.success('Pickup location saved');
+    } catch {
+      toast.error('Could not save the pickup location');
+    } finally {
+      setSavingPickup(false);
     }
   }
 
@@ -246,6 +322,114 @@ export function SettingsWorkspace() {
             Finish store setup to publish your link.
           </p>
         )}
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <p className="flex items-center gap-1.5 text-eyebrow">
+          <MapPin aria-hidden className="size-3.5" /> Fulfillment
+        </p>
+        <h2 className="mt-1 text-h3 font-display">Pickup &amp; delivery</h2>
+        <p className="mt-1 max-w-lg text-sm text-muted-foreground">
+          Shoppers see your pickup address when they choose pickup. When they choose delivery, the
+          platform prices the trip from this pin using straight-line distance.
+        </p>
+        <div className="mt-5 grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="pickup-address">Pickup address</Label>
+            <Input
+              id="pickup-address"
+              value={pickupAddress}
+              onChange={(event) => setPickupAddress(event.target.value)}
+              placeholder="Shop name, street, landmark, city"
+              className="h-11 rounded-md"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={requestPickupLocation}
+              disabled={locating}
+              className="h-9 rounded-md font-semibold"
+            >
+              {locating ? (
+                <Loader2 aria-hidden className="size-4 animate-spin" />
+              ) : (
+                <LocateFixed aria-hidden className="size-4" />
+              )}
+              {locating ? 'Finding you…' : 'Use my current location'}
+            </Button>
+            {pickupLat != null && pickupLng != null && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setPickupLat(null);
+                    setPickupLng(null);
+                  }}
+                  className="h-9 rounded-md font-semibold"
+                >
+                  Clear pin
+                </Button>
+                <a
+                  href={deliveryLocationUrl(pickupLat, pickupLng)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-small font-semibold text-primary underline underline-offset-2"
+                >
+                  Open in maps
+                </a>
+              </>
+            )}
+          </div>
+          {pickupError && (
+            <p role="alert" className="text-small font-medium text-destructive">
+              {pickupError}
+            </p>
+          )}
+          {pickupLat != null && pickupLng != null ? (
+            <div className="grid gap-2">
+              <DeliveryMap
+                center={{ lat: pickupLat, lng: pickupLng }}
+                markers={[
+                  {
+                    id: 'pickup',
+                    lat: pickupLat,
+                    lng: pickupLng,
+                    label: 'Shop pickup pin',
+                    kind: 'pickup',
+                    draggable: true,
+                  },
+                ]}
+                onMarkerMove={(_id, coordinates) => {
+                  setPickupLat(coordinates.lat);
+                  setPickupLng(coordinates.lng);
+                }}
+              />
+              <p className="text-caption text-muted-foreground">
+                Drag the pin to your exact shop entrance.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-small text-muted-foreground">
+              No pin yet. Local delivery stays unavailable until you set one.
+            </div>
+          )}
+          <Button
+            type="button"
+            disabled={savingPickup}
+            onClick={() => void savePickup()}
+            className="h-11 w-fit rounded-md px-6 font-semibold"
+          >
+            {savingPickup ? (
+              <Loader2 aria-hidden className="size-4 animate-spin" />
+            ) : (
+              <Save aria-hidden className="size-4" />
+            )}
+            {savingPickup ? 'Saving…' : 'Save pickup location'}
+          </Button>
+        </div>
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 sm:p-7">

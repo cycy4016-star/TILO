@@ -6,9 +6,10 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { captureAdminAlert } from '@/lib/admin-alerts';
-import { OrderItem, type OrderStatus } from '@/lib/contracts/order';
+import { type DeliveryStatusValue, OrderItem, type OrderStatus } from '@/lib/contracts/order';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import { prisma } from '@/lib/db';
+import { calculateDeliveryFee, hasCoordinates } from '@/lib/delivery';
 import { notify } from '@/lib/notify';
 import { couponDiscount, couponErrorMessage } from '@/lib/promotions';
 import { allow, ipOf } from '@/lib/rate-limit';
@@ -28,6 +29,12 @@ function serializeOrder(order: {
   amountPesewas: number | null;
   discountPesewas: number;
   promoCode: string | null;
+  fulfillmentMethod: 'DIRECT_PICKUP' | 'LOCAL_DELIVERY';
+  deliveryStatus: DeliveryStatusValue;
+  customerLat: number | null;
+  customerLng: number | null;
+  deliveryFeePesewas: number;
+  riderId: string | null;
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +48,12 @@ function serializeOrder(order: {
     amountPesewas: order.amountPesewas ?? null,
     discountPesewas: order.discountPesewas,
     promoCode: order.promoCode,
+    fulfillmentMethod: order.fulfillmentMethod,
+    deliveryStatus: order.deliveryStatus,
+    customerLat: order.customerLat,
+    customerLng: order.customerLng,
+    deliveryFeePesewas: order.deliveryFeePesewas,
+    riderId: order.riderId,
     paidAt: order.paidAt ? order.paidAt.toISOString() : null,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
@@ -76,6 +89,37 @@ export async function POST(request: Request, context: RouteContext) {
 
     const store = await prisma.store.findFirst({ where: { slug, active: true } });
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+
+    // Fulfillment pricing is checked before any customer write: a shop without
+    // a pin cannot offer delivery, so a rejected checkout leaves no half-made
+    // customer record behind. The fee uses the shop's live pin; the preview in
+    // the checkout dialog is advisory only.
+    const fulfillmentMethod = parsed.data.fulfillmentMethod;
+    let customerLat: number | null = null;
+    let customerLng: number | null = null;
+    let deliveryFeePesewas = 0;
+    if (fulfillmentMethod === 'LOCAL_DELIVERY') {
+      if (store.lat == null || store.lng == null) {
+        return NextResponse.json(
+          {
+            errors: {
+              fulfillmentMethod: 'This shop has not set its pickup location yet — choose pickup.',
+            },
+          },
+          { status: 409 },
+        );
+      }
+      const coords = { lat: parsed.data.customerLat, lng: parsed.data.customerLng };
+      if (!hasCoordinates(coords)) {
+        return NextResponse.json(
+          { errors: { customerLat: 'Allow location access so we can price the delivery.' } },
+          { status: 400 },
+        );
+      }
+      customerLat = coords.lat;
+      customerLng = coords.lng;
+      deliveryFeePesewas = calculateDeliveryFee(store.lat, store.lng, coords.lat, coords.lng);
+    }
 
     // One query for the whole basket, then a missing-id check — a shopper whose
     // basket references a product that went inactive (or onto a hidden shelf)
@@ -193,7 +237,8 @@ export async function POST(request: Request, context: RouteContext) {
       discountPesewas = coupon.discountPesewas;
       promoCode = coupon.code;
     }
-    const amountPesewas = subtotalPesewas - discountPesewas;
+
+    const amountPesewas = subtotalPesewas - discountPesewas + deliveryFeePesewas;
 
     const tracked = lines.filter((line) => line.item.stock != null);
     if (tracked.length > 0) {
@@ -228,6 +273,14 @@ export async function POST(request: Request, context: RouteContext) {
         amountPesewas,
         discountPesewas,
         promoCode,
+        // Pickup stays NOT_APPLICABLE forever. A local delivery waits for the
+        // merchant to broadcast its rider link, which flips it to
+        // PENDING_DISPATCH from the orders workspace.
+        fulfillmentMethod,
+        deliveryStatus: 'NOT_APPLICABLE',
+        customerLat,
+        customerLng,
+        deliveryFeePesewas,
         lines: {
           create: lines.map((line) => ({
             storeItemId: line.item.id,
@@ -250,7 +303,9 @@ export async function POST(request: Request, context: RouteContext) {
         lead && lines.length === 1
           ? `New order — ${lead.item.name}`
           : `New order — ${lines.length} items`,
-      message: `${captured.name} (${captured.phone}) ordered ${summary}. #${order.orderNumber}`,
+      message: `${captured.name} (${captured.phone}) ordered ${summary}${
+        fulfillmentMethod === 'LOCAL_DELIVERY' ? ' for local delivery' : ' for pickup'
+      }. #${order.orderNumber}`,
       customerId: captured.id,
       orderId: order.id,
     });

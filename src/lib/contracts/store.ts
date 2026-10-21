@@ -37,25 +37,47 @@ const optionalText = (max: number) => z.string().trim().max(max).optional();
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const SLUG_MAX = 40;
 
-export const StoreUpsert = z.object({
-  name: z.string().trim().min(1, 'Store name is required').max(80, 'Name is too long'),
-  slug: z
-    .string()
-    .trim()
-    .min(2, 'Link must be at least 2 characters')
-    .max(SLUG_MAX, 'Link is too long')
-    .regex(SLUG_PATTERN, 'Use lowercase letters, numbers and dashes only'),
-  tagline: optionalText(140),
-  description: optionalText(500),
-  promoBanner: optionalText(200),
-  contactPhone: optionalText(40),
-  active: z.boolean().default(true),
-  // Optional on create/update — absent means "leave as is" (DB defaults to
-  // blue + professional). Keeping these required-free lets old clients PUT
-  // without the fields without silently resetting the workspace look.
-  theme: ThemeKey.optional(),
-  appearance: AppearanceKey.optional(),
-});
+export const StoreUpsert = z
+  .object({
+    name: z.string().trim().min(1, 'Store name is required').max(80, 'Name is too long'),
+    slug: z
+      .string()
+      .trim()
+      .min(2, 'Link must be at least 2 characters')
+      .max(SLUG_MAX, 'Link is too long')
+      .regex(SLUG_PATTERN, 'Use lowercase letters, numbers and dashes only'),
+    tagline: optionalText(140),
+    description: optionalText(500),
+    promoBanner: optionalText(200),
+    contactPhone: optionalText(40),
+    // Physical pickup address shown to shoppers who choose DIRECT_PICKUP.
+    address: z.string().trim().max(200, 'Address is too long').nullable().optional(),
+    // Spatial origin for local-delivery pricing, captured via pin drop. Both
+    // coordinates move together; null clears the pin.
+    lat: z.number().finite().min(-90).max(90).nullable().optional(),
+    lng: z.number().finite().min(-180).max(180).nullable().optional(),
+    active: z.boolean().default(true),
+    // Optional on create/update — absent means "leave as is" (DB defaults to
+    // blue + professional). Keeping these required-free lets old clients PUT
+    // without the fields without silently resetting the workspace look.
+    theme: ThemeKey.optional(),
+    appearance: AppearanceKey.optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasLat = value.lat !== undefined;
+    const hasLng = value.lng !== undefined;
+    if (hasLat !== hasLng) {
+      const message = 'Set both the latitude and longitude (or clear both).';
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['lat'], message });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['lng'], message });
+      return;
+    }
+    if (hasLat && hasLng && (value.lat === null) !== (value.lng === null)) {
+      const message = 'Set both the latitude and longitude (or clear both).';
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['lat'], message });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['lng'], message });
+    }
+  });
 
 // Answer to "is this link word free?": the wizard asks as the owner types so
 // a taken slug is caught before Save. `suggestion` is a free alternative
@@ -148,6 +170,10 @@ export const StorePayload = z.object({
   description: z.string().nullable(),
   promoBanner: z.string().nullable(),
   contactPhone: z.string().nullable(),
+  // Physical pickup address + shop pin used for delivery pricing.
+  address: z.string().nullable(),
+  lat: z.number().nullable(),
+  lng: z.number().nullable(),
   active: z.boolean(),
   theme: ThemeKey,
   appearance: AppearanceKey,
@@ -174,6 +200,11 @@ export const StorePublic = z.object({
   description: z.string().nullable(),
   promoBanner: z.string().nullable(),
   contactPhone: z.string().nullable(),
+  // Pickup details are public: shoppers need them for DIRECT_PICKUP and the
+  // distance-pricing preview needs the shop's pin.
+  address: z.string().nullable(),
+  lat: z.number().nullable(),
+  lng: z.number().nullable(),
   logoUrl: z.string().nullable(),
   bannerUrl: z.string().nullable(),
   theme: ThemeKey,

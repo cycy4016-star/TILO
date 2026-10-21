@@ -3,7 +3,7 @@
 // customer who owns each one. Powers ~/dashboard/orders.
 'use client';
 
-import { ArrowUpRight, Flame, RefreshCcw, Search } from 'lucide-react';
+import { ArrowUpRight, Copy, Flame, RefreshCcw, Search, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
 import {
+  type DeliveryStatusValue,
   formatGhs,
   OrderItem,
   OrderList,
@@ -38,6 +39,14 @@ const statusStyles: Record<OrderStatusValue, string> = {
   PROCESSING: 'bg-primary/10 text-highlight-ink',
   COMPLETED: 'bg-emerald-50 text-emerald-700',
   CANCELLED: 'border border-border bg-background text-muted-foreground',
+};
+
+const deliveryLabels: Record<DeliveryStatusValue, string> = {
+  NOT_APPLICABLE: 'Not broadcast',
+  PENDING_DISPATCH: 'Waiting for a rider',
+  RIDER_ASSIGNED: 'Rider assigned',
+  IN_TRANSIT: 'In transit',
+  DELIVERED: 'Delivered',
 };
 
 const FILTERS: Array<{ value: OrderStatusValue | 'ALL'; label: string }> = [
@@ -102,6 +111,35 @@ export function OrdersWorkspace() {
       toast.error('Could not update the order');
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function broadcastDelivery(order: OrderRecord) {
+    setUpdatingId(order.id);
+    try {
+      const updated = await apiFetch(`/api/orders/${order.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ deliveryStatus: 'PENDING_DISPATCH' }),
+        schema: OrderItem,
+      });
+      setOrders((current) =>
+        current.map((item) => (item.id === order.id ? { ...item, ...updated } : item)),
+      );
+      toast.success('Broadcast live — copy the rider link and share it');
+    } catch {
+      toast.error('Could not broadcast this delivery');
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function copyRiderLink(order: OrderRecord) {
+    const link = `${window.location.origin}/delivery/jobs/${order.orderNumber}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success('Rider link copied');
+    } catch {
+      toast.error('Could not copy the link');
     }
   }
 
@@ -218,6 +256,12 @@ export function OrdersWorkspace() {
                           Paid
                         </span>
                       ) : null}
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-caption font-medium text-muted-foreground">
+                        <Truck aria-hidden className="size-3" />
+                        {order.fulfillmentMethod === 'LOCAL_DELIVERY'
+                          ? `Delivery · ${deliveryLabels[order.deliveryStatus]}`
+                          : 'Pickup'}
+                      </span>
                     </div>
                     <p className="mt-2 text-small font-medium text-foreground">
                       {order.description}
@@ -244,6 +288,44 @@ export function OrdersWorkspace() {
                       )}
                       <span>Created {formatDate(order.createdAt)}</span>
                     </div>
+                    {order.fulfillmentMethod === 'LOCAL_DELIVERY' && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                        {order.deliveryStatus === 'NOT_APPLICABLE' ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={updatingId === order.id}
+                            onClick={() => void broadcastDelivery(order)}
+                            className="h-9 rounded-md font-semibold"
+                          >
+                            <Truck aria-hidden className="size-4" />
+                            {updatingId === order.id ? 'Broadcasting…' : 'Broadcast for delivery'}
+                          </Button>
+                        ) : (
+                          <>
+                            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-caption font-medium text-highlight-ink">
+                              {deliveryLabels[order.deliveryStatus]}
+                            </span>
+                            {order.riderId && (
+                              <span className="text-caption text-muted-foreground">
+                                Rider: {order.riderId}
+                              </span>
+                            )}
+                            {order.deliveryStatus !== 'DELIVERED' && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => void copyRiderLink(order)}
+                                className="h-9 rounded-md font-semibold"
+                              >
+                                <Copy aria-hidden className="size-4" /> Copy rider link
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <Select
                     value={order.status}

@@ -29,6 +29,9 @@ export async function GET(request: Request, context: RouteContext) {
         description: true,
         promoBanner: true,
         contactPhone: true,
+        address: true,
+        lat: true,
+        lng: true,
         theme: true,
         appearance: true,
         updatedAt: true,
@@ -109,6 +112,9 @@ export async function GET(request: Request, context: RouteContext) {
         description: store.description,
         promoBanner: store.promoBanner,
         contactPhone: store.contactPhone,
+        address: store.address,
+        lat: store.lat,
+        lng: store.lng,
         logoUrl:
           store.logoMime != null
             ? `/api/public/store/${store.slug}/logo?t=${store.updatedAt.getTime()}`

@@ -3,10 +3,21 @@
 // receipt) so the customer never loses the order that was just placed.
 'use client';
 
-import { Check, Loader2, MessageCircle, Minus, Package, Plus } from 'lucide-react';
+import {
+  Check,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  MessageCircle,
+  Minus,
+  Package,
+  Plus,
+  Truck,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { DeliveryMap } from '@/components/custom/delivery-map';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,9 +30,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
-import { formatGhs } from '@/lib/contracts/order';
+import { type FulfillmentMethodValue, formatGhs } from '@/lib/contracts/order';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import type { StorePublic } from '@/lib/contracts/store';
+import { calculateDeliveryFee, deliveryLocationUrl } from '@/lib/delivery';
 import { waMessageLink } from '@/lib/phone';
 import { couponDiscount, couponErrorMessage } from '@/lib/promotions';
 import { basketOrderWhatsApp } from '@/lib/whatsapp-templates';
@@ -38,6 +50,9 @@ type Receipt = {
   /** Pre-formatted discount, or null when no coupon was used. */
   discount: string | null;
   promoCode: string | null;
+  /** Pre-formatted local-delivery fee, or null for pickup. */
+  deliveryFee: string | null;
+  deliveryLocationUrl: string | null;
   total: string;
   customerName: string;
   customerPhone: string;
@@ -49,6 +64,9 @@ export function CheckoutDialog({
   onClose,
   storeName,
   contactPhone,
+  address,
+  lat,
+  lng,
   slug,
   theme,
   lines,
@@ -62,6 +80,10 @@ export function CheckoutDialog({
   onClose: () => void;
   storeName: string;
   contactPhone: string | null;
+  /** Physical pickup address + shop pin, used by the pickup/delivery branch. */
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
   slug: string;
   /** Shop theme key — the dialog is portaled outside the themed <main>, so it
    *  re-scopes the --tl/brand tokens on itself to stay in the shop's skin. */
@@ -83,6 +105,19 @@ export function CheckoutDialog({
   const [codeInput, setCodeInput] = useState('');
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const [fulfillmentMethod, setFulfillmentMethod] =
+    useState<FulfillmentMethodValue>('DIRECT_PICKUP');
+  const [customerCoords, setCustomerCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationState, setLocationState] = useState<
+    'idle' | 'locating' | 'ready' | 'denied' | 'unsupported'
+  >('idle');
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const shopCoords = lat != null && lng != null ? { lat, lng } : null;
+  const deliveryFeePesewas =
+    fulfillmentMethod === 'LOCAL_DELIVERY' && shopCoords && customerCoords
+      ? calculateDeliveryFee(shopCoords.lat, shopCoords.lng, customerCoords.lat, customerCoords.lng)
+      : 0;
 
   const couponLines = lines.map((item) => ({
     itemId: item.id,
@@ -95,7 +130,7 @@ export function CheckoutDialog({
   // full price. The order route recomputes the same way from the database.
   const couponPreview = appliedCode ? couponDiscount(promotions, appliedCode, couponLines) : null;
   const discountPesewas = couponPreview?.ok ? couponPreview.discountPesewas : 0;
-  const payablePesewas = Math.max(0, total - discountPesewas);
+  const payablePesewas = Math.max(0, total - discountPesewas) + deliveryFeePesewas;
 
   function applyCode() {
     const result = couponDiscount(promotions, codeInput, couponLines);
@@ -115,6 +150,40 @@ export function CheckoutDialog({
     setCodeError(null);
   }
 
+  function requestLocation() {
+    if (!('geolocation' in navigator)) {
+      setLocationState('unsupported');
+      setLocationError('This browser cannot share a location — choose pickup instead.');
+      return;
+    }
+    setLocationState('locating');
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCustomerCoords({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setLocationState('ready');
+      },
+      (error) => {
+        setLocationState(error.code === error.PERMISSION_DENIED ? 'denied' : 'idle');
+        setLocationError(
+          error.code === error.PERMISSION_DENIED
+            ? 'Location permission was blocked. Allow it in your browser, then try again.'
+            : 'Could not read your location. Move somewhere with signal and try again.',
+        );
+      },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 0 },
+    );
+  }
+
+  function selectFulfillment(method: FulfillmentMethodValue) {
+    setFulfillmentMethod(method);
+    setError(null);
+    if (method === 'LOCAL_DELIVERY' && !customerCoords) requestLocation();
+  }
+
   // The hand-off message is built from the receipt, not the live basket — the
   // basket is emptied the moment the order is recorded.
   const waOrderLink =
@@ -127,6 +196,8 @@ export function CheckoutDialog({
             lines: receipt.lines,
             discountLabel: receipt.promoCode,
             discountAmount: receipt.discount,
+            deliveryFee: receipt.deliveryFee,
+            deliveryLocationUrl: receipt.deliveryLocationUrl,
             total: receipt.total,
             customerName: receipt.customerName,
             customerPhone: receipt.customerPhone,
@@ -143,12 +214,24 @@ export function CheckoutDialog({
       setError(couponErrorMessage(couponPreview));
       return;
     }
+    if (fulfillmentMethod === 'LOCAL_DELIVERY' && !shopCoords) {
+      setError('This shop has not set its pickup location yet — choose pickup instead.');
+      return;
+    }
+    if (fulfillmentMethod === 'LOCAL_DELIVERY' && !customerCoords) {
+      setError('Share your location so we can price the delivery.');
+      return;
+    }
     const parsed = PublicOrderCreate.safeParse({
       lines: lines.map((item) => ({ itemId: item.id, quantity: cart[item.id] ?? 1 })),
       customerName: name,
       phone,
       note,
       code: appliedCode ?? undefined,
+      fulfillmentMethod,
+      ...(fulfillmentMethod === 'LOCAL_DELIVERY' && customerCoords
+        ? { customerLat: customerCoords.lat, customerLng: customerCoords.lng }
+        : {}),
     });
     if (!parsed.success) {
       const flat = parsed.error.flatten().fieldErrors;
@@ -168,6 +251,10 @@ export function CheckoutDialog({
       subtotal: formatGhs(total),
       discount: null,
       promoCode: null,
+      deliveryFee: deliveryFeePesewas > 0 ? formatGhs(deliveryFeePesewas) : null,
+      deliveryLocationUrl: customerCoords
+        ? deliveryLocationUrl(customerCoords.lat, customerCoords.lng)
+        : null,
       total: formatGhs(payablePesewas),
       customerName: name.trim(),
       customerPhone: phone.trim(),
@@ -186,6 +273,13 @@ export function CheckoutDialog({
         orderNumber: result.order.orderNumber,
         discount: result.order.discountPesewas > 0 ? formatGhs(result.order.discountPesewas) : null,
         promoCode: result.order.promoCode,
+        // The server's recomputed fee wins over the advisory preview.
+        deliveryFee:
+          result.order.deliveryFeePesewas > 0 ? formatGhs(result.order.deliveryFeePesewas) : null,
+        deliveryLocationUrl:
+          result.order.customerLat != null && result.order.customerLng != null
+            ? deliveryLocationUrl(result.order.customerLat, result.order.customerLng)
+            : null,
         total: formatGhs(result.order.amountPesewas ?? payablePesewas),
       });
       onPlaced();
@@ -214,6 +308,10 @@ export function CheckoutDialog({
     setCodeInput('');
     setAppliedCode(null);
     setCodeError(null);
+    setFulfillmentMethod('DIRECT_PICKUP');
+    setCustomerCoords(null);
+    setLocationState('idle');
+    setLocationError(null);
   }
 
   return (
@@ -267,9 +365,15 @@ export function CheckoutDialog({
                   <span className="font-mono">−{receipt.discount}</span>
                 </p>
               )}
+              {receipt.deliveryFee && (
+                <p className="flex items-baseline justify-between gap-3">
+                  <span>Delivery fee</span>
+                  <span className="font-mono">{receipt.deliveryFee}</span>
+                </p>
+              )}
               <p
                 className={`flex items-baseline justify-between gap-3 font-semibold ${
-                  receipt.discount ? 'border-t border-border pt-1.5' : ''
+                  receipt.discount || receipt.deliveryFee ? 'border-t border-border pt-1.5' : ''
                 }`}
               >
                 <span>Total</span>
@@ -361,6 +465,130 @@ export function CheckoutDialog({
                 </li>
               ))}
             </ul>
+
+            <div className="grid gap-2 rounded-lg border border-border p-3">
+              <p className="text-small font-semibold">How would you like it?</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => selectFulfillment('DIRECT_PICKUP')}
+                  aria-pressed={fulfillmentMethod === 'DIRECT_PICKUP'}
+                  className={`grid gap-1 rounded-md border p-2.5 text-left text-small transition-colors ${
+                    fulfillmentMethod === 'DIRECT_PICKUP'
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1.5 font-semibold">
+                    <MapPin aria-hidden className="size-3.5" /> Pickup
+                  </span>
+                  <span className="text-caption">Free · collect yourself</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectFulfillment('LOCAL_DELIVERY')}
+                  disabled={!shopCoords}
+                  aria-pressed={fulfillmentMethod === 'LOCAL_DELIVERY'}
+                  className={`grid gap-1 rounded-md border p-2.5 text-left text-small transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    fulfillmentMethod === 'LOCAL_DELIVERY'
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1.5 font-semibold">
+                    <Truck aria-hidden className="size-3.5" /> Delivery
+                  </span>
+                  <span className="text-caption">
+                    {deliveryFeePesewas > 0
+                      ? formatGhs(deliveryFeePesewas)
+                      : shopCoords
+                        ? 'Add your location'
+                        : 'Not available yet'}
+                  </span>
+                </button>
+              </div>
+
+              {fulfillmentMethod === 'DIRECT_PICKUP' ? (
+                <p className="rounded-md bg-muted/60 px-2.5 py-2 text-caption text-muted-foreground">
+                  Pick up at{' '}
+                  <span className="font-semibold text-foreground">
+                    {address?.trim() || storeName}
+                  </span>
+                  {shopCoords && (
+                    <>
+                      {' · '}
+                      <a
+                        href={deliveryLocationUrl(shopCoords.lat, shopCoords.lng)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-primary underline underline-offset-2"
+                      >
+                        Open map
+                      </a>
+                    </>
+                  )}
+                </p>
+              ) : (
+                <div className="grid gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={requestLocation}
+                    disabled={locationState === 'locating'}
+                    className="h-9 justify-start rounded-md font-semibold"
+                  >
+                    {locationState === 'locating' ? (
+                      <Loader2 aria-hidden className="size-3.5 animate-spin" />
+                    ) : (
+                      <LocateFixed aria-hidden className="size-3.5" />
+                    )}
+                    {locationState === 'locating'
+                      ? 'Finding you…'
+                      : customerCoords
+                        ? 'Update my location'
+                        : 'Use my current location'}
+                  </Button>
+                  {locationError && (
+                    <p role="alert" className="text-caption font-medium text-destructive">
+                      {locationError}
+                    </p>
+                  )}
+                  {customerCoords && shopCoords && (
+                    <DeliveryMap
+                      className="h-44"
+                      center={shopCoords}
+                      markers={[
+                        {
+                          id: 'store',
+                          lat: shopCoords.lat,
+                          lng: shopCoords.lng,
+                          label: `${storeName} pickup`,
+                          kind: 'store',
+                        },
+                        {
+                          id: 'customer',
+                          lat: customerCoords.lat,
+                          lng: customerCoords.lng,
+                          label: 'Your delivery entrance',
+                          kind: 'customer',
+                          draggable: true,
+                        },
+                      ]}
+                      connect
+                      onMarkerMove={(id, coordinates) => {
+                        if (id === 'customer') setCustomerCoords(coordinates);
+                      }}
+                    />
+                  )}
+                  <p className="text-caption text-muted-foreground">
+                    Drag the blue pin to your exact entrance. The fee is based on straight-line
+                    distance from the shop.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="grid gap-2 rounded-lg border border-border p-3">
               <Label htmlFor="basket-code" className="text-small font-semibold">
                 Promo code <span className="font-normal text-muted-foreground">(optional)</span>
@@ -416,27 +644,28 @@ export function CheckoutDialog({
               ) : null}
             </div>
 
-            {discountPesewas > 0 ? (
-              <div className="grid gap-1.5 rounded-md bg-highlight-wash px-3 py-2 text-small">
-                <p className="flex items-center justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-mono">{formatGhs(total)}</span>
-                </p>
+            <div className="grid gap-1.5 rounded-md bg-highlight-wash px-3 py-2 text-small">
+              <p className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <span className="font-mono">{formatGhs(total)}</span>
+              </p>
+              {discountPesewas > 0 && (
                 <p className="flex items-center justify-between text-primary">
                   <span>Discount{appliedCode ? ` (${appliedCode})` : ''}</span>
                   <span className="font-mono">−{formatGhs(discountPesewas)}</span>
                 </p>
-                <p className="flex items-center justify-between border-t border-border pt-1.5 font-semibold">
-                  <span>Total</span>
-                  <span className="font-mono">{formatGhs(payablePesewas)}</span>
+              )}
+              {deliveryFeePesewas > 0 && (
+                <p className="flex items-center justify-between">
+                  <span>Delivery fee</span>
+                  <span className="font-mono">{formatGhs(deliveryFeePesewas)}</span>
                 </p>
-              </div>
-            ) : (
-              <p className="flex items-center justify-between rounded-md bg-highlight-wash px-3 py-2 text-small font-semibold">
+              )}
+              <p className="flex items-center justify-between border-t border-border pt-1.5 font-semibold">
                 <span>Total</span>
-                <span className="font-mono">{formatGhs(total)}</span>
+                <span className="font-mono">{formatGhs(payablePesewas)}</span>
               </p>
-            )}
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="basket-name">Your name</Label>
               <Input
@@ -472,7 +701,11 @@ export function CheckoutDialog({
             {error && <p className="text-small font-medium text-destructive">{error}</p>}
             <Button
               type="button"
-              disabled={busy}
+              disabled={
+                busy ||
+                (fulfillmentMethod === 'LOCAL_DELIVERY' &&
+                  (!shopCoords || !customerCoords || locationState === 'locating'))
+              }
               onClick={() => void submit()}
               className="h-11 rounded-md bg-primary font-bold text-primary-foreground hover:bg-primary/90"
             >

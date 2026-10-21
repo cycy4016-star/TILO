@@ -365,6 +365,9 @@ export function Storefront({
         onClose={() => setCheckoutOpen(false)}
         storeName={store.name}
         contactPhone={store.contactPhone}
+        address={store.address}
+        lat={store.lat}
+        lng={store.lng}
         slug={store.slug}
         theme={store.theme}
         lines={lines}
