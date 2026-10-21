@@ -23,7 +23,10 @@ export const userRemotePatterns: RemotePatterns = [];
 export const appCapabilities: AppCapabilities = {
   microphone: false,
   camera: false,
-  geolocation: false,
+  // Checkout and pickup settings pin the customer/shop entrance with
+  // navigator.geolocation; without this opt-in the Permissions-Policy header
+  // blocks the prompt on every page.
+  geolocation: true,
 };
 
 /**

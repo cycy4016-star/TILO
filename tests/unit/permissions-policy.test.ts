@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { appCapabilities } from '../../next.user-config';
 import { buildPermissionsPolicy } from '@/lib/permissions-policy';
 
 // Locks the Permissions-Policy posture: every feature is disabled by default and
@@ -37,5 +38,9 @@ describe('buildPermissionsPolicy', () => {
     const value = buildPermissionsPolicy({ microphone: true, camera: true, geolocation: true });
     expect(value).toContain('browsing-topics=()');
     expect(value).not.toContain('browsing-topics=(self)');
+  });
+
+  it('opts geolocation in for the delivery pin capture', () => {
+    expect(appCapabilities.geolocation).toBe(true);
   });
 });
