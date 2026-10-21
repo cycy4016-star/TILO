@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { appCapabilities } from '../../next.user-config';
 import { buildPermissionsPolicy } from '@/lib/permissions-policy';
+import { appCapabilities } from '../../next.user-config';
 
 // Locks the Permissions-Policy posture: every feature is disabled by default and
 // only an explicit opt-in flips it to (self); browsing-topics is never openable.
