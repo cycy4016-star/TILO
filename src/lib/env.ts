@@ -25,6 +25,8 @@ export const env = createEnv({
     EMAIL_PROVIDER: z.enum(['resend', 'none']).default('none'),
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().optional(),
+    // Shared secret for the scheduled merchant digest endpoint.
+    CRON_SECRET: z.string().optional(),
 
     // Paystack (optional). Routes return a "not configured" error until set.
     PAYSTACK_SECRET_KEY: z.string().optional(),
@@ -62,6 +64,7 @@ export const env = createEnv({
     EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    CRON_SECRET: process.env.CRON_SECRET,
     PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,
     PAYSTACK_PUBLIC_KEY: process.env.PAYSTACK_PUBLIC_KEY,
     PAYSTACK_CALLBACK_URL: process.env.PAYSTACK_CALLBACK_URL,

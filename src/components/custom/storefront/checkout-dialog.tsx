@@ -15,7 +15,7 @@ import {
   Truck,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { DeliveryMap } from '@/components/custom/delivery-map';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 import { apiFetch } from '@/lib/api-client';
+import {
+  checkoutMemoryKey,
+  type LastOrder,
+  type SavedCheckoutContact,
+} from '@/lib/checkout-memory';
 import { type FulfillmentMethodValue, formatGhs } from '@/lib/contracts/order';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import type { StorePublic } from '@/lib/contracts/store';
@@ -94,7 +100,7 @@ export function CheckoutDialog({
   /** The shop's live promotions — the coupon field previews against these. */
   promotions: StorePublic['promotions'];
   onQuantityChange: (itemId: string, quantity: number) => void;
-  onPlaced: () => void;
+  onPlaced: (order: LastOrder) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -112,6 +118,14 @@ export function CheckoutDialog({
     'idle' | 'locating' | 'ready' | 'denied' | 'unsupported'
   >('idle');
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [savedContact, setSavedContact, contactHydrated] =
+    useLocalStorage<SavedCheckoutContact | null>(checkoutMemoryKey(slug), null);
+
+  useEffect(() => {
+    if (!contactHydrated || !savedContact) return;
+    setName((current) => current || savedContact.name);
+    setPhone((current) => current || savedContact.phone);
+  }, [contactHydrated, savedContact]);
 
   const shopCoords = lat != null && lng != null ? { lat, lng } : null;
   const deliveryFeePesewas =
@@ -282,7 +296,16 @@ export function CheckoutDialog({
             : null,
         total: formatGhs(result.order.amountPesewas ?? payablePesewas),
       });
-      onPlaced();
+      setSavedContact({ name: snapshot.customerName, phone: snapshot.customerPhone });
+      onPlaced({
+        orderNumber: result.order.orderNumber,
+        placedAt: new Date().toISOString(),
+        lines: lines.map((item) => ({
+          itemId: item.id,
+          name: item.name,
+          quantity: cart[item.id] ?? 1,
+        })),
+      });
       toast.success(
         contactPhone ? 'Order recorded — send it to the shop on WhatsApp' : 'Order sent',
       );
@@ -301,8 +324,6 @@ export function CheckoutDialog({
   function close() {
     onClose();
     setReceipt(null);
-    setName('');
-    setPhone('');
     setNote('');
     setError(null);
     setCodeInput('');

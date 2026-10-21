@@ -13,6 +13,12 @@ export type ItemOrderContext = {
   quantity: number;
 };
 
+/** A warm check-in the owner can send after a sale. Editable before sending. */
+export function customerFollowUpWhatsApp(customerName: string): string {
+  const firstName = customerName.trim().split(/\s+/)[0] || 'there';
+  return `Hi ${firstName}! Thank you for your recent order. Just checking in — did everything arrive as expected? If you need anything else, reply here and I'll help right away.`;
+}
+
 /** Single-item quick order: "Please add for me 2x Shirt — GHS 50.00." */
 export function itemOrderWhatsApp(context: ItemOrderContext): string {
   const quantity = context.quantity > 1 ? `${context.quantity}x ` : '';

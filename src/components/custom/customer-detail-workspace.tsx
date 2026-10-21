@@ -23,7 +23,8 @@ import {
   OrderStatus,
 } from '@/lib/contracts/order';
 import { PaymentInitializeResult } from '@/lib/contracts/payment';
-import { waMeLink } from '@/lib/phone';
+import { waMeLink, waMessageLink } from '@/lib/phone';
+import { customerFollowUpWhatsApp } from '@/lib/whatsapp-templates';
 
 const statusLabels: Record<OrderRecord['status'], string> = {
   PENDING: 'Pending',
@@ -194,6 +195,11 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
     );
   }
 
+  const chatLink = customer.phone ? waMeLink(customer.phone) : null;
+  const followUpLink = customer.phone
+    ? waMessageLink(customer.phone, customerFollowUpWhatsApp(customer.name))
+    : null;
+
   return (
     <div className="grid gap-6">
       <div>
@@ -241,20 +247,26 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
             )}
           </div>
           <div className="relative mt-4 flex flex-wrap items-center gap-2">
-            {customer.phone &&
-              (() => {
-                const chat = waMeLink(customer.phone);
-                return chat ? (
-                  <a
-                    href={chat}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                  >
-                    <MessageCircle aria-hidden className="size-4" /> Chat on WhatsApp
-                  </a>
-                ) : null;
-              })()}
+            {chatLink && (
+              <a
+                href={chatLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <MessageCircle aria-hidden className="size-4" /> Chat on WhatsApp
+              </a>
+            )}
+            {followUpLink && (
+              <a
+                href={followUpLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-card px-5 font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+              >
+                <MessageCircle aria-hidden className="size-4" /> Follow up
+              </a>
+            )}
           </div>
         </div>
       </div>

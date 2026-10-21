@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 import { type CatalogGroup, Storefront } from '@/components/custom/storefront/storefront';
 import { StorePublic } from '@/lib/contracts/store';
 import { env } from '@/lib/env';
-import { siteUrl } from '@/lib/site';
+import { siteName, siteUrl } from '@/lib/site';
 
 type StorePageProps = { params: Promise<{ slug: string }> };
 
@@ -28,9 +28,24 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
   const { slug } = await params;
   const store = await fetchStore(slug);
   if (!store) return { title: 'Store not found' };
+  const description = store.tagline ?? store.description ?? `Order from ${store.name}.`;
+  const canonical = `${siteUrl}/store/${encodeURIComponent(store.slug)}`;
   return {
     title: store.name,
-    description: store.tagline ?? store.description ?? `Order from ${store.name}.`,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: 'website',
+      siteName,
+      title: store.name,
+      description,
+      url: canonical,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: store.name,
+      description,
+    },
   };
 }
 

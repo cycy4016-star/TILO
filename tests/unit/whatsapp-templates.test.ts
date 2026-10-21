@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { basketOrderWhatsApp, itemOrderWhatsApp } from '@/lib/whatsapp-templates';
+import {
+  basketOrderWhatsApp,
+  customerFollowUpWhatsApp,
+  itemOrderWhatsApp,
+} from '@/lib/whatsapp-templates';
 
 describe('whatsapp templates', () => {
   it('names the item and the shop in a one-off order', () => {
@@ -80,6 +84,17 @@ describe('whatsapp templates', () => {
     expect(message).toContain(
       'Delivery Location Link: https://www.google.com/maps/search/?api=1&query=5.6,-0.2',
     );
+  });
+
+  it('greets a past customer by first name for a follow-up', () => {
+    const message = customerFollowUpWhatsApp('  Ama Mensah  ');
+    expect(message).toContain('Hi Ama!');
+    expect(message).not.toContain('Ama Mensah');
+    expect(message).toContain('recent order');
+  });
+
+  it('falls back to a neutral greeting when the name is empty', () => {
+    expect(customerFollowUpWhatsApp('   ').startsWith('Hi there!')).toBe(true);
   });
 
   it('leaves the note line out when the shopper had nothing to add', () => {

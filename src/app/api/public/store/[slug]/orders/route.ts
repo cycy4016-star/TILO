@@ -10,6 +10,7 @@ import { type DeliveryStatusValue, OrderItem, type OrderStatus } from '@/lib/con
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import { prisma } from '@/lib/db';
 import { calculateDeliveryFee, hasCoordinates } from '@/lib/delivery';
+import { sendOrderAlert } from '@/lib/merchant-alerts';
 import { notify } from '@/lib/notify';
 import { couponDiscount, couponErrorMessage } from '@/lib/promotions';
 import { allow, ipOf } from '@/lib/rate-limit';
@@ -318,6 +319,22 @@ export async function POST(request: Request, context: RouteContext) {
       amountPesewas,
       refType: 'order',
       refId: order.id,
+    });
+
+    const lowStock = lines.flatMap((line) => {
+      if (line.item.stock == null) return [];
+      const remaining = line.item.stock - line.quantity;
+      return remaining <= 2 ? [{ name: line.item.name, stock: remaining }] : [];
+    });
+    await sendOrderAlert({
+      userId: store.userId,
+      storeName: store.name,
+      orderNumber: order.orderNumber,
+      customerName: captured.name,
+      customerPhone: captured.phone,
+      amountPesewas,
+      lines: lines.map((line) => ({ name: line.item.name, quantity: line.quantity })),
+      lowStock,
     });
 
     return NextResponse.json(

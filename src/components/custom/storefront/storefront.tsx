@@ -8,9 +8,10 @@
 // add-to-basket moment.
 'use client';
 
-import { BadgeCheck, Boxes, ChevronDown, MessageCircle, Tag } from 'lucide-react';
+import { BadgeCheck, Boxes, ChevronDown, MessageCircle, RotateCcw, Tag, X } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { BasketBar } from '@/components/custom/storefront/basket-bar';
 import { CheckoutDialog } from '@/components/custom/storefront/checkout-dialog';
 import { LeadCaptureCard } from '@/components/custom/storefront/lead-capture-card';
@@ -23,7 +24,10 @@ import {
 import { type CatalogGroup, StoreCatalog } from '@/components/custom/storefront/store-catalog';
 import { StoreHeader } from '@/components/custom/storefront/store-header';
 import { TrustStrip } from '@/components/custom/storefront/trust-strip';
+import { Button } from '@/components/ui/button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { type LastOrder, lastOrderMemoryKey } from '@/lib/checkout-memory';
+import { formatGhs } from '@/lib/contracts/order';
 import type { StorePublic } from '@/lib/contracts/store';
 import { waMeLink, waMessageLink } from '@/lib/phone';
 import { formatPromoDate, promoHeadline, promoTerms } from '@/lib/promotions';
@@ -31,6 +35,12 @@ import { formatPromoDate, promoHeadline, promoTerms } from '@/lib/promotions';
 export type { CatalogGroup } from '@/components/custom/storefront/store-catalog';
 
 type CatalogItem = CatalogGroup['items'][number];
+
+function formatOrderDate(value: string): string | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat('en-GH', { dateStyle: 'medium' }).format(date);
+}
 
 export function Storefront({
   store,
@@ -49,6 +59,10 @@ export function Storefront({
   const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(
     `tilza:search:${store.slug}`,
     [],
+  );
+  const [lastOrder, setLastOrder] = useLocalStorage<LastOrder | null>(
+    lastOrderMemoryKey(store.slug),
+    null,
   );
 
   function rememberSearch(term: string) {
@@ -70,6 +84,32 @@ export function Storefront({
   const lines = allItems.filter((item) => (cart[item.id] ?? 0) > 0);
   const count = lines.reduce((sum, item) => sum + (cart[item.id] ?? 0), 0);
   const total = lines.reduce((sum, item) => sum + item.pricePesewas * (cart[item.id] ?? 0), 0);
+
+  const repeatLines = (lastOrder?.lines ?? []).flatMap((line) => {
+    const item = allItems.find((entry) => entry.id === line.itemId);
+    if (!item || (item.stock != null && item.stock <= 0)) return [];
+    const quantity = Math.min(Math.max(1, line.quantity), item.stock ?? 99, 99);
+    return [{ item, quantity }];
+  });
+  const repeatTotal = repeatLines.reduce(
+    (sum, line) => sum + line.item.pricePesewas * line.quantity,
+    0,
+  );
+  const missingRepeatLines = (lastOrder?.lines.length ?? 0) - repeatLines.length;
+
+  function orderAgain() {
+    setCart((current) => {
+      const next = { ...current };
+      for (const line of repeatLines) {
+        next[line.item.id] = Math.max(next[line.item.id] ?? 0, line.quantity);
+      }
+      return next;
+    });
+    if (missingRepeatLines > 0) {
+      toast.success('Added what is still available to your basket');
+    }
+    setCheckoutOpen(true);
+  }
 
   function setQuantity(itemId: string, quantity: number) {
     setCart((current) => {
@@ -202,6 +242,54 @@ export function Storefront({
             </div>
           </div>
         </section>
+
+        {lastOrder && repeatLines.length > 0 && (
+          <section className="rounded-xl border border-border bg-card p-4 sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-eyebrow">Welcome back</p>
+                <p className="mt-1 font-display text-h4">Order again</p>
+                <p className="mt-1 text-small text-muted-foreground">
+                  {formatOrderDate(lastOrder.placedAt)
+                    ? `Your last order from ${formatOrderDate(lastOrder.placedAt)}`
+                    : 'Your last order'}
+                  {missingRepeatLines > 0
+                    ? ` · ${missingRepeatLines} ${missingRepeatLines === 1 ? 'item is' : 'items are'} no longer available`
+                    : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  onClick={orderAgain}
+                  className="h-10 gap-2 rounded-md px-4 font-semibold"
+                >
+                  <RotateCcw aria-hidden className="size-4" /> Add to basket
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Dismiss previous order"
+                  onClick={() => setLastOrder(null)}
+                  className="size-10 rounded-md text-muted-foreground"
+                >
+                  <X aria-hidden className="size-4" />
+                </Button>
+              </div>
+            </div>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {repeatLines.map(({ item, quantity }) => (
+                <li key={item.id} className="rounded bg-muted px-2.5 py-1 text-caption font-medium">
+                  <span className="font-mono">{quantity}x</span> {item.name}
+                </li>
+              ))}
+              <li className="rounded bg-highlight-wash px-2.5 py-1 text-caption font-bold text-highlight-ink">
+                {formatGhs(repeatTotal)}
+              </li>
+            </ul>
+          </section>
+        )}
 
         {store.promoBanner && (
           <section className="flex items-center justify-center gap-2 rounded-lg bg-highlight px-4 py-3 text-center text-small font-bold text-highlight-foreground">
@@ -355,6 +443,14 @@ export function Storefront({
               Terms
             </a>
           </p>
+          <p className="mt-2 text-caption">
+            <a
+              href="/signup"
+              className="font-semibold text-highlight-ink underline underline-offset-2"
+            >
+              Open your own shop on Tilza →
+            </a>
+          </p>
         </footer>
       </div>
 
@@ -375,7 +471,10 @@ export function Storefront({
         total={total}
         promotions={store.promotions}
         onQuantityChange={setQuantity}
-        onPlaced={() => setCart({})}
+        onPlaced={(order) => {
+          setLastOrder(order);
+          setCart({});
+        }}
       />
     </main>
   );
