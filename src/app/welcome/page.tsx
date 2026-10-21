@@ -14,7 +14,7 @@ export default async function WelcomePage() {
   // operator owns no shop, so the route is closed to them.
   if (isAdminRole(user.role)) redirect('/dashboard/admin');
   return (
-    <main className="container-page py-10 sm:py-14">
+    <main className="min-h-dvh">
       <OnboardingWizard />
     </main>
   );

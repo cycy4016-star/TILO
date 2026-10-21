@@ -30,28 +30,36 @@ afterEach(() => {
 });
 
 describe('marketing navigation alongside the dashboard shell', () => {
-  it.each(['/dashboard', '/dashboard/', '/dashboard/settings', '/dashboard/tickets/123'])(
-    'omits the marketing header and footer on %s, including the initial render',
-    (pathname) => {
-      route.pathname = pathname;
-      const html = renderToStaticMarkup(<Navigation />);
-      expect(html).not.toContain('<header');
-      expect(html).not.toContain('<footer');
-      expect(html).toContain('<main>Page content</main>');
-    },
-  );
+  it.each([
+    '/dashboard',
+    '/dashboard/',
+    '/dashboard/settings',
+    '/dashboard/tickets/123',
+    '/welcome',
+    '/welcome/',
+  ])('omits the marketing header and footer on %s, including the initial render', (pathname) => {
+    route.pathname = pathname;
+    const html = renderToStaticMarkup(<Navigation />);
+    expect(html).not.toContain('<header');
+    expect(html).not.toContain('<footer');
+    expect(html).toContain('<main>Page content</main>');
+  });
 
-  it.each(['/pricing', '/login', '/dashboard-other', '/dashboards', '/blog/dashboard'])(
-    'keeps the marketing header and footer on %s',
-    (pathname) => {
-      route.pathname = pathname;
-      const html = renderToStaticMarkup(<Navigation />);
-      expect(html).toContain('<header');
-      expect(html).toContain('<footer');
-      expect(html).toContain('href="/pricing"');
-      expect(html).toContain('href="/privacy"');
-    },
-  );
+  it.each([
+    '/pricing',
+    '/login',
+    '/dashboard-other',
+    '/dashboards',
+    '/blog/dashboard',
+    '/welcome-back',
+  ])('keeps the marketing header and footer on %s', (pathname) => {
+    route.pathname = pathname;
+    const html = renderToStaticMarkup(<Navigation />);
+    expect(html).toContain('<header');
+    expect(html).toContain('<footer');
+    expect(html).toContain('href="/pricing"');
+    expect(html).toContain('href="/privacy"');
+  });
 
   it('keeps the marketing header but defers the footer to the landing page on /', () => {
     route.pathname = '/';
@@ -68,6 +76,7 @@ describe('marketing navigation alongside the dashboard shell', () => {
     try {
       for (const pathname of [
         '/',
+        '/welcome',
         '/dashboard',
         '/dashboard/settings',
         '/pricing',

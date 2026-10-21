@@ -101,6 +101,10 @@ function isStorePath(pathname: string) {
   return pathname === '/store' || pathname.startsWith('/store/');
 }
 
+function isSetupPath(pathname: string) {
+  return pathname === '/welcome' || pathname.startsWith('/welcome/');
+}
+
 // Top-bar link typography: quiet by default, `text-foreground` when current so
 // the active item reads as chosen rather than hovered. `size` stays at the
 // default h-9 — `size="sm"` would add `text-xs`, which the compiler emits after
@@ -124,7 +128,7 @@ export function SiteNav() {
   const [open, setOpen] = React.useState(false);
 
   const pathname = usePathname();
-  if (isDashboardPath(pathname) || isStorePath(pathname)) return null;
+  if (isDashboardPath(pathname) || isStorePath(pathname) || isSetupPath(pathname)) return null;
 
   // Exact match for the root; segment-boundary match for everything else so
   // '/blog' highlights on '/blog/post' but '/' never matches every route.
@@ -381,7 +385,13 @@ export function SiteFooter() {
   const isAuthenticated = useIsAuthenticated();
   const pathname = usePathname();
   // The landing page ships its own richer footer; keep a single contentinfo.
-  if (pathname === '/' || isDashboardPath(pathname) || isStorePath(pathname)) return null;
+  if (
+    pathname === '/' ||
+    isDashboardPath(pathname) ||
+    isStorePath(pathname) ||
+    isSetupPath(pathname)
+  )
+    return null;
 
   const footer = visibleItems('footer', isAuthenticated);
   if (footer.length === 0) return null;
