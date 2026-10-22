@@ -86,39 +86,57 @@ model Customer {
 }
 
 model Order {
-  id                 String               @id @default(cuid())
+  id                 String                  @id @default(cuid())
   // Owning account — mirrors the customer's owner, denormalized for the
   // dashboard aggregates.
   userId             String
   orderNumber        String
   customerId         String
   description        String
-  status             OrderStatus          @default(PENDING)
+  status             OrderStatus             @default(PENDING)
   // Payment chasing: amount in GHS pesewas (no floats), paidAt set once money lands.
   // Storefront coupon discounts are already netted out of this amount.
   amountPesewas      Int?
   // Coupon snapshot: money taken off and the code the shopper used. The code is
   // denormalized (not a relation) so deleting a promotion never rewrites history.
-  discountPesewas    Int                  @default(0)
+  discountPesewas    Int                     @default(0)
   promoCode          String?
   // Fulfillment: pickup is the default and never carries a fee or coordinates.
   // Local delivery stores the customer's pinned entrance plus the fee the server
   // computed from the shop's live coordinates (never the client preview).
-  fulfillmentMethod  FulfillmentMethod    @default(DIRECT_PICKUP)
-  deliveryStatus     DeliveryStatus       @default(NOT_APPLICABLE)
+  fulfillmentMethod  FulfillmentMethod       @default(DIRECT_PICKUP)
+  deliveryStatus     DeliveryStatus          @default(NOT_APPLICABLE)
   customerLat        Float?
   customerLng        Float?
-  deliveryFeePesewas Int                  @default(0)
+  deliveryFeePesewas Int                     @default(0)
   // Rider identity (phone/name) captured when the public gig link is accepted.
   riderId            String?
+  // Private-crew dispatch. `courierId` is the approved rider who won the job;
+  // `riderId` is kept for legacy public-link gigs and self-reported identities.
+  courierId          String?
+  // Six-digit handoff code shown to the buyer only after a courier accepts.
+  // The courier must ask for it at the door; the buyer's confirmation marks it
+  // used. Merchant verification is a separate timestamp/audit event.
+  handoffCode        String?
+  handoffCodeUsedAt  DateTime?
+  buyerConfirmedAt   DateTime?
+  merchantVerifiedAt DateTime?
+  merchantVerifiedBy String?
+  deliveryNote       String?
+  deliveredAt        DateTime?
   paidAt             DateTime?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer           Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer           Customer                @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  courier            Courier?                @relation(fields: [courierId], references: [id], onDelete: SetNull)
   payments           PaymentTransaction[]
   notifications      Notification[]
   lines              OrderLineItem[]
+  deliveryOffers     DeliveryOffer[]
+  deliveryEvents     DeliveryEvent[]
+  deliveryProofs     DeliveryProof[]
+  pushSubscriptions  OrderPushSubscription[]
 
   @@index([userId])
   @@index([userId, status])
@@ -131,6 +149,7 @@ model Order {
   // The public rider queue resolves a gig by order number and filters on the
   // broadcast state.
   @@index([deliveryStatus])
+  @@index([courierId])
   // Global time ranges (admin overview's "orders this month") filter on bare
   // createdAt — the per-user variants above cannot serve those.
   @@index([createdAt])

@@ -4,6 +4,7 @@
 'use client';
 
 import {
+  ArrowUpRight,
   Check,
   Loader2,
   LocateFixed,
@@ -51,6 +52,8 @@ type CheckoutItem = StorePublic['items'][number];
 type ReceiptLine = { name: string; quantity: number; amount: string };
 type Receipt = {
   orderNumber: string;
+  /** Account-free status page minted with the order. */
+  trackingUrl: string | null;
   lines: ReceiptLine[];
   subtotal: string;
   /** Pre-formatted discount, or null when no coupon was used. */
@@ -216,6 +219,7 @@ export function CheckoutDialog({
             customerName: receipt.customerName,
             customerPhone: receipt.customerPhone,
             note: receipt.note,
+            trackingUrl: receipt.trackingUrl,
           }),
         )
       : null;
@@ -257,6 +261,7 @@ export function CheckoutDialog({
     // and the confirmation screen still has to show (and forward) the order.
     const snapshot: Receipt = {
       orderNumber: '',
+      trackingUrl: null,
       lines: lines.map((item) => ({
         name: item.name,
         quantity: cart[item.id] ?? 1,
@@ -285,6 +290,7 @@ export function CheckoutDialog({
       setReceipt({
         ...snapshot,
         orderNumber: result.order.orderNumber,
+        trackingUrl: result.trackingUrl,
         discount: result.order.discountPesewas > 0 ? formatGhs(result.order.discountPesewas) : null,
         promoCode: result.order.promoCode,
         // The server's recomputed fee wins over the advisory preview.
@@ -300,6 +306,7 @@ export function CheckoutDialog({
       onPlaced({
         orderNumber: result.order.orderNumber,
         placedAt: new Date().toISOString(),
+        trackingUrl: result.trackingUrl,
         lines: lines.map((item) => ({
           itemId: item.id,
           name: item.name,
@@ -415,6 +422,13 @@ export function CheckoutDialog({
               >
                 <MessageCircle aria-hidden className="size-4" /> Send order on WhatsApp
               </a>
+            )}
+            {receipt.trackingUrl && (
+              <Button asChild variant="outline" className="h-10 font-semibold">
+                <a href={receipt.trackingUrl} target="_blank" rel="noopener noreferrer">
+                  <ArrowUpRight aria-hidden className="size-4" /> Track this order
+                </a>
+              </Button>
             )}
             <Button
               type="button"

@@ -3,23 +3,41 @@
 // orders + customers, with a bell notification. No account needed.
 import 'server-only';
 
+import type { Order } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { captureAdminAlert } from '@/lib/admin-alerts';
-import { type DeliveryStatusValue, OrderItem, type OrderStatus } from '@/lib/contracts/order';
+import {
+  type DeliveryStatusValue,
+  formatGhs,
+  OrderItem,
+  type OrderStatus,
+} from '@/lib/contracts/order';
 import { PublicOrderCreate, PublicOrderResult } from '@/lib/contracts/public-store';
 import { prisma } from '@/lib/db';
 import { calculateDeliveryFee, hasCoordinates } from '@/lib/delivery';
+import { dispatchOrder } from '@/lib/dispatch';
 import { sendOrderAlert } from '@/lib/merchant-alerts';
 import { notify } from '@/lib/notify';
+import { signOrderToken } from '@/lib/order-tracking';
 import { couponDiscount, couponErrorMessage } from '@/lib/promotions';
+import { sendPushToUser } from '@/lib/push';
 import { allow, ipOf } from '@/lib/rate-limit';
-import { buildOrderNumber, findOrCreateCustomer } from '@/lib/storefront';
+import { buildOrderNumber, type CapturedCustomer, findOrCreateCustomer } from '@/lib/storefront';
 import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ slug: string }> };
+
+// Thrown inside the interactive transaction so a lost stock race rolls back the
+// customer row and the order instead of leaving a half-written sale behind.
+class StockConflictError extends Error {
+  constructor() {
+    super('Stock changed while the order was being placed');
+    this.name = 'StockConflictError';
+  }
+}
 
 function serializeOrder(order: {
   id: string;
@@ -153,15 +171,6 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    const captured = await findOrCreateCustomer({
-      // Owner comes from the resolved store, never from the request.
-      userId: store.userId,
-      name: parsed.data.customerName,
-      phone: parsed.data.phone,
-      // Checkout is a purchase, not an enquiry — it never bumps inquiryCount.
-      source: 'ORDER',
-    });
-
     const note = parsed.data.note?.trim();
     const lines = parsed.data.lines.flatMap((line) => {
       const item = byId.get(line.itemId);
@@ -242,57 +251,86 @@ export async function POST(request: Request, context: RouteContext) {
     const amountPesewas = subtotalPesewas - discountPesewas + deliveryFeePesewas;
 
     const tracked = lines.filter((line) => line.item.stock != null);
-    if (tracked.length > 0) {
-      const decremented = await prisma.$transaction(
-        tracked.map((line) =>
-          prisma.storeItem.updateMany({
+    const summary = lines.map((line) => `${line.quantity}x ${line.item.name}`).join(', ');
+
+    // Customer capture, stock reservation and order creation are one unit. A
+    // stock race tripping the guarded update throws, so the customer row and any
+    // earlier line decrements roll back rather than leaving a partial sale.
+    let captured: CapturedCustomer;
+    let order: Order;
+    try {
+      const placed = await prisma.$transaction(async (tx) => {
+        const customer = await findOrCreateCustomer(
+          {
+            // Owner comes from the resolved store, never from the request.
+            userId: store.userId,
+            name: parsed.data.customerName,
+            phone: parsed.data.phone,
+            // Checkout is a purchase, not an enquiry — it never bumps inquiryCount.
+            source: 'ORDER',
+          },
+          tx,
+        );
+
+        for (const line of tracked) {
+          const decremented = await tx.storeItem.updateMany({
             where: { id: line.item.id, stock: { gte: line.quantity } },
             data: { stock: { decrement: line.quantity } },
-          }),
-        ),
-      );
-      if (decremented.some((result) => result.count === 0)) {
+          });
+          if (decremented.count === 0) throw new StockConflictError();
+        }
+
+        const created = await tx.order.create({
+          data: {
+            // The order is filed under the storefront's owner, so it shows up in
+            // that shop's dashboard and nowhere else.
+            userId: store.userId,
+            customerId: customer.id,
+            orderNumber: buildOrderNumber(),
+            description: note ? `${summary} — ${note}` : summary,
+            status: 'PENDING',
+            // Real money is expected for storefront orders, so the amount is
+            // derived from the item prices and every line is snapshotted into
+            // history. amountPesewas is already net of any coupon discount.
+            amountPesewas,
+            discountPesewas,
+            promoCode,
+            // Pickup stays NOT_APPLICABLE forever. Local delivery either goes
+            // straight to the merchant's approved crew (auto-dispatch) or waits
+            // for the merchant to broadcast from the dashboard.
+            fulfillmentMethod,
+            deliveryStatus:
+              fulfillmentMethod === 'LOCAL_DELIVERY' && store.autoDispatch
+                ? 'PENDING_DISPATCH'
+                : 'NOT_APPLICABLE',
+            customerLat,
+            customerLng,
+            deliveryFeePesewas,
+            lines: {
+              create: lines.map((line) => ({
+                storeItemId: line.item.id,
+                name: line.item.name,
+                unitPricePesewas: line.item.pricePesewas,
+                unitCostPesewas: line.item.costPricePesewas,
+                quantity: line.quantity,
+              })),
+            },
+          },
+        });
+
+        return { captured: customer, order: created };
+      });
+      captured = placed.captured;
+      order = placed.order;
+    } catch (error) {
+      if (error instanceof StockConflictError) {
         return NextResponse.json(
           { error: 'Something just sold out — check the shelf and try again' },
           { status: 409 },
         );
       }
+      throw error;
     }
-    const summary = lines.map((line) => `${line.quantity}x ${line.item.name}`).join(', ');
-    const order = await prisma.order.create({
-      data: {
-        // The order is filed under the storefront's owner, so it shows up in that
-        // shop's dashboard and nowhere else.
-        userId: store.userId,
-        customerId: captured.id,
-        orderNumber: buildOrderNumber(),
-        description: note ? `${summary} — ${note}` : summary,
-        status: 'PENDING',
-        // Real money is expected for storefront orders, so the amount is derived
-        // from the item prices and every line is snapshotted into history.
-        // amountPesewas is already net of any coupon discount.
-        amountPesewas,
-        discountPesewas,
-        promoCode,
-        // Pickup stays NOT_APPLICABLE forever. A local delivery waits for the
-        // merchant to broadcast its rider link, which flips it to
-        // PENDING_DISPATCH from the orders workspace.
-        fulfillmentMethod,
-        deliveryStatus: 'NOT_APPLICABLE',
-        customerLat,
-        customerLng,
-        deliveryFeePesewas,
-        lines: {
-          create: lines.map((line) => ({
-            storeItemId: line.item.id,
-            name: line.item.name,
-            unitPricePesewas: line.item.pricePesewas,
-            unitCostPesewas: line.item.costPricePesewas,
-            quantity: line.quantity,
-          })),
-        },
-      },
-    });
 
     // Hoisted so the single-line wording still reads naturally without an
     // unguarded array index.
@@ -326,23 +364,41 @@ export async function POST(request: Request, context: RouteContext) {
       const remaining = line.item.stock - line.quantity;
       return remaining <= 2 ? [{ name: line.item.name, stock: remaining }] : [];
     });
-    await sendOrderAlert({
-      userId: store.userId,
-      storeName: store.name,
-      orderNumber: order.orderNumber,
-      customerName: captured.name,
-      customerPhone: captured.phone,
-      amountPesewas,
-      lines: lines.map((line) => ({ name: line.item.name, quantity: line.quantity })),
-      lowStock,
-    });
+    await Promise.all([
+      sendOrderAlert({
+        userId: store.userId,
+        storeName: store.name,
+        orderNumber: order.orderNumber,
+        customerName: captured.name,
+        customerPhone: captured.phone,
+        amountPesewas,
+        lines: lines.map((line) => ({ name: line.item.name, quantity: line.quantity })),
+        lowStock,
+      }),
+      sendPushToUser(store.userId, {
+        title: `New order · ${formatGhs(amountPesewas)}`,
+        body: `${captured.name} ordered ${summary}. #${order.orderNumber}`.slice(0, 480),
+        url: '/dashboard/orders',
+        tag: `order-${order.id}`,
+      }),
+    ]);
 
+    // Auto-dispatch is best-effort: the order is already placed, and a push or
+    // dispatch hiccup must never turn a successful checkout into an error.
+    if (fulfillmentMethod === 'LOCAL_DELIVERY' && store.autoDispatch) {
+      await dispatchOrder(order.id).catch(() => undefined);
+    }
+
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, '') ?? new URL(request.url).origin;
+    const trackingUrl = `${origin}/track/${encodeURIComponent(signOrderToken(order.id))}`;
     return NextResponse.json(
       PublicOrderResult.parse({
         ok: true,
         order: serializeOrder(order),
         customerId: captured.id,
         createdCustomer: captured.created,
+        trackingUrl,
       }),
       { status: 201 },
     );

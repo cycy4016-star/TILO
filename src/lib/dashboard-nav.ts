@@ -15,6 +15,7 @@ import {
   Settings,
   ShieldCheck,
   Store,
+  Truck,
   Users,
 } from 'lucide-react';
 
@@ -29,6 +30,7 @@ const merchantNavItems: DashboardNavItem[] = [
   { href: '/dashboard/store', label: 'Catalogue', icon: Store },
   { href: '/dashboard/ads', label: 'Ads', icon: Megaphone },
   { href: '/dashboard/orders', label: 'Orders', icon: FireExtinguisher },
+  { href: '/dashboard/delivery', label: 'Delivery', icon: Truck },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
   // Socials are optional at onboarding, so Settings is where a skipped step
   // gets filled in later — it lives in the nav, not buried in the manager.

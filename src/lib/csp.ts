@@ -78,6 +78,8 @@ export function buildCsp(
     connect-src ${sourceList(`'self' ${apiUrl}`, extra.connectSrc)};
     media-src ${sourceList("'self'", extra.mediaSrc)};
     frame-src ${sourceList("'self'", extra.frameSrc)};
+    worker-src 'self';
+    manifest-src 'self';
     object-src 'none';
     base-uri 'self';
     form-action 'self';

@@ -2,7 +2,7 @@
 // Compresses a picked/captured photo before upload so the bytes stored in
 // Postgres stay small — the server caps item/logo/avatar sizes.
 
-export type ImageKind = 'item' | 'logo' | 'avatar' | 'promo' | 'banner';
+export type ImageKind = 'item' | 'logo' | 'avatar' | 'promo' | 'banner' | 'proof';
 /** Server ceilings, mirrored here so the picker can refuse early with a
  *  friendly message instead of a round trip. Keep in sync with
  *  src/lib/image-upload.ts MAX_BYTES. */
@@ -12,6 +12,7 @@ const MAX_BYTES: Record<ImageKind, number> = {
   banner: 5 * 1024 * 1024,
   logo: 2 * 1024 * 1024,
   avatar: 2 * 1024 * 1024,
+  proof: 5 * 1024 * 1024,
 };
 
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);

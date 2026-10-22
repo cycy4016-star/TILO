@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const digest = vi.hoisted(() => ({ sendWeeklyDigest: vi.fn() }));
+const push = vi.hoisted(() => ({ sendPushToUser: vi.fn() }));
 const db = vi.hoisted(() => ({
   prisma: {
     store: { findMany: vi.fn() },
@@ -12,6 +13,7 @@ const db = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/merchant-alerts', () => digest);
+vi.mock('@/lib/push', () => push);
 vi.mock('@/lib/db', () => db);
 vi.mock('server-only', () => ({}));
 
@@ -40,6 +42,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.CRON_SECRET = 'test-cron-secret';
   digest.sendWeeklyDigest.mockResolvedValue(true);
+  push.sendPushToUser.mockResolvedValue({ sent: 1, failed: 0, removed: 0 });
   db.prisma.store.findMany.mockResolvedValue([storeWithEmail, storeWithoutEmail]);
   db.prisma.order.findMany.mockResolvedValue([{ amountPesewas: 3200 }, { amountPesewas: 1800 }]);
   db.prisma.customer.count.mockResolvedValue(3);
@@ -89,5 +92,31 @@ describe('weekly digest route', () => {
       newCustomers: 3,
       lowStock: [{ name: 'Kente scarf', stock: 1 }],
     });
+    expect(push.sendPushToUser).toHaveBeenCalledTimes(2);
+    expect(push.sendPushToUser).toHaveBeenCalledWith('owner-1', {
+      title: 'Your week at Kente Kitchen',
+      body: '2 orders · GH₵ 50.00 · 3 new customers · 1 low stock',
+      url: '/dashboard',
+      tag: 'weekly-digest-store-1',
+    });
+    expect(push.sendPushToUser).toHaveBeenCalledWith('owner-2', {
+      title: 'Your week at No Email Shop',
+      body: '2 orders · GH₵ 50.00 · 3 new customers · 1 low stock',
+      url: '/dashboard',
+      tag: 'weekly-digest-store-2',
+    });
+  });
+
+  it('pushes to owners who have not set an email address', async () => {
+    db.prisma.store.findMany.mockResolvedValue([storeWithoutEmail]);
+    const { POST } = await import('@/app/api/cron/weekly-digest/route');
+    const response = await POST(request('test-cron-secret'));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, stores: 1, sent: 0 });
+    expect(digest.sendWeeklyDigest).not.toHaveBeenCalled();
+    expect(push.sendPushToUser).toHaveBeenCalledWith(
+      'owner-2',
+      expect.objectContaining({ title: 'Your week at No Email Shop' }),
+    );
   });
 });

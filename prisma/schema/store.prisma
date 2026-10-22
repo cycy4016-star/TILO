@@ -25,54 +25,62 @@ enum PromotionKind {
 }
 
 model Store {
-  id           String            @id @default(cuid())
+  id               String              @id @default(cuid())
   // Owning account. Unique — one storefront per sign-up, and the ownership key
   // every catalogue route resolves through before touching a child row.
-  userId       String            @unique
-  name         String
-  slug         String            @unique
-  tagline      String?
-  description  String?
+  userId           String              @unique
+  name             String
+  slug             String              @unique
+  tagline          String?
+  description      String?
   // Number the WhatsApp order buttons deep-link to. Local Ghana format.
-  contactPhone String?
+  contactPhone     String?
   // Physical pickup address shown when a shopper chooses DIRECT_PICKUP.
-  address      String?
+  address          String?
   // Shop coordinates captured at onboarding/settings with a pin drop. Used as
   // the origin of the server-side Haversine delivery-fee calculation.
-  lat          Float?
-  lng          Float?
-  active       Boolean           @default(true)
+  lat              Float?
+  lng              Float?
+  active           Boolean             @default(true)
   // Announcement headline shown above the catalog on the storefront
   // (e.g. "Mid-sem sale — use code STUDENT10"). Empty = no banner.
-  promoBanner  String?
+  promoBanner      String?
+  // Dispatch settings. Auto-dispatch sends new LOCAL_DELIVERY orders to the
+  // nearest approved/on-shift crew without the owner tapping Broadcast. The
+  // radius is the first ring; the merchant can widen it from the delivery page.
+  autoDispatch     Boolean             @default(true)
+  dispatchRadiusKm Float               @default(5)
   // Owner-chosen colour theme preset key (see src/lib/theme.ts). Controls the
   // whole platform surface for this workspace — dashboard shell and public
   // storefront — by seeding --brand-h/c/l in globals.css. Validated client-side
   // against ThemeKey; stored as a plain string so unknown keys degrade to the
   // default blue seed rather than crashing the page. New shops start on blue.
-  theme        String            @default("blue")
+  theme            String              @default("blue")
   // Owner-chosen layout/appearance preset key (see src/lib/theme.ts). Picks the
   // storefront arrangement: "vibrant" is the loud yellow-black look, while
   // "professional" is the clean business layout. Stored as a plain string; the
   // UI falls back to the default when the value is unknown.
-  appearance   String            @default("professional")
+  appearance       String              @default("professional")
   // Store logo, stored in Postgres so it survives Render's ephemeral disk.
   // Served by /api/public/store/[slug]/logo (no object storage needed).
-  logo         Bytes?
-  logoMime     String?
+  logo             Bytes?
+  logoMime         String?
   // Wide storefront banner, stored in Postgres like the logo.
   // Served by /api/public/store/[slug]/banner (no object storage needed).
-  banner       Bytes?
-  bannerMime   String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items        StoreItem[]
-  promotions   Promotion[]
-  categories   ProductCategory[]
-  socials      SocialAccount[]
+  banner           Bytes?
+  bannerMime       String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items            StoreItem[]
+  promotions       Promotion[]
+  categories       ProductCategory[]
+  socials          SocialAccount[]
   // Shoppers' feedback filed from this storefront.
-  feedback     Feedback[]
+  feedback         Feedback[]
+  couriers         StoreCourier[]
+  courierInvites   CourierCrewInvite[]
+  deliveryEvents   DeliveryEvent[]
 
   // Admin overview counts active shops; slug is already @unique, so no extra
   // index is needed for the storefront lookup.

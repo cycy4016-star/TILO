@@ -36,6 +36,8 @@ describe('buildCsp', () => {
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("form-action 'self'");
+    expect(csp).toContain("worker-src 'self'");
+    expect(csp).toContain("manifest-src 'self'");
   });
 
   it('appends a configured API origin to connect-src', () => {

@@ -7,13 +7,29 @@ import { siteDescription, siteName } from '@/lib/site';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: '/',
     name: siteName,
     short_name: siteName,
     description: siteDescription,
-    start_url: '/',
+    start_url: '/dashboard',
+    scope: '/',
     display: 'standalone',
     background_color: brandVisual.backgroundColor,
     theme_color: brandVisual.themeColor,
-    icons: [{ src: '/icon.svg', type: 'image/svg+xml', sizes: 'any' }],
+    categories: ['business', 'shopping'],
+    icons: [
+      { src: '/icons/icon-192.png', type: 'image/png', sizes: '192x192', purpose: 'any' },
+      { src: '/icons/icon-512.png', type: 'image/png', sizes: '512x512', purpose: 'any' },
+      {
+        src: '/icons/icon-maskable-512.png',
+        type: 'image/png',
+        sizes: '512x512',
+        purpose: 'maskable',
+      },
+    ],
+    shortcuts: [
+      { name: 'Orders', short_name: 'Orders', url: '/dashboard/orders' },
+      { name: 'Storefront', short_name: 'Storefront', url: '/dashboard/store' },
+    ],
   };
 }

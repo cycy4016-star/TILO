@@ -37,19 +37,24 @@ export type StorefrontSource = 'LEAD' | 'ORDER';
  * the number behind the platform's inquiry rate. Placing an order is a purchase,
  * not an enquiry, so `ORDER` leaves the counter alone.
  */
-export async function findOrCreateCustomer(input: {
-  userId: string;
-  name: string;
-  phone: string;
-  town?: string;
-  note?: string | null;
-  source?: StorefrontSource;
-}): Promise<CapturedCustomer> {
+export async function findOrCreateCustomer(
+  input: {
+    userId: string;
+    name: string;
+    phone: string;
+    town?: string;
+    note?: string | null;
+    source?: StorefrontSource;
+  },
+  // Order placement passes its interactive transaction client so the customer
+  // row commits or rolls back together with the stock decrement and the order.
+  db: Prisma.TransactionClient | typeof prisma = prisma,
+): Promise<CapturedCustomer> {
   const phone = toE164(input.phone);
   const source: StorefrontSource = input.source ?? 'LEAD';
   const note = input.note?.trim() || null;
   const isEnquiry = source === 'LEAD';
-  const existing = await prisma.customer.findFirst({
+  const existing = await db.customer.findFirst({
     where: { phone, userId: input.userId },
     orderBy: { createdAt: 'asc' },
   });
@@ -62,7 +67,7 @@ export async function findOrCreateCustomer(input: {
       ...(existing.source === 'UNKNOWN' ? { source } : {}),
     };
     if (Object.keys(patch).length > 0) {
-      await prisma.customer.update({ where: { id: existing.id }, data: patch });
+      await db.customer.update({ where: { id: existing.id }, data: patch });
     }
     return {
       id: existing.id,
@@ -72,7 +77,7 @@ export async function findOrCreateCustomer(input: {
       created: false,
     };
   }
-  const created = await prisma.customer.create({
+  const created = await db.customer.create({
     data: {
       userId: input.userId,
       name: input.name.trim(),

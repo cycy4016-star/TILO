@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { DeliveryMap } from '@/components/custom/delivery-map';
+import { PushSettings } from '@/components/custom/push-settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -194,7 +195,7 @@ export function SettingsWorkspace() {
           Where customers <span className="text-primary">find you.</span>
         </h1>
         <p className="mt-2 max-w-md text-small text-muted-foreground">
-          Your social links, your page address, and the account that runs it all.
+          Your social links, your page address, order alerts, and the account that runs it all.
         </p>
       </section>
 
@@ -431,6 +432,8 @@ export function SettingsWorkspace() {
           </Button>
         </div>
       </section>
+
+      <PushSettings />
 
       <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
         <h2 className="text-h3 font-display">Account</h2>

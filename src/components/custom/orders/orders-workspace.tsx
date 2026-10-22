@@ -3,7 +3,7 @@
 // customer who owns each one. Powers ~/dashboard/orders.
 'use client';
 
-import { ArrowUpRight, Copy, Flame, RefreshCcw, Search, Truck } from 'lucide-react';
+import { ArrowUpRight, Flame, RefreshCcw, Search, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
+import { DispatchResult } from '@/lib/contracts/courier';
 import {
   type DeliveryStatusValue,
   formatGhs,
@@ -70,27 +71,64 @@ export function OrdersWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const load = useCallback(async (nextFilter: OrderStatusValue | 'ALL', nextQuery: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (nextFilter !== 'ALL') params.set('status', nextFilter);
-      if (nextQuery) params.set('q', nextQuery);
-      const queryString = params.toString();
-      const result = await apiFetch(`/api/orders${queryString ? `?${queryString}` : ''}`, {
-        schema: OrderList,
-      });
-      setOrders(result.items);
-    } catch {
-      setError('Could not load orders. Try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const load = useCallback(
+    async (
+      nextFilter: OrderStatusValue | 'ALL',
+      nextQuery: string,
+      options?: { silent?: boolean },
+    ) => {
+      if (!options?.silent) {
+        setLoading(true);
+        setError(null);
+      }
+      try {
+        const params = new URLSearchParams();
+        if (nextFilter !== 'ALL') params.set('status', nextFilter);
+        if (nextQuery) params.set('q', nextQuery);
+        const queryString = params.toString();
+        const result = await apiFetch(`/api/orders${queryString ? `?${queryString}` : ''}`, {
+          schema: OrderList,
+        });
+        setOrders(result.items);
+        setError(null);
+      } catch {
+        if (!options?.silent) setError('Could not load orders. Try again.');
+      } finally {
+        if (!options?.silent) setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void load(filter, query);
+  }, [load, filter, query]);
+
+  // New orders can land while this tab is open. Poll quietly, refresh on
+  // focus, and refresh when a notification click focuses an existing tab.
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === 'visible') {
+        void load(filter, query, { silent: true });
+      }
+    };
+    const onFocus = () => void load(filter, query, { silent: true });
+    const onMessage = (event: MessageEvent) => {
+      if ((event.data as { type?: string } | null)?.type === 'tilza:notification-click') {
+        void load(filter, query, { silent: true });
+      }
+    };
+
+    const timer = window.setInterval(refresh, 15_000);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', refresh);
+    navigator.serviceWorker?.addEventListener('message', onMessage);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', refresh);
+      navigator.serviceWorker?.removeEventListener('message', onMessage);
+    };
   }, [load, filter, query]);
 
   async function updateStatus(order: OrderRecord, value: string) {
@@ -114,32 +152,32 @@ export function OrdersWorkspace() {
     }
   }
 
-  async function broadcastDelivery(order: OrderRecord) {
+  async function dispatchDelivery(order: OrderRecord, radiusKm?: number) {
     setUpdatingId(order.id);
     try {
-      const updated = await apiFetch(`/api/orders/${order.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ deliveryStatus: 'PENDING_DISPATCH' }),
-        schema: OrderItem,
+      const result = await apiFetch(`/api/orders/${order.id}/dispatch`, {
+        method: 'POST',
+        body: JSON.stringify(radiusKm ? { radiusKm } : {}),
+        schema: DispatchResult,
       });
       setOrders((current) =>
-        current.map((item) => (item.id === order.id ? { ...item, ...updated } : item)),
+        current.map((item) =>
+          item.id === order.id ? { ...item, deliveryStatus: 'PENDING_DISPATCH' } : item,
+        ),
       );
-      toast.success('Broadcast live — copy the rider link and share it');
-    } catch {
-      toast.error('Could not broadcast this delivery');
+      if (result.offers === 0) {
+        toast.error(
+          result.onlineCouriers === 0
+            ? 'Nobody is on shift. Ask a rider to go online, or share your crew invite from Delivery.'
+            : 'No on-shift rider within range. Widen the radius or ask a rider to move closer.',
+        );
+      } else {
+        toast.success(`Sent to ${result.offers} on-shift rider${result.offers === 1 ? '' : 's'}`);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not dispatch this delivery');
     } finally {
       setUpdatingId(null);
-    }
-  }
-
-  async function copyRiderLink(order: OrderRecord) {
-    const link = `${window.location.origin}/delivery/jobs/${order.orderNumber}`;
-    try {
-      await navigator.clipboard.writeText(link);
-      toast.success('Rider link copied');
-    } catch {
-      toast.error('Could not copy the link');
     }
   }
 
@@ -150,6 +188,9 @@ export function OrdersWorkspace() {
           <div>
             <p className="text-eyebrow">Order queue</p>
             <h1 className="mt-1 break-words text-h2 font-display">Orders</h1>
+            <p className="mt-1 text-caption text-muted-foreground">
+              Updates automatically while this tab is open.
+            </p>
           </div>
           <Button
             type="button"
@@ -295,11 +336,11 @@ export function OrdersWorkspace() {
                             type="button"
                             size="sm"
                             disabled={updatingId === order.id}
-                            onClick={() => void broadcastDelivery(order)}
+                            onClick={() => void dispatchDelivery(order)}
                             className="h-9 rounded-md font-semibold"
                           >
                             <Truck aria-hidden className="size-4" />
-                            {updatingId === order.id ? 'Broadcasting…' : 'Broadcast for delivery'}
+                            {updatingId === order.id ? 'Sending…' : 'Dispatch to crew'}
                           </Button>
                         ) : (
                           <>
@@ -308,18 +349,29 @@ export function OrdersWorkspace() {
                             </span>
                             {order.riderId && (
                               <span className="text-caption text-muted-foreground">
-                                Rider: {order.riderId}
+                                Courier: {order.riderId}
                               </span>
                             )}
-                            {order.deliveryStatus !== 'DELIVERED' && (
+                            {order.deliveryStatus === 'PENDING_DISPATCH' && (
                               <Button
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                onClick={() => void copyRiderLink(order)}
+                                disabled={updatingId === order.id}
+                                onClick={() => void dispatchDelivery(order, 10)}
                                 className="h-9 rounded-md font-semibold"
                               >
-                                <Copy aria-hidden className="size-4" /> Copy rider link
+                                <RefreshCcw aria-hidden className="size-4" /> Retry at 10 km
+                              </Button>
+                            )}
+                            {order.deliveryStatus !== 'DELIVERED' && (
+                              <Button
+                                asChild
+                                size="sm"
+                                variant="ghost"
+                                className="h-9 font-semibold"
+                              >
+                                <Link href="/dashboard/delivery">Manage delivery</Link>
                               </Button>
                             )}
                           </>

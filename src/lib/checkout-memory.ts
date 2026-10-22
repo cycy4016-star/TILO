@@ -12,6 +12,8 @@ export type LastOrderLine = {
 export type LastOrder = {
   orderNumber: string;
   placedAt: string;
+  /** Optional so older localStorage entries keep working. */
+  trackingUrl?: string | null;
   lines: LastOrderLine[];
 };
 

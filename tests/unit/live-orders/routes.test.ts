@@ -1,13 +1,14 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
 const db = vi.hoisted(() => ({
   prisma: {
     customer: { findFirst: vi.fn(), create: vi.fn() },
     store: { findFirst: vi.fn() },
-    storeItem: { findMany: vi.fn(), findFirst: vi.fn() },
+    storeItem: { findMany: vi.fn(), findFirst: vi.fn(), updateMany: vi.fn() },
     order: { create: vi.fn() },
+    $transaction: vi.fn(),
     promotion: { findMany: vi.fn() },
     notification: {
       findMany: vi.fn(),
@@ -63,7 +64,14 @@ const order = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.ORDER_TRACKING_SECRET = 'test-order-tracking-secret';
   auth.requireAuth.mockResolvedValue({ id: 'staff-1', email: 'staff@example.test' });
+  db.prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn(db.prisma));
+  db.prisma.storeItem.updateMany.mockResolvedValue({ count: 1 });
+});
+
+afterEach(() => {
+  delete process.env.ORDER_TRACKING_SECRET;
 });
 
 // The public capture routes rate-limit per IP (5/min). Every order request here
@@ -447,6 +455,65 @@ describe('public order placement', () => {
     expect(response.status).toBe(409);
     expect(db.prisma.customer.findFirst).not.toHaveBeenCalled();
     expect(db.prisma.customer.create).not.toHaveBeenCalled();
+    expect(db.prisma.order.create).not.toHaveBeenCalled();
+  });
+
+  it('reserves tracked stock inside the same transaction as the order', async () => {
+    const stocked = { ...item, pricePesewas: 4550, costPricePesewas: 2000, stock: 5 };
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([stocked]);
+    db.prisma.customer.findFirst.mockResolvedValue(existingCustomer);
+    db.prisma.order.create.mockResolvedValue(order);
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 2 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(db.prisma.$transaction).toHaveBeenCalledWith(expect.any(Function));
+    expect(db.prisma.storeItem.updateMany).toHaveBeenCalledWith({
+      where: { id: 'item-1', stock: { gte: 2 } },
+      data: { stock: { decrement: 2 } },
+    });
+    expect(db.prisma.order.create).toHaveBeenCalled();
+  });
+
+  it('does not create the order when the guarded stock update loses a race', async () => {
+    const stocked = { ...item, pricePesewas: 4550, costPricePesewas: 2000, stock: 5 };
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([stocked]);
+    db.prisma.customer.findFirst.mockResolvedValue(null);
+    db.prisma.customer.create.mockResolvedValue(newCustomer);
+    db.prisma.storeItem.updateMany.mockResolvedValue({ count: 0 });
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 2 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: 'Something just sold out — check the shelf and try again',
+    });
     expect(db.prisma.order.create).not.toHaveBeenCalled();
   });
 });

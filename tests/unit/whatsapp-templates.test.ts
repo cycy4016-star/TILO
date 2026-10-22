@@ -86,6 +86,19 @@ describe('whatsapp templates', () => {
     );
   });
 
+  it('carries the signed order tracking link when the order route mints one', () => {
+    const message = basketOrderWhatsApp({
+      storeName: 'Adom Fabrics',
+      orderNumber: 'TILZA-20261022-TRACK123',
+      trackingUrl: 'https://tilza.test/track/order-1.signature',
+      lines: [{ name: 'Kente Strip (1 yard)', quantity: 1, amount: 'GH₵ 120.00' }],
+      total: 'GH₵ 120.00',
+      customerName: 'Ama',
+      customerPhone: '0244999888',
+    });
+    expect(message).toContain('Track this order: https://tilza.test/track/order-1.signature');
+  });
+
   it('greets a past customer by first name for a follow-up', () => {
     const message = customerFollowUpWhatsApp('  Ama Mensah  ');
     expect(message).toContain('Hi Ama!');

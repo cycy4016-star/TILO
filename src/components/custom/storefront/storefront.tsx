@@ -8,7 +8,16 @@
 // add-to-basket moment.
 'use client';
 
-import { BadgeCheck, Boxes, ChevronDown, MessageCircle, RotateCcw, Tag, X } from 'lucide-react';
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  Boxes,
+  ChevronDown,
+  MessageCircle,
+  RotateCcw,
+  Tag,
+  X,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -257,6 +266,16 @@ export function Storefront({
                     ? ` · ${missingRepeatLines} ${missingRepeatLines === 1 ? 'item is' : 'items are'} no longer available`
                     : ''}
                 </p>
+                {lastOrder.trackingUrl && (
+                  <a
+                    href={lastOrder.trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-caption font-semibold text-primary underline-offset-2 hover:underline"
+                  >
+                    Track last order <ArrowUpRight aria-hidden className="size-3" />
+                  </a>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button

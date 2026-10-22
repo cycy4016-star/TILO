@@ -44,6 +44,8 @@ export type BasketOrderContext = {
   deliveryFee?: string | null;
   /** Google Maps pin for the customer's delivery entrance. */
   deliveryLocationUrl?: string | null;
+  /** Signed, account-free status page for this order. */
+  trackingUrl?: string | null;
   /** Amount payable after the discount and delivery fee, pre-formatted. */
   total: string;
   customerName: string;
@@ -60,6 +62,7 @@ export function basketOrderWhatsApp(context: BasketOrderContext): string {
     `Hi ${context.storeName}! I'd like to place an order.`,
     '',
     `Order ${context.orderNumber}`,
+    ...(context.trackingUrl ? [`Track this order: ${context.trackingUrl}`] : []),
     ...context.lines.map((line) => `${line.quantity}x ${line.name} — ${line.amount}`),
     '',
     ...(context.discountAmount

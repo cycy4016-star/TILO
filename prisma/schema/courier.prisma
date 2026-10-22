@@ -1,0 +1,242 @@
+// Merchant-owned courier crews and last-mile dispatch.
+//
+// A Courier is a platform-level person (one phone number, one login cookie),
+// not a shop User. Merchant crews are Store membership rows, so one approved
+// rider can deliver for more than one shop without creating another account.
+// Buyers never get an account: the signed order-tracking token is their only
+// capability.
+
+enum CourierStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum CourierMembershipStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum DeliveryOfferStatus {
+  OFFERED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum DeliveryEventType {
+  INVITED
+  JOINED
+  APPROVED
+  SUSPENDED
+  ONLINE
+  OFFLINE
+  DISPATCHED
+  OFFERED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  PICKED_UP
+  DELIVERED
+  HANDOFF_VERIFIED
+  BUYER_CONFIRMED
+  MERCHANT_VERIFIED
+  PROOF_UPLOADED
+}
+
+enum DeliveryActorType {
+  COURIER
+  MERCHANT
+  BUYER
+  SYSTEM
+}
+
+model Courier {
+  id          String        @id @default(cuid())
+  name        String
+  // E.164 from toE164(), unique so joining a second shop attaches to the same
+  // rider instead of creating a duplicate human.
+  phone       String        @unique
+  vehicleType String        @default("MOTORBIKE")
+  plateNumber String?
+  photo       Bytes?
+  photoMime   String?
+  status      CourierStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  sessions    CourierSession[]
+  memberships StoreCourier[]
+  location    CourierLocation?
+  offers      DeliveryOffer[]
+  orders      Order[]
+  events      DeliveryEvent[]
+  pushSubscriptions CourierPushSubscription[]
+
+  @@index([status])
+}
+
+// Invite-scoped courier sessions. The raw cookie token is never stored; only
+// its SHA-256 hash. This keeps the courier app independent from Better Auth's
+// shop-owner signup/trial counters.
+model CourierSession {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  courierId  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?
+  ipAddress  String?
+  courier    Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId])
+  @@index([expiresAt])
+}
+
+// One shareable crew link per merchant (rotate = revoke old + create new).
+// Anyone with the link may apply; the merchant's approval is the real gate.
+model CourierCrewInvite {
+  id         String    @id @default(cuid())
+  storeId   String
+  createdBy String
+  // Raw link token retained so the merchant can re-copy an active link. This
+  // is an application-only capability; approval is still a separate gate.
+  // Nullable only for invites created before this column existed.
+  token     String?   @unique
+  tokenHash String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  uses       Int       @default(0)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  store      Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  creator    User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([storeId, revokedAt])
+  @@index([expiresAt])
+}
+
+model StoreCourier {
+  id         String                  @id @default(cuid())
+  storeId    String
+  courierId  String
+  status     CourierMembershipStatus @default(PENDING)
+  approvedBy String?
+  approvedAt DateTime?
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+  store      Store                   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  courier    Courier                 @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, courierId])
+  @@index([storeId, status])
+  @@index([courierId])
+}
+
+// Last-known location only. There is no breadcrumb history: the newest reading
+// replaces the previous one, which is enough to rank nearby jobs and show the
+// buyer where the rider is now without building a surveillance trail.
+model CourierLocation {
+  courierId String   @id
+  lat       Float
+  lng       Float
+  accuracy  Float?
+  isOnline  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  courier   Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([isOnline, updatedAt])
+}
+
+// An offer is a pushable invitation to one rider for one order. The order's
+// compare-and-set accept remains the final arbiter; this table is for inbox,
+// expiry, and audit.
+model DeliveryOffer {
+  id          String              @id @default(cuid())
+  orderId     String
+  courierId   String
+  status      DeliveryOfferStatus @default(OFFERED)
+  distanceKm  Float?
+  createdAt   DateTime            @default(now())
+  respondedAt DateTime?
+  expiresAt   DateTime
+  order       Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courier     Courier             @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, courierId])
+  @@index([courierId, status, expiresAt])
+  @@index([orderId, status])
+}
+
+// Append-only delivery audit trail shown to the merchant and the operator.
+// Buyer confirmation and merchant verification are separate event types so a
+// merchant cannot accidentally overwrite what the buyer did.
+model DeliveryEvent {
+  id        String            @id @default(cuid())
+  orderId   String?
+  courierId String?
+  storeId   String?
+  type      DeliveryEventType
+  actorType DeliveryActorType
+  actorId   String?
+  note      String?
+  metadata  Json?
+  createdAt DateTime          @default(now())
+  order     Order?            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courier   Courier?          @relation(fields: [courierId], references: [id], onDelete: SetNull)
+  store     Store?            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@index([courierId, createdAt])
+  @@index([storeId, createdAt])
+}
+
+// Receiver-taken handoff photo. Private by default; marketing consent is a
+// separate boolean and the merchant gallery only shows consented photos.
+model DeliveryProof {
+  id               String   @id @default(cuid())
+  orderId          String
+  data             Bytes
+  mime             String
+  size             Int
+  sha256           String
+  marketingConsent Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+// Buyer tracking push subscriptions are scoped to the signed order token, not
+// to a merchant User, so the buyer never needs an account.
+model OrderPushSubscription {
+  id        String   @id @default(cuid())
+  orderId   String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// Courier devices subscribe with the invite-scoped session cookie. Push is the
+// courier's "widget": Android may show it standalone, iOS requires the PWA to
+// be installed first.
+model CourierPushSubscription {
+  id        String   @id @default(cuid())
+  courierId String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  courier   Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId])
+}

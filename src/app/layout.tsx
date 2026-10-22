@@ -19,6 +19,16 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   applicationName: siteName,
+  appleWebApp: {
+    capable: true,
+    title: siteName,
+    statusBarStyle: 'default',
+  },
+  formatDetection: { telephone: false },
+  other: { 'apple-mobile-web-app-capable': 'yes' },
+  icons: {
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   openGraph: {
     type: 'website',
     siteName,

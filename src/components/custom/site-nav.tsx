@@ -105,6 +105,14 @@ function isSetupPath(pathname: string) {
   return pathname === '/welcome' || pathname.startsWith('/welcome/');
 }
 
+function isCourierPath(pathname: string) {
+  return pathname === '/courier' || pathname.startsWith('/courier/');
+}
+
+function isTrackingPath(pathname: string) {
+  return pathname === '/track' || pathname.startsWith('/track/');
+}
+
 // Top-bar link typography: quiet by default, `text-foreground` when current so
 // the active item reads as chosen rather than hovered. `size` stays at the
 // default h-9 — `size="sm"` would add `text-xs`, which the compiler emits after
@@ -128,7 +136,14 @@ export function SiteNav() {
   const [open, setOpen] = React.useState(false);
 
   const pathname = usePathname();
-  if (isDashboardPath(pathname) || isStorePath(pathname) || isSetupPath(pathname)) return null;
+  if (
+    isDashboardPath(pathname) ||
+    isStorePath(pathname) ||
+    isSetupPath(pathname) ||
+    isCourierPath(pathname) ||
+    isTrackingPath(pathname)
+  )
+    return null;
 
   // Exact match for the root; segment-boundary match for everything else so
   // '/blog' highlights on '/blog/post' but '/' never matches every route.
@@ -389,7 +404,9 @@ export function SiteFooter() {
     pathname === '/' ||
     isDashboardPath(pathname) ||
     isStorePath(pathname) ||
-    isSetupPath(pathname)
+    isSetupPath(pathname) ||
+    isCourierPath(pathname) ||
+    isTrackingPath(pathname)
   )
     return null;
 

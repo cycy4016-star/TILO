@@ -34,6 +34,13 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
     title: store.name,
     description,
     alternates: { canonical },
+    // Installing from the shop installs the shop, not the seller dashboard.
+    manifest: `/store/${encodeURIComponent(store.slug)}/manifest`,
+    appleWebApp: {
+      capable: true,
+      title: store.name,
+      statusBarStyle: 'default',
+    },
     openGraph: {
       type: 'website',
       siteName,

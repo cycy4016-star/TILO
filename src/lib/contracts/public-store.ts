@@ -2,7 +2,8 @@
 // place orders on Tilza or leave their details, both landing straight in the
 // owner's customers list with a live notification.
 import { z } from 'zod';
-import { FulfillmentMethod, OrderItem } from '@/lib/contracts/order';
+import { PublicOrderCourier } from '@/lib/contracts/courier';
+import { DeliveryStatus, FulfillmentMethod, OrderItem, OrderStatus } from '@/lib/contracts/order';
 
 // One line in a storefront basket. The basket is a list of these, so a visitor
 // can push several products into one order instead of starting over each time.
@@ -84,6 +85,42 @@ export const PublicOrderResult = z.object({
   order: OrderItem,
   customerId: z.string(),
   createdCustomer: z.boolean(),
+  // Signed, account-free link the buyer can reopen after the receipt closes.
+  trackingUrl: z.string().url(),
+});
+
+// What an unauthenticated buyer may see at /track/[token]. Deliberately no
+// customer name, phone, address, coordinates, payment, or internal ids.
+export const PublicOrderTracking = z.object({
+  orderNumber: z.string(),
+  storeName: z.string(),
+  storeSlug: z.string(),
+  storePhone: z.string().nullable(),
+  storeAddress: z.string().nullable(),
+  storeLat: z.number().nullable(),
+  storeLng: z.number().nullable(),
+  status: OrderStatus,
+  fulfillmentMethod: FulfillmentMethod,
+  deliveryStatus: DeliveryStatus,
+  // Rider identity and last-known position after acceptance. Null until a
+  // courier is assigned; the exact buyer pin is never returned here.
+  courier: PublicOrderCourier.nullable(),
+  // Six-digit handoff code the buyer reads to the courier at the door. Only
+  // exposed after acceptance, and never in logs.
+  handoffCode: z.string().nullable(),
+  buyerConfirmedAt: z.string().datetime().nullable(),
+  deliveredAt: z.string().datetime().nullable(),
+  canConfirm: z.boolean(),
+  placedAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  lines: z.array(
+    z.object({
+      name: z.string(),
+      quantity: z.number().int().positive(),
+      lineTotalPesewas: z.number().int().nonnegative(),
+    }),
+  ),
+  totalPesewas: z.number().int().nonnegative().nullable(),
 });
 
 // Visitors leaving their details on the storefront. `consent` must be true —
@@ -103,4 +140,5 @@ export const PublicLeadResult = z.object({
 });
 
 export type PublicOrderCreateInput = z.infer<typeof PublicOrderCreate>;
+export type PublicOrderTracking = z.infer<typeof PublicOrderTracking>;
 export type PublicLeadCreateInput = z.infer<typeof PublicLeadCreate>;

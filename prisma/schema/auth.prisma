@@ -15,22 +15,22 @@
 // back here, and that column is the tenancy boundary for all reads and writes.
 
 model User {
-  id                  String    @id
+  id                  String              @id
   name                String
   email               String
   emailVerified       Boolean
   image               String?
-  role                String?   @default("user")
-  banned              Boolean?  @default(false)
+  role                String?             @default("user")
+  banned              Boolean?            @default(false)
   banReason           String?
   banExpires          DateTime?
   // Invite code collected at sign-up when SIGNUP_INVITE_CODE is set (see
   // src/lib/auth.ts). additionalFields in auth-config.ts maps this column.
-  inviteCode          String?   @default("")
+  inviteCode          String?             @default("")
   // Phone is the primary verified identity (see the phoneNumber plugin in
   // src/lib/auth.ts). Stored as E.164 (+233...) and unique across users.
-  phoneNumber         String?   @unique
-  phoneNumberVerified Boolean?  @default(false)
+  phoneNumber         String?             @unique
+  phoneNumberVerified Boolean?            @default(false)
   // End of the free trial. Every new account gets TRIAL_DAYS (30) of the full
   // toolkit; this is stamped at account creation by the user.create.before hook
   // in src/lib/auth.ts and backfilled from createdAt for pre-existing rows (see
@@ -48,34 +48,37 @@ model User {
   authEvents          AuthEvent[]
   // Per-shop ownership. One user = one workspace, so each of these is a
   // one-to-many from the account that signed up.
-  customers       Customer[]
-  orders          Order[]
-  store           Store?
-  notifications   Notification[]
+  customers           Customer[]
+  orders              Order[]
+  store               Store?
+  notifications       Notification[]
+  pushSubscriptions   PushSubscription[]
+  // Crew invite links this merchant account created.
+  courierInvites      CourierCrewInvite[]
   // Feedback filed against this shop (null-owner rows are platform-level and
   // never appear here - they only surface in the admin panel).
-  feedback        Feedback[]
+  feedback            Feedback[]
   // Operator (admin) alert stream: per-kind cadence/filter settings, events
   // waiting inside open digest windows, and the materialised alerts sent.
-  adminAlertSettings AdminAlertSetting[]
-  adminAlertEvents   AdminAlertEvent[]
-  adminAlerts        AdminAlert[]
+  adminAlertSettings  AdminAlertSetting[]
+  adminAlertEvents    AdminAlertEvent[]
+  adminAlerts         AdminAlert[]
 
   @@unique([email])
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime
+  updatedAt      DateTime
+  ipAddress      String?
+  userAgent      String?
   impersonatedBy String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
   // better-auth looks sessions up by user on sign-out / list; the FK had no

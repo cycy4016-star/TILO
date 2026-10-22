@@ -31,8 +31,13 @@ function dashboardUrl(path: string): string {
   return `${base}${path}`;
 }
 
+/** The same gate the alert writer uses — surfaced to settings so copy stays honest. */
+export function isMerchantEmailConfigured(): boolean {
+  return process.env.EMAIL_PROVIDER === 'resend' && Boolean(process.env.RESEND_API_KEY);
+}
+
 async function emailClient() {
-  if (process.env.EMAIL_PROVIDER !== 'resend' || !process.env.RESEND_API_KEY) return null;
+  if (!isMerchantEmailConfigured()) return null;
   return import('@/lib/email');
 }
 

@@ -14,17 +14,17 @@
 // `imagesIncluded`). `counts` repeats just the headline figures so the vault
 // list never has to parse multi-megabyte payloads.
 model WorldSnapshot {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
   // "boot" | "daily" | "manual"
-  trigger   String
-  counts    Json
+  trigger        String
+  counts         Json
   // Approximate serialized size of `payload`, in bytes.
-  bytes     Int
+  bytes          Int
   // False when the snapshot exceeded the image byte budget and was archived
   // text-only: restore brings back the words and numbers, not the photos.
-  imagesIncluded Boolean @default(false)
-  payload   Json
+  imagesIncluded Boolean  @default(false)
+  payload        Json
 
   @@index([createdAt])
   @@map("world_snapshot")

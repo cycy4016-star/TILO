@@ -1,8 +1,10 @@
 import 'server-only';
 
 import { NextResponse } from 'next/server';
+import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
 import { sendWeeklyDigest } from '@/lib/merchant-alerts';
+import { sendPushToUser } from '@/lib/push';
 import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +43,6 @@ async function run(request: Request) {
 
   let sent = 0;
   for (const store of stores) {
-    if (!store.user.email) continue;
     const [orders, newCustomers, lowStock] = await Promise.all([
       prisma.order.findMany({
         where: {
@@ -63,15 +64,27 @@ async function run(request: Request) {
     ]);
 
     const revenuePesewas = orders.reduce((sum, order) => sum + (order.amountPesewas ?? 0), 0);
-    const delivered = await sendWeeklyDigest({
-      to: store.user.email,
-      ownerName: store.user.name,
-      storeName: store.name,
-      orderCount: orders.length,
-      revenuePesewas,
-      newCustomers,
-      lowStock,
-    });
+    const [delivered] = await Promise.all([
+      store.user.email
+        ? sendWeeklyDigest({
+            to: store.user.email,
+            ownerName: store.user.name,
+            storeName: store.name,
+            orderCount: orders.length,
+            revenuePesewas,
+            newCustomers,
+            lowStock,
+          })
+        : Promise.resolve(false),
+      sendPushToUser(store.userId, {
+        title: `Your week at ${store.name}`.slice(0, 120),
+        body: `${orders.length} orders · ${formatGhs(revenuePesewas)} · ${newCustomers} new customers${
+          lowStock.length > 0 ? ` · ${lowStock.length} low stock` : ''
+        }`,
+        url: '/dashboard',
+        tag: `weekly-digest-${store.id}`,
+      }),
+    ]);
     if (delivered) sent += 1;
   }
 

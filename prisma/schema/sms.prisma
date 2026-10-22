@@ -11,19 +11,19 @@ enum SmsSource {
 }
 
 model SmsUsage {
-  id String @id @default(cuid())
+  id          String    @id @default(cuid())
   // Owning shop, when the send happened on a shop's behalf (automation, manual
   // send from the dashboard). Nullable and deliberately NOT a foreign key: sign-up
   // OTPs are sent before any account exists, and the platform summary digests
   // belong to no single shop. The usage API filters on this column, so a shop only
   // ever sees (and can only ever be billed for) its own traffic.
-  userId    String?
-  to        String
-  source    SmsSource @default(MANUAL)
-  body      String?
+  userId      String?
+  to          String
+  source      SmsSource @default(MANUAL)
+  body        String?
   // Estimated billing units: ceil(message length / 160) for one recipient.
-  segments  Int       @default(1)
-  credits   Int       @default(1)
+  segments    Int       @default(1)
+  credits     Int       @default(1)
   // Real provider key ("bms" | "arkesel") written by sendSms. The default is a
   // fallback for pre-existing rows created before the field was recorded.
   provider    String    @default("arkesel")
