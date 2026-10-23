@@ -27,6 +27,8 @@ export async function register(): Promise<void> {
     // biome-ignore lint/suspicious/noConsole: startup diagnostics — the vault failed but the server still boots.
     console.error('[tilza] vault startup failed:', error);
   }
+
+  startDispatchSweep();
 }
 
 // The self-archive rides on the boot hook: one snapshot at startup (at most
@@ -50,6 +52,26 @@ async function startVault(): Promise<void> {
       // Next tick will try again; the console shows the last snapshot's age.
     });
   }, VAULT_CHECK_MS).unref();
+}
+
+// Dispatch aging runs every 20 seconds inside each server process. The cron
+// endpoint exists for deployments that sleep, and the compare-and-set claims in
+// the sweep make running it from several processes harmless. The timer is
+// unref'd so it never keeps a build or test process alive.
+const DISPATCH_SWEEP_MS = 20_000;
+
+function startDispatchSweep(): void {
+  const guard = globalThis as typeof globalThis & { __tlzaDispatchSweepTimer?: boolean };
+  if (guard.__tlzaDispatchSweepTimer) return;
+  guard.__tlzaDispatchSweepTimer = true;
+
+  setInterval(() => {
+    void import('@/lib/dispatch-sweep')
+      .then(({ sweepDispatches }) => sweepDispatches())
+      .catch(() => {
+        // Next tick will try again; a failed sweep must never affect requests.
+      });
+  }, DISPATCH_SWEEP_MS).unref();
 }
 
 /**

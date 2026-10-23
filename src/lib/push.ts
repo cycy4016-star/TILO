@@ -15,6 +15,59 @@ export function isPushConfigured(): boolean {
   return Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 }
 
+export type PushConfigurationStatus = {
+  configured: boolean;
+  keysValid: boolean;
+  subject: string;
+  publicKeyLength: number;
+  missing: string[];
+};
+
+/**
+ * Safe deployment diagnostic: reports whether the VAPID pair is present and
+ * parseable without ever returning the private key. A signal reaches the
+ * browser only after this says keysValid.
+ */
+export async function pushConfigurationStatus(): Promise<PushConfigurationStatus> {
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT ?? 'mailto:no-reply@tilza.org';
+  const missing = [
+    ...(publicKey ? [] : ['VAPID_PUBLIC_KEY']),
+    ...(privateKey ? [] : ['VAPID_PRIVATE_KEY']),
+  ];
+
+  if (!publicKey || !privateKey) {
+    return {
+      configured: false,
+      keysValid: false,
+      subject,
+      publicKeyLength: publicKey?.length ?? 0,
+      missing,
+    };
+  }
+
+  try {
+    const webpush = await import('web-push');
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+    return {
+      configured: true,
+      keysValid: true,
+      subject,
+      publicKeyLength: publicKey.length,
+      missing,
+    };
+  } catch {
+    return {
+      configured: true,
+      keysValid: false,
+      subject,
+      publicKeyLength: publicKey.length,
+      missing,
+    };
+  }
+}
+
 async function pushClient() {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;

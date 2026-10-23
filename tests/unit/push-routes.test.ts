@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
 const push = vi.hoisted(() => ({
   isPushConfigured: vi.fn(),
+  pushConfigurationStatus: vi.fn(),
   sendPushToUser: vi.fn(),
 }));
 const db = vi.hoisted(() => ({
@@ -31,6 +32,13 @@ beforeEach(() => {
   process.env.VAPID_PUBLIC_KEY = 'test-public-key';
   auth.requireAuth.mockResolvedValue({ id: 'user-1' });
   push.isPushConfigured.mockReturnValue(true);
+  push.pushConfigurationStatus.mockResolvedValue({
+    configured: true,
+    keysValid: true,
+    subject: 'mailto:no-reply@tilza.org',
+    publicKeyLength: 87,
+    missing: [],
+  });
   push.sendPushToUser.mockResolvedValue({ sent: 1, failed: 0, removed: 0 });
   db.prisma.pushSubscription.count.mockResolvedValue(1);
   db.prisma.pushSubscription.upsert.mockResolvedValue({});
@@ -53,12 +61,19 @@ function jsonRequest(url: string, method: string, body?: unknown) {
 
 describe('push config route', () => {
   it('reports when push is not configured', async () => {
-    push.isPushConfigured.mockReturnValue(false);
+    push.pushConfigurationStatus.mockResolvedValueOnce({
+      configured: false,
+      keysValid: false,
+      subject: 'mailto:no-reply@tilza.org',
+      publicKeyLength: 0,
+      missing: ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'],
+    });
     const { GET } = await import('@/app/api/push/route');
     const response = await GET(new Request('http://test/api/push'));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       configured: false,
+      keysValid: false,
       publicKey: null,
       subscribed: false,
       deviceCount: 0,
@@ -72,6 +87,7 @@ describe('push config route', () => {
     const response = await GET(new Request('http://test/api/push'));
     expect(await response.json()).toEqual({
       configured: true,
+      keysValid: true,
       publicKey: 'test-public-key',
       subscribed: true,
       deviceCount: 1,
@@ -88,6 +104,45 @@ describe('push config route', () => {
     const { GET } = await import('@/app/api/push/route');
     const response = await GET(new Request('http://test/api/push'));
     expect((await response.json()).emailConfigured).toBe(true);
+  });
+});
+
+describe('push diagnostics route', () => {
+  it('reports key health and the owner device count without exposing secrets', async () => {
+    const { GET } = await import('@/app/api/push/diagnose/route');
+    const response = await GET(new Request('http://test/api/push/diagnose'));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toEqual({
+      configured: true,
+      keysValid: true,
+      subject: 'mailto:no-reply@tilza.org',
+      publicKeyLength: 87,
+      missing: [],
+      subscriptions: 1,
+    });
+    expect(JSON.stringify(body)).not.toContain('private');
+    expect(db.prisma.pushSubscription.count).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+    });
+  });
+
+  it('still answers safely when keys are missing', async () => {
+    push.pushConfigurationStatus.mockResolvedValueOnce({
+      configured: false,
+      keysValid: false,
+      subject: 'mailto:no-reply@tilza.org',
+      publicKeyLength: 0,
+      missing: ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'],
+    });
+    const { GET } = await import('@/app/api/push/diagnose/route');
+    const response = await GET(new Request('http://test/api/push/diagnose'));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      configured: false,
+      keysValid: false,
+      missing: ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'],
+    });
   });
 });
 
@@ -146,6 +201,14 @@ describe('push subscribe route', () => {
 });
 
 describe('push test route', () => {
+  it('refuses to pretend it sent when VAPID keys are absent', async () => {
+    push.isPushConfigured.mockReturnValue(false);
+    const { POST } = await import('@/app/api/push/test/route');
+    const response = await POST(jsonRequest('/api/push/test', 'POST'));
+    expect(response.status).toBe(503);
+    expect(push.sendPushToUser).not.toHaveBeenCalled();
+  });
+
   it('sends a test notification to the signed-in owner', async () => {
     const { POST } = await import('@/app/api/push/test/route');
     const response = await POST(jsonRequest('/api/push/test', 'POST'));

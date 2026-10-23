@@ -32,6 +32,8 @@ enum DeliveryEventType {
   ONLINE
   OFFLINE
   DISPATCHED
+  DISPATCH_WIDENED
+  DISPATCH_FALLBACK
   OFFERED
   ACCEPTED
   DECLINED
@@ -49,6 +51,14 @@ enum DeliveryActorType {
   MERCHANT
   BUYER
   SYSTEM
+}
+
+// Marketing moderation is separate from the buyer's consent: consent opens the
+// photo to review, and only an approved photo may be used publicly.
+enum ProofReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Courier {
@@ -195,17 +205,22 @@ model DeliveryEvent {
 // Receiver-taken handoff photo. Private by default; marketing consent is a
 // separate boolean and the merchant gallery only shows consented photos.
 model DeliveryProof {
-  id               String   @id @default(cuid())
+  id               String            @id @default(cuid())
   orderId          String
   data             Bytes
   mime             String
   size             Int
   sha256           String
-  marketingConsent Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  marketingConsent Boolean           @default(false)
+  reviewStatus     ProofReviewStatus @default(PENDING)
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  reviewNote       String?
+  createdAt        DateTime          @default(now())
+  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId, createdAt])
+  @@index([marketingConsent, reviewStatus, createdAt])
 }
 
 // Buyer tracking push subscriptions are scoped to the signed order token, not
@@ -213,7 +228,9 @@ model DeliveryProof {
 model OrderPushSubscription {
   id        String   @id @default(cuid())
   orderId   String
-  endpoint  String   @unique
+  // One browser endpoint can follow several orders at once, so uniqueness is
+  // per order rather than global. A newer order no longer steals an older one.
+  endpoint  String
   p256dh    String
   auth      String
   userAgent String?
@@ -221,7 +238,8 @@ model OrderPushSubscription {
   updatedAt DateTime @updatedAt
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  @@index([orderId])
+  @@unique([orderId, endpoint])
+  @@index([endpoint])
 }
 
 // Courier devices subscribe with the invite-scoped session cookie. Push is the

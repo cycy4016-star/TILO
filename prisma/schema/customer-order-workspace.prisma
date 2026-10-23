@@ -123,6 +123,12 @@ model Order {
   merchantVerifiedAt DateTime?
   merchantVerifiedBy String?
   deliveryNote       String?
+  // Auto-dispatch lifecycle. StartedAt is the first broadcast; the sweep widens
+  // once after 90s and alerts the merchant after 2 minutes if nobody accepted.
+  dispatchStartedAt  DateTime?
+  dispatchRadiusKm   Float?
+  dispatchWidenedAt  DateTime?
+  dispatchFallbackAt DateTime?
   deliveredAt        DateTime?
   paidAt             DateTime?
   createdAt          DateTime                @default(now())
@@ -147,8 +153,8 @@ model Order {
   @@index([orderNumber])
   @@index([paidAt])
   // The public rider queue resolves a gig by order number and filters on the
-  // broadcast state.
-  @@index([deliveryStatus])
+  // broadcast state. The sweep index finds stale PENDING_DISPATCH rows cheaply.
+  @@index([deliveryStatus, dispatchStartedAt])
   @@index([courierId])
   // Global time ranges (admin overview's "orders this month") filter on bare
   // createdAt — the per-user variants above cannot serve those.

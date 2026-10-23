@@ -98,17 +98,24 @@ export async function joinCrew(input: {
     );
   }
 
+  const plateNumber = input.plateNumber?.trim() || null;
   const membership = await prisma.$transaction(async (tx) => {
-    const courier =
-      existing ??
-      (await tx.courier.create({
-        data: {
-          name: input.name,
-          phone,
-          vehicleType: input.vehicleType,
-          plateNumber: input.plateNumber?.trim() || null,
-        },
-      }));
+    const courier = existing
+      ? // The join form is the rider's own profile. Re-opening an invite with a
+        // corrected name, vehicle or plate should not leave the crew looking at
+        // details the rider already fixed. Membership status is still untouched.
+        await tx.courier.update({
+          where: { id: existing.id },
+          data: { name: input.name, vehicleType: input.vehicleType, plateNumber },
+        })
+      : await tx.courier.create({
+          data: {
+            name: input.name,
+            phone,
+            vehicleType: input.vehicleType,
+            plateNumber,
+          },
+        });
 
     const member = await tx.storeCourier.upsert({
       where: { storeId_courierId: { storeId: invite.storeId, courierId: courier.id } },

@@ -424,6 +424,49 @@ export const AdminVaultRestore = z.object({
 });
 export type AdminVaultRestore = z.infer<typeof AdminVaultRestore>;
 
+// ── proof gallery ───────────────────────────────────────────────────────
+// Buyer-uploaded delivery photos that came with marketing consent. Consent is
+// the door; moderation is the lock: only APPROVED proofs may be used publicly.
+export const AdminProofStatus = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+export type AdminProofStatus = z.infer<typeof AdminProofStatus>;
+
+export const AdminProofRow = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  orderNumber: z.string(),
+  shop: z.string().nullable(),
+  buyer: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  size: z.number().int().nonnegative(),
+  mime: z.string(),
+  reviewStatus: AdminProofStatus,
+  reviewedAt: z.string().datetime().nullable(),
+  reviewNote: z.string().nullable(),
+  imageUrl: z.string(),
+});
+export type AdminProofRow = z.infer<typeof AdminProofRow>;
+
+export const AdminProofList = z.object({
+  items: z.array(AdminProofRow),
+  total: z.number().int().nonnegative(),
+  pending: z.number().int().nonnegative(),
+  approved: z.number().int().nonnegative(),
+  rejected: z.number().int().nonnegative(),
+});
+export type AdminProofList = z.infer<typeof AdminProofList>;
+
+export const AdminProofQuery = z.object({
+  status: AdminProofStatus.optional(),
+});
+export type AdminProofQuery = z.infer<typeof AdminProofQuery>;
+
+export const AdminProofUpdate = z.object({
+  id: z.string().min(1),
+  status: z.enum(['APPROVED', 'REJECTED']),
+  note: z.string().trim().max(300).optional(),
+});
+export type AdminProofUpdate = z.infer<typeof AdminProofUpdate>;
+
 // ── doctor ────────────────────────────────────────────────────────────────────
 // The self-check. Every result is written for an operator who has never seen a
 // terminal: one plain sentence saying what is true right now, and numbered

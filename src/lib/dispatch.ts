@@ -4,7 +4,6 @@
 // on the order so two riders can never both win.
 import 'server-only';
 
-import { randomInt } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { haversineDistanceKm } from '@/lib/delivery';
 import { sendPushToCourier } from '@/lib/push';
@@ -23,7 +22,8 @@ export class DispatchError extends Error {
 }
 
 export function newHandoffCode(): string {
-  return randomInt(0, 1_000_000).toString().padStart(6, '0');
+  const [value = 0] = crypto.getRandomValues(new Uint32Array(1));
+  return (value % 1_000_000).toString().padStart(6, '0');
 }
 
 export type DispatchOutcome = {
@@ -35,7 +35,7 @@ export type DispatchOutcome = {
 
 export async function dispatchOrder(
   orderId: string,
-  options?: { radiusKm?: number },
+  options?: { radiusKm?: number; restart?: boolean },
 ): Promise<DispatchOutcome> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -48,6 +48,7 @@ export async function dispatchOrder(
       customerLat: true,
       customerLng: true,
       handoffCode: true,
+      dispatchStartedAt: true,
       user: {
         select: {
           store: {
@@ -80,10 +81,20 @@ export async function dispatchOrder(
 
   const radiusKm = Math.min(50, Math.max(1, options?.radiusKm ?? store.dispatchRadiusKm ?? 5));
   const handoffCode = order.handoffCode ?? newHandoffCode();
+  const now = new Date();
 
   await prisma.order.update({
     where: { id: order.id },
-    data: { deliveryStatus: 'PENDING_DISPATCH', handoffCode },
+    data: {
+      deliveryStatus: 'PENDING_DISPATCH',
+      handoffCode,
+      dispatchRadiusKm: radiusKm,
+      // A merchant broadcast/retry starts a fresh 90s/2min clock. Automatic
+      // re-dispatch from the sweep keeps the original clock.
+      dispatchStartedAt: options?.restart || !order.dispatchStartedAt ? now : undefined,
+      dispatchWidenedAt: options?.restart ? null : undefined,
+      dispatchFallbackAt: options?.restart ? null : undefined,
+    },
   });
 
   const memberships = await prisma.storeCourier.findMany({

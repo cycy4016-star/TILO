@@ -103,7 +103,12 @@ describe('dispatchOrder', () => {
     );
     expect(db.prisma.order.update).toHaveBeenCalledWith({
       where: { id: 'order-1' },
-      data: { deliveryStatus: 'PENDING_DISPATCH', handoffCode: '123456' },
+      data: expect.objectContaining({
+        deliveryStatus: 'PENDING_DISPATCH',
+        handoffCode: '123456',
+        dispatchRadiusKm: 5,
+        dispatchStartedAt: expect.any(Date),
+      }),
     });
   });
 

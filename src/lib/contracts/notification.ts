@@ -7,6 +7,7 @@ export const NotificationKind = z.enum([
   'ORDER_PLACED',
   'SMS_SENT',
   'SMS_FAILED',
+  'DELIVERY_ATTENTION',
 ]);
 
 export const NotificationRecord = z.object({

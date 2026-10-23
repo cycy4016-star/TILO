@@ -4,7 +4,15 @@
 // SMS sends.
 'use client';
 
-import { Bell, Check, MessageCircleX, MessageSquareMore, Package, UserPlus } from 'lucide-react';
+import {
+  Bell,
+  Check,
+  MessageCircleX,
+  MessageSquareMore,
+  Package,
+  Truck,
+  UserPlus,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,6 +30,7 @@ const kindLabels: Record<NotificationRecord['kind'], string> = {
   ORDER_PLACED: 'Order',
   SMS_SENT: 'SMS sent',
   SMS_FAILED: 'SMS failed',
+  DELIVERY_ATTENTION: 'Delivery needs you',
 };
 
 function kindIcon(kind: NotificationRecord['kind']) {
@@ -34,6 +43,8 @@ function kindIcon(kind: NotificationRecord['kind']) {
       return MessageSquareMore;
     case 'SMS_FAILED':
       return MessageCircleX;
+    case 'DELIVERY_ATTENTION':
+      return Truck;
   }
 }
 
@@ -140,7 +151,7 @@ export function NotificationBell() {
                   >
                     <span
                       className={`relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md ${
-                        item.kind === 'SMS_FAILED'
+                        item.kind === 'SMS_FAILED' || item.kind === 'DELIVERY_ATTENTION'
                           ? 'bg-destructive/10 text-destructive'
                           : 'bg-primary/10 text-highlight-ink'
                       }`}

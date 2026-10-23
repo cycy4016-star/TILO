@@ -10,11 +10,22 @@ export const PushSubscriptionInput = z.object({
 
 export const PushConfig = z.object({
   configured: z.boolean(),
+  // Presence alone is not enough: malformed VAPID keys must fail visibly.
+  keysValid: z.boolean(),
   publicKey: z.string().nullable(),
   subscribed: z.boolean(),
   deviceCount: z.number().int().nonnegative(),
   // Whether the merchant email fallback is actually live on this deployment.
   emailConfigured: z.boolean(),
+});
+
+export const PushDiagnostics = z.object({
+  configured: z.boolean(),
+  keysValid: z.boolean(),
+  subject: z.string(),
+  publicKeyLength: z.number().int().nonnegative(),
+  missing: z.array(z.string()),
+  subscriptions: z.number().int().nonnegative(),
 });
 
 export const PushEndpointInput = z.object({ endpoint: z.string().url().max(4096) });
@@ -38,5 +49,6 @@ export const PushPayload = z.object({
 
 export type PushSubscriptionInput = z.infer<typeof PushSubscriptionInput>;
 export type PushConfig = z.infer<typeof PushConfig>;
+export type PushDiagnostics = z.infer<typeof PushDiagnostics>;
 export type PushTestResult = z.infer<typeof PushTestResult>;
 export type PushPayload = z.infer<typeof PushPayload>;

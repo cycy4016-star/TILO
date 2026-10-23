@@ -75,6 +75,10 @@ export function PushSettings() {
       toast.error('Push notifications are not configured on this deployment yet.');
       return;
     }
+    if (!config.keysValid) {
+      toast.error('The push keys on this deployment are invalid. Ask the operator to check them.');
+      return;
+    }
     if (isIos && !standalone) {
       toast.error('Add Tilza to your Home Screen first, then open it from the icon.');
       return;
@@ -204,6 +208,12 @@ export function PushSettings() {
           {config?.emailConfigured
             ? 'Email alerts still work.'
             : 'Email alerts are not configured yet either.'}
+        </div>
+      ) : !config.keysValid ? (
+        <div className="mt-5 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-5 text-small text-muted-foreground">
+          The VAPID keys on this deployment are present but invalid, so browsers cannot subscribe.
+          Ask the operator to verify <code>VAPID_PUBLIC_KEY</code>, <code>VAPID_PRIVATE_KEY</code>{' '}
+          and <code>VAPID_SUBJECT</code>.
         </div>
       ) : (
         <div className="mt-5 grid gap-4">

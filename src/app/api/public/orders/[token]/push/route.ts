@@ -55,20 +55,22 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Invalid push subscription' }, { status: 400 });
     }
     const input = parsed.data;
+    const userAgent = request.headers.get('user-agent')?.slice(0, 500) ?? null;
     await prisma.orderPushSubscription.upsert({
-      where: { endpoint: input.endpoint },
+      // One browser can follow several orders. Keying by order + endpoint keeps
+      // a newer order from stealing the subscription of an older one.
+      where: { orderId_endpoint: { orderId, endpoint: input.endpoint } },
       create: {
         orderId,
         endpoint: input.endpoint,
         p256dh: input.keys.p256dh,
         auth: input.keys.auth,
-        userAgent: request.headers.get('user-agent')?.slice(0, 500) ?? null,
+        userAgent,
       },
       update: {
-        orderId,
         p256dh: input.keys.p256dh,
         auth: input.keys.auth,
-        userAgent: request.headers.get('user-agent')?.slice(0, 500) ?? null,
+        userAgent,
       },
     });
     return NextResponse.json(PushSubscribeResult.parse({ subscribed: true }));

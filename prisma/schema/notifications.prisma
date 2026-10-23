@@ -9,6 +9,7 @@ enum NotificationKind {
   ORDER_PLACED
   SMS_SENT
   SMS_FAILED
+  DELIVERY_ATTENTION
 }
 
 model Notification {

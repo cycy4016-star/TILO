@@ -108,6 +108,11 @@ See `.env.example` for the full list:
 - `NEXT_PUBLIC_APP_URL` — public app origin for SEO/canonical URLs.
 - `NEXT_PUBLIC_API_URL` — optional, only for an external API origin.
 - `SEO_INDEXABLE` — set to `true` in production to allow indexing.
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — optional Web
+  Push credentials; generate with `npx web-push generate-vapid-keys`. Keep both
+  keys stable across deploys.
+- `CRON_SECRET` — optional bearer secret for `/api/cron/weekly-digest` and
+  `/api/cron/dispatch-sweep`.
 
 Google OAuth (the sign-in / sign-up identity):
 
@@ -217,6 +222,48 @@ src/
 tests/unit                  Vitest (contracts, routes, tenant isolation, roles, CSP, SEO)
 tests/integration           Postgres persistence (needs TEST_DATABASE_URL)
 ```
+
+## Web Push
+
+Web Push is optional. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and a
+`VAPID_SUBJECT` (`mailto:` or an origin), then redeploy. `/api/push/diagnose`
+reports whether both keys are present and parseable without returning the
+private key; the dashboard's notification card shows the same readiness state.
+
+Real-device check (the part a build cannot prove):
+
+1. Open the deployed site over HTTPS (or `localhost`) and sign in.
+2. Go to the dashboard notification settings, choose **Turn on**, and allow
+   notifications.
+3. Press **Send a test notification** and confirm the operating system shows it
+   while the tab is backgrounded or the installed app is closed.
+4. If it does not arrive, check the OS notification permission, then
+   `/api/push/diagnose`. A `404`/`410` from the push service removes that
+   expired browser subscription automatically.
+
+## Dispatch recovery
+
+A local-delivery order starts its dispatch clock when the merchant broadcasts
+the rider job. An in-process sweep checks every 20 seconds: after 90 seconds with no
+rider it widens the radius by 5 km (minimum 10 km, maximum 50 km), and after two
+minutes it writes a `DELIVERY_ATTENTION` bell notification and pushes the
+merchant. A merchant pressing **Dispatch** again starts a fresh clock.
+
+For deployments that sleep, set `CRON_SECRET` and call
+`GET`/`POST /api/cron/dispatch-sweep` with
+`Authorization: Bearer <CRON_SECRET>` from an uptime cron. The endpoint returns
+`503` when the secret is unset and `401` for a wrong bearer token.
+
+The compare-and-set updates in `src/lib/dispatch-sweep.ts` make concurrent
+sweeps safe: only one worker widens or alerts for a given order.
+
+## Delivery proof gallery
+
+The operator proof gallery lives at `/dashboard/admin/proofs`. Only photos
+uploaded by a buyer who ticked marketing consent appear there; each one is
+`PENDING` until an operator approves or rejects it. Consent and moderation are
+deliberately separate: approval does not grant consent, and consent alone does
+not make a photo public.
 
 ## License
 

@@ -5,6 +5,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { CrewDeliveryList } from '@/lib/contracts/courier';
 import { prisma } from '@/lib/db';
+import { sweepDispatches } from '@/lib/dispatch-sweep';
 import { requireAuth } from '@/lib/require-auth';
 import { routeErrorResponse } from '@/lib/telemetry';
 
@@ -13,6 +14,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const user = await requireAuth(request);
+    // The delivery desk already polls; use that heartbeat to keep stale
+    // broadcasts moving even when no external cron is configured.
+    await sweepDispatches().catch(() => undefined);
     const orders = await prisma.order.findMany({
       where: {
         userId: user.id,

@@ -99,6 +99,14 @@ export const SECTIONS = [
     blurb:
       'Self-examination: ten checks, plain results, and a copyable report — start here when anything feels wrong.',
   },
+  {
+    code: 'PG',
+    fn: 'F12',
+    href: '/dashboard/admin/proofs',
+    label: 'PROOFS',
+    blurb:
+      'Consented delivery photos waiting for marketing review. Approve only what can be shown publicly.',
+  },
 ] as const;
 
 const FEED_PATH = '/api/admin/overview?days=14';
@@ -301,7 +309,7 @@ function CommandLine({ onHelp }: { onHelp: () => void }) {
           setValue(event.target.value);
           setNote(null);
         }}
-        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP  VT  DR   ·   HELP  ·   ?"
+        placeholder="CODE + <GO>   ·   OV  SH  AC  PR  EV  HL  FB  AL  RP  VT  DR  PG   ·   HELP  ·   ?"
         className="min-w-0 flex-1 border border-[var(--t-border)] bg-[var(--t-input)] px-2.5 py-[5px] text-[12px] text-[var(--t-bright)] placeholder:text-[var(--t-faint)] focus:border-[var(--t-amber)] focus:outline-none"
       />
       <button

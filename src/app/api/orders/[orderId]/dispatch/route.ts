@@ -29,7 +29,10 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     try {
-      const result = await dispatchOrder(order.id, { radiusKm: parsed.data.radiusKm });
+      const result = await dispatchOrder(order.id, {
+        radiusKm: parsed.data.radiusKm,
+        restart: true,
+      });
       return NextResponse.json(
         DispatchResult.parse({
           ok: true,
