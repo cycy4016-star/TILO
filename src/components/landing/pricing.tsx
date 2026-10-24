@@ -42,7 +42,7 @@ export function Pricing() {
           </div>
         </Reveal>
 
-        <div className="mt-7 grid items-stretch gap-4 md:grid-cols-3">
+        <div className="mx-auto mt-7 grid max-w-3xl items-stretch gap-4 md:grid-cols-2">
           {PLANS.map((plan, index) => {
             const price = billingPrice(plan, cycle);
             return (

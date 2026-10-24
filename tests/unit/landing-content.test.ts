@@ -52,8 +52,8 @@ describe('pricing toggle math', () => {
 });
 
 describe('plan config', () => {
-  it('offers three plans with exactly one highlighted', () => {
-    expect(PLANS).toHaveLength(3);
+  it('offers two plans with exactly one highlighted', () => {
+    expect(PLANS).toHaveLength(2);
     expect(PLANS.filter((plan) => plan.highlighted)).toHaveLength(1);
   });
 

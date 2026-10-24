@@ -139,17 +139,6 @@ export const PLANS: Plan[] = [
       'Discount codes & promos',
     ],
   },
-  {
-    id: 'studio',
-    name: 'Studio',
-    tagline: 'For teams and high-volume shops.',
-    monthly: 120,
-    yearly: 1200,
-    cta: 'Talk to us',
-    href: '/signup',
-    highlighted: false,
-    features: ['Everything in Shop', 'Sales analytics', 'Priority support'],
-  },
 ];
 
 /** Whole-cedi saving of yearly vs 12× monthly, or null when it does not apply. */
