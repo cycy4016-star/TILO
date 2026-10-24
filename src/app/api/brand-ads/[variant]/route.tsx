@@ -19,7 +19,7 @@ export const contentType = 'image/png';
 type RouteContext = { params: Promise<{ variant: string }> };
 
 // Bump when the campaign artwork changes so cached images are re-rendered.
-const ARTWORK_VERSION = new Date('2026-10-24T00:00:00.000Z');
+const ARTWORK_VERSION = new Date('2026-10-24T14:00:00.000Z');
 
 const CREAM = '#fffaf5';
 const WASH = '#fff3e8';
@@ -47,7 +47,7 @@ function brandLogoData(): string | null {
 }
 
 const BRAND_LOGO = brandLogoData();
-const BRAND_LOGO_ASPECT = 1378 / 477;
+const BRAND_LOGO_ASPECT = 1231 / 472;
 
 function Logo({ size = 38 }: { size?: number }) {
   if (BRAND_LOGO) {

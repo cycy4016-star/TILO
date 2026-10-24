@@ -55,10 +55,20 @@ export async function GET(_request: Request, context: RouteContext) {
             },
           ]
         : []),
-      { src: '/icons/icon-192.png', type: 'image/png', sizes: '192x192', purpose: 'any' as const },
-      { src: '/icons/icon-512.png', type: 'image/png', sizes: '512x512', purpose: 'any' as const },
       {
-        src: '/icons/icon-maskable-512.png',
+        src: '/icons/icon-192.png?v=2',
+        type: 'image/png',
+        sizes: '192x192',
+        purpose: 'any' as const,
+      },
+      {
+        src: '/icons/icon-512.png?v=2',
+        type: 'image/png',
+        sizes: '512x512',
+        purpose: 'any' as const,
+      },
+      {
+        src: '/icons/icon-maskable-512.png?v=2',
         type: 'image/png',
         sizes: '512x512',
         purpose: 'maskable' as const,

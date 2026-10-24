@@ -7,9 +7,11 @@ export const siteDescription =
 
 // Uploaded logo. While it is null, the app renders its built-in "TILZA"
 // wordmark instead — see src/components/custom/tilza-logo.tsx.
-export const brandLogo: string | null = '/brand/tilza-logo.png';
+export const brandLogo: string | null = '/brand/tilza-logo.png?v=2';
 // Knockout variant for ink/dark surfaces (Terminal masthead).
-export const brandLogoLight: string | null = '/brand/tilza-logo-light.png';
+export const brandLogoLight: string | null = '/brand/tilza-logo-light.png?v=2';
+// Bag-only mark for compact surfaces (dashboard header).
+export const brandMark = '/brand/tilza-mark.png?v=2';
 
 // PWA + social-share colors. HEX only — set to match the orange marketplace
 // palette in custom-style.css.

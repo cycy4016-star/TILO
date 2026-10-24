@@ -1,10 +1,10 @@
-const SHELL_CACHE = 'tilza-shell-v3';
+const SHELL_CACHE = 'tilza-shell-v4';
 const OFFLINE_URL = '/offline.html';
 const SHELL_ASSETS = [
   OFFLINE_URL,
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/apple-touch-icon.png',
+  '/icons/icon-192.png?v=2',
+  '/icons/icon-512.png?v=2',
+  '/icons/apple-touch-icon.png?v=2',
 ];
 
 self.addEventListener('install', (event) => {
@@ -78,8 +78,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: payload.icon || '/icons/icon-192.png',
-      badge: payload.badge || '/icons/badge-96.png',
+      icon: payload.icon || '/icons/icon-192.png?v=2',
+      badge: payload.badge || '/icons/badge-96.png?v=2',
       tag: payload.tag || 'tilza',
       renotify: false,
       data: { url },

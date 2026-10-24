@@ -9,6 +9,8 @@
 // confirming which look the workspace is in.
 'use client';
 
+import { brandMark } from '@/lib/brand';
+
 export function BrandMark({ className }: { className?: string }) {
   return (
     <span
@@ -20,7 +22,7 @@ export function BrandMark({ className }: { className?: string }) {
       }
     >
       {/* biome-ignore lint/performance/noImgElement: tiny static brand mark. */}
-      <img src="/brand/tilza-mark.png" alt="" className="size-5 object-contain" />
+      <img src={brandMark} alt="" className="size-5 object-contain" />
     </span>
   );
 }

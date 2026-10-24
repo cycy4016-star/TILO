@@ -28,7 +28,7 @@ export function TilzaLogo({ className, withAccent = true, tone = 'brand' }: Tilz
         src={logoSrc}
         alt={siteName}
         style={{ width: 'auto', maxWidth: 'none' }}
-        className={cn('inline-block h-[1.7em] shrink-0 object-contain', className)}
+        className={cn('inline-block h-[1.9em] shrink-0 object-contain', className)}
       />
     );
   }

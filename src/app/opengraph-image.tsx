@@ -29,7 +29,7 @@ export default function OpengraphImage() {
       }}
     >
       {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
-      <img src={brandLogoSrc} alt="Tilza" width={260} height={90} />
+      <img src={brandLogoSrc} alt="Tilza" width={260} height={100} />
       <div style={{ display: 'flex', marginTop: 28, fontSize: 40, opacity: 0.85 }}>
         {brandVisual.og.tagline}
       </div>

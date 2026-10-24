@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { ImageResponse } from 'next/og';
 import { z } from 'zod';
 import { AD_CARD, AD_TEXT, adPalette, clampText, nameFontSize } from '@/lib/ad-visuals';
@@ -7,6 +9,10 @@ import { siteUrl } from '@/lib/site';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const alt = 'Shop online on Tilza';
+
+const brandLogoSrc = `data:image/png;base64,${readFileSync(
+  path.join(process.cwd(), 'public', 'brand', 'tilza-logo.png'),
+).toString('base64')}`;
 
 const ShareStore = z.object({
   name: z.string(),
@@ -181,8 +187,19 @@ export default async function StoreOpengraphImage({ params }: ImageProps) {
             >
               Shop the catalogue
             </div>
-            <div style={{ display: 'flex', fontSize: 24, color: 'rgba(10,10,10,0.45)' }}>
-              {storeUrl}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: 10,
+              }}
+            >
+              {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+              <img src={brandLogoSrc} alt="Tilza" width={132} height={51} />
+              <div style={{ display: 'flex', fontSize: 24, color: 'rgba(10,10,10,0.45)' }}>
+                {storeUrl}
+              </div>
             </div>
           </div>
         </div>
