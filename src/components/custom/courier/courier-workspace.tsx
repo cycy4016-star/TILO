@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
@@ -324,7 +325,8 @@ export function CourierWorkspace() {
     <div className="mx-auto grid w-full max-w-2xl gap-4 px-4 py-6 sm:py-10">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-eyebrow">Tilza courier</p>
+          <TilzaLogo className="text-lg" />
+          <p className="mt-2 text-eyebrow">Courier</p>
           <h1 className="mt-1 font-display text-h2">Hi, {me.name.split(' ')[0]}</h1>
           <p className="mt-1 text-small text-muted-foreground">
             {me.vehicleType.toLowerCase()}

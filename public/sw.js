@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'tilza-shell-v2';
+const SHELL_CACHE = 'tilza-shell-v3';
 const OFFLINE_URL = '/offline.html';
 const SHELL_ASSETS = [
   OFFLINE_URL,

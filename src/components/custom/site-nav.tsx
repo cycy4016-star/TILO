@@ -22,7 +22,6 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSession } from '@/lib/auth-client';
 import { type NavGroup, type NavItem, navItems } from '@/lib/nav';
-import { siteName } from '@/lib/site';
 import { TRIAL_DAYS } from '@/lib/trial';
 import { cn } from '@/lib/utils';
 
@@ -163,7 +162,7 @@ export function SiteNav() {
         aria-label="Primary"
         className="mx-auto flex h-16 max-w-screen-xl items-center gap-2 px-4"
       >
-        <Link href="/" className="mr-2 flex min-w-0 items-center">
+        <Link href="/" className="mr-2 flex shrink-0 items-center">
           <TilzaLogo className="text-xl text-primary" />
         </Link>
 
@@ -304,7 +303,9 @@ export function SiteNav() {
               </SheetTrigger>
               <SheetContent side="right" aria-describedby={undefined} className="flex flex-col">
                 <SheetHeader>
-                  <SheetTitle className="text-left">{siteName}</SheetTitle>
+                  <SheetTitle className="text-left">
+                    <TilzaLogo className="text-xl" />
+                  </SheetTitle>
                 </SheetHeader>
                 <nav
                   aria-label="Mobile"

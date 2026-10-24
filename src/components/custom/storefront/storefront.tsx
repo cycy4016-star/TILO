@@ -33,6 +33,7 @@ import {
 import { type CatalogGroup, StoreCatalog } from '@/components/custom/storefront/store-catalog';
 import { StoreHeader } from '@/components/custom/storefront/store-header';
 import { TrustStrip } from '@/components/custom/storefront/trust-strip';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Button } from '@/components/ui/button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { type LastOrder, lastOrderMemoryKey } from '@/lib/checkout-memory';
@@ -450,8 +451,12 @@ export function Storefront({
           <p className="font-display text-h4">{store.name}</p>
           <p className="mt-1 text-caption text-muted-foreground">
             Powered by{' '}
-            <a href="/" className="font-medium text-highlight-ink underline underline-offset-2">
-              Tilza
+            <a
+              href="/"
+              aria-label="Tilza"
+              className="inline-flex items-center align-[-0.2em] text-highlight-ink transition-opacity hover:opacity-80"
+            >
+              <TilzaLogo className="text-small" />
             </a>{' '}
             ·{' '}
             <a href="/privacy" className="underline underline-offset-2">

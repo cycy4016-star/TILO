@@ -76,7 +76,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     >
       <header className="shrink-0 border-b border-border bg-card">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
-          <Link href="/dashboard" className="flex min-w-0 flex-1 items-center sm:flex-none">
+          <Link href="/dashboard" className="flex shrink-0 items-center">
             <TilzaLogo className="text-xl text-primary" />
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">

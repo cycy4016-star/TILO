@@ -18,8 +18,8 @@ export const contentType = 'image/png';
 
 type RouteContext = { params: Promise<{ variant: string }> };
 
-// Bump when the campaign copy changes so cached artwork is re-rendered.
-const ARTWORK_VERSION = new Date('2026-02-01T00:00:00.000Z');
+// Bump when the campaign artwork changes so cached images are re-rendered.
+const ARTWORK_VERSION = new Date('2026-10-24T00:00:00.000Z');
 
 const CREAM = '#fffaf5';
 const WASH = '#fff3e8';
@@ -37,7 +37,30 @@ function sampleImage(name: string): string | null {
   }
 }
 
+function brandLogoData(): string | null {
+  try {
+    const bytes = readFileSync(path.join(process.cwd(), 'public', 'brand', 'tilza-logo.png'));
+    return `data:image/png;base64,${bytes.toString('base64')}`;
+  } catch {
+    return null;
+  }
+}
+
+const BRAND_LOGO = brandLogoData();
+const BRAND_LOGO_ASPECT = 1378 / 477;
+
 function Logo({ size = 38 }: { size?: number }) {
+  if (BRAND_LOGO) {
+    return (
+      // biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM.
+      <img
+        src={BRAND_LOGO}
+        alt="Tilza"
+        width={Math.round(size * BRAND_LOGO_ASPECT)}
+        height={size}
+      />
+    );
+  }
   return (
     <div style={{ display: 'flex', fontSize: size, fontWeight: 800, letterSpacing: -1.8 }}>
       <span>TILZA</span>

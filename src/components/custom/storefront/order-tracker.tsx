@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiFetch } from '@/lib/api-client';
@@ -221,6 +222,7 @@ export function OrderTracker({ token, initial }: { token: string; initial: Publi
   return (
     <div className="mx-auto grid w-full max-w-2xl gap-4 px-4 py-8 sm:py-12">
       <header className="rounded-lg border border-border bg-card p-5 sm:p-7">
+        <TilzaLogo className="mb-4 text-lg" />
         <p className="text-eyebrow">Order tracking</p>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">

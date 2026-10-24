@@ -4,6 +4,7 @@ import { Loader2, ShieldCheck, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -124,6 +125,7 @@ export function CourierJoinForm({ token }: { token: string }) {
   return (
     <div className="mx-auto grid min-h-[70dvh] w-full max-w-md place-items-center px-4 py-10">
       <div className="w-full rounded-xl border border-border bg-card p-6">
+        <TilzaLogo className="mb-5 text-xl" />
         <p className="flex items-center gap-1.5 text-eyebrow">
           <Truck aria-hidden className="size-3.5" /> {invite.storeName}
         </p>

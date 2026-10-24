@@ -1,8 +1,14 @@
-// Dynamic social-share image for the marketing home: brand colours, site
-// name and tagline, rendered at the standard 1200×630.
+// Dynamic social-share image for the marketing home: brand colours, logo and
+// tagline, rendered at the standard 1200×630.
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { ImageResponse } from 'next/og';
 import { brandVisual } from '@/lib/brand';
-import { siteDescription, siteName } from '@/lib/site';
+import { siteDescription } from '@/lib/site';
+
+const brandLogoSrc = `data:image/png;base64,${readFileSync(
+  path.join(process.cwd(), 'public', 'brand', 'tilza-logo.png'),
+).toString('base64')}`;
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
@@ -22,8 +28,9 @@ export default function OpengraphImage() {
         fontFamily: 'system-ui, sans-serif',
       }}
     >
-      <div style={{ display: 'flex', fontSize: 88, fontWeight: 800 }}>{siteName}</div>
-      <div style={{ display: 'flex', marginTop: 24, fontSize: 40, opacity: 0.85 }}>
+      {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+      <img src={brandLogoSrc} alt="Tilza" width={260} height={90} />
+      <div style={{ display: 'flex', marginTop: 28, fontSize: 40, opacity: 0.85 }}>
         {brandVisual.og.tagline}
       </div>
       <div style={{ display: 'flex', marginTop: 16, fontSize: 28, opacity: 0.6 }}>

@@ -11,6 +11,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { AdminDoctor, AdminOverview } from '@/lib/contracts/admin';
 import { formatGhs } from '@/lib/contracts/order';
 import { AdminAlertsProvider, AlertToasts, useAdminAlerts } from '../use-admin-alerts';
@@ -521,10 +522,8 @@ function TerminalFrame({ children }: { children: ReactNode }) {
       </h1>
 
       <header className="tlz-print-hide flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--t-border)] bg-[var(--t-panel)] px-3 py-2 sm:px-4">
-        <span className="flex shrink-0 items-baseline gap-2">
-          <span className="text-[15px] font-bold uppercase tracking-[0.22em] text-[var(--t-amber)]">
-            Tilza
-          </span>
+        <span className="flex shrink-0 items-center gap-2">
+          <TilzaLogo tone="light" className="text-[17px]" />
           <span className="text-[15px] font-bold uppercase tracking-[0.22em] text-[var(--t-text)]">
             Terminal
           </span>

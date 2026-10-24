@@ -1,17 +1,9 @@
 // Tilza logo — the brand lockup.
 //
-// Until an uploaded logo exists, the brand is set as type alone: "TILZA" in the
-// display face (Bricolage Grotesque), extra-bold, tightly tracked, with a small
-// ORANGE accent dot. Orange is the platform's energy colour — the one thing on
-// screen that is allowed to shout — so the mark's only flourish is the one
-// colour that isn't structural. It draws in `currentColor`, so it inherits the
-// colour of whatever surface it sits on (header, CTA band, card…).
-//
-// Swapping in your own logo later needs no markup changes anywhere:
-//   1. Drop the file in /public (e.g. /public/logo.svg).
-//   2. Set `brandLogo` in src/lib/brand.ts to its path.
-// This component then renders that image instead of the wordmark.
-import { brandLogo, siteName } from '@/lib/brand';
+// The supplied artwork is the source of truth. It scales from the surrounding
+// type size (pass e.g. "text-xl"), so the same component works in the header,
+// footer, auth shells and terminal. Use tone="light" on ink/dark surfaces.
+import { brandLogo, brandLogoLight, siteName } from '@/lib/brand';
 import { cn } from '@/lib/utils';
 
 export interface TilzaLogoProps {
@@ -22,13 +14,22 @@ export interface TilzaLogoProps {
   className?: string;
   /** Drop the trailing accent dot for a plainer lockup. Defaults to true. */
   withAccent?: boolean;
+  /** Use the knockout artwork on ink/dark surfaces. */
+  tone?: 'brand' | 'light';
 }
 
-export function TilzaLogo({ className, withAccent = true }: TilzaLogoProps) {
-  if (brandLogo) {
+export function TilzaLogo({ className, withAccent = true, tone = 'brand' }: TilzaLogoProps) {
+  const logoSrc = tone === 'light' ? brandLogoLight : brandLogo;
+
+  if (logoSrc) {
     return (
       // biome-ignore lint/performance/noImgElement: a static brand asset whose intrinsic size varies by placement, so next/image adds nothing.
-      <img src={brandLogo} alt={siteName} className={className} />
+      <img
+        src={logoSrc}
+        alt={siteName}
+        style={{ width: 'auto', maxWidth: 'none' }}
+        className={cn('inline-block h-[1.7em] shrink-0 object-contain', className)}
+      />
     );
   }
 
