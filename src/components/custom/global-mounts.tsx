@@ -7,6 +7,7 @@
 
 import { usePathname } from 'next/navigation';
 import { AssistiveTouch } from '@/components/custom/assistive-touch';
+import { PwaInstallPrompt } from '@/components/custom/pwa-install-prompt';
 import { PwaRegister } from '@/components/custom/pwa-register';
 
 export function GlobalMounts() {
@@ -16,10 +17,13 @@ export function GlobalMounts() {
     pathname.startsWith('/courier/') ||
     pathname === '/track' ||
     pathname.startsWith('/track/');
+  const appRoute =
+    pathname === '/welcome' || pathname === '/dashboard' || pathname.startsWith('/dashboard/');
 
   return (
     <>
       <PwaRegister />
+      {appRoute ? <PwaInstallPrompt /> : null}
       {focusedApp ? null : <AssistiveTouch />}
     </>
   );

@@ -5,6 +5,7 @@ import type { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { StoreItemCreate, StoreItemList } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
+import { readImageUpload } from '@/lib/image-upload';
 import { requireOwnCategoryId } from '@/lib/ownership';
 import { requireAuth } from '@/lib/require-auth';
 import { ITEM_SELECT, serializeStoreItem } from '@/lib/store-serializers';
@@ -42,10 +43,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ errors: { form: 'Create the store first' } }, { status: 409 });
     }
     let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ errors: { form: 'Invalid JSON payload' } }, { status: 400 });
+    let image: { bytes: Uint8Array; mime: string } | null = null;
+    if ((request.headers.get('content-type') ?? '').includes('multipart/form-data')) {
+      let form: FormData;
+      try {
+        form = await request.formData();
+      } catch {
+        return NextResponse.json(
+          { errors: { form: 'Expected a valid multipart form.' } },
+          { status: 400 },
+        );
+      }
+      const payload = form.get('payload');
+      if (typeof payload !== 'string') {
+        return NextResponse.json(
+          { errors: { form: 'The product details are missing.' } },
+          { status: 400 },
+        );
+      }
+      try {
+        body = JSON.parse(payload);
+      } catch {
+        return NextResponse.json({ errors: { form: 'Invalid JSON payload' } }, { status: 400 });
+      }
+      if (form.get('file') instanceof File) {
+        const upload = await readImageUpload(form, 'item');
+        if (!upload.ok) {
+          return NextResponse.json({ errors: { photo: upload.error } }, { status: 400 });
+        }
+        image = upload;
+      }
+    } else {
+      try {
+        body = await request.json();
+      } catch {
+        return NextResponse.json({ errors: { form: 'Invalid JSON payload' } }, { status: 400 });
+      }
     }
     const parsed = StoreItemCreate.safeParse(body);
     if (!parsed.success) return validationResponse(parsed.error);
@@ -54,7 +87,18 @@ export async function POST(request: Request) {
     await requireOwnCategoryId(store.id, parsed.data.categoryId);
 
     const item = await prisma.storeItem.create({
-      data: { ...parsed.data, storeId: store.id },
+      data: {
+        ...parsed.data,
+        storeId: store.id,
+        ...(image
+          ? {
+              imageMime: image.mime,
+              images: {
+                create: { position: 0, image: image.bytes, imageMime: image.mime },
+              },
+            }
+          : {}),
+      },
       select: ITEM_SELECT,
     });
     return NextResponse.json(serializeStoreItem(item), { status: 201 });

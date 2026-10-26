@@ -30,7 +30,7 @@ import {
   StoreItemRecord as StoreItemSchema,
 } from '@/lib/contracts/store';
 import { fitImageFile, makeBlurPlaceholder, validateImageFile } from '@/lib/image';
-import { uploadImageFile } from '@/lib/uploads';
+import { uploadFormData } from '@/lib/uploads';
 
 const NEW_CATEGORY = '__new__';
 
@@ -156,6 +156,7 @@ export function ItemWizard({
   const [cropOpen, setCropOpen] = useState(false);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<'preparing' | 'saving' | null>(null);
   const [celebrate, setCelebrate] = useState(false);
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
@@ -167,6 +168,7 @@ export function ItemWizard({
     if (state.photoPreview) URL.revokeObjectURL(state.photoPreview);
     setStep(0);
     setCelebrate(false);
+    setStage(null);
     setState({
       name: '',
       kind: 'PRODUCT',
@@ -242,6 +244,8 @@ export function ItemWizard({
       }
     }
     setBusy(true);
+    setStage('saving');
+    const preparedPhoto = state.photo ? fitImageFile(state.photo, 'item') : null;
     try {
       let categoryId = state.categoryId === NEW_CATEGORY ? null : state.categoryId;
       if (state.categoryId === NEW_CATEGORY) {
@@ -253,29 +257,33 @@ export function ItemWizard({
         categoryId = created.id;
       }
       const pricePesewas = parseCedis(state.price) ?? 0;
-      const item: StoreItemRecord = await apiFetch('/api/store/items', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: state.name.trim(),
-          kind: state.kind,
-          description: state.description.trim() ? state.description.trim() : undefined,
-          categoryId,
-          pricePesewas,
-          costPricePesewas: state.cost.trim() ? parseCedis(state.cost) : undefined,
-          compareAtPricePesewas: state.compareAt.trim() ? parseCedis(state.compareAt) : undefined,
-          active,
-          stock: state.stockTracked ? Number.parseInt(state.stock, 10) : null,
-        }),
-        schema: StoreItemSchema,
-      });
-      if (state.photo) {
-        const compressed = await fitImageFile(state.photo, 'item');
-        await uploadImageFile(
-          `/api/store/items/${item.id}/image`,
-          compressed,
-          state.photo.name,
-          StoreItemSchema,
-        );
+      const itemInput = {
+        name: state.name.trim(),
+        kind: state.kind,
+        description: state.description.trim() ? state.description.trim() : undefined,
+        categoryId,
+        pricePesewas,
+        costPricePesewas: state.cost.trim() ? parseCedis(state.cost) : undefined,
+        compareAtPricePesewas: state.compareAt.trim() ? parseCedis(state.compareAt) : undefined,
+        active,
+        stock: state.stockTracked ? Number.parseInt(state.stock, 10) : null,
+      };
+      let item: StoreItemRecord;
+      if (preparedPhoto && state.photo) {
+        setStage('preparing');
+        const compressed = await preparedPhoto;
+        setStage('saving');
+        const form = new FormData();
+        form.append('payload', JSON.stringify(itemInput));
+        form.append('file', compressed, state.photo.name);
+        item = await uploadFormData('/api/store/items', form, StoreItemSchema);
+      } else {
+        setStage('saving');
+        item = await apiFetch('/api/store/items', {
+          method: 'POST',
+          body: JSON.stringify(itemInput),
+          schema: StoreItemSchema,
+        });
       }
       if (state.promoOn) {
         const promo: PromotionRecord = await apiFetch('/api/store/promotions', {
@@ -300,6 +308,7 @@ export function ItemWizard({
       return false;
     } finally {
       setBusy(false);
+      setStage(null);
     }
   }
 
@@ -767,7 +776,11 @@ export function ItemWizard({
                       onClick={() => void publish(false)}
                       className="h-11 rounded-md font-semibold"
                     >
-                      Save as draft
+                      {busy
+                        ? stage === 'preparing'
+                          ? 'Preparing photo…'
+                          : 'Saving…'
+                        : 'Save as draft'}
                     </Button>
                     <Button
                       type="button"
@@ -775,7 +788,11 @@ export function ItemWizard({
                       onClick={() => void publish(true)}
                       className="h-11 rounded-md px-6 font-semibold active:scale-[0.98]"
                     >
-                      {busy ? 'Publishing…' : 'Publish'}
+                      {busy
+                        ? stage === 'preparing'
+                          ? 'Preparing photo…'
+                          : 'Publishing…'
+                        : 'Publish'}
                     </Button>
                   </div>
                 )}

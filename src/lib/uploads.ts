@@ -9,6 +9,19 @@ import type { ZodType } from 'zod';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
+export async function uploadFormData<T>(
+  path: string,
+  form: FormData,
+  schema: ZodType<T>,
+): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { method: 'POST', body: form });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(`uploadFormData ${path} failed (${res.status})`, { cause: body });
+  }
+  return schema.parse(body);
+}
+
 export async function uploadImageFile<T>(
   path: string,
   blob: Blob,
@@ -17,7 +30,6 @@ export async function uploadImageFile<T>(
 ): Promise<T> {
   const form = new FormData();
   form.append('file', blob, fileName);
-
   const res = await fetch(`${BASE}${path}`, { method: 'PUT', body: form });
   const body = await res.json().catch(() => null);
   if (!res.ok) {

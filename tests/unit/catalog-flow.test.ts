@@ -89,6 +89,47 @@ describe('catalogue creation flow', () => {
     await expect(response.json()).resolves.toMatchObject({ stock: 7 });
   });
 
+  it('creates an item and its cover photo in one multipart request', async () => {
+    db.prisma.store.findUnique.mockResolvedValue(storeRow);
+    db.prisma.storeItem.create.mockResolvedValue(
+      itemRow({ imageMime: 'image/webp', images: [{ id: 'img-new' }] }),
+    );
+    const form = new FormData();
+    form.append('payload', JSON.stringify({ name: 'Widget', pricePesewas: 2500 }));
+    form.append(
+      'file',
+      new File([new Uint8Array([1, 2, 3])], 'widget.webp', { type: 'image/webp' }),
+    );
+    const { POST } = await import('@/app/api/store/items/route');
+    const response = await POST(
+      new Request('http://test/api/store/items', {
+        method: 'POST',
+        body: form,
+      }),
+    );
+    expect(response.status).toBe(201);
+    expect(db.prisma.storeItem.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          name: 'Widget',
+          storeId: 'store-1',
+          imageMime: 'image/webp',
+          images: {
+            create: {
+              position: 0,
+              image: expect.any(Uint8Array),
+              imageMime: 'image/webp',
+            },
+          },
+        }),
+      }),
+    );
+    await expect(response.json()).resolves.toMatchObject({
+      hasImage: true,
+      imageIds: ['img-new'],
+    });
+  });
+
   it('creates a promo targeted at items and categories', async () => {
     db.prisma.store.findUnique.mockResolvedValue(storeRow);
     db.prisma.promotion.create.mockImplementation(async ({ data }: { data: object }) => ({
