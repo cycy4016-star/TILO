@@ -12,6 +12,7 @@ import {
   MapPin,
   Save,
   Share2,
+  Truck,
   UserRound,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -22,11 +23,19 @@ import { PushSettings } from '@/components/custom/push-settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
 import { SocialAccountList } from '@/lib/contracts/social';
 import { StorePayload, type StorePayload as StoreRecord } from '@/lib/contracts/store';
 import { deliveryLocationUrl } from '@/lib/delivery';
 import { SOCIAL_PLATFORM_DEFS, type SocialPlatformDef } from '@/lib/social';
+import { cn } from '@/lib/utils';
 
 type SocialRow = { platform: string; handle: string; url: string };
 
@@ -43,6 +52,7 @@ export function SettingsWorkspace() {
   const [pickupLat, setPickupLat] = useState<number | null>(null);
   const [pickupLng, setPickupLng] = useState<number | null>(null);
   const [savingPickup, setSavingPickup] = useState(false);
+  const [savingDispatch, setSavingDispatch] = useState(false);
   const [locating, setLocating] = useState(false);
   const [pickupError, setPickupError] = useState<string | null>(null);
 
@@ -149,6 +159,27 @@ export function SettingsWorkspace() {
     );
   }
 
+  function storeBody(overrides: Record<string, unknown> = {}) {
+    if (!store) return null;
+    return {
+      name: store.name,
+      slug: store.slug,
+      tagline: store.tagline ?? undefined,
+      description: store.description ?? undefined,
+      promoBanner: store.promoBanner ?? undefined,
+      contactPhone: store.contactPhone ?? undefined,
+      address: store.address,
+      lat: store.lat,
+      lng: store.lng,
+      active: store.active,
+      theme: store.theme,
+      appearance: store.appearance,
+      autoDispatch: store.autoDispatch,
+      dispatchRadiusKm: store.dispatchRadiusKm,
+      ...overrides,
+    };
+  }
+
   async function savePickup() {
     if (!store) return;
     setSavingPickup(true);
@@ -156,20 +187,13 @@ export function SettingsWorkspace() {
     try {
       const updated = await apiFetch('/api/store', {
         method: 'PUT',
-        body: JSON.stringify({
-          name: store.name,
-          slug: store.slug,
-          tagline: store.tagline ?? undefined,
-          description: store.description ?? undefined,
-          promoBanner: store.promoBanner ?? undefined,
-          contactPhone: store.contactPhone ?? undefined,
-          address: pickupAddress.trim() || null,
-          lat: pickupLat,
-          lng: pickupLng,
-          active: store.active,
-          theme: store.theme,
-          appearance: store.appearance,
-        }),
+        body: JSON.stringify(
+          storeBody({
+            address: pickupAddress.trim() || null,
+            lat: pickupLat,
+            lng: pickupLng,
+          }),
+        ),
         schema: StorePayload,
       });
       setStore(updated);
@@ -181,8 +205,34 @@ export function SettingsWorkspace() {
     }
   }
 
+  async function saveDispatch(patch: { autoDispatch?: boolean; dispatchRadiusKm?: number }) {
+    if (!store) return;
+    setSavingDispatch(true);
+    try {
+      const updated = await apiFetch('/api/store', {
+        method: 'PUT',
+        body: JSON.stringify(storeBody(patch)),
+        schema: StorePayload,
+      });
+      setStore(updated);
+      toast.success('Dispatch settings saved');
+    } catch {
+      toast.error('Could not save dispatch settings');
+    } finally {
+      setSavingDispatch(false);
+    }
+  }
+
   if (loading) {
     return <div className="h-64 animate-pulse rounded-lg border border-border bg-card" />;
+  }
+
+  if (!store) {
+    return (
+      <div className="rounded-lg border border-dashed border-border p-6 text-small text-muted-foreground">
+        Could not load your store settings. Refresh the page to try again.
+      </div>
+    );
   }
 
   return (
@@ -430,6 +480,87 @@ export function SettingsWorkspace() {
             )}
             {savingPickup ? 'Saving…' : 'Save pickup location'}
           </Button>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <p className="flex items-center gap-1.5 text-eyebrow">
+          <Truck aria-hidden className="size-3.5" /> Dispatch
+        </p>
+        <h2 className="mt-1 text-h3 font-display">Automatic delivery dispatch</h2>
+        <p className="mt-1 max-w-lg text-sm text-muted-foreground">
+          New local-delivery orders go straight to your approved crew members who are on shift. Turn
+          this off if you prefer to send every order yourself.
+        </p>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4">
+          <div>
+            <Label htmlFor="settings-auto-dispatch" className="font-semibold">
+              Send new deliveries automatically
+            </Label>
+            <p className="mt-0.5 text-small text-muted-foreground">
+              {store.autoDispatch
+                ? 'On. Orders wait in the delivery desk if no rider is on shift.'
+                : 'Off. Send each delivery from the orders page or delivery desk.'}
+            </p>
+          </div>
+          <button
+            id="settings-auto-dispatch"
+            type="button"
+            role="switch"
+            aria-checked={store.autoDispatch}
+            onClick={() => void saveDispatch({ autoDispatch: !store.autoDispatch })}
+            disabled={savingDispatch}
+            className={cn(
+              'relative h-6 w-11 rounded-full border transition-colors disabled:opacity-60',
+              store.autoDispatch ? 'border-primary bg-primary' : 'border-border bg-muted',
+            )}
+          >
+            <span
+              className={cn(
+                'absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform',
+                store.autoDispatch ? 'translate-x-5' : 'translate-x-0.5',
+              )}
+            />
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4">
+          <div>
+            <Label htmlFor="settings-dispatch-radius" className="font-semibold">
+              First search radius
+            </Label>
+            <p className="mt-0.5 text-small text-muted-foreground">
+              Riders outside this ring wait for the wider retry.
+            </p>
+          </div>
+          <Select
+            value={String(store.dispatchRadiusKm)}
+            onValueChange={(value) => void saveDispatch({ dispatchRadiusKm: Number(value) })}
+            disabled={savingDispatch}
+          >
+            <SelectTrigger id="settings-dispatch-radius" className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[3, 5, 8, 10, 15].map((radius) => (
+                <SelectItem key={radius} value={String(radius)}>
+                  {radius} km
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button asChild variant="outline" className="h-10 rounded-md font-semibold">
+            <Link href="/dashboard/delivery">
+              <Truck aria-hidden className="size-4" /> Manage riders &amp; waiting jobs
+            </Link>
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Riders must be approved and tap &quot;Go on shift&quot; before jobs arrive.
+          </p>
         </div>
       </section>
 

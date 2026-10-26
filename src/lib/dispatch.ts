@@ -33,6 +33,110 @@ export type DispatchOutcome = {
   handoffCode: string;
 };
 
+export type OnShiftOfferOutcome = {
+  checked: number;
+  offered: number;
+};
+
+export async function offerPendingJobsToCourier(courierId: string): Promise<OnShiftOfferOutcome> {
+  const memberships = await prisma.storeCourier.findMany({
+    where: { courierId, status: 'ACTIVE', courier: { status: 'ACTIVE' } },
+    select: { storeId: true },
+  });
+  const storeIds = memberships.map((membership) => membership.storeId);
+  if (storeIds.length === 0) return { checked: 0, offered: 0 };
+
+  const courier = await prisma.courier.findUnique({
+    where: { id: courierId },
+    select: {
+      status: true,
+      location: { select: { lat: true, lng: true, isOnline: true, updatedAt: true } },
+    },
+  });
+  const location = courier?.location;
+  if (
+    courier?.status !== 'ACTIVE' ||
+    !location?.isOnline ||
+    location.updatedAt.getTime() < Date.now() - ONLINE_WINDOW_MS
+  ) {
+    return { checked: 0, offered: 0 };
+  }
+
+  const orders = await prisma.order.findMany({
+    where: {
+      deliveryStatus: 'PENDING_DISPATCH',
+      courierId: null,
+      fulfillmentMethod: 'LOCAL_DELIVERY',
+      customerLat: { not: null },
+      customerLng: { not: null },
+      user: { store: { id: { in: storeIds } } },
+    },
+    orderBy: { dispatchStartedAt: 'asc' },
+    take: 25,
+    select: {
+      id: true,
+      orderNumber: true,
+      deliveryFeePesewas: true,
+      customerLat: true,
+      customerLng: true,
+      dispatchRadiusKm: true,
+      user: {
+        select: {
+          store: {
+            select: { id: true, name: true, lat: true, lng: true, dispatchRadiusKm: true },
+          },
+        },
+      },
+    },
+  });
+
+  let offered = 0;
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + OFFER_TTL_MS);
+  for (const order of orders) {
+    const store = order.user.store;
+    if (!store || store.lat == null || store.lng == null) continue;
+    const radiusKm = Math.min(
+      50,
+      Math.max(1, order.dispatchRadiusKm ?? store.dispatchRadiusKm ?? 5),
+    );
+    const distanceKm = haversineDistanceKm(store.lat, store.lng, location.lat, location.lng);
+    if (distanceKm > radiusKm) continue;
+
+    const existing = await prisma.deliveryOffer.findUnique({
+      where: { orderId_courierId: { orderId: order.id, courierId } },
+    });
+    if (existing?.status === 'ACCEPTED') continue;
+    if (existing?.status === 'OFFERED' && existing.expiresAt.getTime() > now.getTime()) continue;
+
+    await prisma.deliveryOffer.upsert({
+      where: { orderId_courierId: { orderId: order.id, courierId } },
+      create: {
+        orderId: order.id,
+        courierId,
+        status: 'OFFERED',
+        distanceKm,
+        expiresAt,
+      },
+      update: {
+        status: 'OFFERED',
+        distanceKm,
+        expiresAt,
+        respondedAt: null,
+      },
+    });
+    offered += 1;
+    await sendPushToCourier(courierId, {
+      title: 'New delivery nearby',
+      body: `${store.name} - ${(order.deliveryFeePesewas / 100).toFixed(2)} GHS A- ${distanceKm.toFixed(1)} km away`,
+      url: '/courier',
+      tag: `dispatch-${order.id}`,
+    });
+  }
+
+  return { checked: orders.length, offered };
+}
+
 export async function dispatchOrder(
   orderId: string,
   options?: { radiusKm?: number; restart?: boolean },

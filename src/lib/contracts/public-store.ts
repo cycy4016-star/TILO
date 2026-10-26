@@ -139,6 +139,12 @@ export const PublicLeadResult = z.object({
   created: z.boolean(),
 });
 
+export const PublicStorefrontView = z.object({
+  ref: z.string().trim().max(40).optional(),
+  referrer: z.string().trim().max(500).optional(),
+});
+
 export type PublicOrderCreateInput = z.infer<typeof PublicOrderCreate>;
 export type PublicOrderTracking = z.infer<typeof PublicOrderTracking>;
 export type PublicLeadCreateInput = z.infer<typeof PublicLeadCreate>;
+export type PublicStorefrontViewInput = z.infer<typeof PublicStorefrontView>;

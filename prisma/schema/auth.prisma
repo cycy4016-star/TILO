@@ -50,6 +50,9 @@ model User {
   // one-to-many from the account that signed up.
   customers           Customer[]
   orders              Order[]
+  shopperOrders       Order[]             @relation("OrderShopper")
+  storefrontViews     StorefrontView[]
+  audiences           UserAudience[]
   store               Store?
   notifications       Notification[]
   pushSubscriptions   PushSubscription[]

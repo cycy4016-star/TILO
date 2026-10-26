@@ -57,11 +57,13 @@ export const StoreUpsert = z
     lat: z.number().finite().min(-90).max(90).nullable().optional(),
     lng: z.number().finite().min(-180).max(180).nullable().optional(),
     active: z.boolean().default(true),
-    // Optional on create/update — absent means "leave as is" (DB defaults to
+    // Optional on create/update - absent means "leave as is" (DB defaults to
     // blue + professional). Keeping these required-free lets old clients PUT
     // without the fields without silently resetting the workspace look.
     theme: ThemeKey.optional(),
     appearance: AppearanceKey.optional(),
+    autoDispatch: z.boolean().optional(),
+    dispatchRadiusKm: z.number().finite().min(1).max(50).optional(),
   })
   .superRefine((value, ctx) => {
     const hasLat = value.lat !== undefined;
@@ -177,6 +179,8 @@ export const StorePayload = z.object({
   active: z.boolean(),
   theme: ThemeKey,
   appearance: AppearanceKey,
+  autoDispatch: z.boolean(),
+  dispatchRadiusKm: z.number(),
   // true when a logo is uploaded (bytes live in the DB, served by
   // /api/public/store/[slug]/logo).
   hasLogo: z.boolean(),

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import { useSession } from '@/lib/auth-client';
 import { AdminUserMonitor, AdminUserRow } from '@/lib/contracts/admin';
+import type { AudienceKind } from '@/lib/contracts/shopper';
 import {
   Cell,
   DataTable,
@@ -21,9 +22,17 @@ import {
   Stat,
   Tag,
   TButton,
+  TChip,
   TONE,
 } from './terminal/primitives';
 import { useLiveData } from './use-live';
+
+const audienceFilters: { kind: 'ALL' | AudienceKind; label: string }[] = [
+  { kind: 'ALL', label: 'All' },
+  { kind: 'OWNER', label: 'Owners' },
+  { kind: 'COURIER', label: 'Couriers' },
+  { kind: 'SHOPPER', label: 'Shoppers' },
+];
 
 export function UsersConsole() {
   const { data: session } = useSession();
@@ -34,6 +43,12 @@ export function UsersConsole() {
 
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ tone: 'green' | 'red'; text: string } | null>(null);
+  const [audience, setAudience] = useState<'ALL' | AudienceKind>('ALL');
+  const visibleUsers = data
+    ? audience === 'ALL'
+      ? data.users
+      : data.users.filter((row) => row.audiences.includes(audience))
+    : [];
 
   const patch = async (
     userId: string,
@@ -117,10 +132,29 @@ export function UsersConsole() {
         )
       ) : (
         <>
-          <div className="grid grid-cols-3 border border-[var(--t-border)] bg-[var(--t-card)]">
+          <div className="grid grid-cols-2 border border-[var(--t-border)] bg-[var(--t-card)] sm:grid-cols-4">
             <Stat label="Accounts" value={data.totalUsers} tone="text" />
+            <Stat label="Shoppers" value={data.shopperCount} tone="cyan" />
             <Stat label="Operators" value={data.adminCount} tone="amber" />
             <Stat label="Active this month" value={data.activeThisMonth} tone="green" />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 border border-[var(--t-border)] bg-[var(--t-card)] px-3 py-2">
+            <span className="mr-1 text-[10px] uppercase tracking-[0.12em] text-[var(--t-dim)]">
+              Audience
+            </span>
+            {audienceFilters.map((filter) => (
+              <TChip
+                key={filter.kind}
+                active={audience === filter.kind}
+                onClick={() => setAudience(filter.kind)}
+              >
+                {filter.label}
+              </TChip>
+            ))}
+            <span className="ml-auto text-[11px] text-[var(--t-faint)]">
+              {visibleUsers.length} shown
+            </span>
           </div>
 
           {feedback && (
@@ -139,11 +173,16 @@ export function UsersConsole() {
           <Panel
             code="AC"
             title="Account ledger"
-            right={<span>{data.users.length} accounts</span>}
+            right={<span>{visibleUsers.length} accounts</span>}
             bodyClassName="p-0"
           >
             {data.users.length === 0 ? (
               <Empty title="No accounts yet" hint="Sign-ups land here the moment they happen." />
+            ) : visibleUsers.length === 0 ? (
+              <Empty
+                title="No accounts in this audience"
+                hint="Switch the filter to see every account."
+              />
             ) : (
               <DataTable
                 columns={[
@@ -151,11 +190,12 @@ export function UsersConsole() {
                   { key: 'sessions', label: 'Sign-ins', right: true },
                   { key: 'seen', label: 'Last seen', right: true },
                   { key: 'status', label: 'Status' },
-                  { key: 'role', label: 'Role' },
+                  { key: 'role', label: 'Platform' },
+                  { key: 'audience', label: 'Audience' },
                   { key: 'actions', label: 'Actions', right: true },
                 ]}
               >
-                {data.users.map((row) => {
+                {visibleUsers.map((row) => {
                   const isMe = row.id === meId;
                   const isAdmin = (row.role ?? '').split(',').includes('admin');
                   const isBusy = busy === row.id;
@@ -192,8 +232,32 @@ export function UsersConsole() {
                         <span className="flex items-center gap-1.5">
                           <Dot tone={isAdmin ? 'amber' : 'dim'} />
                           <span className={isAdmin ? TONE.amber : TONE.dim}>
-                            {isAdmin ? 'Operator' : 'Owner'}
+                            {isAdmin ? 'Operator' : 'Member'}
                           </span>
+                        </span>
+                      </Cell>
+                      <Cell>
+                        <span className="flex flex-wrap gap-1">
+                          {row.audiences.length === 0 ? (
+                            <span className={TONE.faint}>—</span>
+                          ) : (
+                            row.audiences.map((kind) => (
+                              <Tag
+                                key={kind}
+                                tone={
+                                  kind === 'SHOPPER'
+                                    ? 'cyan'
+                                    : kind === 'COURIER'
+                                      ? 'green'
+                                      : 'amber'
+                                }
+                              >
+                                {kind === 'SHOPPER' && row.claimedOrders > 0
+                                  ? `${kind} ${row.claimedOrders}`
+                                  : kind}
+                              </Tag>
+                            ))
+                          )}
                         </span>
                       </Cell>
                       <td className="px-3 py-2">

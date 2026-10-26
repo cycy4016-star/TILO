@@ -9,6 +9,7 @@
 import {
   CalendarDays,
   CircleDot,
+  Eye,
   FireExtinguisher,
   LayoutDashboard,
   type LucideIcon,
@@ -55,6 +56,7 @@ const DASHBOARD_SECTIONS: { match: (p: string) => boolean; actions: QuickAction[
   {
     match: (p) => p === '/dashboard',
     actions: [
+      { label: 'Storefront traffic', icon: Eye, sectionId: 'storefront-traffic' },
       { label: 'Money to chase', icon: Wallet, sectionId: 'money-to-chase' },
       { label: 'Balance sheet', icon: Scale, sectionId: 'balance-sheet' },
       { label: 'Product ranking', icon: Trophy, sectionId: 'product-ranking' },

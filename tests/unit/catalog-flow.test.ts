@@ -26,7 +26,7 @@ const db = vi.hoisted(() => ({
     $transaction: vi.fn(),
   },
 }));
-const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
+const auth = vi.hoisted(() => ({ requireAuth: vi.fn(), getSessionUser: vi.fn() }));
 
 vi.mock('@/lib/db', () => db);
 vi.mock('@/lib/require-auth', () => auth);
@@ -36,6 +36,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.ORDER_TRACKING_SECRET = 'test-order-tracking-secret';
   auth.requireAuth.mockResolvedValue({ id: 'staff-1' });
+  auth.getSessionUser.mockResolvedValue(null);
 });
 
 afterEach(() => {

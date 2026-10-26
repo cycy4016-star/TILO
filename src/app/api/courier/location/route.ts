@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { CourierLocationInput } from '@/lib/contracts/courier';
 import { requireCourier } from '@/lib/courier-auth';
 import { prisma } from '@/lib/db';
+import { offerPendingJobsToCourier } from '@/lib/dispatch';
 import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
           actorId: courier.id,
         },
       });
+      await offerPendingJobsToCourier(courier.id).catch(() => undefined);
     }
 
     return NextResponse.json({ ok: true, isOnline: parsed.data.isOnline });

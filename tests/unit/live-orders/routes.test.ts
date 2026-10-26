@@ -1,13 +1,14 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
+const auth = vi.hoisted(() => ({ requireAuth: vi.fn(), getSessionUser: vi.fn() }));
 const db = vi.hoisted(() => ({
   prisma: {
     customer: { findFirst: vi.fn(), create: vi.fn() },
     store: { findFirst: vi.fn() },
     storeItem: { findMany: vi.fn(), findFirst: vi.fn(), updateMany: vi.fn() },
     order: { create: vi.fn() },
+    userAudience: { upsert: vi.fn() },
     $transaction: vi.fn(),
     promotion: { findMany: vi.fn() },
     notification: {
@@ -66,6 +67,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.ORDER_TRACKING_SECRET = 'test-order-tracking-secret';
   auth.requireAuth.mockResolvedValue({ id: 'staff-1', email: 'staff@example.test' });
+  auth.getSessionUser.mockResolvedValue(null);
   db.prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn(db.prisma));
   db.prisma.storeItem.updateMany.mockResolvedValue({ count: 1 });
 });
@@ -134,6 +136,71 @@ describe('public order placement', () => {
         }),
       }),
     );
+  });
+
+  it('links a signed-in shopper to the order and records their audience', async () => {
+    auth.getSessionUser.mockResolvedValue({ id: 'shopper-1', email: 'shopper@test.dev' });
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([item]);
+    db.prisma.customer.findFirst.mockResolvedValue(null);
+    db.prisma.customer.create.mockResolvedValue(newCustomer);
+    db.prisma.order.create.mockResolvedValue({ ...order, shopperId: 'shopper-1' });
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    const response = await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 1 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ userId: 'owner-1', shopperId: 'shopper-1' }),
+      }),
+    );
+    expect(db.prisma.userAudience.upsert).toHaveBeenCalledWith({
+      where: { userId_kind: { userId: 'shopper-1', kind: 'SHOPPER' } },
+      create: { userId: 'shopper-1', kind: 'SHOPPER' },
+      update: {},
+    });
+  });
+
+  it('never links a store owner to their own shop order', async () => {
+    auth.getSessionUser.mockResolvedValue({ id: 'owner-1', email: 'owner@test.dev' });
+    db.prisma.store.findFirst.mockResolvedValue(store);
+    db.prisma.storeItem.findMany.mockResolvedValue([item]);
+    db.prisma.customer.findFirst.mockResolvedValue(null);
+    db.prisma.customer.create.mockResolvedValue(newCustomer);
+    db.prisma.order.create.mockResolvedValue(order);
+
+    const { POST } = await import('@/app/api/public/store/[slug]/orders/route');
+    await POST(
+      new Request('http://test/api/public/store/test/orders', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': visitorIp() },
+        body: JSON.stringify({
+          lines: [{ itemId: 'item-1', quantity: 1 }],
+          customerName: 'Ama',
+          phone: '024 111 2200',
+        }),
+      }),
+      { params: Promise.resolve({ slug: 'test' }) },
+    );
+
+    expect(db.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ userId: 'owner-1', shopperId: null }),
+      }),
+    );
+    expect(db.prisma.userAudience.upsert).not.toHaveBeenCalled();
   });
 
   it('keeps the same phone separate across two shops', async () => {

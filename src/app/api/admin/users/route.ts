@@ -40,6 +40,8 @@ export async function GET(request: Request) {
           role: true,
           banned: true,
           createdAt: true,
+          audiences: { select: { kind: true } },
+          _count: { select: { shopperOrders: true } },
         },
       }),
       // Lifetime sign-in count + last sign-in per user, straight off the ledger.
@@ -68,6 +70,8 @@ export async function GET(request: Request) {
         phone: user.phoneNumber,
         role: user.role,
         banned: user.banned ?? false,
+        audiences: user.audiences.map((audience) => audience.kind),
+        claimedOrders: user._count.shopperOrders,
         signInCount: stats?._count._all ?? 0,
         lastSeenAt: stats?._max.createdAt ? stats._max.createdAt.toISOString() : null,
         createdAt: user.createdAt.toISOString(),
@@ -81,6 +85,9 @@ export async function GET(request: Request) {
         // Counted with the same helper the gate uses, so the number on screen can
         // never disagree with who is actually able to open this page.
         adminCount: users.filter((user) => isAdminRole(user.role)).length,
+        shopperCount: users.filter((user) =>
+          user.audiences.some((audience) => audience.kind === 'SHOPPER'),
+        ).length,
         // Users who signed in (permanently recorded) since the month began.
         activeThisMonth: signInsThisMonth.length,
       }),

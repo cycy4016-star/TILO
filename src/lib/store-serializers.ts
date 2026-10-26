@@ -99,6 +99,8 @@ export const STORE_SELECT = {
   active: true,
   theme: true,
   appearance: true,
+  autoDispatch: true,
+  dispatchRadiusKm: true,
   logoMime: true,
   bannerMime: true,
   createdAt: true,
@@ -164,6 +166,8 @@ export type StoreRow = {
   active: boolean;
   theme: string;
   appearance: string;
+  autoDispatch: boolean;
+  dispatchRadiusKm: number;
   logoMime: string | null;
   bannerMime: string | null;
   createdAt: Date;
@@ -266,6 +270,8 @@ export function serializeStore(store: StoreRow) {
     active: store.active,
     theme,
     appearance,
+    autoDispatch: store.autoDispatch,
+    dispatchRadiusKm: store.dispatchRadiusKm,
     hasLogo: store.logoMime != null,
     hasBanner: store.bannerMime != null,
     createdAt: store.createdAt.toISOString(),

@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { BasketBar } from '@/components/custom/storefront/basket-bar';
 import { CheckoutDialog } from '@/components/custom/storefront/checkout-dialog';
@@ -74,6 +74,20 @@ export function Storefront({
     lastOrderMemoryKey(store.slug),
     null,
   );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const body = JSON.stringify({
+      ref: params.get('ref') ?? undefined,
+      referrer: document.referrer || undefined,
+    });
+    void fetch(`/api/public/store/${encodeURIComponent(store.slug)}/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => undefined);
+  }, [store.slug]);
 
   function rememberSearch(term: string) {
     const trimmed = term.trim();

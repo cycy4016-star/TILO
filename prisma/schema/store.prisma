@@ -81,6 +81,7 @@ model Store {
   couriers         StoreCourier[]
   courierInvites   CourierCrewInvite[]
   deliveryEvents   DeliveryEvent[]
+  storefrontViews  StorefrontView[]
 
   // Admin overview counts active shops; slug is already @unique, so no extra
   // index is needed for the storefront lookup.

@@ -115,6 +115,8 @@ describe('admin export route', () => {
         role: 'user',
         banned: false,
         createdAt: new Date('2026-09-01T08:00:00.000Z'),
+        audiences: [{ kind: 'OWNER' }, { kind: 'SHOPPER' }],
+        _count: { shopperOrders: 2 },
       },
     ]);
     db.prisma.authEvent.groupBy
@@ -133,8 +135,8 @@ describe('admin export route', () => {
     expect(response.headers.get('content-type')).toContain('text/csv');
     expect(response.headers.get('content-disposition')).toContain('tilza-users-');
     const body = await response.text();
-    expect(body).toContain('Name,Email,Phone,Role,Status,Signed up,Sign-ins,Last sign-in');
-    expect(body).toContain('Ama,ama@test.dev,+233240000000,Owner,Active,');
+    expect(body).toContain('Name,Email,Phone,Audience,Role,Status,Signed up,Sign-ins,Last sign-in');
+    expect(body).toContain('Ama,ama@test.dev,+233240000000,OWNER + SHOPPER,Member,Active,');
     expect(body).toContain(',4,');
   });
 

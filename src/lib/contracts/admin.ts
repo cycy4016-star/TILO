@@ -1,6 +1,7 @@
 // Client-safe Admin monitor contract shared by the route and the island: a
 // living list of every Tilza account with their sign-in pulse.
 import { z } from 'zod';
+import { AudienceKind } from '@/lib/contracts/shopper';
 
 export const AdminUserRow = z.object({
   id: z.string(),
@@ -9,6 +10,8 @@ export const AdminUserRow = z.object({
   phone: z.string().nullable(),
   role: z.string().nullable(),
   banned: z.boolean(),
+  audiences: z.array(AudienceKind),
+  claimedOrders: z.number().int().nonnegative(),
   // Sign-ins recorded on the append-only auth-event ledger. Unlike the old
   // session-derived count, this never shrinks when a user logs out or their
   // session expires.
@@ -22,6 +25,7 @@ export const AdminUserMonitor = z.object({
   users: z.array(AdminUserRow),
   totalUsers: z.number().int().nonnegative(),
   adminCount: z.number().int().nonnegative(),
+  shopperCount: z.number().int().nonnegative(),
   activeThisMonth: z.number().int().nonnegative(),
 });
 

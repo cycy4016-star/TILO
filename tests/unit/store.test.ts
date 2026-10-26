@@ -22,6 +22,8 @@ const storePayload = {
   active: true,
   theme: 'gold',
   appearance: 'vibrant',
+  autoDispatch: true,
+  dispatchRadiusKm: 5,
   hasLogo: false,
   hasBanner: false,
   createdAt: '2026-09-21T00:00:00.000Z',
@@ -76,6 +78,24 @@ describe('store contracts', () => {
       false,
     );
     expect(StoreUpsert.safeParse({ name: '', slug: 'amas' }).success).toBe(false);
+  });
+
+  it('accepts dispatch settings and rejects an unsupported radius', () => {
+    expect(
+      StoreUpsert.safeParse({
+        name: "Ama's Boutique",
+        slug: 'amas-boutique',
+        autoDispatch: false,
+        dispatchRadiusKm: 8,
+      }).success,
+    ).toBe(true);
+    expect(
+      StoreUpsert.safeParse({
+        name: "Ama's Boutique",
+        slug: 'amas-boutique',
+        dispatchRadiusKm: 70,
+      }).success,
+    ).toBe(false);
   });
 
   it('keeps prices whole, in pesewas', () => {

@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       where: {
         userId: user.id,
         fulfillmentMethod: 'LOCAL_DELIVERY',
-        deliveryStatus: { in: ['RIDER_ASSIGNED', 'IN_TRANSIT', 'DELIVERED'] },
+        deliveryStatus: { in: ['PENDING_DISPATCH', 'RIDER_ASSIGNED', 'IN_TRANSIT', 'DELIVERED'] },
       },
       orderBy: { updatedAt: 'desc' },
       take: 15,

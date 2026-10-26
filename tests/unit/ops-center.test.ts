@@ -230,6 +230,8 @@ describe('admin users ledger', () => {
         role: 'user',
         banned: false,
         createdAt: new Date('2026-09-01T00:00:00.000Z'),
+        audiences: [{ kind: 'SHOPPER' }],
+        _count: { shopperOrders: 2 },
       },
     ]);
     db.prisma.authEvent.groupBy
@@ -244,7 +246,10 @@ describe('admin users ledger', () => {
       id: 'u-1',
       signInCount: 3,
       lastSeenAt: seenAt.toISOString(),
+      audiences: ['SHOPPER'],
+      claimedOrders: 2,
     });
+    expect(body.shopperCount).toBe(1);
     // Active-this-month counts ledger sign-ins inside the window.
     expect(body.activeThisMonth).toBe(1);
     // The volatile session include is gone for good.

@@ -31,6 +31,8 @@ async function loadRow(userId: string) {
         role: true,
         banned: true,
         createdAt: true,
+        audiences: { select: { kind: true } },
+        _count: { select: { shopperOrders: true } },
       },
     }),
     // Permanent sign-in history (survives session deletion — see auth-events.ts).
@@ -48,6 +50,8 @@ async function loadRow(userId: string) {
     phone: user.phoneNumber,
     role: user.role,
     banned: user.banned ?? false,
+    audiences: user.audiences.map((audience) => audience.kind),
+    claimedOrders: user._count.shopperOrders,
     signInCount: ledger._count._all,
     lastSeenAt: ledger._max.createdAt ? ledger._max.createdAt.toISOString() : null,
     createdAt: user.createdAt.toISOString(),

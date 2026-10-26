@@ -16,6 +16,7 @@ const db = vi.hoisted(() => ({
       findFirst: vi.fn(),
     },
     store: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    userAudience: { upsert: vi.fn() },
     storeItem: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -424,6 +425,8 @@ describe('store routes', () => {
     active: true,
     theme: 'gold',
     appearance: 'professional',
+    autoDispatch: true,
+    dispatchRadiusKm: 5,
     logo: null,
     banner: null,
     // The manager payload always carries the shelf headings (with their item
@@ -474,6 +477,11 @@ describe('store routes', () => {
         data: expect.objectContaining({ slug: 'amas-boutique', userId: 'staff-1' }),
       }),
     );
+    expect(db.prisma.userAudience.upsert).toHaveBeenCalledWith({
+      where: { userId_kind: { userId: 'staff-1', kind: 'OWNER' } },
+      create: { userId: 'staff-1', kind: 'OWNER' },
+      update: {},
+    });
     await expect(response.json()).resolves.toMatchObject({
       id: 'store-1',
       slug: 'amas-boutique',

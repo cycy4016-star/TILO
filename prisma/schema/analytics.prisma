@@ -1,0 +1,15 @@
+model StorefrontView {
+  id           String   @id @default(cuid())
+  storeId      String
+  visitorId    String
+  userId       String?
+  ref          String?
+  referrerHost String?
+  createdAt    DateTime @default(now())
+  store        Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([storeId, createdAt])
+  @@index([storeId, visitorId, createdAt])
+  @@index([userId])
+}

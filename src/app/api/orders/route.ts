@@ -205,6 +205,7 @@ export async function POST(request: Request) {
         customerId: parsed.data.customerId,
         description: parsed.data.description,
         status: parsed.data.status,
+        channel: 'MANUAL',
         amountPesewas,
         orderNumber: `TILZA-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
         lines: lineData.length ? { create: lineData } : undefined,

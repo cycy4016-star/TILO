@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BookmarkPlus,
   Camera,
   CheckCircle2,
   Clock3,
@@ -19,8 +20,10 @@ import { TilzaLogo } from '@/components/custom/tilza-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiFetch } from '@/lib/api-client';
+import { signIn } from '@/lib/auth-client';
 import { formatGhs, type OrderStatusValue } from '@/lib/contracts/order';
 import { PublicOrderTracking } from '@/lib/contracts/public-store';
+import type { ShopperClaimState } from '@/lib/contracts/shopper';
 import {
   type SimplePushConfig as PushConfigValue,
   SimplePushConfig,
@@ -69,13 +72,29 @@ function formatWhen(value: string): string {
   }).format(new Date(value));
 }
 
-export function OrderTracker({ token, initial }: { token: string; initial: PublicOrderTracking }) {
+export function OrderTracker({
+  token,
+  initial,
+  claimState: initialClaimState,
+  viewerEmail,
+  googleEnabled,
+}: {
+  token: string;
+  initial: PublicOrderTracking;
+  claimState: ShopperClaimState;
+  viewerEmail: string | null;
+  googleEnabled: boolean;
+}) {
   const [order, setOrder] = useState(initial);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
   const [pushConfig, setPushConfig] = useState<PushConfigValue | null>(null);
   const [pushOn, setPushOn] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
+  const [claimState, setClaimState] = useState(initialClaimState);
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const [googlePending, setGooglePending] = useState(false);
   const [code, setCode] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
@@ -166,6 +185,42 @@ export function OrderTracker({ token, initial }: { token: string; initial: Publi
       toast.error('Could not turn off order updates.');
     } finally {
       setPushBusy(false);
+    }
+  }
+
+  async function continueWithGoogle() {
+    setGooglePending(true);
+    setClaimError(null);
+    const { error } = await signIn.social({
+      provider: 'google',
+      callbackURL: `${window.location.pathname}${window.location.search}`,
+    });
+    if (error) {
+      setGooglePending(false);
+      setClaimError(error.message ?? 'Could not start Google sign-in.');
+    }
+  }
+
+  async function saveOrder() {
+    setClaiming(true);
+    setClaimError(null);
+    try {
+      const response = await fetch(`/api/public/orders/${encodeURIComponent(token)}/claim`, {
+        method: 'POST',
+      });
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        if (response.status === 401) setClaimState('signed-out');
+        if (response.status === 409) setClaimState('claimed-other');
+        setClaimError(body?.error ?? 'Could not save this order.');
+        return;
+      }
+      setClaimState('claimed');
+      toast.success('Order saved to your account');
+    } catch {
+      setClaimError('Could not save this order. Check your connection and try again.');
+    } finally {
+      setClaiming(false);
     }
   }
 
@@ -270,6 +325,85 @@ export function OrderTracker({ token, initial }: { token: string; initial: Publi
           </p>
         )}
       </header>
+
+      {(claimState === 'signed-out' && googleEnabled) || claimState === 'claimable' ? (
+        <section className="rounded-lg border border-primary/20 bg-primary/5 p-5 sm:p-6">
+          <p className="flex items-center gap-1.5 text-eyebrow">
+            <BookmarkPlus aria-hidden className="size-3.5" /> Save this order
+          </p>
+          <p className="mt-2 text-small text-muted-foreground">
+            {claimState === 'claimable'
+              ? 'Link this order to your Tilza account so it stays in your order history.'
+              : 'Sign in with Google to keep this order in your account. You can still track it without signing in.'}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {claimState === 'signed-out' ? (
+              <Button
+                type="button"
+                onClick={() => void continueWithGoogle()}
+                disabled={googlePending}
+                className="h-10 font-semibold"
+              >
+                {googlePending ? <Loader2 aria-hidden className="size-4 animate-spin" /> : null}
+                Continue with Google
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => void saveOrder()}
+                disabled={claiming}
+                className="h-10 font-semibold"
+              >
+                {claiming ? (
+                  <Loader2 aria-hidden className="size-4 animate-spin" />
+                ) : (
+                  <BookmarkPlus aria-hidden className="size-4" />
+                )}
+                Save to {viewerEmail ?? 'your account'}
+              </Button>
+            )}
+            <Button asChild variant="outline" className="h-10 font-semibold">
+              <Link href="/orders">My orders</Link>
+            </Button>
+          </div>
+          {claimError && (
+            <p role="alert" className="mt-3 text-caption font-medium text-destructive">
+              {claimError}
+            </p>
+          )}
+        </section>
+      ) : null}
+
+      {claimState === 'claimed' ? (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+          <p className="flex items-center gap-2 text-small font-semibold">
+            <CheckCircle2 aria-hidden className="size-4" />
+            Saved to {viewerEmail ?? 'your Tilza account'}.
+          </p>
+          <Link href="/orders" className="text-caption font-semibold underline underline-offset-2">
+            View my orders
+          </Link>
+        </section>
+      ) : null}
+
+      {claimState === 'claimed-other' ? (
+        <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-small text-amber-800">
+          <p className="font-semibold">This order is already saved to a Tilza account.</p>
+          <p className="mt-1">
+            {viewerEmail
+              ? 'It is linked to a different account. You can still track it on this page.'
+              : 'You can still track it on this page without signing in.'}
+          </p>
+          {!viewerEmail && googleEnabled ? (
+            <Link
+              href="/orders"
+              className="mt-2 inline-flex text-caption font-semibold underline underline-offset-2"
+            >
+              Sign in to see your saved orders
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg border border-border bg-card p-4">

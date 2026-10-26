@@ -35,6 +35,7 @@ import {
   type CrewMember,
   CrewOverview,
   type CrewOverview as CrewOverviewValue,
+  DispatchResult,
   type MerchantDelivery,
 } from '@/lib/contracts/courier';
 import { cn } from '@/lib/utils';
@@ -60,6 +61,7 @@ const vehicleLabels: Record<string, string> = {
 };
 
 const deliveryStatusLabels: Record<string, string> = {
+  PENDING_DISPATCH: 'Waiting for a rider',
   RIDER_ASSIGNED: 'Rider assigned',
   IN_TRANSIT: 'On the way',
   DELIVERED: 'Delivered',
@@ -181,6 +183,33 @@ export function DeliveryCrewWorkspace() {
     } catch {
       setOverview(previous);
       toast.error('Could not save dispatch settings.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function dispatchDelivery(delivery: MerchantDelivery) {
+    setBusy(`dispatch:${delivery.orderId}`);
+    try {
+      const result = await apiFetch(`/api/orders/${delivery.orderId}/dispatch`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+        schema: DispatchResult,
+      });
+      if (result.offers > 0) {
+        toast.success(
+          `Sent to ${result.offers} rider${result.offers === 1 ? '' : 's'} within ${result.radiusKm} km.`,
+        );
+      } else if (result.onlineCouriers === 0) {
+        toast.warning('No rider is on shift yet. The order stays here for a manual retry.');
+      } else {
+        toast.warning(
+          `No rider within ${result.radiusKm} km. Widen the radius or wait for a rider to come on shift.`,
+        );
+      }
+      await load(true);
+    } catch {
+      toast.error('Could not send this delivery to the crew.');
     } finally {
       setBusy(null);
     }
@@ -346,6 +375,12 @@ export function DeliveryCrewWorkspace() {
               />
             </button>
           </div>
+          {overview.autoDispatch && overview.onlineCount === 0 && (
+            <p className="rounded-lg border border-highlight-ink/20 bg-highlight-wash px-3 py-2 text-caption font-medium text-highlight-ink">
+              Auto-send is on, but no rider is on shift. New orders wait below until a rider goes on
+              shift or you send them manually.
+            </p>
+          )}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
             <div>
               <Label htmlFor="dispatch-radius" className="font-semibold">
@@ -379,7 +414,7 @@ export function DeliveryCrewWorkspace() {
         <section className="rounded-xl border border-border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-display text-h3">
-              <Truck aria-hidden className="size-4" /> Active deliveries
+              <Truck aria-hidden className="size-4" /> Deliveries &amp; waiting jobs
             </h2>
             <Badge variant="neutral">{deliveries.length} recent</Badge>
           </div>
@@ -406,6 +441,22 @@ export function DeliveryCrewWorkspace() {
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    {delivery.deliveryStatus === 'PENDING_DISPATCH' && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => void dispatchDelivery(delivery)}
+                        disabled={busy !== null}
+                        className="h-8 font-semibold"
+                      >
+                        {busy === `dispatch:${delivery.orderId}` ? (
+                          <Loader2 aria-hidden className="size-3.5 animate-spin" />
+                        ) : (
+                          <Radio aria-hidden className="size-3.5" />
+                        )}
+                        Send to crew
+                      </Button>
+                    )}
                     {delivery.proofUrl && (
                       <Button asChild size="sm" variant="outline" className="h-8 font-semibold">
                         <a href={delivery.proofUrl} target="_blank" rel="noopener noreferrer">
@@ -432,17 +483,21 @@ export function DeliveryCrewWorkspace() {
                   </div>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-muted-foreground">
-                  <span>
-                    {delivery.courierName ?? 'Courier'}{' '}
-                    {delivery.courierPhone && (
-                      <a
-                        href={`tel:${delivery.courierPhone}`}
-                        className="inline-flex items-center gap-1 font-semibold text-primary"
-                      >
-                        <Phone aria-hidden className="size-3" /> Call
-                      </a>
-                    )}
-                  </span>
+                  {delivery.courierName ? (
+                    <span>
+                      {delivery.courierName}{' '}
+                      {delivery.courierPhone && (
+                        <a
+                          href={`tel:${delivery.courierPhone}`}
+                          className="inline-flex items-center gap-1 font-semibold text-primary"
+                        >
+                          <Phone aria-hidden className="size-3" /> Call
+                        </a>
+                      )}
+                    </span>
+                  ) : (
+                    <span>No rider yet</span>
+                  )}
                   {delivery.handoffCode && <span>Handoff {delivery.handoffCode}</span>}
                   {delivery.deliveredAt && (
                     <span>Delivered {formatWhen(delivery.deliveredAt)}</span>

@@ -23,6 +23,7 @@ import { signOrderToken } from '@/lib/order-tracking';
 import { couponDiscount, couponErrorMessage } from '@/lib/promotions';
 import { sendPushToUser } from '@/lib/push';
 import { allow, ipOf } from '@/lib/rate-limit';
+import { getSessionUser } from '@/lib/require-auth';
 import { buildOrderNumber, type CapturedCustomer, findOrCreateCustomer } from '@/lib/storefront';
 import { routeErrorResponse } from '@/lib/telemetry';
 
@@ -108,6 +109,12 @@ export async function POST(request: Request, context: RouteContext) {
 
     const store = await prisma.store.findFirst({ where: { slug, active: true } });
     if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+
+    // A signed-in shopper's order is linked to their account at checkout. Keep
+    // store owners out of their own shopper history so the tracking page and
+    // dashboard never describe the same sale twice.
+    const viewer = await getSessionUser();
+    const shopperId = viewer && viewer.id !== store.userId ? viewer.id : null;
 
     // Fulfillment pricing is checked before any customer write: a shop without
     // a pin cannot offer delivery, so a rejected checkout leaves no half-made
@@ -286,9 +293,11 @@ export async function POST(request: Request, context: RouteContext) {
             // that shop's dashboard and nowhere else.
             userId: store.userId,
             customerId: customer.id,
+            shopperId,
             orderNumber: buildOrderNumber(),
             description: note ? `${summary} — ${note}` : summary,
             status: 'PENDING',
+            channel: 'STOREFRONT',
             // Real money is expected for storefront orders, so the amount is
             // derived from the item prices and every line is snapshotted into
             // history. amountPesewas is already net of any coupon discount.
@@ -317,6 +326,14 @@ export async function POST(request: Request, context: RouteContext) {
             },
           },
         });
+
+        if (shopperId) {
+          await tx.userAudience.upsert({
+            where: { userId_kind: { userId: shopperId, kind: 'SHOPPER' } },
+            create: { userId: shopperId, kind: 'SHOPPER' },
+            update: {},
+          });
+        }
 
         return { captured: customer, order: created };
       });

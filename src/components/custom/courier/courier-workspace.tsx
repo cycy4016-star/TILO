@@ -187,6 +187,7 @@ export function CourierWorkspace() {
             }),
           });
           setMe({ ...me, isOnline: true });
+          await loadJobs(true);
           toast.success('You are on shift â€” nearby jobs can reach you');
         } catch {
           toast.error('Could not go on shift. Check location permission.');

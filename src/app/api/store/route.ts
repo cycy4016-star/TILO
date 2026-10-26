@@ -5,6 +5,7 @@ import 'server-only';
 import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { captureAdminAlert } from '@/lib/admin-alerts';
+import { ensureAudience } from '@/lib/audiences';
 import { StoreUpsert } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
 import { requireAuth } from '@/lib/require-auth';
@@ -47,6 +48,7 @@ export async function PUT(request: Request) {
 
     const existing = await prisma.store.findUnique({ where: { userId: user.id } });
     const data = parsed.data;
+    if (!existing) await ensureAudience(user.id, 'OWNER');
     let store: StoreWithItems;
     try {
       store = existing

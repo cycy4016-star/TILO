@@ -9,6 +9,7 @@
 import { ArrowUpRight, BarChart3, Flame, Store, Users } from 'lucide-react';
 import Link from 'next/link';
 import { MoneyToChaseCard } from '@/components/custom/dashboard/money-to-chase-card';
+import { StorefrontAnalyticsPanel } from '@/components/custom/dashboard/storefront-analytics';
 import { IntelligenceWorkspace } from '@/components/custom/intelligence-workspace';
 import { ProductsWorkspace } from '@/components/custom/products-workspace';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,10 @@ export function MerchantWorkspace() {
           </Button>
         </div>
       </section>
+
+      <div id="storefront-traffic" className="scroll-mt-24">
+        <StorefrontAnalyticsPanel />
+      </div>
 
       <div id="money-to-chase" className="scroll-mt-24">
         <MoneyToChaseCard />
