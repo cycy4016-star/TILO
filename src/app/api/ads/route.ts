@@ -43,6 +43,7 @@ export async function GET(request: Request) {
             compareAtPricePesewas: true,
             stock: true,
             imageMime: true,
+            images: { take: 1, select: { id: true } },
             category: { select: { name: true } },
           },
         },
@@ -86,7 +87,7 @@ export async function GET(request: Request) {
         pricePesewas: item.pricePesewas,
         compareAtPricePesewas: item.compareAtPricePesewas,
         stock: item.stock,
-        hasImage: item.imageMime != null,
+        hasImage: item.images.length > 0 || item.imageMime != null,
       })),
       promotions: store.promotions.map((promotion) => ({
         name: promotion.name,

@@ -5,9 +5,18 @@
 // ad, this renders on demand with no object storage, on a white card so the
 // artwork matches the storefront it advertises.
 import { ImageResponse } from 'next/og';
-import { AD_CARD, AD_TEXT, AD_TILE, AD_TILE_FOOT, adPalette, clampText } from '@/lib/ad-visuals';
+import {
+  AD_CARD,
+  AD_TEXT,
+  AD_TEXT_DIM,
+  AD_TILE,
+  AD_TILE_FOOT,
+  adCoverImage,
+  adPalette,
+  clampText,
+  formatAdPrice,
+} from '@/lib/ad-visuals';
 import { adFormat, CAROUSEL_MAX } from '@/lib/ads';
-import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { allow, ipOf } from '@/lib/rate-limit';
@@ -129,6 +138,11 @@ export async function GET(request: Request, context: RouteContext) {
         image: true,
         imageMime: true,
         updatedAt: true,
+        images: {
+          orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+          take: 1,
+          select: { image: true, imageMime: true, updatedAt: true },
+        },
       },
     });
     // Preserve the caller's ordering (the query order is unspecified).
@@ -142,19 +156,37 @@ export async function GET(request: Request, context: RouteContext) {
     // The canvas paints the store (name, logo, theme, phone) and the tiles, so
     // the newest of those timestamps is the strong validator.
     const updatedAt = new Date(
-      Math.max(store.updatedAt.getTime(), ...items.map((item) => item.updatedAt.getTime())),
+      Math.max(
+        store.updatedAt.getTime(),
+        ...items.map((item) => {
+          const cover = adCoverImage(item);
+          return Math.max(item.updatedAt.getTime(), cover?.updatedAt.getTime() ?? 0);
+        }),
+      ),
     );
     const notModifiedResponse = notModified(request, updatedAt, CACHE_CONTROL);
     if (notModifiedResponse) return notModifiedResponse;
 
     const { accent, tint, accentText, pillText } = adPalette(store.theme);
-    const { pad, gap, cols, nameSize, priceSize, tilePad } = LAYOUT[format.key];
+    const layout = LAYOUT[format.key];
+    const { pad, gap, logo, title, eyebrow, url, nameSize, priceSize, tilePad } = layout;
+    const cols = Math.min(layout.cols, items.length);
+    const tileWidth = Math.floor((format.width - pad * 2 - gap * (cols - 1)) / cols);
+    const headerHeight = Math.max(logo, title * 1.3 + 4 + eyebrow * 1.3);
+    const footerHeight = showCta ? Math.max((priceSize - 6) * 1.2 + 28, url * 1.2) : url * 1.2;
+    const gridHeight = format.height - pad * 2 - headerHeight - footerHeight - gap * 2;
     const logoSrc = store.logo != null ? toDataUrl(store.logo, store.logoMime) : null;
     const cta = store.contactPhone ? 'Order on WhatsApp' : 'Order from our shop';
     const tileRows = chunk(items, cols);
+    const tileFootHeight = tilePad * 2 + nameSize * 1.12 + 6 + priceSize * 1.1;
+    const photoHeight = Math.max(
+      120,
+      Math.floor((gridHeight - gap * (tileRows.length - 1)) / tileRows.length - tileFootHeight),
+    );
 
     const tile = (item: (typeof items)[number]) => {
-      const photoSrc = item.image != null ? toDataUrl(item.image, item.imageMime) : null;
+      const cover = adCoverImage(item);
+      const photoSrc = cover ? toDataUrl(cover.image, cover.imageMime) : null;
       return (
         <div
           key={item.id}
@@ -180,37 +212,35 @@ export async function GET(request: Request, context: RouteContext) {
               overflow: 'hidden',
               // Flat pale blue placeholder — the tile used to carry a 140°
               // gradient into a dark ink, which tinted every product photo.
-              background: tint,
+              backgroundColor: tint,
             }}
           >
             {photoSrc ? (
               <>
-                {/* Autofit: dimmed full-bleed copy behind, uncropped photo in
-                    front — any upload shape fills the tile cleanly. */}
+                {/* Autofit: a dimmed full-bleed copy fills the tile behind the
+                    uncropped photo, so any upload shape fills the frame. */}
                 {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
                 <img
                   src={photoSrc}
                   alt=""
+                  width={tileWidth}
+                  height={photoHeight}
                   style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    width: '100%',
-                    height: '100%',
                     objectFit: 'cover',
                     opacity: 0.3,
+                    filter: 'blur(28px)',
                   }}
                 />
                 {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
                 <img
                   src={photoSrc}
                   alt=""
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                  }}
+                  width={tileWidth}
+                  height={photoHeight}
+                  style={{ position: 'relative', objectFit: 'contain' }}
                 />
               </>
             ) : (
@@ -219,7 +249,7 @@ export async function GET(request: Request, context: RouteContext) {
                   display: 'flex',
                   fontSize: 96,
                   fontWeight: 800,
-                  color: 'rgba(255,255,255,0.92)',
+                  color: 'rgba(184,61,0,0.32)',
                 }}
               >
                 {item.name.charAt(0).toUpperCase()}
@@ -250,7 +280,7 @@ export async function GET(request: Request, context: RouteContext) {
             <div
               style={{ display: 'flex', fontSize: priceSize, fontWeight: 800, color: accentText }}
             >
-              {formatGhs(item.pricePesewas)}
+              {formatAdPrice(item.pricePesewas)}
             </div>
           </div>
         </div>
@@ -299,7 +329,7 @@ export async function GET(request: Request, context: RouteContext) {
                 fontWeight: 700,
                 letterSpacing: 4,
                 textTransform: 'uppercase',
-                color: 'rgba(248,250,252,0.55)',
+                color: AD_TEXT_DIM,
               }}
             >
               Shop the collection
@@ -354,7 +384,7 @@ export async function GET(request: Request, context: RouteContext) {
             style={{
               display: 'flex',
               fontSize: LAYOUT[format.key].url,
-              color: 'rgba(248,250,252,0.5)',
+              color: AD_TEXT_DIM,
             }}
           >
             {`${items.length} featured today`}

@@ -69,3 +69,29 @@ export function clampText(text: string, max: number): string {
   const trimmed = text.trim();
   return trimmed.length > max ? `${trimmed.slice(0, max - 1).trimEnd()}…` : trimmed;
 }
+
+export function formatAdPrice(pesewas: number | null | undefined): string {
+  if (pesewas == null) return '';
+  return `GHS ${(pesewas / 100).toLocaleString('en-GH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+export type AdCover = {
+  image: Uint8Array;
+  imageMime: string | null;
+  updatedAt: Date;
+};
+
+export function adCoverImage(item: {
+  image: Uint8Array | null;
+  imageMime: string | null;
+  updatedAt: Date;
+  images?: AdCover[];
+}): AdCover | null {
+  const gallery = item.images?.[0];
+  if (gallery) return gallery;
+  if (item.image == null) return null;
+  return { image: item.image, imageMime: item.imageMime, updatedAt: item.updatedAt };
+}

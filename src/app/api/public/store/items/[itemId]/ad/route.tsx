@@ -15,12 +15,13 @@ import {
   AD_CARD,
   AD_TEXT,
   AD_TEXT_DIM,
+  adCoverImage,
   adPalette,
   clampText,
+  formatAdPrice,
   nameFontSize,
 } from '@/lib/ad-visuals';
 import { adFormat } from '@/lib/ads';
-import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { itemDiscountPercent } from '@/lib/promotions';
@@ -53,17 +54,27 @@ export async function GET(request: Request, context: RouteContext) {
     const showCta = params.get('cta') !== '0';
     const item = await prisma.storeItem.findFirst({
       where: { id: itemId },
-      include: { store: true, category: true },
+      include: {
+        store: true,
+        category: true,
+        images: {
+          orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+          take: 1,
+          select: { image: true, imageMime: true, updatedAt: true },
+        },
+      },
     });
     if (!item) return new Response('Not found', { status: 404 });
 
     // Everything painted here (item, its shelf heading, the store's name,
     // logo, theme and phone) is covered by these three timestamps.
+    const cover = adCoverImage(item);
     const updatedAt = new Date(
       Math.max(
         item.updatedAt.getTime(),
         item.store.updatedAt.getTime(),
         item.category?.updatedAt.getTime() ?? 0,
+        cover?.updatedAt.getTime() ?? 0,
       ),
     );
     const notModifiedResponse = notModified(request, updatedAt, CACHE_CONTROL);
@@ -73,13 +84,15 @@ export async function GET(request: Request, context: RouteContext) {
     // Saturated accents read well on the dark card; the dark ones (slate, ocean,
     // violet) swap to their pale tint for the price so it never disappears.
     const { accent, tint, accentText, pillText } = adPalette(item.store.theme);
-    const photoSrc = item.image != null ? toDataUrl(item.image, item.imageMime) : null;
+    const photoSrc = cover ? toDataUrl(cover.image, cover.imageMime) : null;
     const logoSrc =
       item.store.logo != null ? toDataUrl(item.store.logo, item.store.logoMime) : null;
     const cta = item.store.contactPhone ? 'Order on WhatsApp' : 'Order from our shop';
     const wide = format.key === 'wide';
     const story = format.key === 'story';
     const pad = wide ? 68 : story ? 76 : 60;
+    const photoWidth = wide ? Math.round(format.width * 0.52) : format.width;
+    const infoWidth = wide ? format.width - photoWidth : format.width;
 
     const brandChip = (
       <div
@@ -142,7 +155,7 @@ export async function GET(request: Request, context: RouteContext) {
         </div>
       ) : null;
 
-    const photo = (height: number | string, width: number | string) => (
+    const photo = (height: number, width: number) => (
       <div
         style={{
           display: 'flex',
@@ -167,12 +180,12 @@ export async function GET(request: Request, context: RouteContext) {
             <img
               src={photoSrc}
               alt=""
+              width={width}
+              height={height}
               style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                width: '100%',
-                height: '100%',
                 objectFit: 'cover',
                 opacity: 0.3,
               }}
@@ -181,10 +194,10 @@ export async function GET(request: Request, context: RouteContext) {
             <img
               src={photoSrc}
               alt=""
+              width={width}
+              height={height}
               style={{
                 position: 'relative',
-                width: '100%',
-                height: '100%',
                 objectFit: 'contain',
               }}
             />
@@ -195,7 +208,7 @@ export async function GET(request: Request, context: RouteContext) {
               display: 'flex',
               fontSize: 160,
               fontWeight: 800,
-              color: 'rgba(255,255,255,0.92)',
+              color: 'rgba(184,61,0,0.32)',
             }}
           >
             {item.name.charAt(0).toUpperCase()}
@@ -213,7 +226,9 @@ export async function GET(request: Request, context: RouteContext) {
           flexDirection: 'column',
           justifyContent: 'flex-end',
           gap: 16,
-          flexGrow: 1,
+          flexGrow: 0,
+          width: infoWidth,
+          minWidth: 0,
           padding: pad,
         }}
       >
@@ -235,7 +250,7 @@ export async function GET(request: Request, context: RouteContext) {
                 fontWeight: 700,
                 letterSpacing: 4,
                 textTransform: 'uppercase',
-                color: 'rgba(248,250,252,0.62)',
+                color: AD_TEXT_DIM,
               }}
             >
               {clampText(item.category.name, 24)}
@@ -254,7 +269,7 @@ export async function GET(request: Request, context: RouteContext) {
         >
           {clampText(item.name, 64)}
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 18 }}>
           <div
             style={{
               display: 'flex',
@@ -263,7 +278,7 @@ export async function GET(request: Request, context: RouteContext) {
               color: accentText,
             }}
           >
-            {formatGhs(item.pricePesewas)}
+            {formatAdPrice(item.pricePesewas)}
           </div>
           {discount != null && item.compareAtPricePesewas != null ? (
             <div
@@ -274,7 +289,7 @@ export async function GET(request: Request, context: RouteContext) {
                 textDecoration: 'line-through',
               }}
             >
-              {formatGhs(item.compareAtPricePesewas)}
+              {formatAdPrice(item.compareAtPricePesewas)}
             </div>
           ) : null}
         </div>
@@ -308,7 +323,7 @@ export async function GET(request: Request, context: RouteContext) {
           background: AD_CARD,
         }}
       >
-        {photo('100%', '52%')}
+        {photo(format.height, photoWidth)}
         {info}
       </div>
     ) : (
@@ -321,7 +336,7 @@ export async function GET(request: Request, context: RouteContext) {
           background: AD_CARD,
         }}
       >
-        {photo(story ? 1060 : 580, '100%')}
+        {photo(story ? 1060 : 580, photoWidth)}
         {info}
       </div>
     );
