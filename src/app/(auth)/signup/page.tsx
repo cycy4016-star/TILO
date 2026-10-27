@@ -1,8 +1,11 @@
 // Tilza sign-up shell.
 import { MessageCircle, PackagePlus, Store } from 'lucide-react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { SignUpForm } from '@/components/custom/sign-up-form';
 import { TilzaLogo } from '@/components/custom/tilza-logo';
+import { resolveAppHome } from '@/lib/app-home';
+import { getSessionUser } from '@/lib/require-auth';
 import { TRIAL_DAYS } from '@/lib/trial';
 
 const BENEFITS = [
@@ -11,7 +14,9 @@ const BENEFITS = [
   { Icon: MessageCircle, text: 'Receive orders on WhatsApp' },
 ];
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  const user = await getSessionUser();
+  if (user) redirect(await resolveAppHome(user));
   return (
     <main className="min-h-dvh bg-background">
       <div className="grid min-h-dvh lg:grid-cols-[0.82fr_1.18fr]">

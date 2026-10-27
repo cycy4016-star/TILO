@@ -4,6 +4,7 @@
 
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { Reveal, SampleSlideshow } from '@/components/custom/sample-showcase';
 import type { SampleShop } from '@/components/custom/sample-stores';
 import { StoreCompareTable, StorePhones } from '@/components/custom/store-stage';
@@ -14,6 +15,8 @@ import { Hero } from '@/components/landing/hero';
 import { HowItWorks } from '@/components/landing/how-it-works';
 import { Pricing } from '@/components/landing/pricing';
 import { SocialProof } from '@/components/landing/social-proof';
+import { resolveAppHome } from '@/lib/app-home';
+import { getSessionUser } from '@/lib/require-auth';
 import { siteDescription, siteName, siteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -287,6 +290,8 @@ const SAMPLE_STORES: SampleShop[] = [
 ];
 
 export default async function TilzaHome() {
+  const user = await getSessionUser();
+  if (user) redirect(await resolveAppHome(user));
   // CSP-safe JSON-LD: the per-request nonce keeps strict script-src happy.
   // The root layout already opts the tree into dynamic rendering for this.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
