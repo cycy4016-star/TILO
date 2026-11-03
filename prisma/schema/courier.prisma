@@ -248,6 +248,10 @@ model OrderPushSubscription {
 model CourierPushSubscription {
   id        String   @id @default(cuid())
   courierId String
+  // Courier session this device belongs to. Cleared on that device's sign-out
+  // (and when the session is revoked/expired) so a logged-out phone stops
+  // receiving job alerts. Null on pre-binding rows, cleared at next sign-out.
+  sessionId String?
   endpoint  String   @unique
   p256dh    String
   auth      String
@@ -257,4 +261,5 @@ model CourierPushSubscription {
   courier   Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
 
   @@index([courierId])
+  @@index([sessionId])
 }

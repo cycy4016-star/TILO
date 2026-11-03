@@ -81,12 +81,21 @@ export function CourierJoinForm({ token }: { token: string }) {
       const body = (await response.json().catch(() => null)) as {
         status?: string;
         storeName?: string;
+        signInRequired?: boolean;
         errors?: Record<string, string>;
         error?: string;
       } | null;
       if (!response.ok) {
         const first = body?.errors ? Object.values(body.errors)[0] : body?.error;
         setFieldError(first ?? 'Could not join this crew. Check your details.');
+        return;
+      }
+      if (body?.signInRequired) {
+        toast.success(`Application sent to ${body.storeName ?? 'the shop'}`, {
+          description:
+            'This phone already has a rider account. Open the invite on the phone where you first joined to see it.',
+          duration: 10_000,
+        });
         return;
       }
       toast.success(

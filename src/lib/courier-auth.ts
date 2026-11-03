@@ -85,6 +85,15 @@ export async function getCourierSession() {
   });
   if (!session) return null;
   if (session.expiresAt.getTime() <= Date.now() || session.courier.status !== 'ACTIVE') {
+    // The session is no longer usable, so its device credentials are not either.
+    await prisma.courierPushSubscription
+      .deleteMany({
+        where: {
+          courierId: session.courierId,
+          OR: [{ sessionId: session.id }, { sessionId: null }],
+        },
+      })
+      .catch(() => undefined);
     await prisma.courierSession.delete({ where: { id: session.id } }).catch(() => undefined);
     return null;
   }

@@ -29,6 +29,7 @@ describe('isAdminRole', () => {
     const { isAdminRole } = await import('@/lib/roles');
     expect(isAdminRole('user,admin')).toBe(true);
     expect(isAdminRole(' admin ')).toBe(true);
+    expect(isAdminRole('USER,ADMIN')).toBe(true);
     // A substring must never count — "administrator" is not "admin".
     expect(isAdminRole('administrator')).toBe(false);
     expect(isAdminRole('useradmin')).toBe(false);
@@ -37,16 +38,13 @@ describe('isAdminRole', () => {
 
 describe('requireAdmin gate', () => {
   it('redirects a signed-in shop owner away from the admin monitor', async () => {
-    vi.doMock('@/lib/auth', () => ({
-      auth: {
-        api: { getSession: vi.fn().mockResolvedValue({ user: { id: 'u1', role: 'user' } }) },
-      },
+    vi.doMock('@/lib/require-auth', () => ({
+      getSessionUser: vi.fn().mockResolvedValue({ id: 'u1', role: 'user' }),
     }));
     const redirect = vi.fn(() => {
       throw new Error('NEXT_REDIRECT');
     });
     vi.doMock('next/navigation', () => ({ redirect }));
-    vi.doMock('next/headers', () => ({ headers: async () => new Headers() }));
     // biome-ignore lint/style/noRestrictedImports: the gate under test is server-only by design
     const { requireAdmin } = await import('@/lib/require-admin');
     await expect(requireAdmin()).rejects.toThrow('NEXT_REDIRECT');
@@ -54,13 +52,10 @@ describe('requireAdmin gate', () => {
   });
 
   it('lets a platform admin through', async () => {
-    vi.doMock('@/lib/auth', () => ({
-      auth: {
-        api: { getSession: vi.fn().mockResolvedValue({ user: { id: 'u1', role: 'admin' } }) },
-      },
+    vi.doMock('@/lib/require-auth', () => ({
+      getSessionUser: vi.fn().mockResolvedValue({ id: 'u1', role: 'admin' }),
     }));
     vi.doMock('next/navigation', () => ({ redirect: vi.fn() }));
-    vi.doMock('next/headers', () => ({ headers: async () => new Headers() }));
     // biome-ignore lint/style/noRestrictedImports: the gate under test is server-only by design
     const { requireAdmin } = await import('@/lib/require-admin');
     await expect(requireAdmin()).resolves.toMatchObject({ user: { id: 'u1' } });

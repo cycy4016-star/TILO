@@ -2,6 +2,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
+const env = vi.hoisted(() => ({
+  env: { SIGNUP_LIMIT: undefined as number | undefined },
+}));
 const db = vi.hoisted(() => ({
   prisma: {
     // Tenancy: owner-scoped reads go through findFirst({ id, userId }) or
@@ -15,7 +18,13 @@ const db = vi.hoisted(() => ({
       aggregate: vi.fn(),
       findFirst: vi.fn(),
     },
-    store: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    store: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      count: vi.fn(),
+    },
     userAudience: { upsert: vi.fn() },
     storeItem: {
       findMany: vi.fn(),
@@ -29,6 +38,7 @@ const db = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/require-auth', () => auth);
+vi.mock('@/lib/env', () => env);
 vi.mock('@/lib/db', () => db);
 vi.mock('server-only', () => ({}));
 
@@ -411,6 +421,11 @@ describe('dashboard overview route', () => {
 });
 
 describe('store routes', () => {
+  beforeEach(() => {
+    env.env.SIGNUP_LIMIT = undefined;
+    db.prisma.store.count.mockResolvedValue(0);
+  });
+
   const store = {
     id: 'store-1',
     name: "Ama's Boutique",
@@ -490,6 +505,8 @@ describe('store routes', () => {
   });
 
   it("cannot claim another shop's storefront on a second save", async () => {
+    env.env.SIGNUP_LIMIT = 1;
+    db.prisma.store.count.mockResolvedValue(1);
     db.prisma.store.findUnique.mockResolvedValue(store);
     db.prisma.store.update.mockResolvedValue({ ...store, items: [] });
     const { PUT } = await import('@/app/api/store/route');
@@ -499,9 +516,34 @@ describe('store routes', () => {
         body: JSON.stringify({ name: store.name, slug: store.slug, active: true }),
       }),
     );
+    // The cap only gates OPENING a shop — an existing owner can still edit.
     expect(response.status).toBe(200);
     expect(db.prisma.store.create).not.toHaveBeenCalled();
     expect(db.prisma.store.update).toHaveBeenCalled();
+  });
+
+  it('refuses to open a shop after the pilot shop cap is reached', async () => {
+    env.env.SIGNUP_LIMIT = 2;
+    db.prisma.store.count.mockResolvedValue(2);
+    db.prisma.store.findUnique.mockResolvedValue(null);
+    const { PUT } = await import('@/app/api/store/route');
+    const response = await PUT(
+      new Request('http://test/api/store', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: 'New Shop',
+          slug: 'new-shop',
+          contactPhone: '024 000 0000',
+          active: true,
+        }),
+      }),
+    );
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      errors: { form: expect.stringContaining('first 2 shops') },
+    });
+    expect(db.prisma.store.create).not.toHaveBeenCalled();
+    expect(db.prisma.userAudience.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid store link word', async () => {

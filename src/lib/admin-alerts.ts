@@ -16,6 +16,7 @@ import 'server-only';
 
 import type { AdminAlertCadence, AdminAlertKind } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { isAdminRole } from '@/lib/roles';
 
 export const ADMIN_ALERT_KINDS = [
   'SIGNUP',
@@ -112,8 +113,15 @@ async function loadAdminSettings(): Promise<{
 }> {
   const now = Date.now();
   if (!settingsCache || now - settingsCache.at > SETTINGS_TTL_MS) {
-    const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } });
-    const ids = admins.map((admin) => admin.id);
+    // Roles are stored as a bare string and may be a comma-separated list
+    // ("user,admin"). An exact `role: 'admin'` lookup silently skipped those
+    // accounts, so fetch candidates by substring and apply the same split/trim
+    // helper the access gates use.
+    const candidates = await prisma.user.findMany({
+      where: { role: { contains: 'admin', mode: 'insensitive' } },
+      select: { id: true, role: true },
+    });
+    const ids = candidates.filter((admin) => isAdminRole(admin.role)).map((admin) => admin.id);
     const rows = ids.length
       ? await prisma.adminAlertSetting.findMany({
           where: { userId: { in: ids } },

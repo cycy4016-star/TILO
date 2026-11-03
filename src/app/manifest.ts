@@ -11,7 +11,12 @@ export default function manifest(): MetadataRoute.Manifest {
     name: siteName,
     short_name: siteName,
     description: siteDescription,
-    start_url: '/dashboard',
+    // '/' is the role-aware entry point: the marketing page redirects a signed-in
+    // visitor through resolveAppHome() (owner -> /dashboard, shopper -> /orders,
+    // admin -> /dashboard/admin, new account -> /welcome). Never hardcode
+    // /dashboard here — a shopper or courier installing the app would be forced
+    // into shop onboarding.
+    start_url: '/',
     scope: '/',
     display: 'standalone',
     background_color: brandVisual.backgroundColor,

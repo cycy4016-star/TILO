@@ -15,9 +15,9 @@ export const env = createEnv({
     // from a fully-verified email (i.e. not Google) must submit this exact code
     // or be rejected. Leave empty for open sign-up.
     SIGNUP_INVITE_CODE: z.string().optional(),
-    // Hard cap on the number of accounts (optional). When set, sign-up is
-    // rejected once this many users exist — the "first N shops" gate for a
-    // pilot.
+    // Hard cap on the number of SHOPS (optional). When set, creating a second
+    // store once this many exist is rejected — the "first N shops" gate for a
+    // pilot. Shoppers can still sign in to claim orders; they use no shop slot.
     SIGNUP_LIMIT: z.coerce.number().int().positive().optional(),
 
     // Transactional email (optional). Used for password-reset links when an

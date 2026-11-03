@@ -75,6 +75,11 @@ export async function joinCrew(input: {
   phone: string;
   vehicleType: string;
   plateNumber?: string;
+  // Present only when the request already carries this rider's courier session.
+  // A public invite can attach a membership by phone, but it must never let an
+  // anonymous caller rewrite an existing rider's profile or mint a session for
+  // an account they have not proven they own.
+  authenticatedCourierId?: string;
   request?: Request;
 }) {
   const invite = await findInviteByToken(input.inviteToken);
@@ -98,16 +103,22 @@ export async function joinCrew(input: {
     );
   }
 
+  const ownsExistingAccount = existing != null && input.authenticatedCourierId === existing.id;
   const plateNumber = input.plateNumber?.trim() || null;
   const membership = await prisma.$transaction(async (tx) => {
     const courier = existing
-      ? // The join form is the rider's own profile. Re-opening an invite with a
-        // corrected name, vehicle or plate should not leave the crew looking at
-        // details the rider already fixed. Membership status is still untouched.
-        await tx.courier.update({
-          where: { id: existing.id },
-          data: { name: input.name, vehicleType: input.vehicleType, plateNumber },
-        })
+      ? ownsExistingAccount
+        ? // Re-opening an invite while signed in is still a profile correction:
+          // the rider can fix their name, vehicle or plate without the crew
+          // seeing stale details. Membership status is untouched.
+          await tx.courier.update({
+            where: { id: existing.id },
+            data: { name: input.name, vehicleType: input.vehicleType, plateNumber },
+          })
+        : // Anonymous re-entry with a known phone only attaches a membership.
+          // Editing the profile here would let anyone who knows a rider's phone
+          // overwrite their details.
+          existing
       : await tx.courier.create({
           data: {
             name: input.name,
@@ -145,5 +156,8 @@ export async function joinCrew(input: {
     courierId: membership.courier.id,
     status: membership.member.status,
     storeName: invite.store.name,
+    // Only a brand-new rider or the rider already holding this session may be
+    // signed in by the join route.
+    canSignIn: existing == null || ownsExistingAccount,
   };
 }

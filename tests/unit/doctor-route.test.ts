@@ -13,6 +13,7 @@ const db = vi.hoisted(() => ({
   prisma: {
     $queryRawUnsafe: vi.fn(),
     user: { count: vi.fn(), findUnique: vi.fn() },
+    store: { count: vi.fn() },
     authEvent: { count: vi.fn() },
     appLog: { count: vi.fn(), aggregate: vi.fn() },
   },
@@ -76,6 +77,7 @@ beforeEach(() => {
   });
 
   db.prisma.user.count.mockResolvedValue(3);
+  db.prisma.store.count.mockResolvedValue(3);
   db.prisma.user.findUnique.mockResolvedValue({ id: 'u-1', role: 'admin', banned: false });
   db.prisma.authEvent.count.mockResolvedValue(3);
   db.prisma.appLog.count.mockResolvedValue(0);
@@ -145,7 +147,7 @@ describe('admin doctor route', () => {
     expect(vaultCheck.actions.join(' ')).toContain('Snapshot now');
   });
 
-  it('warns when sign-up slots are nearly gone, and fails when they are full', async () => {
+  it('warns when shop slots are nearly gone, and fails when they are full', async () => {
     envMock.env.SIGNUP_LIMIT = 4;
     const warnBody = await (await callDoctor()).json();
     const warnCheck = warnBody.checks.find((check: { id: string }) => check.id === 'signups');

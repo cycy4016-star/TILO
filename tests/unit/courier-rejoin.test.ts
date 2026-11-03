@@ -1,7 +1,8 @@
 // @vitest-environment node
-// Re-opening a crew invite is also a profile correction: an existing rider's
-// corrected name, vehicle and plate must reach the crew, while their membership
-// status stays exactly where the merchant left it.
+// Re-opening a crew invite is also a profile correction — but only for the rider
+// who already holds that rider's session. An anonymous caller who knows a phone
+// number may attach a membership; they may not rewrite the profile or be handed
+// a login for that account.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
@@ -36,16 +37,18 @@ const invite = {
   },
 };
 
+const existingRider = {
+  id: 'courier-1',
+  name: 'Old Name',
+  phone: '+233241234567',
+  vehicleType: 'MOTORBIKE',
+  plateNumber: null,
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   db.prisma.courierCrewInvite.findUnique.mockResolvedValue(invite);
-  db.prisma.courier.findUnique.mockResolvedValue({
-    id: 'courier-1',
-    name: 'Old Name',
-    phone: '+233241234567',
-    vehicleType: 'MOTORBIKE',
-    plateNumber: null,
-  });
+  db.prisma.courier.findUnique.mockResolvedValue(existingRider);
   tx.courier.update.mockResolvedValue({
     id: 'courier-1',
     name: 'New Name',
@@ -61,8 +64,8 @@ beforeEach(() => {
   );
 });
 
-describe('joinCrew profile refresh', () => {
-  it('updates an existing rider profile without changing membership status', async () => {
+describe('joinCrew profile handling', () => {
+  it('lets an authenticated rider correct their profile without changing membership status', async () => {
     const { joinCrew } = await import('@/lib/courier-invite');
     const result = await joinCrew({
       inviteToken: 'invite-token',
@@ -70,12 +73,14 @@ describe('joinCrew profile refresh', () => {
       phone: '024 123 4567',
       vehicleType: 'CAR',
       plateNumber: ' GT-123 ',
+      authenticatedCourierId: 'courier-1',
     });
 
     expect(result).toEqual({
       courierId: 'courier-1',
       status: 'SUSPENDED',
       storeName: 'Ama Threads',
+      canSignIn: true,
     });
     expect(tx.courier.update).toHaveBeenCalledWith({
       where: { id: 'courier-1' },
@@ -90,7 +95,46 @@ describe('joinCrew profile refresh', () => {
     );
   });
 
-  it('creates a new rider with the submitted profile', async () => {
+  it('attaches a membership for a known phone without rewriting the rider or minting a login', async () => {
+    const { joinCrew } = await import('@/lib/courier-invite');
+    const result = await joinCrew({
+      inviteToken: 'invite-token',
+      name: 'Someone Else',
+      phone: '024 123 4567',
+      vehicleType: 'CAR',
+      plateNumber: 'GT-999',
+    });
+
+    expect(result).toEqual({
+      courierId: 'courier-1',
+      status: 'SUSPENDED',
+      storeName: 'Ama Threads',
+      canSignIn: false,
+    });
+    expect(tx.courier.update).not.toHaveBeenCalled();
+    expect(tx.courier.create).not.toHaveBeenCalled();
+    expect(tx.storeCourier.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: { storeId: 'store-1', courierId: 'courier-1', status: 'PENDING' },
+      }),
+    );
+  });
+
+  it('refuses to let a different signed-in rider take over a known phone', async () => {
+    const { joinCrew } = await import('@/lib/courier-invite');
+    const result = await joinCrew({
+      inviteToken: 'invite-token',
+      name: 'New Name',
+      phone: '024 123 4567',
+      vehicleType: 'CAR',
+      authenticatedCourierId: 'courier-other',
+    });
+
+    expect(result.canSignIn).toBe(false);
+    expect(tx.courier.update).not.toHaveBeenCalled();
+  });
+
+  it('creates a new rider with the submitted profile and signs them in', async () => {
     db.prisma.courier.findUnique.mockResolvedValueOnce(null);
     tx.courier.create.mockResolvedValue({
       id: 'courier-2',
@@ -102,13 +146,14 @@ describe('joinCrew profile refresh', () => {
     tx.storeCourier.upsert.mockResolvedValueOnce({ id: 'member-2', status: 'PENDING' });
 
     const { joinCrew } = await import('@/lib/courier-invite');
-    await joinCrew({
+    const result = await joinCrew({
       inviteToken: 'invite-token',
       name: 'New Rider',
       phone: '024 123 4567',
       vehicleType: 'BICYCLE',
     });
 
+    expect(result.canSignIn).toBe(true);
     expect(tx.courier.create).toHaveBeenCalledWith({
       data: {
         name: 'New Rider',

@@ -8,6 +8,7 @@ import { captureAdminAlert } from '@/lib/admin-alerts';
 import { ensureAudience } from '@/lib/audiences';
 import { StoreUpsert } from '@/lib/contracts/store';
 import { prisma } from '@/lib/db';
+import { env } from '@/lib/env';
 import { requireAuth } from '@/lib/require-auth';
 import { serializeStore, storeSelect } from '@/lib/store-serializers';
 import { routeErrorResponse } from '@/lib/telemetry';
@@ -48,7 +49,23 @@ export async function PUT(request: Request) {
 
     const existing = await prisma.store.findUnique({ where: { userId: user.id } });
     const data = parsed.data;
-    if (!existing) await ensureAudience(user.id, 'OWNER');
+    if (!existing) {
+      // Pilot capacity is a SHOP cap. Counting users here would let a shopper
+      // signing in to claim an order consume a shop slot; the store row is the
+      // real unit of capacity. Existing shops can still edit freely.
+      const limit = env.SIGNUP_LIMIT;
+      if (limit != null && (await prisma.store.count()) >= limit) {
+        return NextResponse.json(
+          {
+            errors: {
+              form: `This pilot is limited to the first ${limit} shops and is now full.`,
+            },
+          },
+          { status: 403 },
+        );
+      }
+      await ensureAudience(user.id, 'OWNER');
+    }
     let store: StoreWithItems;
     try {
       store = existing

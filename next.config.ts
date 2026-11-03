@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
   ...userNextConfig,
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    ...userNextConfig.experimental,
+    // Keep agent-driven security upgrade prompts on for this app.
+    agentUpgrade: 'security',
+  },
 
   images: {
     remotePatterns: [...userRemotePatterns],

@@ -29,6 +29,10 @@ export const CourierJoinResult = z.object({
   ok: z.literal(true),
   storeName: z.string(),
   status: CourierMembershipStatus,
+  // True when an existing rider's phone was used from a browser that does not
+  // hold that rider's session. The membership is still recorded, but the route
+  // must not mint a login for an account the caller has not proven they own.
+  signInRequired: z.boolean().default(false),
 });
 
 export const CourierMembershipSummary = z.object({

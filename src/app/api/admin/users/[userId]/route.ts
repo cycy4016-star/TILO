@@ -9,6 +9,7 @@
 import 'server-only';
 
 import { NextResponse } from 'next/server';
+import { invalidateAdminAlertCache } from '@/lib/admin-alerts';
 import { auth } from '@/lib/auth';
 import { AdminUserRow, AdminUserUpdate } from '@/lib/contracts/admin';
 import { prisma } from '@/lib/db';
@@ -89,6 +90,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     if (role !== undefined) {
       await auth.api.setRole({ body: { userId, role }, headers: request.headers });
+      // New/removed admins must take effect in the alert fan-out immediately,
+      // not after the 30s settings cache expires.
+      invalidateAdminAlertCache();
     }
 
     const row = await loadRow(userId);
