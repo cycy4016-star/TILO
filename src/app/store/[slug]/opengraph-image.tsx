@@ -98,17 +98,19 @@ export default async function StoreOpengraphImage({ params }: ImageProps) {
             <div
               style={{
                 display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 width: 112,
                 height: 112,
                 borderRadius: 24,
-                backgroundImage: `url(${logo})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
                 backgroundColor: '#ffffff',
                 border: '2px solid rgba(10,10,10,0.08)',
+                overflow: 'hidden',
               }}
-            />
+            >
+              {/* biome-ignore lint/performance/noImgElement: next/og renders a canvas, not the DOM. */}
+              <img src={logo} alt="" width={104} height={104} style={{ objectFit: 'contain' }} />
+            </div>
           ) : (
             <div
               style={{
