@@ -9,7 +9,8 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { signOut, useIsAdmin, useSession } from '@/lib/auth-client';
+import { useIsAdmin, useSession } from '@/lib/auth-client';
+import { signOutAndClearPush } from '@/lib/sign-out';
 import { QuickAccessPanel } from '../assistive-menu';
 import { NotificationBell } from '../notification-bell';
 import { TilzaLogo } from '../tilza-logo';
@@ -38,7 +39,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   async function handleSignOut() {
     setSigningOut(true);
     try {
-      await signOut();
+      await signOutAndClearPush();
       router.replace('/login');
     } finally {
       setSigningOut(false);

@@ -17,6 +17,6 @@ export function isAdminRole(role: string | null | undefined): boolean {
   if (!role) return false;
   return role
     .split(',')
-    .map((part) => part.trim())
+    .map((part) => part.trim().toLowerCase())
     .includes(ADMIN_ROLE);
 }

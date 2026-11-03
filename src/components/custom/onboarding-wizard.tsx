@@ -453,6 +453,8 @@ export function OnboardingWizard() {
         setFieldErrors(inline);
         const field = inline.name ? 'name' : inline.slug ? 'slug' : 'phone';
         document.getElementById(`ob-${field}`)?.focus();
+      } else if (serverErrors?.form) {
+        toast.error(serverErrors.form);
       } else {
         toast.error('Could not save your shop — check your connection and try again');
       }

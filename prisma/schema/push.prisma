@@ -1,6 +1,11 @@
 model PushSubscription {
   id        String   @id @default(cuid())
   userId    String
+  // The Better Auth session this device was registered under. Sign-out (or a
+  // ban/revocation that deletes the session) clears the matching row so a
+  // logged-out phone stops receiving the account's alerts. Null on rows created
+  // before sessions were bound; those are cleared on the next sign-out.
+  sessionId String?
   endpoint  String   @unique
   p256dh    String
   auth      String
@@ -10,4 +15,5 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([sessionId])
 }

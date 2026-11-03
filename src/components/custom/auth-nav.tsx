@@ -3,7 +3,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { signOut, useSession } from '@/lib/auth-client';
+import { useSession } from '@/lib/auth-client';
+import { signOutAndClearPush } from '@/lib/sign-out';
 import { cn } from '@/lib/utils';
 
 interface AuthNavProps {
@@ -57,7 +58,7 @@ export function AuthNav({ variant = 'inline', onNavigate }: AuthNavProps) {
         onClick={async () => {
           setSigningOut(true);
           try {
-            await signOut();
+            await signOutAndClearPush();
             window.location.assign('/');
           } finally {
             setSigningOut(false);

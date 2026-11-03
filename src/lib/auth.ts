@@ -1,5 +1,5 @@
 import 'server-only';
-import { APIError, betterAuth } from 'better-auth';
+import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
 import { captureAdminAlert } from '@/lib/admin-alerts';
@@ -69,19 +69,9 @@ export const auth = betterAuth({
       create: {
         ...appHooks?.user?.create,
         before: async (user, ctx) => {
-          // Pilot capacity cap (optional). Runs on EVERY create path — a hard
-          // account limit is the way to hold "the first N shops". The pre-create
-          // count already excludes the pending row, so `>=` is exact.
-          const limit = env.SIGNUP_LIMIT;
-          if (limit) {
-            const count = await prisma.user.count();
-            if (count >= limit) {
-              throw APIError.from('FORBIDDEN', {
-                code: 'SIGNUP_LIMIT_REACHED',
-                message: `This pilot is limited to the first ${limit} shops and is now full.`,
-              });
-            }
-          }
+          // The pilot capacity cap is a SHOP cap and lives in the store-create
+          // route (/api/store), not here: shoppers sign in to claim an order
+          // without opening a shop and must not consume a shop slot.
           // Invite-code gate (optional). When SIGNUP_INVITE_CODE is set, only
           // sign-ups that present the exact code get through. Fully-verified
           // email identities (Google OAuth) are trusted and exempt. Returning
@@ -145,6 +135,27 @@ export const auth = betterAuth({
             ipAddress: session.ipAddress,
             userAgent: session.userAgent,
           });
+        },
+      },
+      // Push endpoints are device credentials. When the login they were bound
+      // to is deleted (sign-out, ban, revocation, expiry), delete the matching
+      // subscriptions so the phone stops receiving that account's alerts. Rows
+      // created before session binding have no id; they are cleared on the
+      // next sign-out for that account rather than being left forever.
+      delete: {
+        ...appHooks?.session?.delete,
+        after: async (session) => {
+          await appHooks?.session?.delete?.after?.(session, null);
+          try {
+            await prisma.pushSubscription.deleteMany({
+              where: {
+                userId: session.userId,
+                OR: [{ sessionId: session.id }, { sessionId: null }],
+              },
+            });
+          } catch {
+            // Cleanup must never block sign-out or session revocation.
+          }
         },
       },
     },

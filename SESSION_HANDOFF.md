@@ -130,7 +130,8 @@ dark ink. No gradients, no dark mode, no user-selectable theme presets.
   is `user`. Admin only unlocks the read-only monitor at `/dashboard/admin`.
 - Per-shop access comes from `userId` ownership (`src/lib/ownership.ts`), never
   from the role.
-- `SIGNUP_INVITE_CODE` gates non-Google sign-ups; `SIGNUP_LIMIT` caps accounts.
+- `SIGNUP_INVITE_CODE` gates non-Google sign-ups; `SIGNUP_LIMIT` caps shops
+  (shoppers can still sign in to claim orders).
 
 ---
 

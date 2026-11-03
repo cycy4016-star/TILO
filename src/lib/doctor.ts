@@ -172,24 +172,27 @@ async function checkVault(): Promise<CheckResult> {
 }
 
 async function checkSignups(): Promise<CheckResult> {
-  const users = await prisma.user.count();
+  // Pilot capacity caps SHOPS, not accounts: shoppers sign in to claim an
+  // order without opening a shop and must not consume a shop slot. The same
+  // store count gate runs in /api/store before a shop is created.
+  const shops = await prisma.store.count();
   const limit = env.SIGNUP_LIMIT;
 
   if (limit == null) {
     return {
       status: 'pass',
-      summary: `Sign-ups are open — no account cap is set (${users} account${users === 1 ? '' : 's'} so far).`,
+      summary: `Shops are open — no shop cap is set (${shops} shop${shops === 1 ? '' : 's'} so far).`,
       detail: null,
       actions: [],
     };
   }
 
-  const remaining = limit - users;
+  const remaining = limit - shops;
   if (remaining <= 0) {
     return {
       status: 'fail',
-      summary: `New sign-ups are BLOCKED — the account cap of ${limit} is full and the platform is turning people away.`,
-      detail: `SIGNUP_LIMIT=${limit} · accounts: ${users}`,
+      summary: `New shops are BLOCKED — the shop cap of ${limit} is full and the platform is turning people away.`,
+      detail: `SIGNUP_LIMIT=${limit} · shops: ${shops}`,
       actions: [
         'In Railway open the tilo service → Variables.',
         'Raise SIGNUP_LIMIT to a higher number — or delete the variable entirely to remove the cap.',
@@ -200,8 +203,8 @@ async function checkSignups(): Promise<CheckResult> {
   if (remaining <= Math.ceil(limit * 0.25)) {
     return {
       status: 'warn',
-      summary: `Only ${remaining} of ${limit} sign-up slots are left — the platform will start blocking new accounts soon.`,
-      detail: `SIGNUP_LIMIT=${limit} · accounts: ${users}`,
+      summary: `Only ${remaining} of ${limit} shop slots are left — the platform will start blocking new shops soon.`,
+      detail: `SIGNUP_LIMIT=${limit} · shops: ${shops}`,
       actions: [
         'Decide whether the cap should rise: in Railway open the tilo service → Variables.',
         'Raise SIGNUP_LIMIT — or delete the variable entirely to remove the cap.',
@@ -210,7 +213,7 @@ async function checkSignups(): Promise<CheckResult> {
   }
   return {
     status: 'pass',
-    summary: `Sign-ups are open: ${users} of ${limit} slots used, ${remaining} left before the cap closes sign-up.`,
+    summary: `New shops are open: ${shops} of ${limit} slots used, ${remaining} left before the cap closes shop creation.`,
     detail: null,
     actions: [],
   };

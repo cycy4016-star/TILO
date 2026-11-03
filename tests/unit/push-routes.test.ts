@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const auth = vi.hoisted(() => ({ requireAuth: vi.fn() }));
+const auth = vi.hoisted(() => ({ requireAuth: vi.fn(), requireSession: vi.fn() }));
 const push = vi.hoisted(() => ({
   isPushConfigured: vi.fn(),
   pushConfigurationStatus: vi.fn(),
@@ -31,6 +31,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.VAPID_PUBLIC_KEY = 'test-public-key';
   auth.requireAuth.mockResolvedValue({ id: 'user-1' });
+  auth.requireSession.mockResolvedValue({
+    session: { id: 'session-1' },
+    user: { id: 'user-1' },
+  });
   push.isPushConfigured.mockReturnValue(true);
   push.pushConfigurationStatus.mockResolvedValue({
     configured: true,
@@ -156,6 +160,7 @@ describe('push subscribe route', () => {
       where: { endpoint: subscription.endpoint },
       create: {
         userId: 'user-1',
+        sessionId: 'session-1',
         endpoint: subscription.endpoint,
         p256dh: 'browser-key',
         auth: 'browser-auth',
@@ -163,6 +168,7 @@ describe('push subscribe route', () => {
       },
       update: {
         userId: 'user-1',
+        sessionId: 'session-1',
         p256dh: 'browser-key',
         auth: 'browser-auth',
         userAgent: 'Vitest Browser',

@@ -103,8 +103,9 @@ See `.env.example` for the full list:
 - `SIGNUP_INVITE_CODE` — optional. When set, sign-ups that are not from a
   fully-verified email (i.e. not Google) must submit this exact invite code or
   they are rejected. Leave unset for open sign-up.
-- `SIGNUP_LIMIT` — optional. Hard cap on the number of accounts (the "first N
-  shops" gate for a pilot). Sign-up is rejected once the cap is reached.
+- `SIGNUP_LIMIT` — optional. Hard cap on the number of shops (the "first N
+  shops" gate for a pilot). Creating a shop is rejected once the cap is reached;
+  shoppers can still sign in and claim orders without using a shop slot.
 - `NEXT_PUBLIC_APP_URL` — public app origin for SEO/canonical URLs.
 - `NEXT_PUBLIC_API_URL` — optional, only for an external API origin.
 - `SEO_INDEXABLE` — set to `true` in production to allow indexing.

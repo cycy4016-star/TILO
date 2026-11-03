@@ -5,7 +5,7 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { CourierInviteInfo, CourierJoinInput, CourierJoinResult } from '@/lib/contracts/courier';
-import { createCourierSession } from '@/lib/courier-auth';
+import { createCourierSession, getCourierSession } from '@/lib/courier-auth';
 import { findInviteByToken, inviteIsUsable, joinCrew } from '@/lib/courier-invite';
 import { allow, ipOf } from '@/lib/rate-limit';
 import { routeErrorResponse } from '@/lib/telemetry';
@@ -57,21 +57,28 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
+    const courierSession = await getCourierSession();
     const joined = await joinCrew({
       inviteToken: token,
       name: parsed.data.name,
       phone: parsed.data.phone,
       vehicleType: parsed.data.vehicleType,
       plateNumber: parsed.data.plateNumber,
+      authenticatedCourierId: courierSession?.courier.id,
       request,
     });
-    await createCourierSession(joined.courierId, request);
+    // A phone that already belongs to a rider only gets a session when this
+    // browser already holds that rider's cookie. Otherwise the membership is
+    // recorded for the merchant, but the caller is told to return on the
+    // original device instead of being handed someone else's account.
+    if (joined.canSignIn) await createCourierSession(joined.courierId, request);
 
     return NextResponse.json(
       CourierJoinResult.parse({
         ok: true,
         storeName: joined.storeName,
         status: joined.status,
+        signInRequired: !joined.canSignIn,
       }),
     );
   } catch (error) {

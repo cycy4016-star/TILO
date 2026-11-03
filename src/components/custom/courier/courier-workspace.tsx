@@ -292,6 +292,7 @@ export function CourierWorkspace() {
   }
 
   async function logout() {
+    await unsubscribeFromPush('/api/courier/push').catch(() => undefined);
     await apiFetch('/api/courier/logout', { method: 'POST' }).catch(() => undefined);
     setMe(null);
     setUnauthorized(true);

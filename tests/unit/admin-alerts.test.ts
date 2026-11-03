@@ -68,7 +68,7 @@ describe('digestWindowStart', () => {
 
 describe('captureAdminAlert', () => {
   it('fires instantly for an admin with no setting row', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([]);
     db.prisma.adminAlert.createMany.mockResolvedValue({ count: 1 });
 
@@ -97,8 +97,25 @@ describe('captureAdminAlert', () => {
     expect(db.prisma.adminAlertEvent.createMany).not.toHaveBeenCalled();
   });
 
+  it('includes comma-separated admin roles and excludes lookalikes', async () => {
+    db.prisma.user.findMany.mockResolvedValue([
+      { id: 'a1', role: 'user,admin' },
+      { id: 'a2', role: 'administrator' },
+      { id: 'a3', role: 'user' },
+    ]);
+    db.prisma.adminAlertSetting.findMany.mockResolvedValue([]);
+    db.prisma.adminAlert.createMany.mockResolvedValue({ count: 1 });
+
+    const { captureAdminAlert } = await load();
+    await captureAdminAlert({ kind: 'ORDER', title: 'Order TILZA-2' });
+
+    expect(db.prisma.adminAlert.createMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({ userId: 'a1' })],
+    });
+  });
+
   it('stays silent when the cadence is OFF', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([
       { userId: 'a1', kind: 'ORDER', cadence: 'OFF', minAmountPesewas: null },
     ]);
@@ -111,7 +128,7 @@ describe('captureAdminAlert', () => {
   });
 
   it('applies the amount floor, but lets null amounts through', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([
       { userId: 'a1', kind: 'PAYMENT', cadence: 'INSTANT', minAmountPesewas: 5000 },
     ]);
@@ -129,7 +146,7 @@ describe('captureAdminAlert', () => {
   });
 
   it('defers HOURLY and DAILY cadences to the event table', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([
       { userId: 'a1', kind: 'ORDER', cadence: 'HOURLY', minAmountPesewas: null },
     ]);
@@ -155,7 +172,10 @@ describe('captureAdminAlert', () => {
   });
 
   it('splits delivery per admin when cadences differ', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }, { id: 'a2' }]);
+    db.prisma.user.findMany.mockResolvedValue([
+      { id: 'a1', role: 'admin' },
+      { id: 'a2', role: 'admin' },
+    ]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([
       { userId: 'a2', kind: 'ORDER', cadence: 'DAILY', minAmountPesewas: null },
     ]);
@@ -184,7 +204,7 @@ describe('captureAdminAlert', () => {
   });
 
   it('caches the admin + settings lookup until invalidated', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([]);
     db.prisma.adminAlert.createMany.mockResolvedValue({ count: 1 });
 
@@ -206,7 +226,7 @@ describe('flushDueAdminAlerts', () => {
   const H10 = Date.UTC(2026, 9, 18, 10);
 
   function prime() {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([
       { userId: 'a1', kind: 'ORDER', cadence: 'HOURLY' },
     ]);
@@ -217,7 +237,7 @@ describe('flushDueAdminAlerts', () => {
   }
 
   it('throttles without force', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([]);
     db.prisma.adminAlertEvent.updateMany.mockResolvedValue({ count: 0 });
 
@@ -355,7 +375,7 @@ describe('flushDueAdminAlerts', () => {
   });
 
   it('parks events whose cadence was switched off mid-window', async () => {
-    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1' }]);
+    db.prisma.user.findMany.mockResolvedValue([{ id: 'a1', role: 'admin' }]);
     db.prisma.adminAlertSetting.findMany.mockResolvedValue([]);
     db.prisma.adminAlertEvent.updateMany.mockResolvedValue({ count: 3 });
 

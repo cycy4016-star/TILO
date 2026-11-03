@@ -11,9 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { signOut, useSession } from '@/lib/auth-client';
+import { useSession } from '@/lib/auth-client';
 import { ProfileImageResult } from '@/lib/contracts/account';
 import { fitImageFile } from '@/lib/image';
+import { signOutAndClearPush } from '@/lib/sign-out';
 import { uploadImageFile } from '@/lib/uploads';
 
 export default function ProfilePage() {
@@ -156,7 +157,7 @@ export default function ProfilePage() {
             onClick={async () => {
               setSigningOut(true);
               try {
-                await signOut();
+                await signOutAndClearPush();
                 window.location.assign('/login');
               } finally {
                 setSigningOut(false);

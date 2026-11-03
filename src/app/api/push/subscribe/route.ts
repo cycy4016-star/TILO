@@ -8,14 +8,14 @@ import {
 } from '@/lib/contracts/push';
 import { prisma } from '@/lib/db';
 import { isPushConfigured } from '@/lib/push';
-import { requireAuth } from '@/lib/require-auth';
+import { requireAuth, requireSession } from '@/lib/require-auth';
 import { routeErrorResponse } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const user = await requireAuth(request);
+    const { user, session } = await requireSession(request);
     if (!isPushConfigured()) {
       return NextResponse.json({ error: 'Web Push is not configured' }, { status: 503 });
     }
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       where: { endpoint: input.endpoint },
       create: {
         userId: user.id,
+        sessionId: session.id,
         endpoint: input.endpoint,
         p256dh: input.keys.p256dh,
         auth: input.keys.auth,
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       },
       update: {
         userId: user.id,
+        sessionId: session.id,
         p256dh: input.keys.p256dh,
         auth: input.keys.auth,
         userAgent,

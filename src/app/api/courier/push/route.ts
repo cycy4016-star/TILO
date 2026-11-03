@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { courier } = await requireCourier(request);
+    const { courier, session } = await requireCourier(request);
     if (!isPushConfigured()) {
       return NextResponse.json({ error: 'Web Push is not configured' }, { status: 503 });
     }
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       where: { endpoint: input.endpoint },
       create: {
         courierId: courier.id,
+        sessionId: session.id,
         endpoint: input.endpoint,
         p256dh: input.keys.p256dh,
         auth: input.keys.auth,
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
       },
       update: {
         courierId: courier.id,
+        sessionId: session.id,
         p256dh: input.keys.p256dh,
         auth: input.keys.auth,
         userAgent: request.headers.get('user-agent')?.slice(0, 500) ?? null,
