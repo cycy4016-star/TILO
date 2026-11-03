@@ -8,7 +8,7 @@ DELETE FROM "user_audience" ua
 USING "user" u
 WHERE ua."userId" = u."id"
   AND ua."kind" = 'OWNER'
-  AND NOT EXISTS (SELECT 1 FROM "store" s WHERE s."userId" = u."id");
+  AND NOT EXISTS (SELECT 1 FROM "Store" s WHERE s."userId" = u."id");
 
 INSERT INTO "user_audience" ("id", "userId", "kind", "createdAt")
 SELECT
@@ -25,5 +25,5 @@ SELECT
   s."userId",
   'OWNER',
   CURRENT_TIMESTAMP
-FROM "store" s
+FROM "Store" s
 ON CONFLICT ("userId", "kind") DO NOTHING;
