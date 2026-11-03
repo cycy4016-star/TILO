@@ -4,6 +4,7 @@ import { ImageResponse } from 'next/og';
 import { z } from 'zod';
 import { AD_CARD, AD_TEXT, adPalette, clampText, nameFontSize } from '@/lib/ad-visuals';
 import { env } from '@/lib/env';
+import { detectImageMime } from '@/lib/image';
 import { siteUrl } from '@/lib/site';
 
 export const size = { width: 1200, height: 630 };
@@ -48,9 +49,9 @@ async function fetchLogo(value: string | null): Promise<string | null> {
   try {
     const res = await fetch(absoluteUrl(value), { cache: 'no-store' });
     if (!res.ok) return null;
-    const mime = res.headers.get('content-type') ?? '';
-    if (!mime.startsWith('image/')) return null;
     const bytes = Buffer.from(await res.arrayBuffer());
+    const mime = detectImageMime(bytes) ?? res.headers.get('content-type') ?? '';
+    if (!mime.startsWith('image/')) return null;
     return `data:${mime};base64,${bytes.toString('base64')}`;
   } catch {
     return null;

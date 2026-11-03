@@ -5,7 +5,9 @@
 // the hard server-side ceiling.
 import 'server-only';
 
-// MIME types we accept (and serve back verbatim).
+import { detectImageMime } from '@/lib/image';
+
+// MIME types we accept. The stored value comes from the bytes, not File.type.
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 export type ImagePurpose = 'item' | 'logo' | 'avatar' | 'promo' | 'banner' | 'proof';
@@ -39,5 +41,12 @@ export async function readImageUpload(
       error: `Image too large (max ${Math.round(MAX_BYTES[purpose] / 1024 / 1024)} MB after compression).`,
     };
   }
-  return { ok: true, bytes: new Uint8Array(await file.arrayBuffer()), mime };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  // Trust the bytes, not the label: Safari can hand back PNG bytes while the
+  // File is still called image/webp.
+  const actualMime = detectImageMime(bytes);
+  if (!actualMime) {
+    return { ok: false, error: 'That file is not a valid JPEG, PNG, WebP or GIF image.' };
+  }
+  return { ok: true, bytes, mime: actualMime };
 }

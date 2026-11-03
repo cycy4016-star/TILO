@@ -47,7 +47,10 @@ function itemRow(imageIds: string[] = []) {
   };
 }
 
-function uploadRequest(url: string, bytes = new Uint8Array([1, 2, 3])) {
+// JPEG magic bytes — upload validation now reads the bytes, not File.type.
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+
+function uploadRequest(url: string, bytes = JPEG_BYTES) {
   const form = new FormData();
   form.append('file', new File([bytes], 'photo.jpg', { type: 'image/jpeg' }));
   return new Request(url, { method: 'PUT', body: form });
@@ -88,6 +91,33 @@ describe('item gallery routes', () => {
       },
     });
     await expect(response.json()).resolves.toMatchObject({ imageIds: ['img-new'] });
+  });
+
+  it('stores the MIME detected from the bytes when File.type is wrong', async () => {
+    db.prisma.storeItemImage.count.mockResolvedValue(0);
+    db.prisma.storeItemImage.aggregate.mockResolvedValue({ _max: { position: null } });
+    db.prisma.storeItemImage.create.mockResolvedValue({ id: 'img-new' });
+
+    const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+    const form = new FormData();
+    form.append('file', new File([pngBytes], 'photo.webp', { type: 'image/webp' }));
+    const request = new Request('http://test/api/store/items/item-1/images', {
+      method: 'PUT',
+      body: form,
+    });
+
+    const { PUT } = await import('@/app/api/store/items/[itemId]/images/route');
+    const response = await PUT(request, { params: Promise.resolve({ itemId: 'item-1' }) });
+
+    expect(response.status).toBe(200);
+    expect(db.prisma.storeItemImage.create).toHaveBeenCalledWith({
+      data: {
+        itemId: 'item-1',
+        position: 0,
+        image: expect.any(Uint8Array),
+        imageMime: 'image/png',
+      },
+    });
   });
 
   it('stops at the gallery limit', async () => {

@@ -2,9 +2,10 @@
 // price (plus sale badge), and store link — downloaded from the share sheet
 // and pasted wherever the owner posts.
 import { ImageResponse } from 'next/og';
+import { formatAdPrice } from '@/lib/ad-visuals';
 import { brandVisual } from '@/lib/brand';
-import { formatGhs } from '@/lib/contracts/order';
 import { prisma } from '@/lib/db';
+import { detectImageMime } from '@/lib/image';
 import { itemDiscountPercent } from '@/lib/promotions';
 
 export const contentType = 'image/png';
@@ -27,7 +28,9 @@ export async function GET(_request: Request, context: RouteContext) {
 
     const logoSrc =
       item.store.logo != null
-        ? `data:${item.store.logoMime ?? 'image/jpeg'};base64,${Buffer.from(item.store.logo).toString('base64')}`
+        ? `data:${
+            detectImageMime(item.store.logo) ?? item.store.logoMime ?? 'image/jpeg'
+          };base64,${Buffer.from(item.store.logo).toString('base64')}`
         : null;
     const storeUrl = `tilza.org/store/${item.store.slug}`;
 
@@ -64,11 +67,11 @@ export async function GET(_request: Request, context: RouteContext) {
           <div style={{ display: 'flex', fontSize: 64, fontWeight: 800 }}>{item.name}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 12 }}>
             <div style={{ display: 'flex', fontSize: 56, fontWeight: 800, color: '#9a3412' }}>
-              {formatGhs(item.pricePesewas)}
+              {formatAdPrice(item.pricePesewas)}
             </div>
             {discount != null ? (
               <div style={{ display: 'flex', fontSize: 32, marginLeft: 20, opacity: 0.75 }}>
-                {`was ${formatGhs(item.compareAtPricePesewas ?? 0)} (−${discount}%)`}
+                {`was ${formatAdPrice(item.compareAtPricePesewas ?? 0)} (−${discount}%)`}
               </div>
             ) : null}
           </div>

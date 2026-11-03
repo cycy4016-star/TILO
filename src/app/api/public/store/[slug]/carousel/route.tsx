@@ -18,6 +18,7 @@ import {
 } from '@/lib/ad-visuals';
 import { adFormat, CAROUSEL_MAX } from '@/lib/ads';
 import { prisma } from '@/lib/db';
+import { detectImageMime } from '@/lib/image';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { allow, ipOf } from '@/lib/rate-limit';
 
@@ -84,7 +85,8 @@ const LAYOUT: Record<'square' | 'story' | 'wide', Layout> = {
 };
 
 function toDataUrl(bytes: Uint8Array, mime: string | null): string {
-  return `data:${mime ?? 'image/jpeg'};base64,${Buffer.from(bytes).toString('base64')}`;
+  const actualMime = detectImageMime(bytes) ?? mime ?? 'image/jpeg';
+  return `data:${actualMime};base64,${Buffer.from(bytes).toString('base64')}`;
 }
 
 function chunk<T>(list: T[], size: number): T[][] {

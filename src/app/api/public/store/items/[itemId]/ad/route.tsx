@@ -23,6 +23,7 @@ import {
 } from '@/lib/ad-visuals';
 import { adFormat } from '@/lib/ads';
 import { prisma } from '@/lib/db';
+import { detectImageMime } from '@/lib/image';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { itemDiscountPercent } from '@/lib/promotions';
 import { allow, ipOf } from '@/lib/rate-limit';
@@ -37,7 +38,8 @@ type RouteContext = { params: Promise<{ itemId: string }> };
 const CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 
 function toDataUrl(bytes: Uint8Array, mime: string | null): string {
-  return `data:${mime ?? 'image/jpeg'};base64,${Buffer.from(bytes).toString('base64')}`;
+  const actualMime = detectImageMime(bytes) ?? mime ?? 'image/jpeg';
+  return `data:${actualMime};base64,${Buffer.from(bytes).toString('base64')}`;
 }
 
 export async function GET(request: Request, context: RouteContext) {

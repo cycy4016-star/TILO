@@ -4,6 +4,7 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { detectImageMime } from '@/lib/image';
 import { requireAdminUser } from '@/lib/require-admin-api';
 import { routeErrorResponse } from '@/lib/telemetry';
 
@@ -22,7 +23,7 @@ export async function GET(request: Request, context: RouteContext) {
     if (!proof) return NextResponse.json({ error: 'Proof not found' }, { status: 404 });
     return new Response(proof.data, {
       headers: {
-        'content-type': proof.mime,
+        'content-type': detectImageMime(proof.data) ?? proof.mime,
         'cache-control': 'private, no-store',
         'content-disposition': 'inline',
       },

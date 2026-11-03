@@ -5,6 +5,7 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { detectImageMime } from '@/lib/image';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { routeErrorResponse } from '@/lib/telemetry';
 
@@ -26,7 +27,7 @@ export async function GET(request: Request, context: RouteContext) {
     if (fresh) return fresh;
     return new Response(store.banner, {
       headers: {
-        'content-type': store.bannerMime ?? 'image/jpeg',
+        'content-type': detectImageMime(store.banner) ?? store.bannerMime ?? 'image/jpeg',
         ...imageCacheHeaders(store.updatedAt),
       },
     });

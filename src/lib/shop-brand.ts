@@ -131,7 +131,9 @@ async function fileFromCanvas(canvas: HTMLCanvasElement, name: string): Promise<
   const webp = await new Promise<Blob | null>((resolve) => {
     canvas.toBlob((blob) => resolve(blob), 'image/webp', 0.9);
   });
-  if (webp && webp.size > 0) {
+  // Some browsers fall back to PNG bytes while keeping the requested MIME.
+  // Only label the file WebP when the encoder actually returned WebP.
+  if (webp && webp.size > 0 && webp.type === 'image/webp') {
     return new File([webp], `${name}.webp`, { type: 'image/webp' });
   }
   const png = await new Promise<Blob | null>((resolve) => {

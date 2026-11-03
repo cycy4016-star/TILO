@@ -4,6 +4,7 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { detectImageMime } from '@/lib/image';
 import { imageCacheHeaders, notModified } from '@/lib/image-response';
 import { routeErrorResponse } from '@/lib/telemetry';
 
@@ -25,7 +26,7 @@ export async function GET(request: Request, context: RouteContext) {
     if (fresh) return fresh;
     return new Response(category.cover, {
       headers: {
-        'content-type': category.coverMime ?? 'image/jpeg',
+        'content-type': detectImageMime(category.cover) ?? category.coverMime ?? 'image/jpeg',
         ...imageCacheHeaders(category.updatedAt),
       },
     });

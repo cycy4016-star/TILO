@@ -99,7 +99,12 @@ describe('catalogue creation flow', () => {
     form.append('payload', JSON.stringify({ name: 'Widget', pricePesewas: 2500 }));
     form.append(
       'file',
-      new File([new Uint8Array([1, 2, 3])], 'widget.webp', { type: 'image/webp' }),
+      new File(
+        // RIFF....WEBP magic bytes — the server now validates the bytes, not File.type.
+        [new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])],
+        'widget.webp',
+        { type: 'image/webp' },
+      ),
     );
     const { POST } = await import('@/app/api/store/items/route');
     const response = await POST(
